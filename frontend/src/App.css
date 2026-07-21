@@ -1,0 +1,86 @@
+.myblab-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.myblab-app {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  background: #0b0f14;
+  min-height: 0;
+}
+
+/* ===== Thème clair ===== */
+/* Surcharge des couleurs sombres par défaut quand .theme-light est actif */
+
+.theme-light .myblab-app {
+  background: #f8fafc;
+}
+
+.theme-light .myblab-navbar {
+  background: #e2e8f0;
+  border-bottom-color: #cbd5e1;
+}
+
+.theme-light .navbar-logo {
+  color: #0f172a;
+}
+
+.theme-light .navbar-actions button {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+.theme-light .navbar-actions button:hover {
+  background: #94a3b8;
+}
+
+.theme-light .separator {
+  background: #94a3b8;
+}
+
+.theme-light .myblab-sidebar {
+  background: #f1f5f9;
+  border-right-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.theme-light .myblab-sidebar__tagline,
+.theme-light .myblab-sidebar__title,
+.theme-light .myblab-sidebar__help {
+  color: #475569;
+}
+
+.theme-light .myblab-palette__item {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.theme-light .myblab-palette__item:hover {
+  background: #cbd5e1;
+}
+
+.theme-light .simulation-canvas {
+  background: #f8fafc;
+}
+
+.theme-light .simulation-canvas__hint {
+  color: #94a3b8;
+}
+
+.theme-light .myblab-grid {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+}
+
+.theme-light .myblab-statusbar {
+  background: #e2e8f0;
+  border-top-color: #cbd5e1;
+  color: #475569;
+}

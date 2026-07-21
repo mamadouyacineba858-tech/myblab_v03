@@ -1,0 +1,58 @@
+.myblab-navbar{
+    height:60px;
+    background:#1b2635;
+    border-bottom:1px solid #2e3d51;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:0 20px;
+}
+
+.navbar-logo{
+    color:white;
+    font-size:24px;
+    font-weight:bold;
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.navbar-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.navbar-actions button{
+
+    background:#314158;
+    color:white;
+
+    border:none;
+
+    padding:8px 16px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.navbar-actions button:hover{
+
+    background:#46607f;
+
+}
+
+.separator{
+
+    width:1px;
+    height:30px;
+
+    background:#55657c;
+
+}

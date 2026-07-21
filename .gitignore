@@ -1,0 +1,53 @@
+# ==================================================
+# MYBlab - Root Git Ignore
+# ==================================================
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build / Distribution
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+
+# Environment / Local configuration
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+.DS_Store
+
+# IDE / Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Backend local data / runtime
+backend/.cache/
+backend/tmp/
+backend/logs/
+
+# Local development
+*.local

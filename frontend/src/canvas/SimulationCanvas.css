@@ -1,0 +1,37 @@
+.simulation-canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #0b0f14;
+  overflow: hidden;
+}
+
+.simulation-canvas__components {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+}
+
+.simulation-canvas__hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #64748b;
+  font-size: 0.95rem;
+  pointer-events: none;
+  margin: 0;
+  max-width: 320px;
+  text-align: center;
+}
+.simulation-canvas__zoom-layer {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+.simulation-canvas__components {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}

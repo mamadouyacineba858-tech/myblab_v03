@@ -1,0 +1,255 @@
+.circuit-component {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  z-index: 5;
+}
+
+.circuit-component:active {
+  cursor: grabbing;
+}
+
+.circuit-component__body {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background: #1a1f2e;
+  border: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.part-led {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background: #222;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.part-led--on {
+  background: #14532d;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
+}
+
+.part-led__bulb {
+  font-size: 1.25rem;
+}
+
+.part-arduino__board {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #0d9488 0%, #065f46 100%);
+  border-radius: 4px;
+  padding: 8px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.part-arduino__title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ecfdf5;
+  letter-spacing: 0.05em;
+}
+
+.part-arduino__chip {
+  display: block;
+  width: 36px;
+  height: 20px;
+  margin-top: 12px;
+  background: #111;
+  border-radius: 2px;
+}
+
+.part-button__cap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #555, #222);
+  border: 2px solid #444;
+  margin: auto;
+}
+
+.part-power {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 100%;
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.part-power__plus {
+  color: #ef4444;
+}
+
+.part-power__gnd {
+  color: #64748b;
+}
+
+.part-capacitor {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.part-capacitor__lead {
+  width: 12px;
+  height: 2px;
+  background: #9ca3af;
+}
+
+.part-capacitor__plate {
+  width: 3px;
+  height: 20px;
+  background: #e2e8f0;
+  border-radius: 2px;
+}
+
+.part-buzzer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.part-buzzer__body {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #0f172a;
+  border: 2px solid #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.part-buzzer__symbol {
+  font-size: 9px;
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.part-potentiometer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.part-potentiometer__track {
+  width: 52px;
+  height: 6px;
+  border-radius: 999px;
+  background: #64748b;
+}
+
+.part-potentiometer__knob {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 16px;
+  border-radius: 4px;
+  background: #f59e0b;
+}
+
+.part-generic {
+  font-size: 11px;
+  font-weight: 700;
+  color: #cbd5e1;
+  letter-spacing: 0.03em;
+}
+
+.part-diode {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.part-diode__lead {
+  width: 14px;
+  height: 2px;
+  background: #94a3b8;
+}
+
+.part-diode__triangle {
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 12px solid #f8fafc;
+}
+
+.part-diode__bar {
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: #f8fafc;
+}
+
+.part-rgb-led {
+  display: flex;
+  gap: 6px;
+}
+
+.part-rgb-led__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.part-rgb-led__dot--r {
+  background: #ef4444;
+}
+
+.part-rgb-led__dot--g {
+  background: #22c55e;
+}
+
+.part-rgb-led__dot--b {
+  background: #3b82f6;
+}
+
+.part-servo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #1e40af;
+  border: 2px solid #60a5fa;
+  position: relative;
+}
+
+.part-servo__horn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 4px;
+  transform: translate(-50%, -50%);
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.part-unknown {
+  color: #94a3b8;
+}
+.circuit-component {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  z-index: 5;
+  pointer-events: auto;
+}

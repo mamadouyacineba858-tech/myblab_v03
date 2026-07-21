@@ -1,0 +1,7 @@
+.marquee-overlay {
+    position: absolute;
+    border: 1px dashed #22c55e;
+    background-color: rgba(34, 197, 94, 0.1);
+    pointer-events: none;
+    z-index: 1000;
+}

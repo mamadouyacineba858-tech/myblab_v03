@@ -1,0 +1,16 @@
+.myblab-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 6px 16px;
+  background: #111827;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  border-top: 1px solid #1f2937;
+}
+
+.myblab-statusbar__item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

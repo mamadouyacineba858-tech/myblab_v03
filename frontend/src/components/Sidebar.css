@@ -1,0 +1,110 @@
+.myblab-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #111827;
+  border-right: 1px solid #1f2937;
+  color: #e2e8f0;
+  padding: 16px 12px;
+  box-sizing: border-box;
+}
+
+.myblab-sidebar__header {
+  margin-bottom: 20px;
+}
+
+.myblab-sidebar__logo {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: -0.02em;
+}
+
+.myblab-sidebar__tagline {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.myblab-sidebar__section {
+  margin-bottom: 20px;
+}
+
+.myblab-sidebar__title {
+  margin: 0 0 10px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.myblab-palette {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.myblab-palette__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #1e293b;
+  color: inherit;
+  cursor: grab;
+  font-size: 0.875rem;
+  text-align: left;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.myblab-palette__item:hover {
+  background: #334155;
+  border-color: #475569;
+}
+
+.myblab-palette__icon {
+  font-size: 1.1rem;
+}
+
+.myblab-sidebar__help {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #94a3b8;
+}
+
+.myblab-sidebar__footer {
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.myblab-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: none;
+}
+
+.myblab-btn--ghost {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid #334155;
+}
+
+.myblab-btn--ghost:hover {
+  color: #f87171;
+  border-color: #f87171;
+}
