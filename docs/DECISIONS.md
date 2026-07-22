@@ -12,3 +12,14 @@
 
 ### Invariant
 Aucune nouvelle fonctionnalité ne doit être ouverte tant que le dépôt n’est pas propre et tagué.
+## Décision — Audit Git (21 juillet 2026)
+... contenu déjà consigné ...
+
+---
+
+## Décision — Audit Lint (22 juillet 2026)
+- Erreurs: 16, Warnings: 2
+- P0: doublons CircuitContext, hooks non conformes
+- P1: ArduinoSimulator.js, SimulationCanvas.jsx
+- P2: incohérences de style
+ACTION: Ticket MB-004.6 pour correction P0/P1
