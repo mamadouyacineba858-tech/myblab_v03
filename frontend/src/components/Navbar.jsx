@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from "react";
-import { useCircuit } from "../context/CircuitContext.jsx";
+import { useCircuit } from "../context/useCircuit.js"
 import { SettingsPanel } from "./SettingsPanel.jsx";
 import "./Navbar.css";
 export function Navbar() {

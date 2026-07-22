@@ -1,4 +1,4 @@
-import { useCircuit } from "../context/CircuitContext.jsx";
+import { useCircuit } from "../context/useCircuit.js"
 import "./SettingsPanel.css";
 
 /**

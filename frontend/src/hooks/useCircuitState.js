@@ -183,15 +183,17 @@ export function useCircuitState(canvasRef) {
       return
     }
     const key = getSelectionKey(item.type, item.id)
-    setSelection(new Set([key])) 
-    setActiveItem(item)
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.assert(
-        activeItem === null || selection.has(getSelectionKey(activeItem.type, activeItem.id)),
-        "Invariant IA-01 violé : activeItem doit appartenir à selection"
-      )
-    }
+const nextSelection = new Set([key])
+
+setSelection(nextSelection)
+setActiveItem(item)
+
+if (import.meta.env.DEV) {
+  console.assert(
+    nextSelection.has(getSelectionKey(item.type, item.id)),
+    "Invariant IA-01 violé : activeItem doit appartenir à selection"
+  )
+}
   }, [])
 
   const toggleSelection = useCallback((item) => {
@@ -210,7 +212,7 @@ export function useCircuitState(canvasRef) {
       const newActiveItem = promoteActiveItem(next)
       setActiveItem(newActiveItem)
       
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.assert(
           newActiveItem === null || next.has(getSelectionKey(newActiveItem.type, newActiveItem.id)),
           "Invariant IA-01 violé : activeItem doit appartenir à selection"
@@ -267,7 +269,7 @@ export function useCircuitState(canvasRef) {
       const newActiveItem = promoteActiveItem(next)
       setActiveItem(newActiveItem)
 
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.assert(
           newActiveItem === null || next.has(getSelectionKey(newActiveItem.type, newActiveItem.id)),
           "Invariant IA-01 violé : activeItem doit appartenir à selection"
@@ -356,11 +358,8 @@ export function useCircuitState(canvasRef) {
     return ids
   }, [selection])
 
-  const endDrag = useCallback(() => {
-    dragSessionRef.current = null
-  }, [])
 
-  const startDrag = useCallback((event, uid, componentX, componentY) => {
+  const startDrag = useCallback((event, uid) => {
     if (!uid || !canvasRef?.current) return
     
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active

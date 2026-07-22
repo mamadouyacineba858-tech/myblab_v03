@@ -1,10 +1,9 @@
-import { createContext, useContext } from "react"
 import { useCircuitState } from "../hooks/useCircuitState.js"
-
-const CircuitContext = createContext(null)
+import { CircuitContext } from "./CircuitContext.js"
 
 /**
- * Fournit l'état circuit unifié (composants, fils, câblage, drag, simulation).
+ * Fournit l'état circuit unifié
+ * (composants, fils, câblage, drag, simulation).
  */
 export function CircuitProvider({ children, canvasRef }) {
   const value = useCircuitState(canvasRef)
@@ -14,13 +13,4 @@ export function CircuitProvider({ children, canvasRef }) {
       {children}
     </CircuitContext.Provider>
   )
-}
-
-/** @returns {ReturnType<typeof useCircuitState>} */
-export function useCircuit() {
-  const ctx = useContext(CircuitContext)
-  if (!ctx) {
-    throw new Error("useCircuit doit être utilisé dans CircuitProvider")
-  }
-  return ctx
 }

@@ -65,9 +65,9 @@ export class HistoryCommand {
      * @param {HistoryCommand} next - La commande suivante à fusionner
      * @returns {boolean} - true si les commandes peuvent être fusionnées
      */
-    canMerge(next) {
-        return false
-    }
+   canMerge() {
+    return false
+}
 
     /**
      * Fusionne deux commandes.
@@ -82,9 +82,9 @@ export class HistoryCommand {
      * @returns {HistoryCommand} - La commande fusionnée
      * @abstract
      */
-    merge(next) {
-        throw new Error('merge() must be implemented if canMerge() can return true')
-    }
+   merge() {
+    throw new Error('merge() must be implemented if canMerge() can return true')
+}
 
     /**
      * Retourne une description lisible de la commande (pour debug).

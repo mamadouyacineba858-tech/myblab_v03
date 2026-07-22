@@ -38,10 +38,12 @@ export class ArduinoSimulator {
    * @param {number} _deltaMs
    * @returns {Map<string, string>} pinId → Signal pour ce composant
    */
-  tick(_deltaMs) {
+  tick(deltaMs) {
+    void deltaMs
+
     if (!this.running) return new Map()
     return new Map()
-  }
+}
 
   /**
    * API future : digitalWrite(pin, HIGH|LOW)
@@ -55,7 +57,10 @@ export class ArduinoSimulator {
   /**
    * API future : analogWrite (PWM)
    */
-  analogWrite(_pin, _value) {
+  analogWrite(pin, value) {
+    void pin
+    void value
+
     // PWM à implémenter
-  }
+}
 }

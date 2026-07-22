@@ -1,5 +1,5 @@
 import "./WiresLayer.css"
-import { useCircuit } from "../context/CircuitContext.jsx"
+import { useCircuit } from "../context/useCircuit.js"
 
 export function WiresLayer({ wirePaths = [] }) {
   const paths = Array.isArray(wirePaths) ? wirePaths : []

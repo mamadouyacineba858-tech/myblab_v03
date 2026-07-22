@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { useCircuit } from "../context/CircuitContext.jsx"
+import { useCircuit } from "../context/useCircuit.js"
 
 /**
  * Hook pour la gestion des raccourcis clavier.
@@ -92,5 +92,16 @@ if (
 
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [cancelMarquee, isWiringActive, cancelWiring, activeItem, clearSelection, deleteSelection])
+   }, [
+    cancelMarquee,
+    isWiringActive,
+    cancelWiring,
+    activeItem,
+    clearSelection,
+    deleteSelection,
+    canUndo,
+    canRedo,
+    undo,
+    redo,
+])
 }

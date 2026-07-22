@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
-import { useCircuit } from "../context/CircuitContext.jsx"
+import { useCircuit } from "../context/useCircuit.js"
 import { Pin } from "./Pin.jsx"
 import { PartRenderer } from "../components/parts/PartRenderer.jsx"
 import "./CircuitComponent.css"

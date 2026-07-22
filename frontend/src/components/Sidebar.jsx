@@ -1,6 +1,6 @@
 import { useCallback } from "react"
 import { PALETTE_ITEMS } from "../config/componentDefinitions.js"
-import { useCircuit } from "../context/CircuitContext.jsx"
+import { useCircuit } from "../context/useCircuit.js"
 import "./Sidebar.css"
 
 /**

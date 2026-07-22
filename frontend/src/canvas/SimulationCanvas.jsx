@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react"
-import { useCircuit } from "../context/CircuitContext.jsx"
+import { useCircuit } from "../context/useCircuit.js"
 import { GridBackground } from "./GridBackground.jsx"
 import { CircuitComponent } from "./CircuitComponent.jsx"
 import { WiresLayer } from "../wires/WiresLayer.jsx"
@@ -14,8 +14,6 @@ export function SimulationCanvas() {
     canvasRef, zoom, showGrid,
     activeItem, clearSelection,
     startMarquee,
-    cancelMarquee,
-    resetMarqueeClickFlag,
     marqueeRect,
   } = useCircuit()
 
@@ -49,7 +47,7 @@ export function SimulationCanvas() {
     startMarquee(e)
   }, [canvasRef, isWiringActive, startMarquee])
 
-  const handleCanvasClick = useCallback((e) => {
+ const handleCanvasClick = useCallback(() => {
     // Si un marquee vient de se terminer avec sélection, ignorer le clic
     if (isMarqueeActiveRef.current) {
       isMarqueeActiveRef.current = false

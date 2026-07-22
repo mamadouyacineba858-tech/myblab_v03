@@ -1,5 +1,6 @@
 import { useRef } from "react";
-import { CircuitProvider, useCircuit } from "./context/CircuitContext.jsx";
+import { CircuitProvider } from "./context/CircuitContext.jsx"
+import { useCircuit } from "./context/useCircuit.js"
 
 import { Navbar } from "./components/Navbar.jsx";
 import { Sidebar } from "./components/Sidebar.jsx";
