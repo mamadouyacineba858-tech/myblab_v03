@@ -20,6 +20,7 @@ import { runSimulation } from "../simulator/engine.js"
 import { getSelectionKey, parseSelectionKey, promoteActiveItem } from "../utils/selection.js"
 import { HistoryManager } from "../history/HistoryManager.js"
 import { MoveCommand } from "../history/commands/MoveCommand.js"
+import { DeleteCommand } from "../history/commands/DeleteCommand.js"
 
 const EMPTY_MAP = new Map()
 
@@ -123,12 +124,39 @@ export function useCircuitState(canvasRef) {
   }, [])
 
   // =========================================================================
-  // MB-004.5 : Document API pour les commandes (après updateComponentPositions)
+  // MB-004.5 : Document API pour les commandes
   // =========================================================================
   
   const documentApi = useMemo(() => ({
     updateComponentPositions,
-    // futures API : addComponent, removeComponent, addWire, removeWire, etc.
+    removeComponents: (componentIds) => {
+      setComponents(prev => prev.filter(c => !componentIds.includes(c.uid)))
+    },
+    removeWires: (wireIds) => {
+      setWires(prev => prev.filter(w => !wireIds.includes(w.id)))
+    },
+    restoreComponents: (componentsToRestore) => {
+      setComponents(prev => {
+        const newComponents = [...prev]
+        for (const comp of componentsToRestore) {
+          if (!newComponents.find(c => c.uid === comp.uid)) {
+            newComponents.push(comp)
+          }
+        }
+        return newComponents
+      })
+    },
+    restoreWires: (wiresToRestore) => {
+      setWires(prev => {
+        const newWires = [...prev]
+        for (const wire of wiresToRestore) {
+          if (!newWires.find(w => w.id === wire.id)) {
+            newWires.push(wire)
+          }
+        }
+        return newWires
+      })
+    }
   }), [updateComponentPositions])
 
   // =========================================================================
@@ -303,8 +331,9 @@ if (import.meta.env.DEV) {
   }, [removeConnectedWires, removeComponent])
 
   // =========================================================================
-  // RAFFINEMENT MB-003.3 : Orchestration robuste et optimisée (O(1))
+  // MB-004.6 : DeleteCommand — Suppression avec historique
   // =========================================================================
+
   const deleteSelection = useCallback(() => {
     const keysToDelete = Array.from(selection)
     if (keysToDelete.length === 0) return
@@ -321,27 +350,62 @@ if (import.meta.env.DEV) {
       }
     })
 
-    const wireById = new Map(safeWires.map(w => [w.id, w]))
-    
-    const wiresToDelete = new Set()
-    initialWiresToDelete.forEach((wireId) => {
-      const wire = wireById.get(wireId)
-      if (wire && !componentsToDelete.has(wire.fromUid) && !componentsToDelete.has(wire.toUid)) {
-        wiresToDelete.add(wireId)
+    // Capturer les données réelles AVANT suppression
+    const deletedComponents = new Map()
+    const deletedWires = new Map()
+
+    const componentMap = new Map(safeComponents.map(c => [c.uid, c]))
+    const wireMap = new Map(safeWires.map(w => [w.id, w]))
+
+    // 1. Capturer les composants sélectionnés
+    componentsToDelete.forEach(uid => {
+      const comp = componentMap.get(uid)
+      if (comp) {
+        deletedComponents.set(uid, { ...comp })
       }
     })
 
-    wiresToDelete.forEach((wireId) => {
-      removeWire(wireId)
+    // 2. Capturer les wires sélectionnés
+    initialWiresToDelete.forEach(wireId => {
+      const wire = wireMap.get(wireId)
+      if (wire) {
+        deletedWires.set(wireId, { ...wire })
+      }
     })
 
-    componentsToDelete.forEach((compId) => {
-      deleteComponent(compId)
+    // 3. Capturer les wires connectés aux composants supprimés
+    componentsToDelete.forEach(uid => {
+      const connected = safeWires.filter(w => w.fromUid === uid || w.toUid === uid)
+      for (const wire of connected) {
+        if (!deletedWires.has(wire.id)) {
+          deletedWires.set(wire.id, { ...wire })
+        }
+      }
     })
 
+    // 4. Vérifier qu'il y a quelque chose à supprimer
+    if (deletedComponents.size === 0 && deletedWires.size === 0) {
+      setSelection(new Set())
+      setActiveItem(null)
+      return
+    }
+
+    // 5. Créer et exécuter la commande
+    const command = new DeleteCommand(
+      documentApi,
+      deletedComponents,
+      deletedWires
+    )
+    historyManagerRef.current.execute(command)
+
+    // 6. Vider la sélection
     setSelection(new Set())
     setActiveItem(null)
-  }, [selection, safeWires, removeWire, deleteComponent])
+  }, [selection, safeComponents, safeWires, documentApi])
+
+  // =========================================================================
+  // FIN MB-004.6
+  // =========================================================================
 
   // =========================================================================
   // POINTER INTERACTION SYSTEM — Drag (MB-003.3.3 + MB-004.5)
