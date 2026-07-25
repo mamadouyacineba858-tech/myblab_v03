@@ -13,7 +13,8 @@
 
 import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { CircuitProvider, useCircuit } from '../context/CircuitContext.jsx'
+import { CircuitProvider } from '../context/CircuitContext.jsx'
+import { useCircuit } from '../context/useCircuit.js'
 
 const wrapper = ({ children }) => (
     <CircuitProvider>{children}</CircuitProvider>

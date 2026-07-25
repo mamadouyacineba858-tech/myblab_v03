@@ -63,7 +63,9 @@ export function useCircuitState(canvasRef) {
   const canRedo = useCallback(() => {
     return historyManagerRef.current.canRedo()
   }, [])
-
+const getUndoCount = useCallback(() => {
+  return historyManagerRef.current.getUndoCount()
+}, [])
   // =========================================================================
   // FIN MB-004.3
   // =========================================================================
@@ -740,40 +742,134 @@ if (import.meta.env.DEV) {
   const setThemeMode = useCallback((mode) => { if (mode !== "dark" && mode !== "light") return; setTheme(mode) }, [])
 
   return useMemo(() => ({
-    canvasRef, components: safeComponents, wires: safeWires, wirePaths, connectedPins, pinSignals,
-    pendingPin, isWiringActive,
-    selection, activeItem,
-    simulationActive, zoom, showGrid, theme,
-    addComponent, moveComponent, clearCircuit, onPinClick, cancelWiring, isPinPending, isPinConnected,
-    startDrag, startSimulation, stopSimulation, zoomIn, zoomOut, exportCircuit, importCircuit, toggleGrid, setThemeMode,
-    selectOnly, toggleSelection, isSelected, clearSelection, deleteSelection,
-    selectItem, deselectWire, deleteSelectedWire,
-    removeWire, removeComponent, removeConnectedWires, deleteComponent,
-    updateComponentPositions,
-    startMarquee,
-    cancelMarquee,
-    resetMarqueeClickFlag,
-    marqueeRect,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-  }), [
-    canvasRef, safeComponents, safeWires, wirePaths, connectedPins, pinSignals, pendingPin, isWiringActive,
-    selection, activeItem, simulationActive, zoom, showGrid, theme,
-    addComponent, moveComponent, clearCircuit, onPinClick, cancelWiring, isPinPending, isPinConnected,
-    startDrag, startSimulation, stopSimulation, zoomIn, zoomOut, exportCircuit, importCircuit, toggleGrid, setThemeMode,
-    selectOnly, toggleSelection, isSelected, clearSelection, deleteSelection,
-    selectItem, deselectWire, deleteSelectedWire,
-    removeWire, removeComponent, removeConnectedWires, deleteComponent,
-    updateComponentPositions,
-    startMarquee,
-    cancelMarquee,
-    resetMarqueeClickFlag,
-    marqueeRect,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-  ])
+  canvasRef,
+  components: safeComponents,
+  wires: safeWires,
+  wirePaths,
+  connectedPins,
+  pinSignals,
+
+  pendingPin,
+  isWiringActive,
+
+  selection,
+  activeItem,
+
+  simulationActive,
+  zoom,
+  showGrid,
+  theme,
+
+  addComponent,
+  addWire,
+  moveComponent,
+  clearCircuit,
+  onPinClick,
+  cancelWiring,
+  isPinPending,
+  isPinConnected,
+
+  startDrag,
+  startSimulation,
+  stopSimulation,
+  zoomIn,
+  zoomOut,
+  exportCircuit,
+  importCircuit,
+  toggleGrid,
+  setThemeMode,
+
+  selectOnly,
+  toggleSelection,
+  isSelected,
+  clearSelection,
+  deleteSelection,
+
+  selectItem,
+  deselectWire,
+  deleteSelectedWire,
+
+  removeWire,
+  removeComponent,
+  removeConnectedWires,
+  deleteComponent,
+
+  updateComponentPositions,
+
+  startMarquee,
+  cancelMarquee,
+  resetMarqueeClickFlag,
+  marqueeRect,
+
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+  getUndoCount,
+}), [
+  canvasRef,
+  safeComponents,
+  safeWires,
+  wirePaths,
+  connectedPins,
+  pinSignals,
+
+  pendingPin,
+  isWiringActive,
+
+  selection,
+  activeItem,
+
+  simulationActive,
+  zoom,
+  showGrid,
+  theme,
+
+  addComponent,
+  addWire,
+  moveComponent,
+  clearCircuit,
+  onPinClick,
+  cancelWiring,
+  isPinPending,
+  isPinConnected,
+
+  startDrag,
+  startSimulation,
+  stopSimulation,
+  zoomIn,
+  zoomOut,
+  exportCircuit,
+  importCircuit,
+  toggleGrid,
+  setThemeMode,
+
+  selectOnly,
+  toggleSelection,
+  isSelected,
+  clearSelection,
+  deleteSelection,
+
+  selectItem,
+  deselectWire,
+  deleteSelectedWire,
+
+  removeWire,
+  removeComponent,
+  removeConnectedWires,
+  deleteComponent,
+
+  updateComponentPositions,
+
+  startMarquee,
+  cancelMarquee,
+  resetMarqueeClickFlag,
+  marqueeRect,
+
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+  getUndoCount,
+])
 }
