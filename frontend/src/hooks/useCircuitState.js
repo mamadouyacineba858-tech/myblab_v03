@@ -28,10 +28,10 @@ export function useCircuitState(canvasRef) {
   const [components, setComponents] = useState([])
   const [wires, setWires] = useState([])
   const [pendingPin, setPendingPin] = useState(null)
-  
+
   const [selection, setSelection] = useState(new Set())
   const [activeItem, setActiveItem] = useState(null)
-  
+
   const [simulationActive, setSimulationActive] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [showGrid, setShowGrid] = useState(true)
@@ -45,7 +45,7 @@ export function useCircuitState(canvasRef) {
   // =========================================================================
   // MB-004.3 : Historique (infrastructure uniquement)
   // =========================================================================
-  
+
   const historyManagerRef = useRef(new HistoryManager(50))
 
   const undo = useCallback(() => {
@@ -72,11 +72,11 @@ const getUndoCount = useCallback(() => {
 
   const safeComponents = useMemo(() => components.map(normalizeComponent).filter((c) => c !== null), [components])
   const safeWires = useMemo(() => wires.map(normalizeWire).filter((w) => w !== null), [wires])
-  
+
   const activeWireId = activeItem?.type === 'wire' ? activeItem.id : null
   const wirePaths = useMemo(() => buildWirePaths(safeComponents, safeWires, activeWireId), [safeComponents, safeWires, activeWireId])
   const connectedPins = useMemo(() => buildConnectedPinsSet(safeWires), [safeWires])
-  
+
   const pinSignals = useMemo(() => {
     if (!simulationActive) return EMPTY_MAP
     try { return runSimulation(safeComponents, safeWires) ?? EMPTY_MAP } catch { return EMPTY_MAP }
@@ -87,7 +87,7 @@ const getUndoCount = useCallback(() => {
   // =========================================================================
   // MB-004.5 : Référence synchrone pour éviter la stale closure
   // =========================================================================
-  
+
   const componentsRef = useRef(safeComponents)
   useEffect(() => {
     componentsRef.current = safeComponents
@@ -111,7 +111,7 @@ const getUndoCount = useCallback(() => {
 
   const updateComponentPositions = useCallback((positionsMap) => {
     if (!positionsMap || positionsMap.size === 0) return
-    
+
     setComponents((prev) => prev.map((c) => {
       const pos = positionsMap.get(c.uid)
       if (pos) {
@@ -128,7 +128,7 @@ const getUndoCount = useCallback(() => {
   // =========================================================================
   // MB-004.5 : Document API pour les commandes
   // =========================================================================
-  
+
   const documentApi = useMemo(() => ({
     updateComponentPositions,
     removeComponents: (componentIds) => {
@@ -165,12 +165,7 @@ const getUndoCount = useCallback(() => {
   // FIN MB-004.5
   // =========================================================================
 
-  const moveComponent = useCallback((uid, x, y) => {
-    if (!uid || !Number.isFinite(x) || !Number.isFinite(y)) return
-    
-    const positionsMap = new Map([[uid, { x, y }]])
-    updateComponentPositions(positionsMap)
-  }, [updateComponentPositions])
+
 
   const addWire = useCallback((fromUid, fromPin, toUid, toPin) => {
     if (!fromUid || !fromPin || !toUid || !toPin) return
@@ -184,21 +179,21 @@ const getUndoCount = useCallback(() => {
   }, [])
 
   const cancelWiring = useCallback(() => setPendingPin(null), [])
-  
+
   const onPinClick = useCallback((uid, pinId) => {
     if (!uid || !pinId) return
-    
+
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (dragSessionRef.current !== null) return
     if (marqueeSessionRef.current !== null) return
-    
+
     const current = { uid, pinId }
     if (!pendingPin) { setPendingPin(current); return }
     setPendingPin(null)
     if (pendingPin.uid === uid && pendingPin.pinId === pinId) return
     addWire(pendingPin.uid, pendingPin.pinId, uid, pinId)
   }, [pendingPin, addWire])
-  
+
   const isPinPending = useCallback((uid, pinId) => pendingPin?.uid === uid && pendingPin?.pinId === pinId, [pendingPin])
   const isPinConnected = useCallback((uid, pinId) => connectedPins.has(pinRefKey(uid, pinId)), [connectedPins])
 
@@ -228,9 +223,9 @@ if (import.meta.env.DEV) {
 
   const toggleSelection = useCallback((item) => {
     if (!item || !item.type || !item.id) return
-    
+
     const key = getSelectionKey(item.type, item.id)
-    
+
     setSelection((prev) => {
       const next = new Set(prev)
       if (next.has(key)) {
@@ -238,17 +233,17 @@ if (import.meta.env.DEV) {
       } else {
         next.add(key)
       }
-      
+
       const newActiveItem = promoteActiveItem(next)
       setActiveItem(newActiveItem)
-      
+
       if (import.meta.env.DEV) {
         console.assert(
           newActiveItem === null || next.has(getSelectionKey(newActiveItem.type, newActiveItem.id)),
           "Invariant IA-01 violé : activeItem doit appartenir à selection"
         )
       }
-      
+
       return next
     })
   }, [])
@@ -279,17 +274,17 @@ if (import.meta.env.DEV) {
 
     setSelection((prev) => {
       let next = new Set()
-      
+
       if (keepExisting) {
         next = new Set(prev)
       }
-      
+
       if (componentIds) {
         componentIds.forEach(id => {
           next.add(getSelectionKey('component', id))
         })
       }
-      
+
       if (wireIds) {
         wireIds.forEach(id => {
           next.add(getSelectionKey('wire', id))
@@ -427,11 +422,11 @@ if (import.meta.env.DEV) {
 
   const startDrag = useCallback((event, uid) => {
     if (!uid || !canvasRef?.current) return
-    
+
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (marqueeSessionRef.current !== null) return
     if (pendingPin !== null) return
-    
+
     event.stopPropagation()
 
     // TODO MB-003.6 : utiliser setPointerCapture(event.pointerId)
@@ -470,7 +465,7 @@ if (import.meta.env.DEV) {
 
   const startMarquee = useCallback((event) => {
     if (!canvasRef?.current) return
-    
+
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (dragSessionRef.current !== null) return
     if (pendingPin !== null) return
@@ -483,7 +478,7 @@ if (import.meta.env.DEV) {
       current: { x: pointer.x, y: pointer.y },
       ctrlKey: event.ctrlKey || event.metaKey,
     }
-    
+
     setMarqueeRect({
       start: { x: pointer.x, y: pointer.y },
       current: { x: pointer.x, y: pointer.y }
@@ -497,9 +492,9 @@ if (import.meta.env.DEV) {
 
     const rect = canvasRef.current.getBoundingClientRect()
     const pointer = clientToCanvas(event, rect)
-    
+
     session.current = { x: pointer.x, y: pointer.y }
-    
+
     setMarqueeRect({
       start: session.start,
       current: { x: pointer.x, y: pointer.y }
@@ -574,7 +569,7 @@ if (import.meta.env.DEV) {
 
     marqueeSessionRef.current = null
     setMarqueeRect(null)
-    
+
     if (hadSelection) {
       justFinishedMarqueeWithSelectionRef.current = true
     }
@@ -604,7 +599,7 @@ if (import.meta.env.DEV) {
         updateMarquee(event)
         return
       }
-      
+
       const session = dragSessionRef.current
       if (!session || !canvasRef?.current) return
 
@@ -639,7 +634,7 @@ if (import.meta.env.DEV) {
         if (before && before.size > 0) {
           const currentComponents = componentsRef.current
           const componentMap = new Map(currentComponents.map(c => [c.uid, c]))
-          
+
           const after = new Map()
           before.forEach((pos, uid) => {
             const comp = componentMap.get(uid)
@@ -700,7 +695,7 @@ if (import.meta.env.DEV) {
   // =========================================================================
   // WRAPPERS DE COMPATIBILITÉ
   // =========================================================================
-  
+
   const selectItem = useCallback((item) => selectOnly(item), [selectOnly])
   const deselectWire = useCallback(() => clearSelection(), [clearSelection])
   const deleteSelectedWire = useCallback(() => deleteSelection(), [deleteSelection])
@@ -719,7 +714,7 @@ if (import.meta.env.DEV) {
   }, [])
 
   const exportCircuit = useCallback(() => ({ version: 1, components: safeComponents, wires: safeWires }), [safeComponents, safeWires])
-  
+
   const importCircuit = useCallback((data) => {
     if (!data || typeof data !== "object") return
     setComponents(Array.isArray(data.components) ? data.components.map(normalizeComponent).filter((c) => c !== null) : [])
@@ -762,7 +757,6 @@ if (import.meta.env.DEV) {
 
   addComponent,
   addWire,
-  moveComponent,
   clearCircuit,
   onPinClick,
   cancelWiring,
@@ -827,7 +821,6 @@ if (import.meta.env.DEV) {
 
   addComponent,
   addWire,
-  moveComponent,
   clearCircuit,
   onPinClick,
   cancelWiring,

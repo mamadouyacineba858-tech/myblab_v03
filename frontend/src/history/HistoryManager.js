@@ -11,6 +11,11 @@ import { HistoryCommand } from './HistoryCommand.js'
  * - Vider le redoStack lors d'une nouvelle commande (I-H5)
  * 
  * @invariant I-H1 : Toute modification du document passe par une commande
+  * @invariant I-H1-A : Toute action utilisateur finalisée et historisable
+ *                    doit être représentée par une commande d'historique.
+ * @invariant I-H1-B : Les mutations transitoires nécessaires au fonctionnement
+ *                    d'une interaction continue peuvent modifier temporairement
+ *                    l'état avant la création de la commande finale.
  * @invariant I-H2 : Undo remet le document exactement dans l'état précédent
  * @invariant I-H3 : Redo reproduit exactement Undo
  * @invariant I-H4 : Une commande n'est enregistrée qu'une seule fois

@@ -8,7 +8,8 @@
  * - Suppression de wire seul
  * - Pas de duplication de wire (vérifié)
  * 
- * Test 5 (I-H5) reporté : moveComponent() n'est pas encore historisé
+ *  * Test 5 (I-H5) : validation de l'invalidation du redoStack
+ * après une nouvelle commande de déplacement (drag).
  */
 
 import { describe, it, expect } from 'vitest'
@@ -244,22 +245,134 @@ describe('MB-004.6 — Intégration DeleteCommand (réel)', () => {
         expect(result.current.components.length).toBe(2)
     })
 
+     // ============================================
+          // ============================================
+    // TEST 5 — Redo invalidé après nouvelle commande de déplacement
+    // I-H5 : toute nouvelle commande vide le redoStack
     // ============================================
-    // TEST 5 — Redo invalidé après nouvelle commande (I-H5)
-    // ⏸️ REPORTÉ — moveComponent() n'est pas encore historisé
-    // 
-    // Ce test sera activé lorsque moveComponent() créera une MoveCommand
-    // et invalidera le redoStack conformément à I-H5.
-    // Ticket séparé à créer pour l'historisation de moveComponent().
-    // ============================================
-    it.skip('TEST 5: Redo invalidé après nouvelle action (I-H5)', async () => {
-        // Ce test vérifiera que :
-        // 1. Delete → Undo → redoStack contient la commande
-        // 2. Une nouvelle action (moveComponent) est exécutée
-        // 3. redoStack est vidé (I-H5)
-        // 4. canRedo() retourne false
-        
-        // À activer lorsque moveComponent() sera historisé.
-        // Voir ticket : MB-XXXX — Historisation des actions directes
+    it('TEST 5: Redo invalidé après nouvelle action de déplacement (I-H5)', async () => {
+        // Canvas réel pour permettre à startDrag() de calculer
+        // les coordonnées du pointeur.
+        const canvasRef = { current: null }
+
+        const wrapperWithCanvas = ({ children }) => (
+            <CircuitProvider canvasRef={canvasRef}>
+                <div
+                    ref={(node) => {
+                        canvasRef.current = node
+                    }}
+                >
+                    {children}
+                </div>
+            </CircuitProvider>
+        )
+
+        const { result } = renderHook(() => useCircuit(), {
+            wrapper: wrapperWithCanvas,
+        })
+
+        // Vérifier que le canvas est disponible
+        expect(canvasRef.current).toBeTruthy()
+
+        // ============================================
+        // 1. Créer un composant
+        // ============================================
+        act(() => {
+            result.current.addComponent('LED', 100, 100)
+        })
+
+        const component = result.current.components[0]
+
+        expect(component).toBeDefined()
+        expect(component.type).toBe('LED')
+
+        // ============================================
+        // 2. Sélectionner le composant
+        // ============================================
+        act(() => {
+            result.current.selectOnly({
+                type: 'component',
+                id: component.uid,
+            })
+        })
+
+        // ============================================
+        // 3. Supprimer le composant
+        // ============================================
+        act(() => {
+            result.current.deleteSelection()
+        })
+
+        expect(result.current.components.length).toBe(0)
+
+        // ============================================
+        // 4. UNDO de la suppression
+        // ============================================
+        act(() => {
+            result.current.undo()
+        })
+
+        expect(result.current.components.length).toBe(1)
+
+        // Preuve : DeleteCommand est maintenant dans redoStack
+        expect(result.current.canRedo()).toBe(true)
+
+        const componentAfterUndo = result.current.components[0]
+
+        // Vérifier que le composant restauré est bien le même
+        expect(componentAfterUndo.uid).toBe(component.uid)
+
+        // ============================================
+        // 5. Démarrer le vrai drag
+        // ============================================
+        const pointerDownEvent = {
+            button: 0,
+            clientX: componentAfterUndo.x + 10,
+            clientY: componentAfterUndo.y + 10,
+            ctrlKey: false,
+            metaKey: false,
+            preventDefault: () => {},
+            stopPropagation: () => {},
+        }
+
+        act(() => {
+            result.current.startDrag(
+                pointerDownEvent,
+                componentAfterUndo.uid
+            )
+        })
+
+        // ============================================
+        // 6. Simuler le déplacement du pointeur
+        // ============================================
+        const pointerMoveEvent = new PointerEvent('pointermove', {
+            clientX: componentAfterUndo.x + 60,
+            clientY: componentAfterUndo.y + 60,
+        })
+
+        act(() => {
+            window.dispatchEvent(pointerMoveEvent)
+        })
+
+        // ============================================
+        // 7. Terminer le drag
+        // ============================================
+        const pointerUpEvent = new PointerEvent('pointerup')
+
+        act(() => {
+            window.dispatchEvent(pointerUpEvent)
+        })
+
+        // ============================================
+        // 8. Vérifier que le déplacement a créé
+        //    une nouvelle commande MoveCommand
+        // ============================================
+        expect(result.current.canUndo()).toBe(true)
+
+        // ============================================
+        // 9. I-H5 — Le nouveau déplacement doit
+        //    invalider le redo de DeleteCommand
+        // ============================================
+        expect(result.current.canRedo()).toBe(false)
     })
 })
