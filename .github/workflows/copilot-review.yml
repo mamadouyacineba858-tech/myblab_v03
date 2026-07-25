@@ -1,0 +1,35 @@
+name: Copilot Review
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install --prefix frontend
+
+      - name: Run lint
+        run: npm run lint --prefix frontend > lint-report.txt
+
+      - name: Run tests
+        run: npm test --prefix frontend -- --json --outputFile=test-report.json
+
+      - name: Generate diff
+        run: git diff > diff-report.txt
+
+      - name: Package report
+        run: |
+          echo "{ \"lint\": \"$(cat lint-report.txt)\", \"tests\": $(cat test-report.json), \"diff\": \"$(cat diff-report.txt)\" }" > copilot-report.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: copilot-report
+          path: copilot-report.json
