@@ -10,8 +10,8 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
+      - uses: actions/upload-artifact@v4
+    
       - name: Install dependencies
         run: npm install --prefix frontend
 
@@ -29,7 +29,7 @@ jobs:
           echo "{ \"lint\": \"$(cat lint-report.txt)\", \"tests\": $(cat test-report.json), \"diff\": \"$(cat diff-report.txt)\" }" > copilot-report.json
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: copilot-report
           path: copilot-report.json
