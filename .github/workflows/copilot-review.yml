@@ -19,7 +19,7 @@ jobs:
         run: npm run lint --prefix frontend > lint-report.txt
 
       - name: Run tests
-        run: npm test --prefix frontend -- --json --outputFile=test-report.json
+        run: npm test --prefix frontend -- --reporter=json --outputFile=test-report.json
 
       - name: Generate diff
         run: git diff > diff-report.txt
