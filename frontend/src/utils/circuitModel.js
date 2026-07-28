@@ -7,12 +7,16 @@ import { snapToGrid } from "./grid.js"
  */
 export function normalizeComponent(component) {
   if (!component?.uid || !component?.type) return null
+
   return {
     uid: String(component.uid),
     type: String(component.type),
     x: Number.isFinite(component.x) ? snapToGrid(component.x) : 0,
     y: Number.isFinite(component.y) ? snapToGrid(component.y) : 0,
     pins: Array.isArray(component.pins) ? [...component.pins] : [],
+    ...(component.type === "BUTTON"
+      ? { state: component.state === "pressed" ? "pressed" : "released" }
+      : {}),
   }
 }
 

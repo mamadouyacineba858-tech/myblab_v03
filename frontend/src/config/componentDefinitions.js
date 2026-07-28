@@ -218,11 +218,12 @@ export function getComponentDef(type) {
 export function createComponent(type, x, y) {
   const def = getComponentDef(type)
   if (!def) return null
-  return {
-    uid: createUid(),
-    type: def.id,
-    x,
-    y,
-    pins: [],
-  }
+ return {
+  uid: createUid(),
+  type: def.id,
+  x,
+  y,
+  pins: def.pins.map((pin) => ({ ...pin })),
+  ...(def.id === "BUTTON" ? { state: "released" } : {}),
+}
 }

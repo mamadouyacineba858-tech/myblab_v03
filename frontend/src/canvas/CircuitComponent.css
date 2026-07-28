@@ -67,6 +67,15 @@
   border-radius: 2px;
 }
 
+.part-button {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 .part-button__cap {
   width: 36px;
   height: 36px;
@@ -252,4 +261,9 @@
   user-select: none;
   z-index: 5;
   pointer-events: auto;
+}
+.part-button--pressed .part-button__cap {
+  transform: translateY(3px) scale(0.94);
+  background: radial-gradient(circle at 35% 35%, #777, #111);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5);
 }

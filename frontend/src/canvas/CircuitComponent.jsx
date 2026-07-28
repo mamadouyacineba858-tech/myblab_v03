@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { Pin } from "./Pin.jsx"
@@ -15,6 +15,7 @@ export function CircuitComponent({ component }) {
     selectOnly,
     toggleSelection,
     isSelected,
+    setButtonState,
   } = useCircuit()
 
   const uid = component?.uid
@@ -56,6 +57,65 @@ export function CircuitComponent({ component }) {
     [onPinClick, uid]
   )
 
+  const isButton = type === "BUTTON"
+
+  const handleButtonPointerDown = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    setButtonState(uid, "pressed")
+
+    if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+      e.currentTarget.setPointerCapture?.(e.pointerId)
+    }
+  }, [setButtonState, uid])
+
+  const handleButtonPointerUp = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    setButtonState(uid, "released")
+
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+      e.currentTarget.releasePointerCapture?.(e.pointerId)
+    }
+  }, [setButtonState, uid])
+
+  const handleButtonPointerCancel = useCallback((e) => {
+    e.stopPropagation()
+
+    setButtonState(uid, "released")
+
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+      e.currentTarget.releasePointerCapture?.(e.pointerId)
+    }
+  }, [setButtonState, uid])
+
+  const handleButtonLostPointerCapture = useCallback((e) => {
+    e.stopPropagation()
+    setButtonState(uid, "released")
+  }, [setButtonState, uid])
+
+  const handleButtonMouseDown = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
+
+  useEffect(() => {
+    if (!isButton) return
+
+    const handleWindowBlur = () => {
+      if (component.state === "pressed") {
+        setButtonState(uid, "released")
+      }
+    }
+
+    window.addEventListener("blur", handleWindowBlur)
+
+    return () => {
+      window.removeEventListener("blur", handleWindowBlur)
+    }
+  }, [isButton, uid, component.state, setButtonState])
   if (!uid || !def) return null
 
   const pins = def.pins ?? []
@@ -79,6 +139,14 @@ export function CircuitComponent({ component }) {
           type={type}
           uid={uid}
           pinSignals={pinSignals}
+          {...(isButton ? {
+            state: component.state,
+            onPointerDown: handleButtonPointerDown,
+            onPointerUp: handleButtonPointerUp,
+            onPointerCancel: handleButtonPointerCancel,
+            onLostPointerCapture: handleButtonLostPointerCapture,
+            onMouseDown: handleButtonMouseDown,
+          } : {})}
         />
       </div>
 
