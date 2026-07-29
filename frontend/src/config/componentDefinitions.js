@@ -55,7 +55,18 @@ export const COMPONENT_TYPES = {
       { id: "pin2", label: "2", dx: 60, dy: 30, role: "switch" },
     ],
   },
-  POWER: {
+  BUTTON_LATCHING: {
+    id: "BUTTON_LATCHING",
+    label: "Interrupteur",
+    icon: "🔲",
+    width: 60,
+    height: 60,
+    pins: [
+      { id: "pin1", label: "1", dx: 0, dy: 30, role: "switch" },
+      { id: "pin2", label: "2", dx: 60, dy: 30, role: "switch" },
+    ],
+  },
+    POWER: {
     id: "POWER",
     label: "Alimentation",
     icon: "⚡",
@@ -189,7 +200,8 @@ export const PALETTE_ITEMS = [
   COMPONENT_TYPES.RESISTOR,
   COMPONENT_TYPES.ARDUINO,
   COMPONENT_TYPES.BUTTON,
-  COMPONENT_TYPES.POWER,
+  COMPONENT_TYPES.BUTTON_LATCHING,
+    COMPONENT_TYPES.POWER,
   COMPONENT_TYPES.CAPACITOR,
   COMPONENT_TYPES.BUZZER,
   COMPONENT_TYPES.POTENTIOMETER,
@@ -225,5 +237,6 @@ export function createComponent(type, x, y) {
   y,
   pins: def.pins.map((pin) => ({ ...pin })),
   ...(def.id === "BUTTON" ? { state: "released" } : {}),
+  ...(def.id === "BUTTON_LATCHING" ? { state: "off" } : {}),
 }
 }

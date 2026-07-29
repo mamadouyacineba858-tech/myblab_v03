@@ -17,7 +17,10 @@ export function normalizeComponent(component) {
     ...(component.type === "BUTTON"
       ? { state: component.state === "pressed" ? "pressed" : "released" }
       : {}),
-  }
+    ...(component.type === "BUTTON_LATCHING"
+      ? { state: component.state === "on" ? "on" : "off" }
+      : {}),
+    }
 }
 
 /**

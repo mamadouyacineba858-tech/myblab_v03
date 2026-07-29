@@ -21,6 +21,7 @@ import { getSelectionKey, parseSelectionKey, promoteActiveItem } from "../utils/
 import { HistoryManager } from "../history/HistoryManager.js"
 import { MoveCommand } from "../history/commands/MoveCommand.js"
 import { DeleteCommand } from "../history/commands/DeleteCommand.js"
+import { ToggleLatchingButtonCommand } from "../history/commands/ToggleLatchingButtonCommand.js"
 
 const EMPTY_MAP = new Map()
 
@@ -98,7 +99,7 @@ const getUndoCount = useCallback(() => {
   const isWiringActive = pendingPin !== null
 
   // =========================================================================
-  // MB-004.5 : RÃ©fÃ©rence synchrone pour Ã©viter la stale closure
+  // MB-004.5 : RÃƒÂ©fÃƒÂ©rence synchrone pour ÃƒÂ©viter la stale closure
   // =========================================================================
 
   const componentsRef = useRef(safeComponents)
@@ -119,7 +120,7 @@ const getUndoCount = useCallback(() => {
   }, [])
 
   // =========================================================================
-  // DOCUMENT SYSTEM â€” Point d'Ã©criture unique (MB-003.3.3)
+  // DOCUMENT SYSTEM Ã¢â‚¬â€ Point d'ÃƒÂ©criture unique (MB-003.3.3)
   // =========================================================================
 
   const updateComponentPositions = useCallback((positionsMap) => {
@@ -144,6 +145,9 @@ const getUndoCount = useCallback(() => {
 
   const documentApi = useMemo(() => ({
     updateComponentPositions,
+    updateComponentState: (uid, state) => {
+      setComponents(prev => prev.map(c => c.uid === uid ? { ...c, state } : c))
+    },
     removeComponents: (componentIds) => {
       setComponents(prev => prev.filter(c => !componentIds.includes(c.uid)))
     },
@@ -196,7 +200,7 @@ const getUndoCount = useCallback(() => {
   const onPinClick = useCallback((uid, pinId) => {
     if (!uid || !pinId) return
 
-    // Garde I-M1 : vÃ©rifier qu'aucune autre interaction n'est active
+    // Garde I-M1 : vÃƒÂ©rifier qu'aucune autre interaction n'est active
     if (dragSessionRef.current !== null) return
     if (marqueeSessionRef.current !== null) return
 
@@ -229,7 +233,7 @@ setActiveItem(item)
 if (import.meta.env.DEV) {
   console.assert(
     nextSelection.has(getSelectionKey(item.type, item.id)),
-    "Invariant IA-01 violÃ© : activeItem doit appartenir Ã  selection"
+    "Invariant IA-01 violÃƒÂ© : activeItem doit appartenir ÃƒÂ  selection"
   )
 }
   }, [])
@@ -253,7 +257,7 @@ if (import.meta.env.DEV) {
       if (import.meta.env.DEV) {
         console.assert(
           newActiveItem === null || next.has(getSelectionKey(newActiveItem.type, newActiveItem.id)),
-          "Invariant IA-01 violÃ© : activeItem doit appartenir Ã  selection"
+          "Invariant IA-01 violÃƒÂ© : activeItem doit appartenir ÃƒÂ  selection"
         )
       }
 
@@ -272,7 +276,7 @@ if (import.meta.env.DEV) {
   }, [])
 
   // =========================================================================
-  // SELECTION SYSTEM â€” Marquee (MB-003.4)
+  // SELECTION SYSTEM Ã¢â‚¬â€ Marquee (MB-003.4)
   // =========================================================================
 
   const selectMarquee = useCallback((componentIds, wireIds, keepExisting = false) => {
@@ -310,7 +314,7 @@ if (import.meta.env.DEV) {
       if (import.meta.env.DEV) {
         console.assert(
           newActiveItem === null || next.has(getSelectionKey(newActiveItem.type, newActiveItem.id)),
-          "Invariant IA-01 violÃ© : activeItem doit appartenir Ã  selection"
+          "Invariant IA-01 violÃƒÂ© : activeItem doit appartenir ÃƒÂ  selection"
         )
       }
 
@@ -319,7 +323,7 @@ if (import.meta.env.DEV) {
   }, [])
 
   // =========================================================================
-  // DOCUMENT SYSTEM â€” RÃ¨gles mÃ©tier & SRP (MB-003.2)
+  // DOCUMENT SYSTEM Ã¢â‚¬â€ RÃƒÂ¨gles mÃƒÂ©tier & SRP (MB-003.2)
   // =========================================================================
 
   const removeWire = useCallback((wireId) => {
@@ -341,7 +345,7 @@ if (import.meta.env.DEV) {
   }, [removeConnectedWires, removeComponent])
 
   // =========================================================================
-  // MB-004.6 : DeleteCommand â€” Suppression avec historique
+  // MB-004.6 : DeleteCommand Ã¢â‚¬â€ Suppression avec historique
   // =========================================================================
 
   const deleteSelection = useCallback(() => {
@@ -360,14 +364,14 @@ if (import.meta.env.DEV) {
       }
     })
 
-    // Capturer les donnÃ©es rÃ©elles AVANT suppression
+    // Capturer les donnÃƒÂ©es rÃƒÂ©elles AVANT suppression
     const deletedComponents = new Map()
     const deletedWires = new Map()
 
     const componentMap = new Map(safeComponents.map(c => [c.uid, c]))
     const wireMap = new Map(safeWires.map(w => [w.id, w]))
 
-    // 1. Capturer les composants sÃ©lectionnÃ©s
+    // 1. Capturer les composants sÃƒÂ©lectionnÃƒÂ©s
     componentsToDelete.forEach(uid => {
       const comp = componentMap.get(uid)
       if (comp) {
@@ -375,7 +379,7 @@ if (import.meta.env.DEV) {
       }
     })
 
-    // 2. Capturer les wires sÃ©lectionnÃ©s
+    // 2. Capturer les wires sÃƒÂ©lectionnÃƒÂ©s
     initialWiresToDelete.forEach(wireId => {
       const wire = wireMap.get(wireId)
       if (wire) {
@@ -383,7 +387,7 @@ if (import.meta.env.DEV) {
       }
     })
 
-    // 3. Capturer les wires connectÃ©s aux composants supprimÃ©s
+    // 3. Capturer les wires connectÃƒÂ©s aux composants supprimÃƒÂ©s
     componentsToDelete.forEach(uid => {
       const connected = safeWires.filter(w => w.fromUid === uid || w.toUid === uid)
       for (const wire of connected) {
@@ -393,14 +397,14 @@ if (import.meta.env.DEV) {
       }
     })
 
-    // 4. VÃ©rifier qu'il y a quelque chose Ã  supprimer
+    // 4. VÃƒÂ©rifier qu'il y a quelque chose ÃƒÂ  supprimer
     if (deletedComponents.size === 0 && deletedWires.size === 0) {
       setSelection(new Set())
       setActiveItem(null)
       return
     }
 
-    // 5. CrÃ©er et exÃ©cuter la commande
+    // 5. CrÃƒÂ©er et exÃƒÂ©cuter la commande
     const command = new DeleteCommand(
       documentApi,
       deletedComponents,
@@ -408,7 +412,7 @@ if (import.meta.env.DEV) {
     )
     historyManagerRef.current.execute(command)
 
-    // 6. Vider la sÃ©lection
+    // 6. Vider la sÃƒÂ©lection
     setSelection(new Set())
     setActiveItem(null)
   }, [selection, safeComponents, safeWires, documentApi])
@@ -418,7 +422,7 @@ if (import.meta.env.DEV) {
   // =========================================================================
 
   // =========================================================================
-  // POINTER INTERACTION SYSTEM â€” Drag (MB-003.3.3 + MB-004.5)
+  // POINTER INTERACTION SYSTEM Ã¢â‚¬â€ Drag (MB-003.3.3 + MB-004.5)
   // =========================================================================
 
   const getSelectedComponentIds = useCallback(() => {
@@ -436,7 +440,7 @@ if (import.meta.env.DEV) {
   const startDrag = useCallback((event, uid) => {
     if (!uid || !canvasRef?.current) return
 
-    // Garde I-M1 : vÃ©rifier qu'aucune autre interaction n'est active
+    // Garde I-M1 : vÃƒÂ©rifier qu'aucune autre interaction n'est active
     if (marqueeSessionRef.current !== null) return
     if (pendingPin !== null) return
 
@@ -473,13 +477,13 @@ if (import.meta.env.DEV) {
   }, [canvasRef, getSelectedComponentIds, components, pendingPin])
 
   // =========================================================================
-  // POINTER INTERACTION SYSTEM â€” Marquee (MB-003.4)
+  // POINTER INTERACTION SYSTEM Ã¢â‚¬â€ Marquee (MB-003.4)
   // =========================================================================
 
   const startMarquee = useCallback((event) => {
     if (!canvasRef?.current) return
 
-    // Garde I-M1 : vÃ©rifier qu'aucune autre interaction n'est active
+    // Garde I-M1 : vÃƒÂ©rifier qu'aucune autre interaction n'est active
     if (dragSessionRef.current !== null) return
     if (pendingPin !== null) return
 
@@ -603,7 +607,7 @@ if (import.meta.env.DEV) {
   }, [])
 
   // =========================================================================
-  // POINTER INTERACTION SYSTEM â€” Gestion des Ã©vÃ©nements (useEffect)
+  // POINTER INTERACTION SYSTEM Ã¢â‚¬â€ Gestion des ÃƒÂ©vÃƒÂ©nements (useEffect)
   // =========================================================================
 
   useEffect(() => {
@@ -668,7 +672,7 @@ if (import.meta.env.DEV) {
         }
       }
 
-      // I-P10 : Nettoyage systÃ©matique
+      // I-P10 : Nettoyage systÃƒÂ©matique
       dragSessionRef.current = null
     }
 
@@ -706,7 +710,7 @@ if (import.meta.env.DEV) {
   }, [canvasRef, updateComponentPositions, updateMarquee, endMarquee, documentApi])
 
   // =========================================================================
-  // WRAPPERS DE COMPATIBILITÃ‰
+  // WRAPPERS DE COMPATIBILITÃƒâ€°
   // =========================================================================
 
   const selectItem = useCallback((item) => selectOnly(item), [selectOnly])
@@ -753,8 +757,8 @@ if (import.meta.env.DEV) {
 
     setComponents((prev) =>
       prev.map((c) => {
-        // A1.6 : mutation d'état transitoire, hors historique.
-        // Garde d'idempotence : aucune modification si l'état est inchangé.
+        // A1.6 : mutation d'Ã©tat transitoire, hors historique.
+        // Garde d'idempotence : aucune modification si l'Ã©tat est inchangÃ©.
         if (c.uid !== uid || c.type !== "BUTTON" || c.state === state) {
           return c
         }
@@ -763,6 +767,21 @@ if (import.meta.env.DEV) {
     )
   }, [])
 
+  const toggleLatchingButton = useCallback((uid) => {
+    const comp = components.find(c => c.uid === uid && c.type === "BUTTON_LATCHING")
+    if (!comp) return
+
+    const oldState = comp.state
+    const newState = oldState === "on" ? "off" : "on"
+
+    const command = new ToggleLatchingButtonCommand(
+      documentApi,
+      uid,
+      oldState,
+      newState
+    )
+    historyManagerRef.current.execute(command)
+  }, [components, documentApi])
   const setThemeMode = useCallback((mode) => { if (mode !== "dark" && mode !== "light") return; setTheme(mode) }, [])
 
   return useMemo(() => ({
@@ -801,9 +820,11 @@ if (import.meta.env.DEV) {
   importCircuit,
   toggleGrid,
   setThemeMode,
-  setButtonState,
+
+  setButtonState,
 
   selectOnly,
+  toggleLatchingButton,
   toggleSelection,
   isSelected,
   clearSelection,
@@ -869,6 +890,7 @@ if (import.meta.env.DEV) {
   setButtonState,
 
   selectOnly,
+  toggleLatchingButton,
   toggleSelection,
   isSelected,
   clearSelection,

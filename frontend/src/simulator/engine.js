@@ -1,16 +1,16 @@
-import { Signal } from "./signals.js"
+﻿import { Signal } from "./signals.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 
 /**
  * Moteur de simulation simple MYBlab.
- * - Propagation HIGH/LOW sur les nets (groupes de pins reliÃ©es par fils)
+ * - Propagation HIGH/LOW sur les nets (groupes de pins reliÃƒÂ©es par fils)
  * - LED ON si anode HIGH et cathode LOW
  * - Alimentation comme source
- * - Bouton : pin1 reliÃ© Ã  pin2 quand "pressÃ©" (Ã©tat futur dans component.pins)
+ * - Bouton : pin1 reliÃƒÂ© ÃƒÂ  pin2 quand "pressÃƒÂ©" (ÃƒÂ©tat futur dans component.pins)
  */
 
 /**
- * Union-Find pour regrouper les pins connectÃ©es par fils.
+ * Union-Find pour regrouper les pins connectÃƒÂ©es par fils.
  */
 class UnionFind {
   constructor() {
@@ -39,7 +39,7 @@ class UnionFind {
 /**
  * @param {Array<{ uid, type, x, y, pins? }>} components
  * @param {Array<{ fromUid, fromPin, toUid, toPin }>} wires
- * @returns {Map<string, string>} clÃ© "uid:pinId" â†’ Signal
+ * @returns {Map<string, string>} clÃƒÂ© "uid:pinId" Ã¢â€ â€™ Signal
  */
 export function runSimulation(components, wires) {
   const uf = new UnionFind()
@@ -61,15 +61,17 @@ export function runSimulation(components, wires) {
     uf.union(a, b)
   }
 
-  /** Bouton pressÃ© : court-circuit interne pin1 â†” pin2 */
+    /** Boutons : court-circuit interne pin1 ↔ pin2 selon l'état */
   for (const comp of components) {
-    if (comp.type !== "BUTTON") continue
-    if (comp.state === "pressed") {
-  uf.union(uf.key(comp.uid, "pin1"), uf.key(comp.uid, "pin2"))
-}
+    if (comp.type === "BUTTON" && comp.state === "pressed") {
+      uf.union(uf.key(comp.uid, "pin1"), uf.key(comp.uid, "pin2"))
+    }
+    if (comp.type === "BUTTON_LATCHING" && comp.state === "on") {
+      uf.union(uf.key(comp.uid, "pin1"), uf.key(comp.uid, "pin2"))
+    }
   }
 
-  /** netId â†’ liste de clÃ©s pin */
+  /** netId Ã¢â€ â€™ liste de clÃƒÂ©s pin */
   const nets = new Map()
   for (const k of allKeys) {
     const root = uf.find(k)
@@ -89,7 +91,7 @@ export function runSimulation(components, wires) {
     pinSignals.set(uf.key(comp.uid, "GND"), Signal.LOW)
   }
 
-  /** Propagation : sur chaque net, si une pin est HIGH/LOW, toute la net hÃ©rite */
+  /** Propagation : sur chaque net, si une pin est HIGH/LOW, toute la net hÃƒÂ©rite */
   const propagate = (signal) => {
     for (const [, keys] of nets) {
       let found = false
@@ -111,7 +113,7 @@ export function runSimulation(components, wires) {
   propagate(Signal.HIGH)
   propagate(Signal.LOW)
 
-  /** Arduino stub : pins GPIO hÃ©ritent du net (futur : exÃ©cution sketch) */
+  /** Arduino stub : pins GPIO hÃƒÂ©ritent du net (futur : exÃƒÂ©cution sketch) */
   for (const comp of components) {
     if (comp.type !== "ARDUINO") continue
     for (const pinId of ["D2", "D3"]) {
@@ -126,7 +128,7 @@ export function runSimulation(components, wires) {
 }
 
 /**
- * Ã‰tat visuel d'une LED selon les signaux de ses pins.
+ * Ãƒâ€°tat visuel d'une LED selon les signaux de ses pins.
  * @param {string} uid
  * @param {Map<string, string>} pinSignals
  */
@@ -138,7 +140,7 @@ export function getLedState(uid, pinSignals) {
 }
 
 /**
- * État visuel d'une LED RGB à cathode commune.
+ * Ã‰tat visuel d'une LED RGB Ã  cathode commune.
  * Un canal est actif lorsque common est LOW
  * et que le canal correspondant est HIGH.
  *

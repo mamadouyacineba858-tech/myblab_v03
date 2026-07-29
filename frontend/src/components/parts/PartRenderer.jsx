@@ -3,6 +3,7 @@ import { LedPart } from "./LedPart.jsx"
 import { ResistorPart } from "./ResistorPart.jsx"
 import { ArduinoPart } from "./ArduinoPart.jsx"
 import { ButtonPart } from "./ButtonPart.jsx"
+import { LatchingButtonPart } from "./LatchingButtonPart.jsx"
 import { PowerPart } from "./PowerPart.jsx"
 import { CapacitorPart } from "./CapacitorPart.jsx"
 import { BuzzerPart } from "./BuzzerPart.jsx"
@@ -28,6 +29,7 @@ export function PartRenderer({
   onPointerCancel,
   onLostPointerCapture,
   onMouseDown,
+  onClick,
 }) {
   const signals = pinSignals instanceof Map ? pinSignals : new Map()
 
@@ -49,6 +51,14 @@ export function PartRenderer({
           onPointerCancel={onPointerCancel}
           onLostPointerCapture={onLostPointerCapture}
           onMouseDown={onMouseDown}
+        />
+      )
+    case "BUTTON_LATCHING":
+      return (
+        <LatchingButtonPart
+          state={state}
+          onPointerDown={onPointerDown}
+          onClick={onClick}
         />
       )
     case "POWER":
