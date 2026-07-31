@@ -52,3 +52,9 @@ backend/logs/
 # Local development
 *.local
 structure.txt
+
+# Audit reports
+audit/reports/*
+!audit/.gitkeep
+!audit/latest.txt
+
