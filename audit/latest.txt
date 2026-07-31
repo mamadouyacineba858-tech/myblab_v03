@@ -1,0 +1,52 @@
+﻿**********************
+Début de la transcription Windows PowerShell
+Heure de début : 20260731035506
+Nom d'utilisateur : DESKTOP-Q7F3440\USER
+Utilisateur runAs :  DESKTOP-Q7F3440\USER
+Nom de la configuration : 
+Ordinateur : DESKTOP-Q7F3440 (Microsoft Windows NT 10.0.19045.0)
+Application hôte : powershell -ExecutionPolicy Bypass -File scripts/audit.ps1
+ID de processus : 4392
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcription démarrée, le fichier de sortie est audit/reports/audit-2026-07-31_03-55-06.txt
+
+=======================================
+ MYBLAB ARCHITECT AUDIT v2
+=======================================
+
+1. Git Status
+
+
+2. Last Commits
+
+
+3. Last Commit
+
+
+4. Frontend Tests
+
+
+5. Frontend Build
+
+
+6. TODO
+
+
+7. FIXME
+
+
+=======================================
+AUDIT FINISHED
+=======================================
+**********************
+Fin de la transcription Windows PowerShell
+Heure de fin : 20260731035536
+**********************
