@@ -4,14 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-  "dev": "vite",
-  "build": "tsc && vite build",
-  "preview": "vite preview",
-  "test": "vitest --config src/simulator/vitest.config.ts",
-  "test:coverage": "vitest --config src/simulator/vitest.config.ts --coverage",
-  "test:watch": "vitest --config src/simulator/vitest.config.ts --watch",
-  "test:ci": "vitest --config src/simulator/vitest.config.ts --run"
-},
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest --config src/simulator/vitest.config.ts",
+    "test:coverage": "vitest --config src/simulator/vitest.config.ts --coverage",
+    "test:watch": "vitest --config src/simulator/vitest.config.ts --watch",
+    "test:ci": "vitest --config src/simulator/vitest.config.ts --run"
+  },
   "dependencies": {
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
@@ -28,6 +28,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
+    "typescript": "^7.0.2",
     "vite": "^8.0.12",
     "vitest": "^2.1.8"
   }
