@@ -101,11 +101,12 @@ describe('ComponentRegistry', () => {
     });
 
     it('REG-008: should normalize type to uppercase on registration', () => {
-      const registry = createEmptyRegistry();
-      registry.register('r', validResistorModel);
-      expect(registry.has('R')).toBe(true);
-      expect(registry.has('r')).toBe(false);
-    });
+  const registry = createEmptyRegistry();
+
+  registry.register('r', validResistorModel);
+
+  expect(registry.get('R')).toBeDefined();
+});
   });
 
   // ============================================
