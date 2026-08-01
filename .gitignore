@@ -57,4 +57,5 @@ structure.txt
 audit/reports/*
 !audit/.gitkeep
 !audit/latest.txt
-
+# TypeScript incremental build
+*.tsbuildinfo
