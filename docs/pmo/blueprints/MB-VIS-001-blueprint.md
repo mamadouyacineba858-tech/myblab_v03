@@ -13,7 +13,7 @@ Conforme à SPEC-PMO-003 v1.0.
 | `Commit analysé` | `6054d7f3a9d330e81035692150a1e1734d993336` |
 | `Date de production` | 2026-08-02 |
 | `Auteur` | Claude — Repository Analyst |
-| `Statut` | **DRAFT — bloqué par la section H (Questions ouvertes)** |
+| `Statut` | **PRÊT_POUR_CONCEPTION** — arbitrages Q1/Q2/Q3 rendus par l'Architecte le 2026-08-02 |
 
 ---
 
@@ -24,16 +24,25 @@ de propagation de niveaux logiques (`engine.js`) et d'une couche de rendu
 React/SVG (`canvas/`, `components/parts/`). Une **première visualisation
 existe déjà** pour deux types de composants (LED, LED RGB) : leur rendu
 change visuellement selon l'état calculé par le moteur. Il n'existe en
-revanche **aucune visualisation** pour les fils (courant/signal) ni pour les
-autres composants (résistance, bouton, condensateur, etc.), qui ont un rendu
-statique indépendant de la simulation.
+revanche **aucune visualisation** pour les autres composants (résistance,
+bouton, condensateur, etc.), qui ont un rendu statique indépendant de la
+simulation.
+
+**Périmètre arbitré (décision Architecte, 2026-08-02).** MB-VIS-001 n'est
+**pas** une simple extension d'effets visuels composant par composant. Le
+livrable attendu est une **infrastructure de visualisation généralisée et
+extensible**, dont la visualisation LED existante constitue la première
+implémentation de référence à généraliser — pas un cas particulier à
+répliquer manuellement pour chaque composant. Les **fils sont explicitement
+exclus** de ce ticket (cf. section F et historique des décisions) ; ils
+feront l'objet d'un ticket dédié ultérieur (ex. `MB-VIS-002`).
 
 **Point d'entrée recommandé.** `frontend/src/components/parts/PartRenderer.jsx`
-— c'est le point de bascule actuel entre état de simulation et rendu visuel.
-Toute nouvelle visualisation de composant doit s'y intégrer, pas créer un
-mécanisme parallèle.
+— c'est le point de bascule actuel entre état de simulation et rendu visuel,
+aujourd'hui un `switch` qui appelle nommément `getLedState`/`getRgbLedState`
+par type. C'est ce mécanisme ponctuel qui doit être généralisé.
 
-**Pattern existant à réutiliser.** Le pattern `getXxxState(uid, pinSignals) → props visuelles` (voir `getLedState`, `getRgbLedState` dans `engine.js`) est le pattern établi de MYBlab pour dériver un état visuel depuis les signaux de simulation. Toute nouvelle visualisation de composant devrait suivre ce même pattern plutôt qu'en inventer un autre.
+**Pattern existant à généraliser.** Le pattern `getXxxState(uid, pinSignals) → props visuelles` (voir `getLedState`, `getRgbLedState` dans `engine.js`) est le pattern établi de MYBlab pour dériver un état visuel depuis les signaux de simulation. L'objectif de ce ticket est de transformer ce pattern ponctuel (une fonction dédiée par type, appelée à la main dans un `switch`) en une architecture où l'ajout d'une visualisation pour un nouveau composant ne nécessite plus de modifier `PartRenderer.jsx` à chaque fois.
 
 ---
 
@@ -87,13 +96,12 @@ case "RGB_LED": {
 ### Composants sans visualisation dynamique
 Tous les autres types (`RESISTOR`, `ARDUINO`, `BUTTON` hors son propre état d'interaction, `POWER`, `CAPACITOR`, `BUZZER`, `POTENTIOMETER`, `LDR`, `THERMISTOR`, `DIODE`, `NPN_TRANSISTOR`, `SERVO`, `DC_MOTOR`) sont rendus par des composants qui **n'utilisent pas `pinSignals`** — leur apparence est statique, indépendante de la simulation.
 
-### Fils — aucune visualisation d'état
-`WiresLayer.jsx` dessine les fils en SVG avec une couleur fixe (`p.color ?? "#f97316"`) ou verte si sélectionné — **aucun lien avec `pinSignals`**. Le composant `WiresLayer` ne reçoit même pas `pinSignals` en prop actuellement.
+### Fils — hors périmètre (décision Architecte)
+`WiresLayer.jsx` dessine les fils en SVG avec une couleur fixe (`p.color ?? "#f97316"`) ou verte si sélectionné — **aucun lien avec `pinSignals`**. Le composant `WiresLayer` ne reçoit même pas `pinSignals` en prop actuellement. **Ce fichier est explicitement hors périmètre de MB-VIS-001** : il ne doit pas être modifié dans le cadre de ce ticket. La visualisation des conducteurs sera traitée par un ticket ultérieur dédié.
 
 ### Interfaces / types publics touchés
-- `PartRenderer(props)` — reçoit déjà `pinSignals`, `uid`, `type` : signature stable, ne nécessite pas de modification de contrat pour étendre la logique interne
-- `WiresLayer(props: { wirePaths })` — **ne reçoit pas `pinSignals`** ; l'ajouter est un changement d'interface à faire consciemment
-- `getLedState(uid, pinSignals)`, `getRgbLedState(uid, pinSignals)` — pattern à répliquer pour d'autres composants
+- `PartRenderer(props)` — reçoit déjà `pinSignals`, `uid`, `type` : signature stable côté appelant ; sa logique interne (le `switch` par type) est précisément ce que ce ticket doit généraliser
+- `getLedState(uid, pinSignals)`, `getRgbLedState(uid, pinSignals)` — implémentations de référence du pattern à généraliser à une infrastructure applicable à tout composant
 
 ---
 
@@ -102,32 +110,24 @@ Tous les autres types (`RESISTOR`, `ARDUINO`, `BUTTON` hors son propre état d'i
 ### Fichiers directement concernés par une extension de la visualisation
 | Fichier | Rôle actuel | Impact probable |
 |---|---|---|
-| `frontend/src/components/parts/PartRenderer.jsx` | Sélectionne le rendu par type | Point d'ajout des nouveaux `getXxxState` |
-| `frontend/src/simulator/engine.js` | Contient `getLedState`/`getRgbLedState` | Ajout de fonctions `getXxxState` supplémentaires |
-| `frontend/src/wires/WiresLayer.jsx` | Rendu SVG des fils, statique | Doit recevoir `pinSignals` si les fils doivent réagir à l'état |
-| `frontend/src/canvas/SimulationCanvas.jsx` | Assemble `WiresLayer` + composants | Doit transmettre `pinSignals` à `WiresLayer` si modifié |
-| `frontend/src/components/parts/*.jsx` (12 fichiers de rendu statique) | Rendu visuel par composant | Candidats à une extension similaire à `LedPart`, selon le périmètre retenu |
+| `frontend/src/components/parts/PartRenderer.jsx` | Sélectionne le rendu par type via `switch` codé en dur | Cœur de la généralisation attendue par le ticket |
+| `frontend/src/simulator/engine.js` | Contient `getLedState`/`getRgbLedState` | Base de référence pour l'infrastructure généralisée |
+| `frontend/src/components/parts/*.jsx` (12 fichiers de rendu actuellement statique) | Rendu visuel par composant | Doivent pouvoir être connectés à `pinSignals` via la nouvelle infrastructure, sans modification ponctuelle de `PartRenderer.jsx` à chaque ajout |
+| `frontend/src/wires/WiresLayer.jsx` | Rendu SVG des fils, statique | **Hors périmètre — ne pas modifier dans ce ticket** |
 
 ### Tests existants sur la zone
 - `frontend/src/__tests__/rgbLed.test.js` — teste `getRgbLedState` directement (logique pure), pas de test de rendu React pour `RgbLedPart`/`LedPart`
 - **Aucun test trouvé** pour `PartRenderer.jsx`, `LedPart.jsx`, `WiresLayer.jsx`, `SimulationCanvas.jsx`
 - `@testing-library/react` est présente dans les devDependencies (`frontend/package.json`) — utilisable pour tester le rendu, mais pas encore exploitée sur cette zone
 
-### Configuration de tests dupliquée — `[FAIT]`
-Deux configurations Vitest coexistent :
-- `frontend/vitest.config.js` (racine, environnement `jsdom`, pour les tests `.jsx`/`.js`)
-- `frontend/src/simulator/vitest.config.ts` (environnement `node`, seuils de couverture 80%, restreint à `src/simulator/**/*.ts`)
-
-Le script `npm test` du `package.json` pointe uniquement vers la config `src/simulator/vitest.config.ts` (`"test": "vitest --config src/simulator/vitest.config.ts"`) — **les tests `.jsx` du dossier `__tests__` à la racine de `src/` ne semblent pas exécutés par `npm test`/`npm run test:ci`**.
-
 ---
 
 ## E. SIGNAUX D'ATTENTION — `[ANALYSE]`
 
-Section incluse : plusieurs modules interagissent (moteur + 12 composants de rendu + fils), plusieurs stratégies de conception sont possibles, et une question d'architecture reste ouverte (voir section H).
+Section incluse : plusieurs modules interagissent (moteur + 12 composants de rendu), et le périmètre implique une refonte d'architecture (généralisation), pas une simple extension incrémentale.
 
-- **Risque de couplage** : le Ticket exige que "l'architecture permette l'ajout futur de nouvelles formes de visualisation" (critère d'acceptation #5). Le pattern actuel (`getXxxState` codé en dur dans `engine.js`, appelé nommément dans `PartRenderer.jsx` via un `switch`) fonctionne mais n'est pas généralisé — ajouter un état visuel par composant nécessite de modifier `engine.js` ET le `switch` de `PartRenderer.jsx` à chaque fois. Une conception qui généraliserait ce pattern (ex : un état visuel dérivé de façon uniforme pour tout composant) répondrait mieux au critère #5, mais representerait plus qu'une simple extension incrémentale.
-- **Risque de régression sur `npm test`** : si les tests `.jsx` (`rgbLed.test.js` notamment) ne sont effectivement pas exécutés par le pipeline CI actuel (`test:ci`), une régression sur `getRgbLedState` ou le rendu ne serait pas détectée automatiquement. À vérifier avant de considérer que "l'absence de régression" (condition de refus du Ticket) est garantie par la CI existante.
+- **Complexité de conception** : le pattern actuel (`getXxxState` codé en dur dans `engine.js`, appelé nommément dans un `switch` de `PartRenderer.jsx`) fonctionne pour 2 composants mais n'est pas conçu pour en accueillir 14. La généralisation demandée par l'Architecte (arbitrage Q1) implique de concevoir un mécanisme d'association type-composant → état visuel qui ne nécessite plus de modifier `PartRenderer.jsx` à chaque nouveau composant visualisé — c'est le vrai risque de conception de ce ticket.
+- **Dette technique tracée, non bloquante (arbitrage Q3)** : deux configurations Vitest coexistent (`frontend/vitest.config.js` en racine pour `jsdom`/`.jsx`, `frontend/src/simulator/vitest.config.ts` pour `node`/`.ts`). Le script `npm test` du `package.json` ne pointe que vers la seconde — les tests `.jsx` du dossier `__tests__` (dont `rgbLed.test.js`) ne semblent pas exécutés par `npm run test:ci`. **Décision de l'Architecte : ce point ne bloque pas MB-VIS-001**, il est tracé ici pour un futur ticket `MAINTENANCE`/`QUALITY` dédié à l'unification de l'infrastructure de tests. Conséquence pratique pour DeepSeek/Claude Phase 2 : la non-régression sur `getLedState`/`getRgbLedState` devra être vérifiée manuellement (exécution explicite des tests `.jsx` concernés) plutôt que via `npm run test:ci` seul.
 - **Dette technique locale** : `runSimulation` contient des `console.log`/`console.table` de diagnostic (`useCircuitState.js`, lignes ~87-89) actifs en permanence quand `simulationActive` est vrai — pas bloquant pour ce ticket, mais à ne pas reproduire dans le nouveau code.
 
 ---
@@ -137,8 +137,10 @@ Section incluse : plusieurs modules interagissent (moteur + 12 composants de ren
 | Champ | Valeur |
 |---|---|
 | `Niveau de liberté` | CONCEPTION (repris du Ticket) |
-| `Mode d'exécution recommandé` | **Blueprint** (proposition) — le sujet est une extension de patterns existants, pas un algorithme nouveau nécessitant une implémentation complète par DeepSeek. Décision finale à l'Architecte. |
-| `Contraintes issues du contexte technique` | La solution doit rester compatible avec le modèle de signaux discrets `HIGH/LOW/UNKNOWN/FLOATING` (pas de valeurs analogiques). Elle doit réutiliser le pattern `getXxxState(uid, pinSignals)` déjà établi plutôt qu'introduire un mécanisme parallèle, sauf justification explicite en cas de généralisation du pattern (cf. section E). |
+| `Mode d'exécution recommandé` | **Blueprint** (proposition, non re-tranchée par l'Architecte lors de l'arbitrage — la décision de généraliser le pattern renforce cependant l'intérêt d'un mode Blueprint : c'est une décision de conception à documenter, pas un simple copier-coller de pattern) |
+| `Périmètre inclus (arbitré)` | Infrastructure de visualisation généralisée, applicable à tout composant, en partant de `getLedState`/`getRgbLedState` comme référence à généraliser. |
+| `Périmètre exclu (arbitré)` | Fils / conducteurs (`WiresLayer.jsx`) — ticket dédié ultérieur. Unification des configurations de tests Vitest — ticket `MAINTENANCE`/`QUALITY` dédié. |
+| `Contraintes issues du contexte technique` | La solution doit rester compatible avec le modèle de signaux discrets `HIGH/LOW/UNKNOWN/FLOATING` (pas de valeurs analogiques). Le comportement visuel de LED et LED RGB déjà en production ne doit pas régresser. |
 
 ---
 
@@ -146,32 +148,25 @@ Section incluse : plusieurs modules interagissent (moteur + 12 composants de ren
 
 | Champ | Valeur |
 |---|---|
-| `Statut Blueprint` | DRAFT |
-| `Historique de régénération` | — (première version) |
+| `Statut Blueprint` | PRÊT_POUR_CONCEPTION |
+| `Historique de régénération` | — (première version, pas de nouvelle analyse du dépôt nécessaire — arbitrages purement de gouvernance/périmètre) |
 
 ---
 
-## H. QUESTIONS OUVERTES — `[QUESTION OUVERTE]`
+## H. QUESTIONS OUVERTES — `[QUESTION OUVERTE]` — RÉSOLUES
 
-Ce Blueprint est **bloqué** tant que ces points n'ont pas été arbitrés par l'Architecte. L'agent concepteur ne doit faire aucune hypothèse à leur sujet.
+Toutes les questions ci-dessous ont été arbitrées par l'Architecte le 2026-08-02. Conservées ici pour traçabilité, conformément au principe de vérifiabilité de SPEC-PMO-003. Le Blueprint n'est plus bloqué.
 
-### Q1 — Le problème du Ticket est partiellement déjà résolu dans le dépôt
-Le Ticket B ("Problème à résoudre") énonce : *"l'utilisateur ne dispose pas d'une représentation visuelle claire des phénomènes électriques en cours d'exécution"*. C'est **partiellement inexact au regard du dépôt actuel** : LED et LED RGB ont déjà un retour visuel dynamique fonctionnel et fonctionnel (`getLedState`, `getRgbLedState`, branchés dans `PartRenderer.jsx`).
+### Q1 — Le problème du Ticket est partiellement déjà résolu dans le dépôt — ✅ RÉSOLU
+Constat : LED et LED RGB ont déjà un retour visuel dynamique fonctionnel (`getLedState`, `getRgbLedState`, branchés dans `PartRenderer.jsx`).
 
-**Arbitrage demandé** : le périmètre réel de MB-VIS-001 est-il —
-(a) étendre la visualisation existante aux composants qui n'en ont pas encore (résistance, boutons, fils, etc.), ou
-(b) généraliser/refondre le mécanisme de visualisation pour qu'il soit extensible par design (répond mieux au critère d'acceptation #5, mais périmètre plus large que ce que "Périmètre exclu" du Ticket semble suggérer), ou
-(c) autre chose ?
+**Décision de l'Architecte** : le périmètre officiel de MB-VIS-001 est **(b) la généralisation du mécanisme de visualisation**, pas une simple extension composant par composant. La LED existante constitue la première implémentation de référence à généraliser. Le livrable recherché est une infrastructure de visualisation, pas une collection d'effets graphiques.
 
-### Q2 — Les fils doivent-ils faire partie du périmètre ?
-Le Ticket cite en cas d'usage : *"Visualiser le passage du courant"*. Actuellement, `WiresLayer.jsx` n'a **aucun accès** à `pinSignals`. L'inclure change une interface de composant (`WiresLayer` devrait recevoir `pinSignals` en prop, et `SimulationCanvas.jsx` devrait le lui transmettre).
+### Q2 — Les fils doivent-ils faire partie du périmètre ? — ✅ RÉSOLU
+**Décision de l'Architecte** : **Non**, explicitement exclus de MB-VIS-001. Justification : le moteur actuel fonctionne sur des états logiques discrets, pas un modèle analogique ; visualiser le passage du courant dans les fils implique des choix de représentation (animation, intensité, propagation) qui relèvent d'un futur ticket dédié (ex. `MB-VIS-002`).
 
-**Arbitrage demandé** : les fils sont-ils dans le périmètre inclus de ce ticket, ou seuls les composants le sont ?
-
-### Q3 — Fiabilité de la non-régression via la CI existante
-Si `rgbLed.test.js` (et les autres tests `.jsx` sous `frontend/src/__tests__/`) ne sont pas exécutés par `npm run test:ci` (voir section D), le critère de "conditions de refus : régressions fonctionnelles" du Ticket ne peut pas être garanti automatiquement par la CI actuelle.
-
-**Arbitrage demandé** : faut-il inclure, dans le périmètre de ce ticket ou en préalable, la réunification des deux configurations Vitest — ou ce point relève-t-il d'un ticket `MAINTENANCE` séparé ?
+### Q3 — Fiabilité de la non-régression via la CI existante — ✅ RÉSOLU
+**Décision de l'Architecte** : à traiter dans un ticket séparé (`MAINTENANCE`/`QUALITY`) — sujet d'outillage et de gouvernance technique, pas de visualisation. Ne bloque pas MB-VIS-001. La dette est tracée en section E (Signaux d'attention) pour rester visible.
 
 ---
 
@@ -180,3 +175,5 @@ Si `rgbLed.test.js` (et les autres tests `.jsx` sous `frontend/src/__tests__/`) 
 | Date | Auteur | Action |
 |---|---|---|
 | 2026-08-02 | Claude (Repository Analyst) | Production initiale, statut DRAFT, bloqué par section H |
+| 2026-08-02 | ChatGPT (Chief Software Architect) | Arbitrage Q1 (périmètre = généralisation), Q2 (fils exclus), Q3 (tests → ticket séparé) |
+| 2026-08-02 | Claude (Repository Analyst) | Intégration des arbitrages, statut → PRÊT_POUR_CONCEPTION |
