@@ -1,23 +1,13 @@
-import { getLedState, getRgbLedState } from "../../simulator/engine.js"
-import { LedPart } from "./LedPart.jsx"
-import { ResistorPart } from "./ResistorPart.jsx"
-import { ArduinoPart } from "./ArduinoPart.jsx"
-import { ButtonPart } from "./ButtonPart.jsx"
-import { LatchingButtonPart } from "./LatchingButtonPart.jsx"
-import { PowerPart } from "./PowerPart.jsx"
-import { CapacitorPart } from "./CapacitorPart.jsx"
-import { BuzzerPart } from "./BuzzerPart.jsx"
-import { PotentiometerPart } from "./PotentiometerPart.jsx"
-import { LdrPart } from "./LdrPart.jsx"
-import { ThermistorPart } from "./ThermistorPart.jsx"
-import { DiodePart } from "./DiodePart.jsx"
-import { RgbLedPart } from "./RgbLedPart.jsx"
-import { NpnTransistorPart } from "./NpnTransistorPart.jsx"
-import { ServoPart } from "./ServoPart.jsx"
-import { DcMotorPart } from "./DcMotorPart.jsx"
+import { useMemo } from 'react';
+import { getLedState, getRgbLedState } from '../../simulator/engine.js';
+import { createDefaultVisualizationManager } from '../../visualization/factory.js';
+import { DEFAULT_REGISTRATIONS } from '../../visualization/defaultRegistrations.js';
 
 /**
- * Sélectionne le rendu SVG/HTML selon le type de composant.
+ * PartRenderer — Rendu des composants électroniques
+ * 
+ * Délègue la sélection et le rendu du composant au VisualizationManager.
+ * La logique métier (LED, RGB_LED) est conservée localement.
  */
 export function PartRenderer({
   type,
@@ -30,62 +20,40 @@ export function PartRenderer({
   onLostPointerCapture,
   onMouseDown,
   onClick,
+  ...otherProps
 }) {
-  const signals = pinSignals instanceof Map ? pinSignals : new Map()
+  // Protection si pinSignals est absent (conservée de l'ancienne version)
+  const signals = pinSignals instanceof Map ? pinSignals : new Map();
 
-  switch (type) {
-    case "LED": {
-      const { on } = getLedState(uid ?? "", signals)
-      return <LedPart isOn={on} />
-    }
-    case "RESISTOR":
-      return <ResistorPart />
-    case "ARDUINO":
-      return <ArduinoPart />
-    case "BUTTON":
-      return (
-        <ButtonPart
-          state={state}
-          onPointerDown={onPointerDown}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerCancel}
-          onLostPointerCapture={onLostPointerCapture}
-          onMouseDown={onMouseDown}
-        />
-      )
-    case "BUTTON_LATCHING":
-      return (
-        <LatchingButtonPart
-          state={state}
-          onPointerDown={onPointerDown}
-          onClick={onClick}
-        />
-      )
-    case "POWER":
-      return <PowerPart />
-    case "CAPACITOR":
-      return <CapacitorPart />
-    case "BUZZER":
-      return <BuzzerPart />
-    case "POTENTIOMETER":
-      return <PotentiometerPart />
-    case "LDR":
-      return <LdrPart />
-    case "THERMISTOR":
-      return <ThermistorPart />
-    case "DIODE":
-      return <DiodePart />
-    case "RGB_LED": {
-      const { r, g, b } = getRgbLedState(uid ?? "", signals)
-      return <RgbLedPart r={r} g={g} b={b} />
-    }
-    case "NPN_TRANSISTOR":
-      return <NpnTransistorPart />
-    case "SERVO":
-      return <ServoPart />
-    case "DC_MOTOR":
-      return <DcMotorPart />
-    default:
-      return <div className="part-unknown">?</div>
+  // Création du manager une seule fois (mémorisé)
+  const manager = useMemo(
+    () => createDefaultVisualizationManager(DEFAULT_REGISTRATIONS),
+    []
+  );
+
+  // Construction des props communes à tous les renderers
+  let rendererProps = {
+    uid,
+    pinSignals: signals,
+    state,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onLostPointerCapture,
+    onMouseDown,
+    onClick,
+    ...otherProps,
+  };
+
+  // Enrichissement des props selon le type (comportement strictement conservé)
+  if (type === 'LED') {
+    const { on } = getLedState(uid ?? "", signals);
+    rendererProps = { ...rendererProps, isOn: on };
+  } else if (type === 'RGB_LED') {
+    const { r, g, b } = getRgbLedState(uid ?? "", signals);
+    rendererProps = { ...rendererProps, r, g, b };
   }
+
+  // Délégation complète au VisualizationManager
+  return manager.render(type, rendererProps);
 }
