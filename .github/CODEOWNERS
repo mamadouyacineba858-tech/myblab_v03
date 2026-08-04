@@ -1,0 +1,37 @@
+# ============================================================
+# MYBlab — CODEOWNERS
+# Version: 1.1
+#
+# GitHub ownership opérationnel.
+# Les responsabilités métier sont définies dans :
+# docs/governance/OWNERSHIP.md
+# ============================================================
+
+
+/docs/                         @mamadouyacineba858-tech
+
+/frontend/src/                 @mamadouyacineba858-tech
+
+/frontend/src/simulation/      @mamadouyacineba858-tech
+
+/frontend/src/visualization/   @mamadouyacineba858-tech
+
+/frontend/src/components/parts/ @mamadouyacineba858-tech
+
+/frontend/src/arduino/         @mamadouyacineba858-tech
+
+/frontend/src/utils/           @mamadouyacineba858-tech
+
+/frontend/src/types/           @mamadouyacineba858-tech
+
+/tests/                        @mamadouyacineba858-tech
+
+
+package.json                   @mamadouyacineba858-tech
+
+vite.config.*                  @mamadouyacineba858-tech
+
+eslint.config.*                @mamadouyacineba858-tech
+
+
+README.md                      @mamadouyacineba858-tech
