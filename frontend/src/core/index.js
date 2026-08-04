@@ -11,7 +11,7 @@ export {
   CommandExecutionError,
 } from './command/errors/index.js';
 
-// Validation System (NOUVEAU)
+// Validation System (existants)
 export { ValidationEngine } from './validation/ValidationEngine.js';
 export { ValidationRegistry } from './validation/ValidationRegistry.js';
 export { ValidationReport } from './validation/ValidationReport.js';
@@ -23,3 +23,17 @@ export {
   STATUSES,
   SEVERITY_ORDER,
 } from './validation/constants.js';
+
+// Handlers System (NOUVEAU)
+export { BaseCommandHandler } from './handlers/BaseCommandHandler.js';
+export {
+  AddComponentHandler,
+  RemoveComponentHandler,
+  UpdateComponentHandler,
+  MoveComponentHandler,
+} from './handlers/index.js';
+export {
+  HandlerError,
+  ComponentNotFoundError,
+  InvalidComponentTypeError,
+} from './handlers/index.js';
