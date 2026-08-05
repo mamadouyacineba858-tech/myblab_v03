@@ -37,3 +37,7 @@ export {
   ComponentNotFoundError,
   InvalidComponentTypeError,
 } from './handlers/index.js';
+
+// History Integration (NOUVEAU)
+export { HistoryService } from './history/HistoryService.js';
+export { HistoryCommandAdapter } from './history/HistoryCommandAdapter.js';

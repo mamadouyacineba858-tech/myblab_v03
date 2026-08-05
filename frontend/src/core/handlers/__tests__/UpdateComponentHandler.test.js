@@ -1,12 +1,21 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { UpdateComponentHandler } from '../component/UpdateComponentHandler.js';
 import { createTestDocument } from './fixtures/testDocument.js';
+import { createHandlerTestContext } from './fixtures/testHistoryContext.js';
 
 describe('UpdateComponentHandler', () => {
-  const handler = new UpdateComponentHandler();
+  let documentApi;
+  let historyService;
+  let handler;
+
+  beforeEach(() => {
+    const ctx = createHandlerTestContext(createTestDocument());
+    documentApi = ctx.documentApi;
+    historyService = ctx.historyService;
+    handler = new UpdateComponentHandler({ historyService, documentApi });
+  });
 
   it('should update component parameters', () => {
-    const document = createTestDocument();
     const command = {
       type: 'UPDATE_COMPONENT',
       payload: {
@@ -15,14 +24,13 @@ describe('UpdateComponentHandler', () => {
       },
     };
 
-    const result = handler.execute(command, document);
-    expect(result.success).toBe(true);
-    const updated = result.document.components.find(c => c.id === 'R1');
+    const outcome = handler.execute(command, documentApi.getDocument());
+    expect(outcome.success).toBe(true);
+    const updated = documentApi.getDocument().components.find(c => c.id === 'R1');
     expect(updated.parameters.resistance).toBe(2000);
   });
 
   it('should update multiple parameters', () => {
-    const document = createTestDocument();
     const command = {
       type: 'UPDATE_COMPONENT',
       payload: {
@@ -31,14 +39,13 @@ describe('UpdateComponentHandler', () => {
       },
     };
 
-    const result = handler.execute(command, document);
-    const updated = result.document.components.find(c => c.id === 'LED1');
+    handler.execute(command, documentApi.getDocument());
+    const updated = documentApi.getDocument().components.find(c => c.id === 'LED1');
     expect(updated.parameters.color).toBe('blue');
     expect(updated.parameters.intensity).toBe(80);
   });
 
   it('should preserve existing parameters', () => {
-    const document = createTestDocument();
     const command = {
       type: 'UPDATE_COMPONENT',
       payload: {
@@ -47,15 +54,15 @@ describe('UpdateComponentHandler', () => {
       },
     };
 
-    const result = handler.execute(command, document);
-    const updated = result.document.components.find(c => c.id === 'LED1');
+    handler.execute(command, documentApi.getDocument());
+    const updated = documentApi.getDocument().components.find(c => c.id === 'LED1');
     expect(updated.parameters.color).toBe('red');
     expect(updated.parameters.intensity).toBe(80);
   });
 
-  it('should not mutate the original document', () => {
-    const document = createTestDocument();
-    const originalParams = document.components.find(c => c.id === 'R1').parameters.resistance;
+  it('should not mutate the document snapshot passed to execute()', () => {
+    const documentSnapshot = documentApi.getDocument();
+    const originalResistance = documentSnapshot.components.find(c => c.id === 'R1').parameters.resistance;
     const command = {
       type: 'UPDATE_COMPONENT',
       payload: {
@@ -64,12 +71,11 @@ describe('UpdateComponentHandler', () => {
       },
     };
 
-    handler.execute(command, document);
-    expect(document.components.find(c => c.id === 'R1').parameters.resistance).toBe(originalParams);
+    handler.execute(command, documentSnapshot);
+    expect(documentSnapshot.components.find(c => c.id === 'R1').parameters.resistance).toBe(originalResistance);
   });
 
   it('should throw if component does not exist', () => {
-    const document = createTestDocument();
     const command = {
       type: 'UPDATE_COMPONENT',
       payload: {
@@ -78,11 +84,10 @@ describe('UpdateComponentHandler', () => {
       },
     };
 
-    expect(() => handler.execute(command, document)).toThrow('Component with id "NONEXISTENT" not found');
+    expect(() => handler.execute(command, documentApi.getDocument())).toThrow('Component with id "NONEXISTENT" not found');
   });
 
   it('should throw if parameters is missing', () => {
-    const document = createTestDocument();
     const command = {
       type: 'UPDATE_COMPONENT',
       payload: {
@@ -90,11 +95,10 @@ describe('UpdateComponentHandler', () => {
       },
     };
 
-    expect(() => handler.execute(command, document)).toThrow('Missing required field: "parameters"');
+    expect(() => handler.execute(command, documentApi.getDocument())).toThrow('Missing required field: "parameters"');
   });
 
   it('should create a change object for HistoryManager', () => {
-    const document = createTestDocument();
     const command = {
       type: 'UPDATE_COMPONENT',
       payload: {
@@ -103,11 +107,30 @@ describe('UpdateComponentHandler', () => {
       },
     };
 
-    const result = handler.execute(command, document);
-    expect(result.change).toBeDefined();
-    expect(result.change.type).toBe('UPDATE_COMPONENT');
-    expect(result.change.componentId).toBe('R1');
-    expect(result.change.oldParameters).toEqual({ resistance: 1000 });
-    expect(result.change.newParameters).toEqual({ resistance: 2000 });
+    const outcome = handler.execute(command, documentApi.getDocument());
+    expect(outcome.result.change).toBeDefined();
+    expect(outcome.result.change.type).toBe('UPDATE_COMPONENT');
+    expect(outcome.result.change.componentId).toBe('R1');
+    expect(outcome.result.change.oldParameters).toEqual({ resistance: 1000 });
+    expect(outcome.result.change.newParameters).toEqual({ resistance: 2000 });
+  });
+
+  it('should support undo/redo through the real HistoryManager', () => {
+    const command = {
+      type: 'UPDATE_COMPONENT',
+      payload: {
+        componentId: 'R1',
+        parameters: { resistance: 2000 },
+      },
+    };
+
+    handler.execute(command, documentApi.getDocument());
+    expect(documentApi.getDocument().components.find(c => c.id === 'R1').parameters.resistance).toBe(2000);
+
+    historyService.undo();
+    expect(documentApi.getDocument().components.find(c => c.id === 'R1').parameters.resistance).toBe(1000);
+
+    historyService.redo();
+    expect(documentApi.getDocument().components.find(c => c.id === 'R1').parameters.resistance).toBe(2000);
   });
 });

@@ -1,20 +1,17 @@
 import { BaseCommandHandler } from '../BaseCommandHandler.js';
 
-/**
- * Handler pour l'ajout d'un composant au Document.
- * Commande : { type: "ADD_COMPONENT", payload: { componentType, position, parameters } }
- */
 export class AddComponentHandler extends BaseCommandHandler {
   execute(command, document) {
-    // Validation structurelle minimale
     this._validateCommandPayload(command, ['componentType']);
+    return this._executeWithHistory(command, document);
+  }
 
+  _applyMutation(command, document) {
     const { componentType, position = { x: 0, y: 0 }, parameters = {} } = command.payload;
 
-    // Générer un identifiant unique
-    const id = this._generateComponentId(componentType);
+    const id = command.payload.componentId || this._generateComponentId(componentType);
+    command.payload.componentId = id;
 
-    // Créer le nouveau composant
     const newComponent = {
       id,
       type: componentType,
@@ -22,21 +19,87 @@ export class AddComponentHandler extends BaseCommandHandler {
       parameters: { ...parameters },
     };
 
-    // Créer un nouveau Document (immuable)
     const newDocument = {
       ...document,
       components: [...(document.components || []), newComponent],
     };
 
-    // Retourner le résultat avec les métadonnées pour l'historique
     return {
       success: true,
       document: newDocument,
       componentId: id,
+      newComponent,
       change: this._createChange('ADD_COMPONENT', {
         componentId: id,
         component: newComponent,
       }),
+    };
+  }
+
+  _applyRedo(command, document, lastResult) {
+    const componentId = command.payload.componentId;
+    const { componentType, position = { x: 0, y: 0 }, parameters = {} } = command.payload;
+
+    if (!componentId) {
+      throw new Error('Cannot redo AddComponent: missing componentId');
+    }
+
+    if (this._componentExists(document, componentId)) {
+      return { success: true, document, componentId };
+    }
+
+    const newComponent = {
+      id: componentId,
+      type: componentType,
+      position: { ...position },
+      parameters: { ...parameters },
+    };
+
+    const newDocument = {
+      ...document,
+      components: [...(document.components || []), newComponent],
+    };
+
+    return {
+      success: true,
+      document: newDocument,
+      componentId,
+      newComponent,
+      change: this._createChange('ADD_COMPONENT', {
+        componentId,
+        component: newComponent,
+      }),
+    };
+  }
+
+  _applyInverse(command, document, lastResult) {
+    const { componentId } = lastResult;
+
+    if (!componentId) {
+      throw new Error('Cannot undo AddComponent: missing componentId in lastResult');
+    }
+
+    if (!this._componentExists(document, componentId)) {
+      return { success: true, document };
+    }
+
+    const { newDocument: docWithoutWires } =
+      this._removeWiresForComponent(document, componentId);
+
+    const remainingComponents = docWithoutWires.components.filter(
+      c => c.id !== componentId
+    );
+
+    const newDocument = {
+      ...docWithoutWires,
+      components: remainingComponents,
+    };
+
+    return {
+      success: true,
+      document: newDocument,
+      restored: false,
+      removedComponentId: componentId,
     };
   }
 }

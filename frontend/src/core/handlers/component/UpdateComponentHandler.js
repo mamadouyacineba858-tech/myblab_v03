@@ -2,39 +2,36 @@ import { BaseCommandHandler } from '../BaseCommandHandler.js';
 import { ComponentNotFoundError } from '../errors/ComponentNotFoundError.js';
 import { HandlerError } from '../errors/HandlerError.js';
 
-/**
- * Handler pour la mise à jour des paramètres d'un composant.
- * Commande : { type: "UPDATE_COMPONENT", payload: { componentId, parameters } }
- */
 export class UpdateComponentHandler extends BaseCommandHandler {
   execute(command, document) {
     this._validateCommandPayload(command, ['componentId', 'parameters']);
+    return this._executeWithHistory(command, document);
+  }
 
+  _applyMutation(command, document) {
     const { componentId, parameters } = command.payload;
 
-    // Vérifier que le composant existe
     if (!this._componentExists(document, componentId)) {
       throw new ComponentNotFoundError(componentId);
     }
 
-    // Vérifier que parameters est un objet
     if (typeof parameters !== 'object' || parameters === null) {
       throw new HandlerError('Parameters must be an object');
     }
 
-    // Récupérer l'ancien composant
-    const oldComponent = this._findComponent(document, componentId);
+    const oldComponent = this._cloneComponent(
+      this._findComponent(document, componentId)
+    );
+    const oldParameters = { ...oldComponent.parameters };
 
-    // Créer le nouveau composant avec les paramètres fusionnés
     const updatedComponent = {
       ...oldComponent,
       parameters: {
-        ...oldComponent.parameters,
+        ...oldParameters,
         ...parameters,
       },
     };
 
-    // Mettre à jour la liste des composants
     const updatedComponents = document.components.map(c =>
       c.id === componentId ? updatedComponent : c
     );
@@ -48,11 +45,87 @@ export class UpdateComponentHandler extends BaseCommandHandler {
       success: true,
       document: newDocument,
       componentId,
+      oldParameters,
+      newParameters: updatedComponent.parameters,
+      oldComponent,
       change: this._createChange('UPDATE_COMPONENT', {
         componentId,
-        oldParameters: oldComponent.parameters,
+        oldParameters,
         newParameters: updatedComponent.parameters,
       }),
+    };
+  }
+
+  _applyRedo(command, document, lastResult) {
+    const { componentId, newParameters } = lastResult;
+
+    if (!componentId || !newParameters) {
+      throw new Error('Cannot redo UpdateComponent: missing data');
+    }
+
+    if (!this._componentExists(document, componentId)) {
+      return { success: true, document };
+    }
+
+    const oldComponent = this._cloneComponent(
+      this._findComponent(document, componentId)
+    );
+
+    const updatedComponent = {
+      ...oldComponent,
+      parameters: { ...newParameters },
+    };
+
+    const updatedComponents = document.components.map(c =>
+      c.id === componentId ? updatedComponent : c
+    );
+
+    const newDocument = {
+      ...document,
+      components: updatedComponents,
+    };
+
+    return {
+      success: true,
+      document: newDocument,
+      componentId,
+    };
+  }
+
+  _applyInverse(command, document, lastResult) {
+    const { componentId, oldParameters } = lastResult;
+
+    if (!componentId || oldParameters === undefined) {
+      throw new Error('Cannot undo UpdateComponent: missing componentId or oldParameters');
+    }
+
+    if (!this._componentExists(document, componentId)) {
+      return { success: true, document };
+    }
+
+    const oldComponent = this._cloneComponent(
+      this._findComponent(document, componentId)
+    );
+
+    const restoredComponent = {
+      ...oldComponent,
+      parameters: { ...oldParameters },
+    };
+
+    const updatedComponents = document.components.map(c =>
+      c.id === componentId ? restoredComponent : c
+    );
+
+    const newDocument = {
+      ...document,
+      components: updatedComponents,
+    };
+
+    return {
+      success: true,
+      document: newDocument,
+      restored: true,
+      componentId,
     };
   }
 }
