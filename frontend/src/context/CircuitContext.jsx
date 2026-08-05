@@ -1,3 +1,4 @@
+import React from "react"
 import { useCircuitState } from "../hooks/useCircuitState.js"
 import { CircuitContext } from "./CircuitContext.js"
 

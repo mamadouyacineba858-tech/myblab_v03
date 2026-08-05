@@ -12,6 +12,7 @@
  * après une nouvelle commande de déplacement (drag).
  */
 
+import React from 'react'
 import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'

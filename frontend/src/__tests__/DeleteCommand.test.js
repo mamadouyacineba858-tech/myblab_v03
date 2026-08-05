@@ -38,7 +38,8 @@ describe('DeleteCommand', () => {
         cmd.do()
         expect(documentApi.removeWires).toHaveBeenCalledWith(['wire1', 'wire2'])
         expect(documentApi.removeComponents).toHaveBeenCalledWith(['comp1', 'comp2'])
-        expect(documentApi.removeWires).toHaveBeenCalledBefore(documentApi.removeComponents)
+        expect(documentApi.removeWires.mock.invocationCallOrder[0])
+         .toBeLessThan(documentApi.removeComponents.mock.invocationCallOrder[0])
     })
 
     // ============================================
@@ -50,7 +51,8 @@ describe('DeleteCommand', () => {
         cmd.undo()
         expect(documentApi.restoreComponents).toHaveBeenCalled()
         expect(documentApi.restoreWires).toHaveBeenCalled()
-        expect(documentApi.restoreComponents).toHaveBeenCalledBefore(documentApi.restoreWires)
+        expect(documentApi.restoreComponents.mock.invocationCallOrder[0])
+          .toBeLessThan(documentApi.restoreWires.mock.invocationCallOrder[0])
     })
 
     // ============================================
