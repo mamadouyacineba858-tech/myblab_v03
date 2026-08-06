@@ -42,7 +42,7 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'RESISTOR', component: ResistorPart },
   { type: 'ARDUINO', component: ArduinoPart },
   { type: 'BUTTON', component: ButtonPart },
-  { type: 'LATCHING_BUTTON', component: LatchingButtonPart },
+ { type: 'BUTTON_LATCHING', component: LatchingButtonPart },
   { type: 'POWER', component: PowerPart },
   { type: 'CAPACITOR', component: CapacitorPart },
   { type: 'BUZZER', component: BuzzerPart },
