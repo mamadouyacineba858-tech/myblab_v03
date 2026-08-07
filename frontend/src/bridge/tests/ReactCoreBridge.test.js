@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ReactCoreBridge } from '../ReactCoreBridge.js';
 import { ReactDocumentMapper } from '../ReactDocumentMapper.js';
 import { DiffEngine } from '../DiffEngine.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 describe('ReactCoreBridge', () => {
   let commandBus;
@@ -84,24 +86,56 @@ describe('ReactCoreBridge', () => {
   // T2 : Dispatch avec commande sans changement
   // ============================================================
 
-  it('T2: should handle dispatch without changes', () => {
-    const result = bridge.dispatch('NOOP', {});
-    expect(result.success).toBe(false);
+ it('T2: should handle dispatch without changes', () => {
+  // Override local : document identique
+  commandBus.dispatch.mockReturnValueOnce({
+    success: true,
+    commandId: 'cmd_noop',
+    result: {
+      document: {
+        components: [
+          {
+            id: 'C1',
+            type: 'typeA',
+            position: { x: 10, y: 20 },
+          },
+        ],
+        wires: [],
+      },
+    },
   });
 
+  const result = bridge.dispatch('NOOP', {});
+
+  expect(result.success).toBe(true);
+  expect(result.diff.hasChanges).toBe(false);
+});
   // ============================================================
   // T3 : Undo avec succès
   // ============================================================
 
   it('T3: should undo successfully', () => {
-    const result = bridge.undo();
-
-    expect(historyManager.undo).toHaveBeenCalled();
-    expect(documentApi.getDocument).toHaveBeenCalled();
-    expect(documentApi.updateComponentPositions).toHaveBeenCalled();
-    expect(result.success).toBe(true);
+  // Override local : simuler un undo qui produit un changement réel
+  historyManager.undo.mockReturnValueOnce({
+    document: {
+      components: [
+        {
+          id: 'C1',
+          type: 'typeA',
+          position: { x: 99, y: 99 },
+        },
+      ],
+      wires: [],
+    },
   });
 
+  const result = bridge.undo();
+
+  expect(historyManager.undo).toHaveBeenCalled();
+  expect(documentApi.getDocument).toHaveBeenCalled();
+  expect(documentApi.updateComponentPositions).toHaveBeenCalled();
+  expect(result.success).toBe(true);
+});
   // ============================================================
   // T4 : Redo avec succès
   // ============================================================
