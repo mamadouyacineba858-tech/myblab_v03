@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ReactCoreBridge } from '../ReactCoreBridge.js';
 import { ReactDocumentMapper } from '../ReactDocumentMapper.js';
+import { DiffEngine } from '../DiffEngine.js';
 
 describe('ReactCoreBridge', () => {
   let commandBus;
@@ -142,56 +143,118 @@ describe('ReactCoreBridge', () => {
       'ReactCoreBridge: commandBus is required'
     );
   });
-
-  // ============================================================
+ // ============================================================
   // T7 : Dispatch avec chemins ignorés
   // ============================================================
+  it('T7: should pass ignoredPaths to DiffEngine.compare', () => {
+  const compareSpy = vi.spyOn(DiffEngine, 'compare');
 
-  it('T7: should pass ignoredPaths to DiffEngine', () => {
-    const result = bridge.dispatch(
-      'UPDATE_COMPONENT',
-      { componentId: 'C1', parameters: { value: 200 } },
-      { ignoredPaths: ['metadata.timestamp'] }
-    );
+  const initialDocument = {
+    components: [
+      {
+        uid: 'C1',
+        type: 'typeA',
+        x: 10,
+        y: 20,
+        metadata: { timestamp: 1000 },
+      },
+    ],
+    wires: [],
+  };
 
-    expect(result.success).toBe(true);
-    // Le reste est déjà vérifié par les mocks
-  });
+  documentApi.getDocument.mockReturnValue(initialDocument);
 
-  // ============================================================
-  // T8 : Dispatch sans diff (document inchangé)
-  // ============================================================
-
-  it('T8: should handle dispatch with no document change', () => {
-    // Simuler un CommandBus qui retourne le même document
-    const noChangeBus = {
-      dispatch: vi.fn().mockReturnValue({
-        success: true,
-        commandId: 'cmd_123',
-        result: {
-          document: {
-            components: [{ id: 'C1', type: 'typeA', position: { x: 10, y: 20 } }],
-            wires: [],
+  commandBus.dispatch.mockReturnValue({
+    success: true,
+    commandId: 'cmd_123',
+    result: {
+      document: {
+        components: [
+          {
+            id: 'C1',
+            type: 'typeA',
+            position: { x: 10, y: 20 },
+            metadata: { timestamp: 2000 },
           },
-        },
-      }),
-    };
-
-    const noChangeBridge = new ReactCoreBridge({
-      commandBus: noChangeBus,
-      documentApi,
-      historyManager,
-    });
-
-    const result = noChangeBridge.dispatch('UPDATE_COMPONENT', {
-      componentId: 'C1',
-      parameters: { value: 200 },
-    });
-
-    expect(result.success).toBe(true);
-    // Le DocumentAdapter ne devrait pas être appelé car il n'y a pas de changement
-    // (mais dans ce test, le diff détecte un changement car les documents sont différents)
+        ],
+        wires: [],
+      },
+    },
   });
+
+  const ignoredPaths = ['metadata.timestamp'];
+
+  const result = bridge.dispatch(
+    'UPDATE_COMPONENT',
+    { componentId: 'C1', parameters: { value: 200 } },
+    { ignoredPaths }
+  );
+
+  expect(result.success).toBe(true);
+
+  expect(compareSpy).toHaveBeenCalledTimes(1);
+
+  expect(compareSpy).toHaveBeenCalledWith(
+    expect.any(Object),
+    expect.any(Object),
+    expect.objectContaining({
+      ignoredPaths,
+    })
+  );
+
+  compareSpy.mockRestore();
+});
+// ============================================================
+// ============================================================
+// T8 : Dispatch sans diff (document inchangé)
+// ============================================================
+
+it('T8: should handle dispatch with no document change', () => {
+  const updatePositionsSpy = documentApi.updateComponentPositions;
+  const updateStateSpy = documentApi.updateComponentState;
+  const restoreComponentsSpy = documentApi.restoreComponents;
+
+  const initialDocument = {
+    components: [{ uid: 'C1', type: 'typeA', x: 10, y: 20 }],
+    wires: [],
+  };
+
+  documentApi.getDocument.mockReturnValue(initialDocument);
+
+  const unchangedDocument = {
+    components: [
+      {
+        id: 'C1',
+        type: 'typeA',
+        position: { x: 10, y: 20 },
+      },
+    ],
+    wires: [],
+  };
+
+  commandBus.dispatch.mockReturnValue({
+    success: true,
+    commandId: 'cmd_456',
+    result: {
+      document: unchangedDocument,
+    },
+  });
+
+  const noChangeBridge = new ReactCoreBridge({
+    commandBus,
+    documentApi,
+    historyManager,
+  });
+
+  const result = noChangeBridge.dispatch('NOOP_COMMAND', {});
+
+  expect(result.success).toBe(true);
+  expect(result.diff.hasChanges).toBe(false);
+
+  expect(updatePositionsSpy).not.toHaveBeenCalled();
+  expect(updateStateSpy).not.toHaveBeenCalled();
+  expect(restoreComponentsSpy).not.toHaveBeenCalled();
+});
 
   // ============================================================
   // T9 : Bridge ne connaît pas React
@@ -200,7 +263,7 @@ describe('ReactCoreBridge', () => {
   it('T9: should not import React', () => {
     // Vérification statique : le fichier ne contient pas d'import React
     const fs = require('fs');
-    const content = fs.readFileSync('frontend/src/bridge/ReactCoreBridge.js', 'utf8');
+    const content = fs.readFileSync('src/bridge/ReactCoreBridge.js', 'utf8');
     expect(content).not.toContain("from 'react'");
     expect(content).not.toContain('import React');
   });
@@ -211,7 +274,7 @@ describe('ReactCoreBridge', () => {
 
   it('T10: should not contain business knowledge', () => {
     const fs = require('fs');
-    const content = fs.readFileSync('frontend/src/bridge/ReactCoreBridge.js', 'utf8');
+    const content = fs.readFileSync('src/bridge/ReactCoreBridge.js', 'utf8');
     expect(content).not.toContain('resistor');
     expect(content).not.toContain('capacitor');
     expect(content).not.toContain('LED');
