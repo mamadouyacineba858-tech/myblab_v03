@@ -54,8 +54,8 @@ export class ReactDocumentMapper {
     ['fromUid', 'pinA.componentId', true],
     ['toUid', 'pinB.componentId', true],
     // Champs optionnels
-    ['fromPinId', 'pinA.pinId', false, (v) => v !== undefined ? v : undefined],
-    ['toPinId', 'pinB.pinId', false, (v) => v !== undefined ? v : undefined],
+    ['fromPin', 'pinA.pinId', false, (v) => v !== undefined ? v : undefined],
+    ['toPin', 'pinB.pinId', false, (v) => v !== undefined ? v : undefined],
   ];
 
   /**
@@ -66,8 +66,8 @@ export class ReactDocumentMapper {
     ['pinA.componentId', 'fromUid', true],
     ['pinB.componentId', 'toUid', true],
     // Champs optionnels
-    ['pinA.pinId', 'fromPinId', false, (v) => v !== undefined ? v : undefined],
-    ['pinB.pinId', 'toPinId', false, (v) => v !== undefined ? v : undefined],
+    ['pinA.pinId', 'fromPin', false, (v) => v !== undefined ? v : undefined],
+    ['pinB.pinId', 'toPin', false, (v) => v !== undefined ? v : undefined],
   ];
 
   // ============================================================
@@ -89,7 +89,7 @@ export class ReactDocumentMapper {
       ReactDocumentMapper._applyMapping(
         wire,
         ReactDocumentMapper._WIRE_MAPPING_RC,
-        ['fromUid', 'toUid', 'fromPinId', 'toPinId']
+        ['fromUid', 'toUid', 'fromPin', 'toPin']
       )
     );
 
@@ -119,6 +119,69 @@ export class ReactDocumentMapper {
 
     const result = { components, wires };
     ReactDocumentMapper._copyUnknownProperties(coreDocument, result, ['components', 'wires']);
+    return result;
+  }
+
+  /**
+   * Convertit un Document Core vers le format attendu par le moteur legacy.
+   * Les entrées incomplètes sont ignorées afin de ne pas transmettre de
+   * composant ou de fil invalide au moteur de simulation.
+   *
+   * @param {Object} coreDocument - Document au format Core
+   * @returns {{ components: Array, wires: Array }} Document au format engine
+   */
+  static toEngineFormat(coreDocument) {
+    const result = { components: [], wires: [] };
+
+    if (!coreDocument || typeof coreDocument !== 'object') {
+      return result;
+    }
+
+    const components = Array.isArray(coreDocument.components)
+      ? coreDocument.components
+      : [];
+    const wires = Array.isArray(coreDocument.wires)
+      ? coreDocument.wires
+      : [];
+
+    for (const component of components) {
+      const id = ReactDocumentMapper._getNestedValue(component, 'id');
+      const type = ReactDocumentMapper._getNestedValue(component, 'type');
+      const x = ReactDocumentMapper._getNestedValue(component, 'position.x');
+      const y = ReactDocumentMapper._getNestedValue(component, 'position.y');
+
+      if (id === undefined || id === null ||
+          type === undefined || type === null ||
+          x === undefined || x === null ||
+          y === undefined || y === null) {
+        continue;
+      }
+
+      result.components.push({
+        uid: id,
+        type,
+        x,
+        y,
+        parameters: ReactDocumentMapper._deepClone(component.parameters),
+        state: ReactDocumentMapper._deepClone(component.state),
+        pins: ReactDocumentMapper._deepClone(component.pins),
+      });
+    }
+
+    for (const wire of wires) {
+      const fromUid = ReactDocumentMapper._getNestedValue(wire, 'pinA.componentId');
+      const fromPin = ReactDocumentMapper._getNestedValue(wire, 'pinA.pinId');
+      const toUid = ReactDocumentMapper._getNestedValue(wire, 'pinB.componentId');
+      const toPin = ReactDocumentMapper._getNestedValue(wire, 'pinB.pinId');
+
+      if (fromUid === undefined || fromUid === null ||
+          toUid === undefined || toUid === null) {
+        continue;
+      }
+
+      result.wires.push({ fromUid, fromPin, toUid, toPin });
+    }
+
     return result;
   }
 

@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { createComponent } from "../config/componentDefinitions.js"
 import { createUid } from "../utils/ids.js"
 import { snapToGrid } from "../utils/grid.js"
+import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js";
 import {
   clientToCanvas,
   hasPositionsChanged,
@@ -79,27 +80,35 @@ const getUndoCount = useCallback(() => {
   const connectedPins = useMemo(() => buildConnectedPinsSet(safeWires), [safeWires])
 
   const pinSignals = useMemo(() => {
-    if (!simulationActive) return EMPTY_MAP
+  if (!simulationActive) return EMPTY_MAP
+  try {
+    // 1. Convertir React → Core Document
+    const coreDoc = ReactDocumentMapper.toCore({
+      components: safeComponents,
+      wires: safeWires
+    });
+    
+    // 2. Convertir Core → format attendu par engine.js
+    // À remplacer par votre solution retenue :
+    // Option A : ReactDocumentMapper.toEngineFormat(coreDoc)
+    // Option B : adaptCoreToEngine(coreDoc)
+    const adapted = ReactDocumentMapper.toEngineFormat(coreDoc);
+    
+    // 3. Appeler le moteur avec les données adaptées
 
-    try {
-      const result = runSimulation(safeComponents, safeWires) ?? EMPTY_MAP
+    const result = runSimulation(adapted.components, adapted.wires) ?? EMPTY_MAP
 
-      console.log("=== MYBlab SIMULATION DIAGNOSTIC ===")
-      console.log("Components:", safeComponents)
-      console.log("Wires:", safeWires)
-      console.table(Array.from(result.entries()).map(([pin, signal]) => ({ pin, signal })))
-
-      return result
-    } catch (error) {
-      console.error("MYBlab simulation error:", error)
-      return EMPTY_MAP
-    }
-  }, [safeComponents, safeWires, simulationActive])
+    return result
+  } catch (error) {
+    console.error("MYBlab simulation error:", error)
+    return EMPTY_MAP
+  }
+}, [safeComponents, safeWires, simulationActive])
 
   const isWiringActive = pendingPin !== null
 
   // =========================================================================
-  // MB-004.5 : RÃƒÂ©fÃƒÂ©rence synchrone pour ÃƒÂ©viter la stale closure
+  // MB-004.5 : Référence synchrone pour aƒéiter la stale closure
   // =========================================================================
 
   const componentsRef = useRef(safeComponents)
@@ -120,7 +129,7 @@ const getUndoCount = useCallback(() => {
   }, [])
 
   // =========================================================================
-  // DOCUMENT SYSTEM Ã¢â‚¬â€ Point d'ÃƒÂ©criture unique (MB-003.3.3)
+  // DOCUMENT SYSTEM Point d'écriture unique (MB-003.3.3)
   // =========================================================================
 
   const updateComponentPositions = useCallback((positionsMap) => {
@@ -200,7 +209,7 @@ const getUndoCount = useCallback(() => {
   const onPinClick = useCallback((uid, pinId) => {
     if (!uid || !pinId) return
 
-    // Garde I-M1 : vÃƒÂ©rifier qu'aucune autre interaction n'est active
+    // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (dragSessionRef.current !== null) return
     if (marqueeSessionRef.current !== null) return
 
@@ -276,7 +285,7 @@ if (import.meta.env.DEV) {
   }, [])
 
   // =========================================================================
-  // SELECTION SYSTEM Ã¢â‚¬â€ Marquee (MB-003.4)
+  // SELECTION SYSTEM Marquee (MB-003.4)
   // =========================================================================
 
   const selectMarquee = useCallback((componentIds, wireIds, keepExisting = false) => {
@@ -323,7 +332,7 @@ if (import.meta.env.DEV) {
   }, [])
 
   // =========================================================================
-  // DOCUMENT SYSTEM Ã¢â‚¬â€ RÃƒÂ¨gles mÃƒÂ©tier & SRP (MB-003.2)
+  // DOCUMENT SYSTEM  & SRP (MB-003.2)
   // =========================================================================
 
   const removeWire = useCallback((wireId) => {
@@ -345,7 +354,7 @@ if (import.meta.env.DEV) {
   }, [removeConnectedWires, removeComponent])
 
   // =========================================================================
-  // MB-004.6 : DeleteCommand Ã¢â‚¬â€ Suppression avec historique
+  // MB-004.6 : DeleteCommand Suppression avec historique
   // =========================================================================
 
   const deleteSelection = useCallback(() => {
@@ -364,14 +373,14 @@ if (import.meta.env.DEV) {
       }
     })
 
-    // Capturer les donnÃƒÂ©es rÃƒÂ©elles AVANT suppression
+    // Capturer les données réelles AVANT suppression
     const deletedComponents = new Map()
     const deletedWires = new Map()
 
     const componentMap = new Map(safeComponents.map(c => [c.uid, c]))
     const wireMap = new Map(safeWires.map(w => [w.id, w]))
 
-    // 1. Capturer les composants sÃƒÂ©lectionnÃƒÂ©s
+    // 1. Capturer les composants sélectionnés
     componentsToDelete.forEach(uid => {
       const comp = componentMap.get(uid)
       if (comp) {
@@ -379,7 +388,7 @@ if (import.meta.env.DEV) {
       }
     })
 
-    // 2. Capturer les wires sÃƒÂ©lectionnÃƒÂ©s
+    // 2. Capturer les wires sélectionnés
     initialWiresToDelete.forEach(wireId => {
       const wire = wireMap.get(wireId)
       if (wire) {
@@ -387,7 +396,7 @@ if (import.meta.env.DEV) {
       }
     })
 
-    // 3. Capturer les wires connectÃƒÂ©s aux composants supprimÃƒÂ©s
+    // 3. Capturer les wires connectés aux composants supprimés
     componentsToDelete.forEach(uid => {
       const connected = safeWires.filter(w => w.fromUid === uid || w.toUid === uid)
       for (const wire of connected) {
@@ -397,14 +406,14 @@ if (import.meta.env.DEV) {
       }
     })
 
-    // 4. VÃƒÂ©rifier qu'il y a quelque chose ÃƒÂ  supprimer
+    // 4. Vérifier qu'il y a quelque chose à supprimer
     if (deletedComponents.size === 0 && deletedWires.size === 0) {
       setSelection(new Set())
       setActiveItem(null)
       return
     }
 
-    // 5. CrÃƒÂ©er et exÃƒÂ©cuter la commande
+    // 5. Créer et exécuter la commande
     const command = new DeleteCommand(
       documentApi,
       deletedComponents,
@@ -412,7 +421,7 @@ if (import.meta.env.DEV) {
     )
     historyManagerRef.current.execute(command)
 
-    // 6. Vider la sÃƒÂ©lection
+    // 6. Vider la sélection
     setSelection(new Set())
     setActiveItem(null)
   }, [selection, safeComponents, safeWires, documentApi])
@@ -422,7 +431,7 @@ if (import.meta.env.DEV) {
   // =========================================================================
 
   // =========================================================================
-  // POINTER INTERACTION SYSTEM Ã¢â‚¬â€ Drag (MB-003.3.3 + MB-004.5)
+  // POINTER INTERACTION SYSTEM Drag (MB-003.3.3 + MB-004.5)
   // =========================================================================
 
   const getSelectedComponentIds = useCallback(() => {
@@ -440,7 +449,7 @@ if (import.meta.env.DEV) {
   const startDrag = useCallback((event, uid) => {
     if (!uid || !canvasRef?.current) return
 
-    // Garde I-M1 : vÃƒÂ©rifier qu'aucune autre interaction n'est active
+    // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (marqueeSessionRef.current !== null) return
     if (pendingPin !== null) return
 
@@ -477,13 +486,13 @@ if (import.meta.env.DEV) {
   }, [canvasRef, getSelectedComponentIds, components, pendingPin])
 
   // =========================================================================
-  // POINTER INTERACTION SYSTEM Ã¢â‚¬â€ Marquee (MB-003.4)
+  // POINTER INTERACTION SYSTEM Marquee (MB-003.4)
   // =========================================================================
 
   const startMarquee = useCallback((event) => {
     if (!canvasRef?.current) return
 
-    // Garde I-M1 : vÃƒÂ©rifier qu'aucune autre interaction n'est active
+    // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (dragSessionRef.current !== null) return
     if (pendingPin !== null) return
 
@@ -607,7 +616,7 @@ if (import.meta.env.DEV) {
   }, [])
 
   // =========================================================================
-  // POINTER INTERACTION SYSTEM Ã¢â‚¬â€ Gestion des ÃƒÂ©vÃƒÂ©nements (useEffect)
+  // POINTER INTERACTION SYSTEM  Gestion des événements (useEffect)
   // =========================================================================
 
   useEffect(() => {
@@ -672,7 +681,7 @@ if (import.meta.env.DEV) {
         }
       }
 
-      // I-P10 : Nettoyage systÃƒÂ©matique
+      // I-P10 : Nettoyage systématique
       dragSessionRef.current = null
     }
 
@@ -710,7 +719,7 @@ if (import.meta.env.DEV) {
   }, [canvasRef, updateComponentPositions, updateMarquee, endMarquee, documentApi])
 
   // =========================================================================
-  // WRAPPERS DE COMPATIBILITÃƒâ€°
+  // WRAPPERS DE COMPATIBILITé
   // =========================================================================
 
   const selectItem = useCallback((item) => selectOnly(item), [selectOnly])
@@ -758,7 +767,7 @@ if (import.meta.env.DEV) {
     setComponents((prev) =>
       prev.map((c) => {
         // A1.6 : mutation d'Ã©tat transitoire, hors historique.
-        // Garde d'idempotence : aucune modification si l'Ã©tat est inchangÃ©.
+        // Garde d'idempotence : aucune modification si l'état est inchangé.
         if (c.uid !== uid || c.type !== "BUTTON" || c.state === state) {
           return c
         }

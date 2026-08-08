@@ -62,12 +62,12 @@ describe('ReactDocumentMapper', () => {
       components: [],
       wires: [
         {
-          fromUid: 'comp_A',
-          toUid: 'comp_B',
-          fromPinId: 'output',
-          toPinId: 'input',
-          extraWireProp: 'preserved',
-        },
+  fromUid: 'comp_A',
+  toUid: 'comp_B',
+  fromPin: 'output',
+  toPin: 'input',
+  extraWireProp: 'preserved',
+},
       ],
     };
 
@@ -92,7 +92,12 @@ describe('ReactDocumentMapper', () => {
         { uid: 'B', type: 'type2', x: 30, y: 40, propB: 42 },
       ],
       wires: [
-        { fromUid: 'A', toUid: 'B', fromPinId: 'out', toPinId: 'in' },
+       {
+  fromUid: 'A',
+  toUid: 'B',
+  fromPin: 'out',
+  toPin: 'in',
+},
       ],
       metadata: { version: '1.0', author: 'test' },
     };
@@ -125,12 +130,12 @@ describe('ReactDocumentMapper', () => {
       ],
       wires: [
         {
-          fromUid: 'C1',
-          toUid: 'C2',
-          fromPinId: 'a',
-          toPinId: 'b',
-          metadata: { type: 'wire' },
-        },
+  fromUid: 'C1',
+  toUid: 'C2',
+  fromPin: 'a',
+  toPin: 'b',
+  metadata: { type: 'wire' },
+},
       ],
     };
 
@@ -330,12 +335,12 @@ describe('ReactDocumentMapper', () => {
       components: [],
       wires: [
         {
-          uid: 'W1',
-          fromUid: 'A',
-          toUid: 'B',
-          fromPinId: 'p1',
-          toPinId: 'p2',
-        },
+  uid: 'W1',
+  fromUid: 'A',
+  toUid: 'B',
+  fromPin: 'p1',
+  toPin: 'p2',
+},
       ],
     };
 
