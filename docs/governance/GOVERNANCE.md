@@ -445,4 +445,19 @@ Adoptée après l'intégration de MB-SIM-005.
 Motivation :
 Formaliser le processus de validation des contributions des agents IA afin d'éviter tout déphasage entre les environnements de travail et le dépôt Git officiel.
 ```
+R9 bis — Procédure de repli
+Si un agent ne peut pas synchroniser directement son environnement avec le dépôt officiel (absence d'outils ou limitations de la plateforme), le Project Lead peut lui fournir les éléments de référence suivants :
 
+HEAD officiel (git rev-parse HEAD) ;
+
+historique récent (git log --oneline -10) ;
+
+fichiers nécessaires à la mission.
+
+Dans ce cas :
+
+l'agent doit indiquer explicitement qu'il travaille sur les informations fournies par le Project Lead ;
+
+il ne doit faire aucune hypothèse au-delà de ces informations ;
+
+toutes ses conclusions doivent citer les éléments transmis.
