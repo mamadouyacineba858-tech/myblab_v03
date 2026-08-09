@@ -1,225 +1,448 @@
-# MYBlab — GOVERNANCE.md
+Amendement de gouvernance — Validation des livraisons externes
+Principe
+Les propositions d'implémentation produites par un agent externe (Claude, Qwen, DeepSeek, Copilot, Gemini, etc.) sont considérées comme des propositions de patch, et non comme des livraisons définitives.
 
-> Ce document décrit les rôles, responsabilités et processus opérationnels du projet MYBlab.
-> Il découle de `MYBLAB-CONSTITUTION.md` (source de vérité des principes immuables) et précède
-> `ARCHITECTURE.md`, `CONVENTIONS.md`, `CODEOWNERS`, `RFC-GUIDE.md` et `ADR/`, qui en sont des
-> déclinaisons opérationnelles.
->
-> **Statut** : v2 — révisé après revue croisée (Qwen, DeepSeek, ChatGPT, Gemini, Copilot).
-> **Auteur** : Claude — Historique des revues disponible dans `ADR/` une fois publié.
+Une livraison n'est validée qu'après intégration et vérification sur le dépôt officiel MYBlab.
+
+Processus obligatoire
+Agent IA
+      │
+      ▼
+Proposition de patch
+      │
+      ▼
+Revue Architecturale (ChatGPT)
+      │
+      ▼
+Intégration locale (Project Lead)
+      │
+      ▼
+Vérification Git
+      │
+      ▼
+Tests + Build
+      │
+      ▼
+Commit officiel
+      │
+      ▼
+Push GitHub
+      │
+      ▼
+Ticket validé
+Règles
+R1 — Aucun hash externe n'est considéré comme une preuve
+Un hash annoncé par un agent n'a aucune valeur tant qu'il n'existe pas dans le dépôt officiel.
+
+Validation :
+
+git show <hash>
+R2 — Les rapports sont des propositions
+Un rapport peut annoncer :
+
+des fichiers modifiés
+
+des diffs
+
+des explications
+
+mais jamais qu'un ticket est terminé tant que le dépôt officiel ne le confirme pas.
+
+R3 — Validation Git obligatoire
+Avant toute validation :
+
+git status
+git diff --stat
+git grep ...
+git log --oneline -5
+R4 — Validation technique obligatoire
+Toujours exécuter :
+
+npm test -- --run
+npm run build
+R5 — Validation architecturale
+L'Architecte en Chef vérifie :
+
+le respect du ticket
+
+le respect des ADR
+
+le respect de la gouvernance
+
+l'absence de dette technique inutile
+
+la cohérence de l'architecture
+
+R6 — Le Project Lead garde le contrôle
+Le Project Lead :
+
+applique les patchs
+
+lance les tests
+
+crée le commit officiel
+
+pousse sur GitHub
+
+Aucun agent IA ne décide qu'un ticket est terminé.                                                                                                    R7 — Toute affirmation technique doit être vérifiable
+Un agent peut affirmer qu'une modification est réalisée uniquement si cette affirmation peut être vérifiée sur le dépôt officiel.
+
+Par exemple :
+
+Affirmation :
+✓ le fichier existe
+
+→ vérification :
+
+git ls-files <fichier>
+Affirmation :
+✓ la fonction a disparu
+
+→ vérification :
+
+git grep "nomDeLaFonction"
+Affirmation :
+✓ aucun changement supplémentaire
+
+→ vérification :
+
+git diff
+Affirmation :
+✓ commit créé
+
+→ vérification :
+
+git show HASH
+Ainsi, on ne débat plus des affirmations : on les valide par des commandes reproductibles.
+
+J'ajouterais aussi une règle qui nous a énormément aidés
+R8 — Les preuves priment sur les rapports
+Une livraison est évaluée dans l'ordre suivant :
+
+état Git ;
+
+diff ;
+
+tests ;
+
+build ;
+
+rapport.
+
+Le rapport est le dernier élément, pas le premier.
+
+R9 (version finale)
+Avant chaque nouvelle mission :
+
+audit
+
+implémentation
+
+revue
+
+correction
+
+refactoring
+
+l'agent doit :
+
+synchroniser son clone avec le dépôt officiel (ou re-cloner s'il préfère) ;
+
+annoncer le HEAD utilisé ;
+
+produire son travail uniquement sur cette base.
+
+Ainsi, il n'existe jamais de notion de "clone courant".
+
+Il existe uniquement :
+
+la dernière version officielle du dépôt.
+
+
+R10 — Aucune hypothèse sur l'état du dépôt
+Un agent ne doit jamais écrire :
+
+"je suppose que..."
+
+"je pense que..."
+
+"probablement..."
+
+concernant un fichier du dépôt.
+
+Il doit d'abord vérifier.
+
+Par exemple :
+
+git grep ...
+git show ...
+git diff ...
+git ls-files ...
+Puis seulement conclure.                                                                                                                                            Gouvernance R1–R10
+À partir de maintenant, nous avons un workflow clair :
+
+Synchronisation obligatoire avec le dépôt officiel.
+
+Annonce du HEAD de référence.
+
+Aucune hypothèse sur le contenu du dépôt.
+
+Chaque affirmation est prouvée (git grep, git show, git diff, etc.).
+
+Production d'un patch, jamais d'une "livraison".
+
+Revue architecturale.
+
+Intégration sur ton dépôt.
+
+Tests.
+
+Build.
+
+Commit officiel + Push.
+
+# Amendement de gouvernance — Validation des livraisons externes
+
+## Statut
+
+**Adopté**
+
+## Objet
+
+Cet amendement définit le processus officiel de validation des contributions produites par des agents IA externes (Claude, Qwen, DeepSeek, Copilot, Gemini, etc.).
+
+À compter de son adoption, il complète `GOVERNANCE.md` et s'applique à tous les tickets du projet MYBlab.
 
 ---
 
-## 1. Principe fondateur
+# Principe fondamental
 
-Ce projet est **piloté par un humain (le Project Lead)**, assisté par des agents IA consultés
-comme experts spécialisés. Les rôles décrits ci-dessous sont des **fonctions**, pas des identités
-figées : un rôle peut être occupé par différents agents ou personnes dans le temps, sans que la
-gouvernance elle-même ne change. L'identité de la personne physique occupant le rôle de Project
-Lead n'est pas fixée ici — elle vit dans un registre séparé (ex. `TEAM.md`), afin que ce document
-reste valable indépendamment des personnes.
+Toute implémentation produite par un agent IA est considérée comme une **proposition de patch**.
 
-Toute règle de ce document doit, autant que possible, être **mécanisée** (intégration continue,
-attribution de propriétaires de fichiers, modèles de tickets) plutôt que reposer sur la seule
-bonne volonté des contributeurs.
+Elle ne devient une livraison officielle qu'après validation sur le dépôt Git officiel de MYBlab.
 
-**Sur l'autorité de l'automatisation** : l'automatisation constitue l'**autorité opérationnelle
-immédiate** — c'est elle qui bloque ou autorise un merge au quotidien. Mais toute divergence
-détectée entre ce document et ce que l'automatisation applique réellement est traitée comme une
-**anomalie prioritaire**, à corriger soit en ajustant l'automatisation, soit en mettant à jour ce
-document — jamais acceptée telle quelle sous prétexte qu'elle est "en place".
-
-*(Note d'implémentation : ce document reste volontairement neutre vis-à-vis de l'outil de forge
-utilisé — le terme générique "ticket du dépôt" est employé plutôt qu'un nom d'outil spécifique, ce
-document devant rester valable si l'outil change.)*
+Le dépôt officiel constitue l'unique source de vérité.
 
 ---
 
-## 2. Structure des rôles
+# Workflow officiel
 
-### 2.1 Project Lead
-- **Qui** : une personne physique désignée, référencée en dehors de ce document.
-- **Décide seul** : la vision produit, la création/suppression/fusion d'un domaine, l'arbitrage
-  final de tout désaccord structurant.
-- **Ne fait pas** : review de code ligne par ligne, validation de PR internes à un domaine.
-- **Mécanisme de décision** : voir §5. **Mécanisme en cas d'indisponibilité** : voir §5.1.
-
-### 2.2 Propriétaire de domaine
-- **Qui** : une IA (ou un humain, à terme) désigné par domaine dans `ARCHITECTURE.md` /
-  `CODEOWNERS`. Le nom de l'agent occupant ce rôle **n'est jamais gravé dans ce document** — il vit
-  dans `CODEOWNERS`, qui peut être mis à jour sans réviser la gouvernance.
-- **Peut décider seul** :
-  - Toute modification de fichiers dont il est l'unique propriétaire (`CODEOWNERS`).
-  - Refactoring interne qui ne change pas un contrat d'interface exposé.
-  - Priorisation du backlog de son domaine, exercée lors des sessions de travail ou sur directive
-    du Project Lead — un propriétaire IA n'agit pas en continu entre deux sollicitations, et cette
-    priorisation n'est donc pas une gestion autonome permanente.
-- **Doit escalader au Project Lead** :
-  - Toute modification d'un contrat d'interface consommé par un autre domaine (→ processus RFC,
-    voir §4).
-  - Toute modification d'un fichier partagé listé dans `CODEOWNERS`.
-  - Tout changement de découpage du domaine lui-même.
-- **Critère de bonne gouvernance du domaine** (indicatifs, non des règles rigides) : zéro merge
-  sans passage par son propriétaire ; interface documentée et versionnée ; taux d'escalade
-  raisonnable — un domaine jeune ou en forte évolution aura naturellement plus d'escalades qu'un
-  domaine stabilisé, la valeur cible n'est donc qu'un point de repère, pas un couperet.
-
-### 2.3 Expert consulté
-- **Qui** : tout agent IA sollicité ponctuellement sur un sujet précis, sans ownership permanent
-  d'un domaine.
-- **Rôle** : produire une recommandation, un patch, une analyse — jamais fusionner directement sans
-  passage par le propriétaire du domaine concerné.
-
-### 2.4 Création, fusion et suppression d'un domaine
-- Un nouveau domaine est créé lorsqu'un découpage améliore durablement la cohérence
-  architecturale ou réduit les dépendances entre composants — décision réservée au Project Lead.
-- En cas de suppression ou de fusion d'un domaine, l'ownership de tous ses fichiers est
-  explicitement redéfini (dans `CODEOWNERS`) **avant** toute nouvelle évolution de ces fichiers.
-  Un domaine ne disparaît jamais en laissant des fichiers orphelins.
+```text
+Agent IA
+      │
+      ▼
+Proposition de patch
+      │
+      ▼
+Revue Architecturale
+      │
+      ▼
+Intégration locale (Project Lead)
+      │
+      ▼
+Vérification Git
+      │
+      ▼
+Tests
+      │
+      ▼
+Build
+      │
+      ▼
+Commit officiel
+      │
+      ▼
+Push GitHub
+      │
+      ▼
+Ticket validé
+```
 
 ---
 
-## 3. Ownership des fichiers
+# R1 — Aucun hash externe n'est une preuve
 
-- **Principe par défaut** : un fichier a un seul propriétaire (`CODEOWNERS`).
-- **Exceptions acceptables** :
-  - **Fichiers de contrat d'interface** (types partagés, schémas, constantes de domaine communes) :
-    ownership partagé assumé, modification uniquement via le processus RFC (§4). Le partage n'est
-    pas une anomalie ici, mais la nature même de ce type de fichier.
-  - Fichiers de configuration globale (config racine du projet, outillage de lint global) :
-    propriété du Project Lead lui-même.
-- **Fichier qui devient transversal hors des deux cas ci-dessus** : si un fichier de logique
-  métier (non-contrat) est modifié régulièrement par plus d'un domaine pendant plus de 2-3 cycles
-  de travail, il doit être **scindé, ou refactorisé vers une bibliothèque commune avec un
-  propriétaire clair** — pas laissé en ownership flou. Le problème à éviter est l'ambiguïté de
-  décision, pas le partage de fichier en tant que tel.
+Un hash communiqué par un agent IA n'a aucune valeur tant qu'il n'existe pas dans le dépôt officiel.
+
+Validation :
+
+```bash
+git show <hash>
+```
 
 ---
 
-## 4. Processus RFC (changement d'interface entre domaines)
+# R2 — Les rapports sont des propositions
 
-Utilisé dès qu'un domaine veut modifier une interface consommée par un autre domaine. Deux
-variantes existent, pour éviter qu'un ajustement mineur ne subisse le poids d'un changement majeur.
+Un rapport peut contenir :
 
-### 4.1 RFC standard (changement significatif ou "breaking")
-1. **Proposition** — ticket du dépôt avec template dédié : quoi, pourquoi, impact.
-2. **Validation du contrat** — le propriétaire du domaine qui possède l'interface valide ou
-   contre-propose. En cas de désaccord → escalade au Project Lead.
-3. **Implémentation** — par le propriétaire de l'interface, ou par le domaine consommateur si le
-   propriétaire préfère déléguer — dans ce cas, la PR reste soumise à l'**approbation explicite**
-   du propriétaire avant merge, qui garde le dernier mot sur son interface.
-4. **Versionnage** — le changement est marqué (semver simple) avec un changelog court.
-5. **Notification automatique** — un contrôle automatisé détecte les changements dans les fichiers
-   de contrat et notifie les travaux en cours des domaines consommateurs. Pas de notification
-   manuelle.
-6. **Tests + documentation** — mise à jour obligatoire **avant** merge (bloquant en CI).
-7. **Clôture** — le ticket RFC est fermé avec lien vers la PR qui l'implémente.
+* des explications ;
+* des diffs ;
+* des propositions de patch ;
+* des analyses.
 
-### 4.2 RFC légère (changement mineur, non-breaking)
-Pour un ajout de champ optionnel, une correction n'affectant pas les consommateurs existants, ou
-tout changement rétrocompatible : les étapes 1 et 2 sont fusionnées en une notification directe
-au propriétaire de l'interface avec accord rapide, sans ticket formel obligatoire. Les étapes
-5 et 6 restent obligatoires. En cas de doute sur la nature "mineure" du changement, le propriétaire
-de l'interface tranche — et le processus standard s'applique par défaut.
-
-Le détail procédural complet (formats, templates, cycle de vie) est spécifié dans `RFC-GUIDE.md`
-(Phase 6).
+En revanche, un agent IA ne peut jamais déclarer qu'un ticket est terminé tant que celui-ci n'a pas été validé sur le dépôt officiel.
 
 ---
 
-## 5. Règle de décision par défaut
+# R3 — Validation Git obligatoire
 
-Les agents IA de ce projet n'opèrent pas en continu : ils interviennent lorsqu'ils sont sollicités.
-En conséquence :
+Avant toute validation officielle :
 
-> **Tant que le Project Lead n'a pas explicitement arbitré un désaccord structurant, le contrat ou
-> l'état actuel reste en vigueur. Aucun délai n'entraîne, à lui seul, une décision implicite.**
-
-Cette règle prime sur toute notion de SLA classique. Elle est plus lente mais plus sûre : un
-changement structurant ne doit jamais passer simplement parce qu'un délai s'est écoulé sans
-réponse.
-
-### 5.1 Indisponibilité prolongée du Project Lead ou d'un propriétaire de domaine
-
-Cette règle porte sur *qui* peut décider en cas d'indisponibilité — elle ne crée jamais de décision
-automatique par défaut, ce qui resterait contraire au principe ci-dessus.
-
-- **Project Lead indisponible** au-delà d'un délai raisonnable (indicatif : 72h sans réponse pour
-  un désaccord bloquant) : les propriétaires de domaine concernés peuvent constituer un **comité
-  restreint temporaire** pour statuer, à condition que la décision soit explicitement documentée
-  comme provisoire et revue par le Project Lead à son retour.
-- **Propriétaire de domaine indisponible** : le Project Lead peut désigner un propriétaire
-  temporaire pour le domaine concerné, le temps de la résolution du blocage, sans que cela ne
-  modifie l'attribution permanente dans `CODEOWNERS`.
+```bash
+git status
+git diff --stat
+git grep ...
+git log --oneline -5
+```
 
 ---
 
-## 6. Validation et merge
+# R4 — Validation technique obligatoire
 
-| Niveau | Portée | Validateur |
-|---|---|---|
-| 1 | PR strictement interne à un domaine, sans impact sur un contrat public | Propriétaire du domaine, auto-merge autorisé **uniquement si** : CI complète verte (lint + tests), aucun test d'intégration existant cassé |
-| 2 | PR touchant un fichier partagé ou un contrat d'interface | Project Lead (via processus RFC, §4) |
-| 3 | Décision de découpage de domaine, création/suppression/fusion de domaine | Project Lead seul (§2.4) |
+Avant toute intégration :
 
-La CI est **toujours bloquante**, indépendamment du niveau de validation humaine. Les conventions
-de branches et la gestion des conflits entre contributeurs travaillant sur un même domaine relèvent
-de `CONVENTIONS.md`, pas de ce document.
+```bash
+npm test -- --run
+npm run build
+```
 
----
-
-## 7. Indicateurs de suivi
-
-Retenus pour leur caractère actionnable — un indicateur qui ne change aucune décision n'a pas sa
-place ici. Les valeurs numériques ci-dessous sont **indicatives**, destinées à être ajustées avec
-l'expérience, et ne constituent pas des règles rigides du document :
-
-1. **Tickets en attente de review au-delà d'un délai raisonnable** (indicatif : 48h) — signal
-   d'attention, pas une anomalie processuelle en soi, dès lors que la règle §5 est respectée.
-2. **Conflits Git par semaine** — doit tendre vers zéro si le découpage des domaines est correct.
-3. **Taux d'escalade au Project Lead** (escalades / total des changements) — doit rester modéré ;
-   la valeur cible dépend de la maturité du domaine (voir §2.2).
-4. **Changements de contrat d'interface détectés a posteriori sans passage par le processus RFC** —
-   doit être nul.
-5. **PR qui cassent la CI d'un autre domaine** — mesure la stabilité des interfaces.
-6. **Tickets RFC en attente de validation d'un propriétaire** — mesure préventive de la charge du
-   processus RFC, avant qu'elle ne se traduise en blocage.
-7. **Régressions détectées après fusion** — indicateur de qualité globale.
-
-*(Le "temps moyen d'un ticket" est volontairement exclu : les tickets sont trop hétérogènes en
-complexité pour que cette moyenne soit actionnable.)*
+Aucune exception.
 
 ---
 
-## 8. Gouvernance documentaire
+# R5 — Validation architecturale
 
-Chaque document de gouvernance (`GOVERNANCE.md`, `ARCHITECTURE.md`, `CONVENTIONS.md`,
-`RFC-GUIDE.md`) possède un responsable, défini dans `CODEOWNERS`. Ce responsable garantit :
-- la cohérence interne du document ;
-- sa mise à jour lorsque la réalité du projet diverge de ce qu'il décrit ;
-- sa conformité avec le document de niveau supérieur dans la hiérarchie
-  (`MYBLAB-CONSTITUTION.md` → `GOVERNANCE.md` → `ARCHITECTURE.md` → ...).
+L'Architecte en Chef vérifie notamment :
 
----
-
-## 9. Évolution de ce document
-
-- `GOVERNANCE.md` peut être révisé sans réviser `MYBLAB-CONSTITUTION.md`, tant que les principes
-  immuables de la constitution restent respectés.
-- Toute révision significative de ce document passe par le processus RFC standard (§4.1), avec le
-  Project Lead comme validateur final.
-- Révision périodique recommandée à intervalle indicatif, ou dès qu'un problème de gouvernance
-  concret est identifié — la périodicité n'est pas une contrainte rigide, une révision ad hoc est
-  toujours possible si nécessaire.
+* le respect du ticket ;
+* le respect des ADR ;
+* le respect de la gouvernance ;
+* l'absence de dette technique inutile ;
+* la cohérence globale de l'architecture.
 
 ---
 
-## 10. Ce que ce document ne couvre pas
+# R6 — Le Project Lead conserve le contrôle
 
-- L'organisation technique des domaines et interfaces → `ARCHITECTURE.md`.
-- Les règles de code, de commit, de nommage, de gestion de branches et de conflits entre
-  contributeurs → `CONVENTIONS.md`.
-- L'attribution nominative des fichiers et des documents → `CODEOWNERS`.
-- Le détail procédural complet des RFC → `RFC-GUIDE.md`.
-- L'historique des décisions d'architecture → `ADR/`.
-- L'identité des personnes physiques occupant les rôles → registre séparé (ex. `TEAM.md`).
+Le Project Lead est le seul responsable de :
+
+* l'intégration des patchs ;
+* l'exécution des vérifications ;
+* la création du commit officiel ;
+* le push vers GitHub.
+
+Aucun agent IA ne peut déclarer un ticket terminé.
+
+---
+
+# R7 — Toute affirmation doit être vérifiable
+
+Toute affirmation technique doit pouvoir être démontrée par une commande reproductible.
+
+Exemples :
+
+Fichier présent :
+
+```bash
+git ls-files <fichier>
+```
+
+Fonction supprimée :
+
+```bash
+git grep "NomDeLaFonction"
+```
+
+Aucune modification restante :
+
+```bash
+git diff
+```
+
+Commit existant :
+
+```bash
+git show <hash>
+```
+
+Les preuves priment sur les affirmations.
+
+---
+
+# R8 — Les preuves priment sur les rapports
+
+Une livraison est évaluée dans l'ordre suivant :
+
+1. état Git ;
+2. diff ;
+3. tests ;
+4. build ;
+5. rapport.
+
+Le rapport constitue la dernière étape du processus.
+
+---
+
+# R9 — Synchronisation obligatoire
+
+Avant **chaque** nouvelle mission :
+
+* audit ;
+* implémentation ;
+* revue ;
+* correction ;
+* refactoring.
+
+L'agent IA doit :
+
+1. synchroniser son environnement avec le dépôt officiel (re-clone ou mise à jour complète) ;
+2. annoncer explicitement le HEAD utilisé ;
+3. produire son travail uniquement à partir de cette base.
+
+Il n'existe pas de "clone courant".
+
+La seule référence est la dernière révision officielle du dépôt.
+
+---
+
+# R10 — Aucune hypothèse sur l'état du dépôt
+
+Un agent IA ne doit jamais conclure sur l'état d'un fichier sans vérification préalable.
+
+Les formulations du type :
+
+* "je suppose…"
+* "je pense…"
+* "probablement…"
+
+sont interdites lorsqu'elles concernent le contenu du dépôt.
+
+Toute conclusion doit être précédée d'une vérification (`git grep`, `git show`, `git diff`, `git ls-files`, lecture directe du fichier, etc.).
+
+---
+
+# Conséquence
+
+À compter de cet amendement :
+
+* tous les agents IA produisent des **propositions de patch** ;
+* le dépôt Git officiel est la seule source de vérité ;
+* aucune livraison n'est considérée comme valide avant intégration, vérification, tests, build, commit officiel et push.
+
+---
+
+## Je te propose une dernière amélioration
+
+J'ajouterais à la fin une petite section **"Historique"** :
+
+```text
+## Historique
+
+Version 1.0
+Adoptée après l'intégration de MB-SIM-005.
+
+Motivation :
+Formaliser le processus de validation des contributions des agents IA afin d'éviter tout déphasage entre les environnements de travail et le dépôt Git officiel.
+```
+
