@@ -2,7 +2,8 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { createComponent } from "../config/componentDefinitions.js"
 import { createUid } from "../utils/ids.js"
 import { snapToGrid } from "../utils/grid.js"
-import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js";
+import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js"
+import { toEngineInput } from "../simulator/engineAdapter.js"
 import {
   clientToCanvas,
   hasPositionsChanged,
@@ -88,11 +89,8 @@ const getUndoCount = useCallback(() => {
       wires: safeWires
     });
     
-    // 2. Convertir Core → format attendu par engine.js
-    // À remplacer par votre solution retenue :
-    // Option A : ReactDocumentMapper.toEngineFormat(coreDoc)
-    // Option B : adaptCoreToEngine(coreDoc)
-    const adapted = ReactDocumentMapper.toEngineFormat(coreDoc);
+    // 2. Adapter le Document Core vers le format attendu par engine.js
+const adapted = toEngineInput(coreDoc);
     
     // 3. Appeler le moteur avec les données adaptées
 

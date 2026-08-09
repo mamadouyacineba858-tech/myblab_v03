@@ -130,60 +130,7 @@ export class ReactDocumentMapper {
    * @param {Object} coreDocument - Document au format Core
    * @returns {{ components: Array, wires: Array }} Document au format engine
    */
-  static toEngineFormat(coreDocument) {
-    const result = { components: [], wires: [] };
-
-    if (!coreDocument || typeof coreDocument !== 'object') {
-      return result;
-    }
-
-    const components = Array.isArray(coreDocument.components)
-      ? coreDocument.components
-      : [];
-    const wires = Array.isArray(coreDocument.wires)
-      ? coreDocument.wires
-      : [];
-
-    for (const component of components) {
-      const id = ReactDocumentMapper._getNestedValue(component, 'id');
-      const type = ReactDocumentMapper._getNestedValue(component, 'type');
-      const x = ReactDocumentMapper._getNestedValue(component, 'position.x');
-      const y = ReactDocumentMapper._getNestedValue(component, 'position.y');
-
-      if (id === undefined || id === null ||
-          type === undefined || type === null ||
-          x === undefined || x === null ||
-          y === undefined || y === null) {
-        continue;
-      }
-
-      result.components.push({
-        uid: id,
-        type,
-        x,
-        y,
-        parameters: ReactDocumentMapper._deepClone(component.parameters),
-        state: ReactDocumentMapper._deepClone(component.state),
-        pins: ReactDocumentMapper._deepClone(component.pins),
-      });
-    }
-
-    for (const wire of wires) {
-      const fromUid = ReactDocumentMapper._getNestedValue(wire, 'pinA.componentId');
-      const fromPin = ReactDocumentMapper._getNestedValue(wire, 'pinA.pinId');
-      const toUid = ReactDocumentMapper._getNestedValue(wire, 'pinB.componentId');
-      const toPin = ReactDocumentMapper._getNestedValue(wire, 'pinB.pinId');
-
-      if (fromUid === undefined || fromUid === null ||
-          toUid === undefined || toUid === null) {
-        continue;
-      }
-
-      result.wires.push({ fromUid, fromPin, toUid, toPin });
-    }
-
-    return result;
-  }
+ 
 
   // ============================================================
   // MOTEUR DE MAPPING DÉCLARATIF AVEC VALIDATION
