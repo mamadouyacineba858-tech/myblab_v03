@@ -6,6 +6,33 @@
 
 ---
 
+## Tableau de suivi
+
+*Ajouté par MB-SIM-DOC-001.*
+
+| Ticket | Statut documentaire | Référence |
+|---|---|---|
+| MB-SIM-002 | Audit réalisé (hors dépôt) | conversation |
+| MB-SIM-003 | Décision architecturale (hors dépôt) | conversation |
+| MB-SIM-004 | ✅ Intégré | `a0f1f23` |
+| MB-SIM-005 | ✅ Intégré | `fb40a8a` |
+| MB-SIM-006 | À faire | — |
+| MB-SIM-007 | À faire | — |
+| MB-SIM-008 | À faire | — |
+| MB-SIM-009 | À faire | — |
+| MB-SIM-010 | À faire | — |
+
+**Note :** Les tickets MB-SIM-002 et MB-SIM-003 ne disposent pas encore
+d'un document officiel dans le dépôt. Leur contenu provient des travaux
+préparatoires réalisés avant la mise en place de la gouvernance
+documentaire actuelle.
+
+**Une divergence a été identifiée entre la feuille de route actuelle et
+l'état du dépôt officiel.** Cette divergence sera arbitrée dans un ticket
+documentaire ultérieur et n'est pas résolue par MB-SIM-DOC-001.
+
+---
+
 ## Nature de ce document
 
 Ce document n'est pas un Ticket au sens de SPEC-PMO-002 (il ne porte pas
