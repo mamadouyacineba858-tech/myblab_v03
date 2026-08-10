@@ -1,10 +1,33 @@
+# PLATFORM_ARCHITECTURE.md
 
-**Fondement : Tome I (`MYBLAB_VISION_2030.md`), chapitres I à VI**
-**Rappel (E1, Tome I) : ce gel de structure n'a pas d'autorité formelle tant qu'il n'est pas effectivement intégré au dépôt et rattaché à la hiérarchie documentaire officielle.**
+Chapitre 1 — Introduction (version intégrée, prête pour gel)
+1. Introduction
+1.1 Objectifs du document
+
+PLATFORM_ARCHITECTURE.md décrit l'architecture technique permanente de MYBlab : les couches qui la composent, les sous-systèmes qui les peuplent, et les règles qui gouvernent leurs échanges. Ce document ne crée pas de nouveaux principes. Il traduit architecturalement ceux du Tome I (MYBLAB_VISION_2030.md).
+
+1.2 Portée
+
+Ce document couvre le Core Layer, l'Execution Layer, l'Application Layer et les Platform Services, ainsi que les treize sous-systèmes qui les composent. Il ne couvre pas le développement d'extensions, de SDK ou d'API publiques — ces sujets relèvent d'un futur Tome III (« Developer Platform »), non encore commissionné.
+
+Des documents d'architecture historiques existent dans le dépôt. Leur statut et leur articulation avec le présent document sont décrits dans ADR-011.
+
+1.3 Relation avec le Tome I, les ADR et le code
+
+Chaque sous-système décrit dans ce document est relié explicitement aux piliers, principes et valeurs du Tome I dont il découle (section 7). Une décision d'architecture qui ne pourrait être rattachée à aucun d'entre eux n'a pas sa place ici.
+
+Les ADR traduisent les principes de ce document en décisions techniques concrètes ; elles ne peuvent jamais les contredire (Engagement E4 du Tome I). Une ADR peut aussi bien découler de ce document que le précéder et l'éclairer — ADR-011 en est le premier exemple : produite avant l'achèvement de ce document, elle a directement informé la rédaction de cette section.
+
+Le présent document définit les responsabilités architecturales et les frontières entre les sous-systèmes. Il ne prescrit ni une organisation particulière du dépôt, ni une structure de fichiers, ni une technologie d'implémentation. Le passage de cette architecture au code relève des ADR et des décisions d'implémentation qui en découlent.
+
+
 
 ---
 
-## 1. Modèle en couches
+# 2. Architecture globale
+
+## 2.1 Modèle en couches
+
 
 ```text
 ┌──────────────────────────────────────────────┐
@@ -35,7 +58,7 @@
    appartenir)
 ```
 
-### Définitions des couches
+## 2.2 Définitions des couches
 
 - **Core Layer** — porte l'état métier et les opérations structurelles. N'exécute et n'affiche jamais.
 - **Execution Layer** — produit un comportement à partir de l'état métier, sans jamais en devenir propriétaire.
@@ -45,7 +68,7 @@ Ces trois définitions sont volontairement générales : elles doivent pouvoir a
 
 ---
 
-## 2. Composition des couches
+## 2.3 Composition des couches
 
 ### Core Layer
 | Sous-système | Responsabilité en une phrase |
@@ -78,7 +101,7 @@ Ces trois définitions sont volontairement générales : elles doivent pouvoir a
 
 ---
 
-## 3. Invariants architecturaux
+## 2.4 Invariants architecturaux
 
 **I1 — Aucune dépendance vers le haut, jamais, sans exception.**
 Une couche ne peut dépendre que d'une couche strictement inférieure ou égale à la sienne. Core ne connaît ni Execution ni Application. Execution ne connaît jamais Application.
@@ -100,52 +123,4 @@ Ce n'est pas une violation de I1 : Application peut lire à la fois Core (le Doc
 
 ---
 
-## 4. Table des matières définitive de `PLATFORM_ARCHITECTURE.md`
 
-```text
-PLATFORM_ARCHITECTURE.md
-
-1. Introduction
-   1.1 Objectifs du document
-   1.2 Portée
-   1.3 Relation avec le Tome I
-
-2. Architecture globale
-   2.1 Les couches
-   2.2 Règles de dépendance
-   2.3 Communication Model
-   2.4 Invariants
-
-3. Core Layer
-   3.1 Document
-   3.2 Mutation
-   3.3 Validation
-   3.4 Registry
-   3.5 Project Synchronization
-
-4. Execution Layer
-   4.1 Simulation
-   4.2 Embedded Runtime
-   4.3 Communication entre moteurs
-
-5. Application Layer
-   5.1 Presentation
-   5.2 Knowledge
-   5.3 Learning
-   5.4 Collaboration
-
-6. Platform Services
-   6.1 Storage
-   6.2 Plugin Loader
-
-7. Correspondance avec le Tome I
-   7.1 Valeurs → Architecture
-   7.2 Principes → Sous-systèmes
-   7.3 Piliers → Domaines
-
-8. ADR de référence
-```
-
-**Note de renvoi hors périmètre** : Component SDK, Plugin SDK, API publiques et documentation développeur ne figurent pas dans ce plan — ils relèvent d'un futur Tome III (« Developer Platform »), non encore commissionné.
-
----
