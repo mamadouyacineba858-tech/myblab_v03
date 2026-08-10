@@ -13,15 +13,15 @@
 
 ## Tableau de suivi mis à jour
 
-| Chapitre | Statut |
-|---|---|
-| I – Mission | ✅ Gelé |
-| II – Vision à long terme | ✅ Gelé |
-| III – Valeurs | ✅ Gelé |
-| IV – Principes architecturaux | ✅ Gelé |
-| V – Piliers de la plateforme | ⏳ À rédiger |
-| VI – Engagements de gouvernance | ⏳ À rédiger |
----
+| Chapitre                                  | Statut |
+| ----------------------------------------- | :----: |
+| I – Mission                               | ✅ Gelé |
+| II – Vision à long terme                  | ✅ Gelé |
+| III – Valeurs                             | ✅ Gelé |
+| IV – Principes architecturaux             | ✅ Gelé |
+| V – Piliers stratégiques de la plateforme | ✅ Gelé |
+| VI – Engagements de gouvernance           | ✅ Gelé |
+
 
 ## Position dans la hiérarchie documentaire
 
@@ -209,17 +209,132 @@ Je la trouve juste, avec une précision à trancher avant qu'elle devienne offic
 > Ces dix principes ne sont pas des recommandations : ce sont des contraintes que toute décision d'architecture doit respecter, quel que soit le domaine concerné. Les ADR ne les redéfinissent jamais — leur rôle est de traduire ces principes en décisions concrètes, propres à un contexte technique donné. Un ADR qui entrerait en contradiction avec l'un de ces principes n'est pas une exception à documenter : c'est une erreur à corriger, soit dans l'ADR lui-même, soit — si le principe s'avère réellement inadapté à une situation nouvelle — par une révision explicite de ce chapitre, jamais par un contournement silencieux. **Chaque ADR doit justifier explicitement les principes qu'il applique et démontrer qu'il n'en contredit aucun.**
 
 ---
+## Chapitre V — Piliers stratégiques de la plateforme (version gelée)
 
-## Tableau de suivi mis à jour
+> ## Piliers stratégiques de la plateforme
+>
+> Un pilier n'est pas une fonctionnalité, ni une technologie. C'est un domaine fonctionnel permanent de MYBlab, indispensable à la réalisation de sa mission, et appelé à évoluer indépendamment des technologies qui l'implémentent. Ce chapitre en décrit sept, chacun relié aux valeurs et aux principes qui le rendent nécessaire. Six découlent directement de ce qui a déjà été énoncé dans les chapitres précédents ; le septième — Collaboration et partage — est un choix stratégique assumé explicitement, non une déduction du texte déjà écrit.
+>
+> Deux propriétés — la continuité du parcours utilisateur et l'ouverture de la plateforme à son évolution — ne figurent pas dans cette liste. Elles ne définissent aucun domaine en particulier : elles s'appliquent à tous, sans exception, et sont déjà portées par les principes architecturaux du Chapitre IV.
+>
+> ### 1. Conception électronique
+>
+> Poser un composant, le relier à un autre, voir un circuit prendre forme — c'est le premier geste que la Vision décrit, et celui sur lequel tous les autres piliers s'appuient. Sans ce domaine, aucun des suivants n'a d'objet sur lequel s'exercer.
+>
+> Il met en œuvre la Simplicité sans simplification excessive et la Curiosité et expérimentation : concevoir doit rester un geste libre, jamais entravé par la peur de l'erreur.
+> Il mobilise les principes 1 (les données métier comme seule source de vérité), 5 (une représentation unique pour tout le parcours) et 10 (séparation des responsabilités), qui garantissent qu'un même circuit reste le même objet, du premier brouillon jusqu'au projet abouti.
+>
+> ### 2. Simulation scientifique
+>
+> Concevoir sans comprendre ne serait qu'assembler. Ce pilier transforme un circuit en objet d'étude : il calcule, révèle, explique un comportement plutôt que de se contenter de l'illustrer.
+>
+> Il met en œuvre la Fidélité scientifique avant toute autre valeur, et la Compréhension avant reproduction qui donne son sens à tout le reste de la Vision.
+> Il mobilise les principes 2 (chaque comportement doit pouvoir être expliqué), 3 (les limites du modèle exposées, jamais dissimulées), 8 (un comportement validé ne change plus silencieusement) et 9 (un retour clair, compréhensible et proportionné).
+>
+> ### 3. Programmation et systèmes embarqués
+>
+> La Mission ne s'arrête pas au circuit statique : elle promet un chemin continu jusqu'au système qui exécute réellement du code. Ce pilier porte cette promesse dans ce qu'elle a de plus exigeant — un comportement programmé doit se comporter, en simulation, comme il se comporterait réellement.
+>
+> Il met en œuvre la Fidélité scientifique, dans son exigence la plus stricte, et la Progression continue, puisque c'est souvent ici que l'utilisateur franchit le pas de la conception vers le comportement dynamique.
+> Il mobilise les principes 3 (limites du modèle assumées), 6 (complexité révélée progressivement, jamais dupliquée) et 7 (extension sans reconstruction des domaines déjà en place).
+>
+> ### 4. Apprentissage et accompagnement
+>
+> Un outil peut être juste sans jamais rien enseigner. Ce pilier fait la différence : il porte, de façon active, la promesse que MYBlab ne se contente pas de produire un résultat correct, mais accompagne celui qui cherche à le comprendre.
+>
+> Il met en œuvre la Compréhension avant reproduction dans son expression la plus directe, et la Curiosité et expérimentation, puisque apprendre suppose de pouvoir se tromper sans crainte.
+> Il mobilise les principes 2 (comportement explicable), 4 (aucune action irréversible sans filet de sécurité) et 9 (retour clair, compréhensible et proportionné).
+>
+> ### 5. Intelligence et connaissance
+>
+> Ce pilier ne désigne aucune technologie en particulier — ni aujourd'hui ni demain. Il désigne tout ce qui aide l'utilisateur à comprendre plutôt qu'à simplement obtenir : une explication, une annotation, un diagnostic. Ce que ces mécanismes seront dans dix ans changera sans doute plusieurs fois ; ce qu'ils doivent accomplir ne changera pas.
+>
+> Il met en œuvre Compréhension avant reproduction, déjà la première valeur du Chapitre III, ici élevée au rang de domaine à part entière plutôt que de simple conséquence des autres piliers.
+> Il mobilise le principe 2 (chaque comportement affiché doit pouvoir être expliqué), qui est, de tous les principes, celui que ce pilier a la responsabilité la plus directe de servir.
+>
+> ### 6. Écosystème ouvert
+>
+> MYBlab ne prétend pas tout construire seul. Ce pilier porte la capacité de la plateforme à accueillir ce qu'elle n'a pas elle-même conçu — nouveaux composants, nouvelles bibliothèques, nouvelles intégrations — sans jamais remettre en cause ce qui existe déjà.
+>
+> Il met en œuvre l'Architecture durable, et rend concrète l'ambition de la Mission de rassembler progressivement des capacités aujourd'hui dispersées entre plusieurs catégories de logiciels.
+> Il mobilise directement le principe 7 (la plateforme s'étend sans reconstruire ce qui existe déjà) et le principe 10 (séparation des responsabilités), qui rend cette extension possible sans fragiliser l'ensemble.
+>
+> ### 7. Collaboration et partage — un choix assumé, pas une déduction
+>
+> Contrairement aux six piliers précédents, celui-ci n'est pas la conséquence directe d'une phrase déjà écrite dans les chapitres qui précèdent : la Vision, jusqu'ici, décrit toujours un parcours individuel. C'est un choix stratégique, posé consciemment plutôt que découvert dans le texte : MYBlab se conçoit comme une plateforme, pas comme un outil monoposte, et cette ambition doit un jour se traduire dans la façon dont un projet peut être partagé, montré, ou construit à plusieurs.
+>
+> Ce pilier ne cherche pas de justification rétroactive dans les chapitres précédents — il les prolonge, sans prétendre en découler.
+>
+> ---
+>
+> Ces sept piliers ne sont pas classés par priorité : leur ordre suit la trajectoire de l'utilisateur telle que la Vision la raconte, de la conception jusqu'au partage. Déterminer dans quel ordre les développer relève des Roadmaps, pas de ce chapitre : une roadmap peut avancer un pilier avant un autre, mais elle ne redéfinit jamais ce qu'est un pilier, ni sa place dans cette liste.
 
-| Chapitre | Statut |
+---
+
+## Chapitre VI — Engagements de gouvernance (rédaction complète)
+
+> ## Engagements de gouvernance
+>
+> Les cinq chapitres qui précèdent décrivent ce que MYBlab est, ce qu'il vise, ce qui le guide, ce qui contraint son architecture, et les domaines qu'il doit couvrir. Ce dernier chapitre répond à une question différente : comment ce document lui-même reste-t-il vivant, cohérent, et digne de confiance, alors que le projet qu'il décrit continuera d'évoluer bien après que ces mots auront été gelés ?
+>
+> Les engagements qui suivent sont regroupés en quatre familles : la cohérence documentaire du Tome I avec le reste du dépôt, l'articulation entre ces principes et les décisions d'architecture concrètes, la gouvernance des feuilles de route qui planifient leur mise en œuvre, et enfin la façon dont le Tome I lui-même est autorisé à évoluer.
+>
+> ### A. Cohérence documentaire
+>
+> **E1 — Aucun document, quel que soit son niveau d'achèvement ou de validation interne, ne détient d'autorité formelle dans la hiérarchie documentaire tant qu'il n'y a pas été explicitement intégré.**
+> Un document peut être entièrement rédigé, relu, discuté et jugé mûr par tous ceux qui y ont contribué, sans pour autant faire partie de la hiérarchie qui gouverne le projet. Seule une décision explicite d'intégration — jamais l'achèvement du document lui-même — lui confère cette autorité. Cet engagement protège le projet contre une confusion précise : celle qui consisterait à traiter un texte comme faisant foi simplement parce qu'il est complet et de bonne qualité.
+>
+> **E2 — Un chapitre n'est considéré comme gelé qu'après validation explicite de l'autorité compétente, jamais par défaut.**
+> Le silence, l'absence d'objection, ou le simple écoulement du temps ne valent jamais validation. Chaque étape franchie doit pouvoir être attribuée à une décision précise, prise par quelqu'un, à un moment identifiable.
+>
+> **E3 — La Vision ne se révise que par amendement explicite et tracé, jamais par glissement progressif.**
+> Une formulation qui semble, avec le recul, imparfaite ou datée ne doit jamais être corrigée silencieusement au fil d'une relecture ultérieure. Toute révision de la Vision doit être un acte identifiable en tant que tel — un document d'amendement, daté, qui remplace explicitement ce qui précède plutôt que de s'y substituer sans le dire.
+>
+> ### B. Décisions d'architecture
+>
+> **E4 — Toute décision d'architecture doit citer explicitement les principes du Chapitre IV qu'elle traduit, et démontrer qu'elle n'en contredit aucun.**
+> Une décision technique qui ne peut être rattachée à aucun principe n'est pas nécessairement mauvaise, mais elle échappe au cadre que ce document établit — et doit, à ce titre, être traitée comme une exception à examiner, pas comme une décision ordinaire.
+>
+> **E5 — Une tension non résolue entre deux principes, rencontrée dans un cas concret, doit produire une décision d'arbitrage explicite et documentée, jamais un contournement silencieux dans le code.**
+> Deux principes peuvent légitimement entrer en tension sur un cas particulier. Ce n'est pas un défaut du Chapitre IV — c'est une situation prévisible, que ce chapitre a d'ailleurs anticipée dès son préambule. Ce qui ne serait pas acceptable, en revanche, c'est qu'un choix d'implémentation tranche cette tension sans que la tension elle-même n'ait été nommée et documentée.
+>
+> ### C. Gouvernance des Roadmaps
+>
+> **E6 — Une feuille de route planifie l'ordre de réalisation d'un pilier ; elle ne peut ni en créer, ni en redéfinir un.**
+> La liste des piliers appartient au Chapitre V. Une feuille de route peut avancer un pilier avant un autre, l'ignorer temporairement, ou le découper en étapes — mais jamais en changer la nature, la justification, ou l'existence même.
+>
+> **E7 — Toute divergence constatée entre une feuille de route et l'état réel du dépôt doit être corrigée par une décision documentaire dédiée, jamais absorbée silencieusement dans la tâche suivante.**
+> Cet engagement n'est pas une précaution théorique. Il généralise un incident réellement survenu dans ce projet : une feuille de route a un jour décrit un travail sous un nom qui ne correspondait plus à ce qui avait été effectivement livré sous ce même nom. La correction s'est faite par une tâche entièrement dédiée à cette resynchronisation, pas au détour d'une autre. C'est ce réflexe que cet engagement rend permanent.
+>
+> **E8 — Un nouveau pilier ne s'ajoute au Chapitre V que sous l'une de deux formes explicitement déclarées : dérivé des chapitres qui le précèdent, ou choix stratégique assumé comme tel.**
+> Cette distinction existe déjà dans le Chapitre V lui-même, pour le pilier Collaboration et partage. Cet engagement en fait une règle générale, applicable à tout pilier futur : jamais une justification rétroactive qui prétendrait avoir toujours été là.
+>
+> ### D. Évolution du Tome I
+>
+> **E9 — Chaque chapitre porte la trace de ses propres réserves non résolues, et celles-ci restent visibles jusqu'à leur clôture explicite.**
+> Un document qui prétendrait n'avoir aucune limite serait moins digne de confiance qu'un document qui les nomme. Les réserves signalées au moment de la validation d'un chapitre ne doivent jamais être discrètement oubliées — elles doivent demeurer visibles jusqu'à ce qu'une décision explicite les résolve ou les écarte.
+>
+> **E10 — Toute modification d'un chapitre gelé suit le même processus de revue, de validation et de traçabilité que toute décision d'architecture majeure.**
+> La documentation fondatrice n'est pas un texte qu'on ajuste librement au fil du temps parce qu'on en a la plume. Elle suit la même discipline que le code qu'elle gouverne : proposition, critique, validation, traçabilité. C'est cette discipline, appliquée sans exception depuis le premier chapitre, que cet engagement rend explicite plutôt que tacite.
+>
+> ---
+>
+> Le Tome I n'a pas vocation à prévoir toutes les décisions futures. Il a pour vocation de garantir que, quelles que soient ces décisions, elles resteront cohérentes avec l'identité de MYBlab.
+
+---
+
+## Auto-vérification (trois critères)
+
+| Critère | Résultat |
 |---|---|
-| I – Mission | ✅ Gelé |
-| II – Vision à long terme | ✅ Gelé |
-| III – Valeurs | ✅ Gelé |
-| IV – Principes architecturaux | ✅ Gelé |
-| V – Piliers de la plateforme | ⏳ À rédiger |
-| VI – Engagements de gouvernance | ⏳ À rédiger |
+| **Intemporel** | ✅ E1 reformulé n'ancre plus le chapitre dans l'état actuel du Tome I — vérifié explicitement, c'est le point que tu as corrigé |
+| **Indépendant des technologies** | ✅ Aucune mention de brique technique |
+| **Inspirant mais vérifiable** | ✅ Chaque engagement reste actionnable — plusieurs sont d'ailleurs directement adossés à des faits vérifiables du dépôt (E7 notamment) |
+
+
+
+
+
 
 
 
