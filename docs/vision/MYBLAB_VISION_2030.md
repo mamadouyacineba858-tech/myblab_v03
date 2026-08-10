@@ -1,18 +1,53 @@
 # MYBLAB Vision 2030
 
-| Chapitre | Statut |
-|----------|--------|
-| I – Mission | ✅ Gelé |
-| II – Vision à long terme | ✅ Gelé |
-| III – Valeurs | 🟡 En rédaction |
-| IV – Principes architecturaux | ⏳ À rédiger |
-| V – Piliers de la plateforme | ⏳ À rédiger |
-| VI – Engagements de gouvernance | ⏳ À rédiger |
+> **Version :** Draft 0.1  
+> **Statut :** En rédaction  
+> **Niveau documentaire :** 2 (Vision stratégique)  
+> **Document supérieur :** MYBLAB-CONSTITUTION.md  
+> **Owner :** Chief Platform Architect  
+> **Contributors :** Project Team
 
 ---
 
-⚠️ Ce document est en cours de rédaction.
-Chaque chapitre est validé indépendamment avant intégration définitive.
+## État d'avancement
+
+## Tableau de suivi mis à jour
+
+| Chapitre | Statut |
+|---|---|
+| I – Mission | ✅ Gelé |
+| II – Vision à long terme | ✅ Gelé |
+| III – Valeurs | ✅ Gelé |
+| IV – Principes architecturaux | ✅ Gelé |
+| V – Piliers de la plateforme | ⏳ À rédiger |
+| VI – Engagements de gouvernance | ⏳ À rédiger |
+---
+
+## Position dans la hiérarchie documentaire
+
+Le présent document complète **MYBLAB-CONSTITUTION.md**.
+
+Il ne modifie ni les principes fondamentaux ni les règles de gouvernance établis par la Constitution.
+
+Il formalise la vision stratégique de la plateforme et oriente les décisions d'architecture, les ADR, les roadmaps et les travaux futurs.
+
+En cas de contradiction, **MYBLAB-CONSTITUTION.md** prévaut. Toute divergence doit être résolue avant validation du présent document.
+
+---
+
+## État du document
+
+⚠️ **Document en cours de rédaction**
+
+Chaque chapitre suit le cycle de validation suivant :
+
+1. Rédaction
+2. Revue d'architecture
+3. Validation
+4. Intégration dans le dépôt Git
+5. Gel du chapitre
+
+Une fois gelé, un chapitre ne peut être modifié que par une décision explicite de gouvernance.
 
 ---
 
@@ -26,7 +61,6 @@ Chaque chapitre est validé indépendamment avant intégration définitive.
 6. Engagements de gouvernance
 
 ---
-
 ## Chapitre I — Mission
 
 MYBlab existe pour rendre la conception, la simulation, la programmation et la compréhension des systèmes électroniques accessibles, interactives et évolutives, en accompagnant chaque utilisateur de l'apprentissage jusqu'au prototypage avancé sur une plateforme unique.
@@ -52,10 +86,6 @@ L'ambition de MYBlab est de permettre à un utilisateur de commencer par sa prem
 > **MYBlab doit évoluer avec ses utilisateurs.**
 
 ---
-
-## Chapitre II — Vision à long terme
-
-Les deux ajustements sont justes — la reformulation sur la fidélité de la simulation est effectivement plus défendable scientifiquement, et la phrase finale est plus dense sans perdre en clarté. Intégration.
 
 ## Chapitre II — Vision à long terme (version gelée)
 
@@ -86,6 +116,110 @@ Je la trouve juste, avec une précision à trancher avant qu'elle devienne offic
 > - MYBlab grandit avec ses utilisateurs.
 > - La technologie doit s'effacer derrière les idées.
 > - Chaque simulation est une occasion d'apprendre.
+
+---
+
+## Chapitre III — Valeurs (version gelée)
+
+> ## Valeurs
+>
+> Une mission dit pourquoi un projet existe. Une vision décrit le monde qu'il cherche à construire. Les valeurs, elles, sont ce qui permet de choisir, chaque fois que deux chemins semblent également possibles. Elles ne sont pas une liste de qualités souhaitables — elles sont ce qui doit arbitrer, silencieusement, chaque décision de conception de MYBlab, y compris celles qu'aucun chapitre ne pourra jamais anticiper. **Ce ne sont pas non plus des règles absolues à appliquer isolément : elles entrent parfois en tension les unes avec les autres, et c'est précisément dans cet équilibre, jamais dans l'application mécanique d'une seule d'entre elles, que se prennent les meilleures décisions de conception.**
+>
+> ### Compréhension avant reproduction
+>
+> Un utilisateur qui reproduit un résultat sans le comprendre n'a rien appris — il a seulement réussi une fois. MYBlab ne mesure jamais sa réussite au fait qu'un circuit s'allume, mais à la capacité de celui qui l'a conçu à expliquer pourquoi. Cette valeur interdit, par principe, toute fonctionnalité qui offrirait un résultat correct sans jamais exposer le chemin qui y mène — un raccourci qui masquerait la compréhension serait un échec, même s'il produisait la bonne réponse.
+>
+> ### Simplicité sans simplification excessive
+>
+> Rendre un outil facile à utiliser et rendre un outil facile à comprendre ne sont pas la même chose. MYBlab recherche la première sans jamais sacrifier la seconde : une interface épurée ne doit jamais dissimuler un comportement réel derrière une approximation confortable. Quand une simplification devient nécessaire, elle doit rester visible et assumée, jamais silencieuse.
+>
+> ### Fidélité scientifique
+>
+> Ce que MYBlab montre doit toujours pouvoir être confronté au réel — dans les limites que le modèle utilisé assume explicitement. Cette valeur ne demande pas l'exactitude parfaite en toute circonstance ; elle demande l'honnêteté sur ce qui est simulé et sur ce qui ne l'est pas encore. Une fonctionnalité qui donnerait l'illusion d'un comportement physique sans le calculer réellement irait à l'encontre de cette valeur, même si elle « avait l'air juste ».
+>
+> ### Curiosité et expérimentation
+>
+> Essayer doit toujours être sans risque, et l'échec doit toujours être une information plutôt qu'une sanction. Cette valeur guide MYBlab vers des décisions qui privilégient la réversibilité et l'exploration libre — un utilisateur doit pouvoir tenter quelque chose d'improbable simplement pour voir ce qu'il se passe, sans avoir à craindre de casser quoi que ce soit ni de perdre ce qu'il avait déjà construit.
+>
+> ### La technologie s'efface derrière les idées
+>
+> Un bon outil cesse, à un moment, d'être remarqué par celui qui l'utilise. MYBlab ne cherche jamais à mettre sa propre technicité en avant : sa réussite se mesure au moment où l'utilisateur pense à son circuit, à son code, à son idée — plus à l'outil lui-même. Cette valeur pèse directement sur toute décision d'interface ou d'architecture : la complexité doit toujours être absorbée par la plateforme, jamais transférée à l'utilisateur par confort de conception.
+>
+> ### Progression continue
+>
+> MYBlab n'accompagne pas un utilisateur à un instant donné — il l'accompagne dans la durée. Cette valeur va au-delà de l'absence de rupture : elle exige que la plateforme reconnaisse et soutienne activement la croissance de celui qui l'utilise, plutôt que de rester figée dans un même niveau de complexité en attendant que l'utilisateur s'adapte à elle. Une fonctionnalité pensée uniquement pour un niveau de compétence, sans considération pour ce qui vient avant ou après, contredit cette valeur.
+>
+> ### Continuité de l'expérience utilisateur
+>
+> Là où la progression continue concerne la croissance de l'utilisateur, cette valeur concerne la stabilité de l'environnement qui l'accompagne. Changer d'ambition ne doit jamais signifier changer d'outil, réapprendre une interface, ou perdre ce qui avait été construit. Cette valeur interdit toute décision qui créerait, même involontairement, un point de rupture entre deux usages de la plateforme.
+>
+> ### Architecture durable
+>
+> Un outil qui explique bien à un débutant est un outil dont l'architecture est saine — la clarté pédagogique et la rigueur technique ne sont jamais deux exigences séparées, elles se renforcent l'une l'autre. Cette valeur engage MYBlab à ne jamais sacrifier la solidité de ses fondations pour une gratification immédiate : toute décision d'architecture doit pouvoir être défendue autant pour ce qu'elle permet aujourd'hui que pour ce qu'elle ne referme pas pour demain.
+
+---
+## Chapitre IV — Principes architecturaux (version gelée)
+
+> ## Principes architecturaux
+>
+> Une valeur guide un jugement. Un principe architectural contraint une décision. Ce qui suit n'est pas une liste de bonnes pratiques parmi lesquelles choisir selon le contexte — ce sont des contraintes permanentes, qui s'appliquent à toute décision de conception de MYBlab, indépendamment du domaine fonctionnel concerné ou de la technologie retenue pour l'implémenter.
+>
+> ### 1. Les données métier sont la seule source de vérité
+>
+> Tout ce que MYBlab affiche, calcule ou explique doit provenir d'un même ensemble de données métier, jamais d'une reconstruction propre à l'interface. La présentation peut simplifier ce qu'elle montre, mais elle ne doit jamais altérer ce qui est réellement su du système étudié. Deux vues différentes d'un même projet doivent toujours pouvoir être réconciliées, parce qu'elles décrivent la même vérité sous deux formes.
+>
+> ### 2. Chaque comportement affiché doit pouvoir être expliqué
+>
+> Il ne suffit pas qu'un résultat soit correct — il doit être possible de remonter de ce résultat vers la donnée et le raisonnement qui l'ont produit. Une fonctionnalité qui produirait un comportement correct sans qu'aucun chemin explicatif n'existe entre la cause et l'effet contredit ce principe, quelle que soit par ailleurs la justesse du résultat.
+>
+> ### 3. Les limites du modèle doivent être exposées, jamais dissimulées
+>
+> Ce que MYBlab ne simule pas doit être aussi visible que ce qu'il simule. Un système qui donnerait l'apparence de la complétude sans l'assumer trahirait la confiance de celui qui l'utilise, même sans jamais produire de résultat incorrect à proprement parler.
+>
+> ### 4. Aucune action ne doit être irréversible sans filet de sécurité explicite
+>
+> L'exploration doit rester structurellement sans risque. Toute action susceptible de détruire un travail existant doit être précédée d'une confirmation, ou suivie d'une possibilité de retour en arrière. Ce principe ne dépend d'aucun contexte d'usage : il s'applique aussi bien à un débutant qu'à un utilisateur expérimenté.
+>
+> ### 5. Une représentation unique doit porter tout le parcours de l'utilisateur
+>
+> Le format des données ne doit jamais changer entre un usage débutant et un usage avancé. Migrer un projet d'un système à un autre pour accéder à des fonctionnalités plus poussées constitue, par définition, une rupture que ce principe interdit.
+>
+> ### 6. La complexité se révèle progressivement, elle ne se duplique jamais
+>
+> Un même système doit pouvoir se présenter simplement à un débutant et en détail à un utilisateur avancé, sans qu'il existe deux implémentations distinctes de ce système. Toute tentation de construire un mode « simplifié » séparé du mode « réel » doit être résolue autrement — par une interface qui ajuste ce qu'elle montre, jamais par une duplication de ce qui est calculé.
+>
+> ### 7. La plateforme s'étend sans reconstruire ce qui existe déjà
+>
+> L'ajout d'un nouveau domaine fonctionnel ne doit jamais exiger de remettre en cause les domaines déjà en place. Une architecture qui ne pourrait grandir qu'en réécrivant ses fondations n'est pas une architecture durable au sens où MYBlab l'entend.
+>
+> ### 8. Un comportement validé ne change plus silencieusement
+>
+> Une fois qu'un comportement a été montré comme correct à l'utilisateur, il ne doit plus varier de façon inattendue à l'usage. La stabilité de ce qui est observé est une garantie de conception, pas une conséquence accidentelle du hasard des versions.
+>
+> ### 9. Le retour du système doit être clair, compréhensible et proportionné
+>
+> Chaque action de l'utilisateur doit produire une réponse qu'il peut interpréter, à la mesure de ce qu'il vient de faire — ni un silence qui laisse dans le doute, ni une réaction disproportionnée qui masquerait l'essentiel derrière le détail. La rapidité de la réponse compte moins que sa lisibilité.
+>
+> ### 10. Les responsabilités sont séparées, jamais mélangées
+>
+> Ce qui décrit les données, ce qui les transforme, et ce qui les présente doivent rester des responsabilités distinctes, séparément identifiables dans l'architecture. Un domaine fonctionnel ne doit jamais porter, par commodité, une responsabilité qui appartient à un autre : c'est cette séparation qui rend chaque partie du système lisible isolément, qui permet de la faire évoluer sans mettre en péril le reste, et qui la rend plus simple à maintenir dans la durée.
+>
+> ---
+>
+> Ces dix principes ne sont pas des recommandations : ce sont des contraintes que toute décision d'architecture doit respecter, quel que soit le domaine concerné. Les ADR ne les redéfinissent jamais — leur rôle est de traduire ces principes en décisions concrètes, propres à un contexte technique donné. Un ADR qui entrerait en contradiction avec l'un de ces principes n'est pas une exception à documenter : c'est une erreur à corriger, soit dans l'ADR lui-même, soit — si le principe s'avère réellement inadapté à une situation nouvelle — par une révision explicite de ce chapitre, jamais par un contournement silencieux. **Chaque ADR doit justifier explicitement les principes qu'il applique et démontrer qu'il n'en contredit aucun.**
+
+---
+
+## Tableau de suivi mis à jour
+
+| Chapitre | Statut |
+|---|---|
+| I – Mission | ✅ Gelé |
+| II – Vision à long terme | ✅ Gelé |
+| III – Valeurs | ✅ Gelé |
+| IV – Principes architecturaux | ✅ Gelé |
+| V – Piliers de la plateforme | ⏳ À rédiger |
+| VI – Engagements de gouvernance | ⏳ À rédiger |
 
 
 
