@@ -209,3 +209,33 @@ Mutation est le seul sous-système autorisé à modifier le Document. Elle consu
 Mutation met en œuvre le Principe 4 (« aucune action ne doit être irréversible sans filet de sécurité explicite ») dans son expression la plus directe : c'est le sous-système dont l'existence rend ce principe applicable à toute modification d'un projet, sans exception.
 
 Elle se rattache à la valeur Curiosité et expérimentation : c'est Mutation qui rend l'essai sans risque possible, en garantissant qu'aucune tentative ne peut se solder par une perte irréversible. Elle se rattache également à la Continuité de l'expérience utilisateur, dans la mesure où la possibilité de revenir en arrière fait partie intégrante de ce qui permet à un utilisateur de progresser sans crainte.
+
+---
+
+## 3.3 Validation
+
+### Pourquoi il existe
+
+Validation existe parce qu'aucune modification ne doit atteindre le Document sans que sa cohérence n'ait été évaluée au préalable. Sans ce sous-système, Mutation devrait elle-même juger de la validité de ce qu'elle applique, ce qui mélangerait deux responsabilités distinctes : appliquer un changement, et évaluer s'il est cohérent.
+
+### Ce qu'il porte
+
+Validation porte l'évaluation de la cohérence d'une modification candidate, avant son application au Document. Elle produit un résultat de validation que Mutation peut exploiter pour décider d'appliquer ou de rejeter la modification.
+
+### Ce qu'il ne porte pas
+
+Validation ne modifie jamais le Document, ni directement ni indirectement. Elle ne décide pas de l'application ou du rejet d'une modification — cette décision appartient exclusivement à Mutation, sur la base du résultat qu'elle produit. Elle ne produit pas l'explication pédagogique destinée à l'utilisateur : cette responsabilité appartient à Knowledge, que Validation ne consulte ni ne connaît. Validation ne définit pas elle-même les types de composants qu'elle évalue — cette connaissance lui est fournie par Registry.
+
+### Interfaces
+
+Validation reçoit une modification candidate et l'état courant du Document. Elle expose un résultat de validation, qui qualifie la nature d'une éventuelle incohérence sans l'exprimer dans un langage destiné à l'utilisateur.
+
+### Interactions
+
+Validation est consultée par Mutation avant toute application d'une modification candidate. Elle consulte Document pour évaluer l'état sur lequel porte cette modification. Elle consulte Registry pour vérifier qu'un composant concerné correspond à un type effectivement déclaré. Elle ne consulte jamais Knowledge, ni aucun sous-système de l'Application Layer — cette absence de dépendance montante est requise par l'Invariant I1.
+
+### Rattachement au Tome I
+
+Validation met en œuvre le Principe 3 (« les limites du modèle doivent être exposées, jamais dissimulées ») : c'est le sous-système dont l'existence permet de détecter une incohérence avant qu'elle ne s'installe silencieusement dans le Document. Elle met également en œuvre le Principe 1, en garantissant que ce qui devient une donnée métier reste une vérité cohérente.
+
+Elle se rattache à la valeur Fidélité scientifique — un modèle qui n'écarte pas ses propres incohérences ne peut prétendre représenter fidèlement le système qu'il décrit. Elle se rattache également, plus indirectement, à Compréhension avant reproduction : c'est parce qu'une incohérence est détectée et qualifiée par Validation qu'elle peut ensuite être expliquée par Knowledge, plutôt que découverte tardivement, sans explication, au moment de la simulation.
