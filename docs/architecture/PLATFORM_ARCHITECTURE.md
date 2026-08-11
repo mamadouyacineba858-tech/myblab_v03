@@ -465,3 +465,33 @@ Learning consulte Knowledge pour connaître le contenu disponible, et Document p
 Learning met en œuvre le Principe 6 (« la complexité se révèle progressivement, elle ne se duplique jamais ») dans son expression la plus directe : c'est le sous-système dont l'existence rend cette progressivité possible, sans qu'aucun autre n'ait à la reproduire. Il met également en œuvre le Principe 4 (« aucune action ne doit être irréversible sans filet de sécurité explicite »), en veillant à ce que ce qui est montré reste toujours à la mesure de ce que l'utilisateur peut absorber sans se sentir dépassé.
 
 Il se rattache à la valeur Progression continue, dont il est l'expression la plus directe parmi les treize sous-systèmes du Tome II. Il se rattache également à Curiosité et expérimentation : c'est en partie grâce à Learning que l'exploration reste toujours proportionnée à ce que l'utilisateur est prêt à recevoir, sans jamais le décourager par excès ni le priver par excès de prudence.
+
+---
+
+## 5.4 Collaboration
+
+### Pourquoi il existe
+
+Collaboration existe pour porter l'usage collectif d'un projet — présence, commentaires, permissions, notifications — que le pilier Collaboration et partage assume comme un choix stratégique du Tome I, distinct de sa dimension purement structurelle déjà portée par Project Synchronization.
+
+### Ce qu'il porte
+
+Collaboration porte la présence, les commentaires, les permissions, les notifications et le travail collectif autour d'un projet. Elle s'appuie sur Project Synchronization pour tout ce qui touche à la réplication et à la réconciliation de l'état d'un projet, sans dupliquer cette responsabilité.
+
+### Ce qu'il ne porte pas
+
+Collaboration ne réplique et ne fusionne aucune donnée elle-même — cette responsabilité appartient exclusivement à Project Synchronization. Elle ne consulte jamais le Document directement ; tout ce qui concerne l'état d'un projet transite par Project Synchronization. Elle ne modifie jamais le Document et n'émet aucune intention vers Mutation. Elle ne restitue rien elle-même à l'écran ; cette responsabilité appartient exclusivement à Presentation.
+
+### Interfaces
+
+Collaboration expose les informations collaboratives — présence, commentaires, permissions, notifications — consommables par Presentation. Elle consulte Project Synchronization pour la réplication et la réconciliation de l'état d'un projet.
+
+### Interactions
+
+Collaboration s'appuie sur Project Synchronization, qui ne dépend jamais d'elle en retour — cette relation est déjà fixée par 3.5. Elle est consultée par Presentation, qui restitue ce qu'elle produit, exactement selon le même modèle que Knowledge : le producteur ne devient jamais le restituteur. Collaboration ne consulte jamais Document ni Mutation directement, et ne dépend d'aucun autre sous-système du Core Layer ou de l'Execution Layer au-delà de Project Synchronization.
+
+### Rattachement au Tome I
+
+Collaboration met en œuvre le Principe 10 (séparation des responsabilités), en distinguant nettement son usage collectif de la réplication métier déjà portée par Project Synchronization. Elle s'inscrit également dans le respect du Principe 1, puisqu'elle ne détient elle-même aucun état canonique — tout ce qu'elle porte reste subordonné à ce que Project Synchronization et, en dernier ressort, le Document établissent comme vérité.
+
+Elle se rattache au pilier Collaboration et partage, dans sa dimension d'usage — le pendant direct de ce que Project Synchronization en porte au niveau structurel. Elle se rattache également à la Continuité de l'expérience utilisateur, étendue ici à un usage à plusieurs : travailler à plusieurs sur un même projet doit rester aussi cohérent que d'y travailler seul.
