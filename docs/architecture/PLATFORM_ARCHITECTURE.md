@@ -621,3 +621,35 @@ Cinq des sept piliers du Chapitre V sont déjà cités localement. Deux sont con
 Une fois les consolidations de ce chapitre prises en compte, la traçabilité entre le Tome I et le Tome II est complète : les huit valeurs, les dix principes et les sept piliers du Tome I sont tous rattachés à au moins un des treize sous-systèmes du Tome II — neuf principes et cinq piliers directement dans le texte des chapitres 3 à 6 ; un principe, distribué entre deux sous-systèmes, et deux piliers, consolidés dans le présent chapitre.
 
 Cette distinction entre affirmation locale et consolidation globale n'est pas qu'une formalité : elle établit une règle de gouvernance pour la suite du Tome II — les chapitres 3 à 6 décrivent des responsabilités locales, rédigées et gelées une à une ; le chapitre 7 établit la traçabilité globale, et peut la compléter sans jamais rouvrir une fiche déjà gelée. Toute omission constatée dans une fiche existante reste une lacune documentaire à consolider ici, jamais une ambiguïté architecturale à résoudre en modifiant ce qui est déjà stabilisé.
+
+---
+# 8. ADR de référence
+
+Ce chapitre cartographie les ADR existantes du dépôt vers les sections du Tome II qu'elles éclairent. Il distingue, pour chaque lien, si l'ADR est **source** de la décision architecturale décrite (le Tome II en dérive directement) ou seulement **cohérente avec** elle (les deux se rejoignent sans que l'un ait produit l'autre). Ce chapitre ne prend aucune nouvelle décision d'architecture — il trace des correspondances déjà établies dans les chapitres 3 à 7.
+
+## 8.1 ADR fondatrices — ACCEPTED
+
+| ADR | Statut | Section(s) du Tome II | Nature du lien |
+|---|---|---|---|
+| ADR-001 — Document State comme Source Unique de Vérité | ACCEPTED | 3.1 Document | Source directe |
+| ADR-002 — Séparation UI / Modèle / Simulation | ACCEPTED | 3.1 Document, 4.1 Simulation, 5.1 Presentation | Cohérente avec / antécédent architectural — elle établit une séparation UI / Modèle / Simulation qui converge avec la séparation Core / Execution / Application du Tome II |
+| ADR-004 — Architecture du moteur de simulation hybride | ACCEPTED | 4.1 Simulation | Source directe — Préparation, Résolution et Production restent des facettes internes de Simulation, jamais des sous-systèmes distincts |
+| ADR-005 — Architecture du modèle de composants électroniques | ACCEPTED | 3.4 Registry | Cohérente avec — elle apporte la dimension déclarative des composants que Registry catalogue |
+| ADR-006 — Registry des modèles de simulation | ACCEPTED | 3.4 Registry, 4.1 Simulation | Source directe, dimension modèles de simulation ; consultée par Simulation |
+| ADR-007 — History Manager Undo/Redo | ACCEPTED | 3.2 Mutation | Source de la responsabilité, mécanisme interne — History n'est jamais un sous-système autonome, seulement une facette interne de Mutation |
+| ADR-008 — Architecture du modèle de connexion électrique | ACCEPTED | 3.1 Document | Cohérente avec — le modèle de connexion qu'elle décrit n'est pas ce dont 3.1 dérive littéralement, mais reste pleinement compatible avec lui |
+| ADR-009 — Command Bus Architecture | ACCEPTED | 3.2 Mutation | Source directe |
+
+## 8.2 ADR proposées — PROPOSED
+
+| ADR | Statut | Section(s) du Tome II | Nature du lien |
+|---|---|---|---|
+| ADR-010 — Validation Engine Architecture | **PROPOSED** | 3.3 Validation | Éclaire et fonde la responsabilité architecturale décrite en 3.3, sans que ce statut ne soit jamais présenté comme une acceptation. Le Tome II décrit un rôle architectural compatible avec cette ADR, pas une validation de son contenu technique. |
+
+## 8.3 Documents historiques
+
+Deux documents d'architecture antérieurs au Tome II existent dans le dépôt : `docs/architecture/01-ARCHITECTURE.md` et `docs/governance/ARCHITECTURE.md`. Leur statut et leur articulation avec le présent document sont déjà traités par ADR-011 (« Audit documentaire des références architecturales »), elle-même **PROPOSED**. Ce chapitre ne réinterprète pas cet audit — il y renvoie. ADR-011 occupe une catégorie particulière : elle ne fonde aucun sous-système en particulier, mais porte sur la gouvernance documentaire et la légitimité de `PLATFORM_ARCHITECTURE.md` lui-même comme futur document de référence de l'Article 14 de la Constitution — une révision qui reste, à ce jour, une recommandation non actée.
+
+## 8.4 Anomalies documentaires constatées
+
+**ADR-003 — « VisualizationManager + Registry Pattern ».** Son statut affiché est ACCEPTED, mais son contenu réel est un doublon exact d'ADR-002, constaté déjà lors de l'audit préparatoire à la section 5.1. Elle ne constitue la source d'aucune décision propre au Tome II et n'est rattachée à aucune section de ce document. Elle est signalée ici explicitement plutôt que passée sous silence, pour qu'un futur lecteur ne la confonde ni avec un oubli, ni avec une source distincte d'ADR-002.
