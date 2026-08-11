@@ -149,3 +149,63 @@ Ce n'est pas une violation de I1 : Application peut lire à la fois Core (le Doc
 **I7 — Toute décision d'architecture doit citer les principes du Tome I qu'elle traduit et démontrer qu'elle n'en contredit aucun** (application directe de l'Engagement E4 du Tome I).
 
 **I8 — Toute tension non résolue entre deux règles de ce document doit produire une décision d'arbitrage explicite et documentée, jamais un contournement silencieux dans le code** (application directe de l'Engagement E5 du Tome I).
+# 3. Core Layer
+
+## 3.1 Document
+
+### Pourquoi il existe
+
+Le Document existe afin de fournir une représentation canonique unique de tout projet MYBlab. Cette représentation garantit que l'ensemble des couches et sous-systèmes manipulent la même réalité métier, indépendamment de leur responsabilité propre.
+
+### Ce qu'il porte
+
+Le Document porte la représentation canonique d'un projet MYBlab : les composants qui le constituent, les connexions qui les relient, les propriétés et paramètres qui les définissent. C'est la seule source à laquelle une autre partie de l'architecture peut se référer pour savoir ce qu'un projet contient réellement, à un instant donné.
+
+Le Document décrit l'état d'un projet, jamais son comportement.
+
+### Ce qu'il ne porte pas
+
+Le Document ne porte aucun calcul, aucune décision de rendu, aucune interprétation pédagogique de son propre contenu. Il ne décide jamais lui-même d'être modifié — toute modification lui est appliquée par Mutation, jamais initiée depuis l'intérieur. Le Document ne porte pas la responsabilité de la gestion de ses états successifs. Cette responsabilité appartient au sous-système Mutation.
+
+### Interfaces
+
+Le Document expose son état courant à la consultation, par toute couche ou tout sous-système du Core Layer autorisé à le faire. Toute évolution de cet état relève exclusivement du sous-système Mutation.
+
+### Interactions
+
+Mutation est le seul sous-système habilité à modifier le Document. Validation le consulte pour vérifier la cohérence d'une modification candidate avant qu'elle ne lui soit appliquée. Registry lui est consulté en parallèle, pour vérifier qu'un composant décrit dans le Document correspond à un type effectivement déclaré. Au-delà du Core Layer, l'Execution Layer et l'Application Layer ne font que le consulter, jamais le modifier directement — toute intention de modification qui en émane doit transiter par Mutation.
+
+### Rattachement au Tome I
+
+Le Document met en œuvre le Principe 1 (« les données métier sont la seule source de vérité ») dans son expression la plus directe : c'est précisément le sous-système dont l'existence rend ce principe applicable, plutôt qu'une simple déclaration d'intention. Il met également en œuvre le Principe 5 (« une représentation unique doit porter tout le parcours de l'utilisateur »), puisque c'est le même Document, sans changement de forme, qui accompagne un projet du premier geste de conception jusqu'à un usage avancé.
+
+Il se rattache à la valeur Architecture durable — une source de vérité qui ne varie pas dans sa nature au fil du temps est la condition la plus élémentaire d'une architecture qui dure. Il se rattache également, plus indirectement, à la Continuité de l'expérience utilisateur (Chapitre III du Tome I) : c'est la stabilité du Document qui rend possible la promesse qu'un changement d'ambition ne signifie jamais un changement d'outil.
+## 3.2 Mutation
+
+### Pourquoi il existe
+
+Mutation existe parce que le Document ne peut jamais se modifier lui-même. Une architecture où toute couche pourrait écrire directement dans le Document rendrait impossible la garantie que chaque changement reste contrôlé, cohérent et traçable. Mutation est le passage obligé entre l'expression d'une intention et son effet réel sur le Document.
+
+### Ce qu'il porte
+
+Mutation porte la traduction d'une intention en une modification contrôlée du Document. Une modification n'est appliquée que si elle a été validée au préalable ; elle reste réversible une fois appliquée.
+
+Mutation porte la responsabilité de la gestion des états successifs d'un projet : elle seule permet de revenir à un état antérieur ou de rétablir un état annulé. Cette responsabilité lui a été explicitement déléguée par le Document (3.1) ; elle ne réapparaît nulle part ailleurs dans le Core Layer.
+
+### Ce qu'il ne porte pas
+
+Mutation ne décide jamais elle-même de ce qui doit être modifié — cette décision provient toujours d'une intention émise par un acteur autorisé de l'architecture. Mutation ne juge pas si une modification est cohérente ou acceptable : cette évaluation appartient exclusivement à Validation, consultée avant toute application. Mutation ne connaît pas la signification des types de composants qu'elle manipule — cette connaissance appartient à Registry. Mutation ne calcule et n'exécute aucun comportement.
+
+### Interfaces
+
+Mutation reçoit une intention de modification émise par un acteur autorisé de l'architecture. Elle produit, une fois cette intention appliquée, un nouvel état du Document. Elle expose la capacité de revenir à un état antérieur ou de rétablir un état annulé, sans exposer la manière dont cette capacité est assurée en interne.
+
+### Interactions
+
+Mutation est le seul sous-système autorisé à modifier le Document. Elle consulte systématiquement Validation avant d'appliquer une modification candidate. Elle reçoit ses intentions d'un acteur autorisé de l'architecture ; c'est l'unique point d'entrée permettant de faire évoluer indirectement l'état d'un projet.
+
+### Rattachement au Tome I
+
+Mutation met en œuvre le Principe 4 (« aucune action ne doit être irréversible sans filet de sécurité explicite ») dans son expression la plus directe : c'est le sous-système dont l'existence rend ce principe applicable à toute modification d'un projet, sans exception.
+
+Elle se rattache à la valeur Curiosité et expérimentation : c'est Mutation qui rend l'essai sans risque possible, en garantissant qu'aucune tentative ne peut se solder par une perte irréversible. Elle se rattache également à la Continuité de l'expérience utilisateur, dans la mesure où la possibilité de revenir en arrière fait partie intégrante de ce qui permet à un utilisateur de progresser sans crainte.
