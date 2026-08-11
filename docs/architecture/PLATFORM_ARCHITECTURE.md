@@ -1,17 +1,20 @@
 # PLATFORM_ARCHITECTURE.md
 
-1. Introduction
-1.1 Objectifs du document
+# 1. Introduction
+---
+## 1.1 Objectifs du document
 
 PLATFORM_ARCHITECTURE.md décrit l'architecture technique permanente de MYBlab : les couches qui la composent, les sous-systèmes qui les peuplent, et les règles qui gouvernent leurs échanges. Ce document ne crée pas de nouveaux principes. Il traduit architecturalement ceux du Tome I (MYBLAB_VISION_2030.md).
 
-1.2 Portée
+---
+## 1.2 Portée
 
 Ce document couvre le Core Layer, l'Execution Layer, l'Application Layer et les Platform Services, ainsi que les treize sous-systèmes qui les composent. Il ne couvre pas le développement d'extensions, de SDK ou d'API publiques — ces sujets relèvent d'un futur Tome III (« Developer Platform »), non encore commissionné.
 
 Des documents d'architecture historiques existent dans le dépôt. Leur statut et leur articulation avec le présent document sont décrits dans ADR-011.
 
-1.3 Relation avec le Tome I, les ADR et le code
+---
+## 1.3 Relation avec le Tome I, les ADR et le code
 
 Chaque sous-système décrit dans ce document est relié explicitement aux piliers, principes et valeurs du Tome I dont il découle (section 7). Toute décision d'architecture doit citer les principes du Tome I qu'elle traduit et démontrer qu'elle n'en contredit aucun. Cette correspondance est consolidée au Chapitre 7 du présent document.
 
@@ -19,12 +22,9 @@ Les ADR traduisent les principes de ce document en décisions techniques concrè
 
 Le présent document définit les responsabilités architecturales et les frontières entre les sous-systèmes. Il ne prescrit ni une organisation particulière du dépôt, ni une structure de fichiers, ni une technologie d'implémentation. Le passage de cette architecture au code relève des ADR et des décisions d'implémentation qui en découlent.
 
-
-
 ---
-
 # 2. Architecture globale
-
+---
 ## 2.1 Les couches
 
 MYBlab s'organise en trois couches et une catégorie de services d'infrastructure, selon le modèle suivant :
@@ -99,7 +99,6 @@ Ces définitions sont volontairement générales : elles doivent pouvoir accueil
 Le détail complet de chaque sous-système (pourquoi il existe, ce qu'il porte, ce qu'il ne porte pas, ses interfaces et ses interactions) fait l'objet des chapitres 3 à 6, pas du présent chapitre.
 
 ---
-
 ## 2.2 Règles de dépendance
 
 L'architecture de MYBlab repose sur une seule règle directionnelle, déclinée en plusieurs conséquences concrètes : **une dépendance ne descend jamais que vers une couche strictement inférieure ou égale à la sienne, jamais vers le haut, sans exception.** Core ne connaît ni Execution ni Application. Execution ne connaît jamais Application.
@@ -149,8 +148,10 @@ Ce n'est pas une violation de I1 : Application peut lire à la fois Core (le Doc
 **I7 — Toute décision d'architecture doit citer les principes du Tome I qu'elle traduit et démontrer qu'elle n'en contredit aucun** (application directe de l'Engagement E4 du Tome I).
 
 **I8 — Toute tension non résolue entre deux règles de ce document doit produire une décision d'arbitrage explicite et documentée, jamais un contournement silencieux dans le code** (application directe de l'Engagement E5 du Tome I).
-# 3. Core Layer
 
+---
+# 3. Core Layer
+---
 ## 3.1 Document
 
 ### Pourquoi il existe
@@ -169,7 +170,7 @@ Le Document ne porte aucun calcul, aucune décision de rendu, aucune interpréta
 
 ### Interfaces
 
-Le Document expose son état courant à la consultation, par toute couche ou tout sous-système du Core Layer autorisé à le faire. Toute évolution de cet état relève exclusivement du sous-système Mutation.
+Le Document expose son état courant à toute couche autorisée à le consulter, ainsi qu'à tout sous-système du Core Layer autorisé à le faire. Toute évolution de cet état relève exclusivement du sous-système Mutation.
 
 ### Interactions
 
@@ -180,6 +181,8 @@ Mutation est le seul sous-système habilité à modifier le Document. Validation
 Le Document met en œuvre le Principe 1 (« les données métier sont la seule source de vérité ») dans son expression la plus directe : c'est précisément le sous-système dont l'existence rend ce principe applicable, plutôt qu'une simple déclaration d'intention. Il met également en œuvre le Principe 5 (« une représentation unique doit porter tout le parcours de l'utilisateur »), puisque c'est le même Document, sans changement de forme, qui accompagne un projet du premier geste de conception jusqu'à un usage avancé.
 
 Il se rattache à la valeur Architecture durable — une source de vérité qui ne varie pas dans sa nature au fil du temps est la condition la plus élémentaire d'une architecture qui dure. Il se rattache également, plus indirectement, à la Continuité de l'expérience utilisateur (Chapitre III du Tome I) : c'est la stabilité du Document qui rend possible la promesse qu'un changement d'ambition ne signifie jamais un changement d'outil.
+
+---
 ## 3.2 Mutation
 
 ### Pourquoi il existe
@@ -308,7 +311,7 @@ Elle se rattache au pilier Collaboration et partage, dans sa dimension structure
 ---
 
 # 4. Execution Layer
-
+---
 ## 4.1 Simulation
 
 ### Pourquoi il existe
@@ -367,6 +370,7 @@ Embedded Runtime met en œuvre le Principe 3 (« les limites du modèle doivent 
 
 Il se rattache au pilier Programmation et systèmes embarqués, dont il constitue le cœur, et à la valeur Fidélité scientifique, dans l'exigence la plus stricte que porte le Tome I : un comportement programmé doit se comporter, dans MYBlab, comme il se comporterait réellement.
 
+---
 ## 4.3 Communication entre moteurs
 
 Les sous-systèmes de l'Execution Layer ne se limitent pas nécessairement à Simulation et Embedded Runtime. Cette section ne redéfinit pas la relation qui les unit aujourd'hui — elle est déjà entièrement décrite en 4.1 et 4.2 — mais pose la règle générale que tout sous-système futur de cette couche devra respecter pour communiquer latéralement avec un autre.
@@ -378,7 +382,7 @@ Cette règle ne crée aucun mécanisme nouveau : elle applique, au niveau de l'E
 ---
 
 # 5. Application Layer
-
+---
 ## 5.1 Presentation
 
 ### Pourquoi il existe
@@ -497,7 +501,7 @@ Collaboration met en œuvre le Principe 10 (séparation des responsabilités), e
 Elle se rattache au pilier Collaboration et partage, dans sa dimension d'usage — le pendant direct de ce que Project Synchronization en porte au niveau structurel. Elle se rattache également à la Continuité de l'expérience utilisateur, étendue ici à un usage à plusieurs : travailler à plusieurs sur un même projet doit rester aussi cohérent que d'y travailler seul.
 
 # 6. Platform Services
-
+---
 ## 6.1 Storage
 
 ### Pourquoi il existe
@@ -562,6 +566,7 @@ Les chapitres 3 à 6 décrivent les responsabilités locales de chaque sous-syst
 
 Chaque tableau qui suit distingue deux natures de correspondance : celles **déjà affirmées localement**, directement lisibles dans la section « Rattachement au Tome I » du sous-système concerné, et celles **consolidées ici pour la première fois**, marquées explicitement comme telles.
 
+---
 ## 7.1 Valeurs → Architecture
 
 Les huit valeurs du Chapitre III sont toutes affirmées localement, par au moins un sous-système.
@@ -579,6 +584,7 @@ Les huit valeurs du Chapitre III sont toutes affirmées localement, par au moins
 
 Aucune consolidation n'est nécessaire pour les valeurs : les huit sont déjà couvertes par le texte gelé des chapitres 3 à 6.
 
+---
 ## 7.2 Principes → Sous-systèmes
 
 Neuf des dix principes du Chapitre IV sont déjà affirmés localement.
@@ -598,6 +604,7 @@ Neuf des dix principes du Chapitre IV sont déjà affirmés localement.
 
 **P8 n'est cité littéralement dans le texte d'aucune fiche.** Sa correspondance est établie ici, pour la première fois, comme une garantie distribuée entre deux sous-systèmes plutôt qu'une responsabilité unique : Validation empêche qu'un comportement incohérent soit accepté comme valide ; Mutation garantit que toute évolution du Document passe par le canal de modification contrôlé et traçable. Ensemble, ces deux responsabilités empêchent qu'un comportement validé puisse varier silencieusement. Cette correspondance ne prétend pas que P8 est explicitement cité dans les fiches 3.2 ou 3.3.
 
+---
 ## 7.3 Piliers → Sous-systèmes
 
 Cinq des sept piliers du Chapitre V sont déjà cités localement. Deux sont consolidés ici.
@@ -616,6 +623,7 @@ Cinq des sept piliers du Chapitre V sont déjà cités localement. Deux sont con
 
 **Apprentissage et accompagnement** n'est cité nulle part non plus, alors que Learning (5.3) en est directement issu — la lacune est documentaire, pas architecturale : Learning a toujours été le sous-système dérivé de ce pilier, seul le mot n'a jamais été écrit dans sa fiche. La correspondance est établie ici, sans modifier 5.3.
 
+---
 ## 7.4 Synthèse de traçabilité
 
 Une fois les consolidations de ce chapitre prises en compte, la traçabilité entre le Tome I et le Tome II est complète : les huit valeurs, les dix principes et les sept piliers du Tome I sont tous rattachés à au moins un des treize sous-systèmes du Tome II — neuf principes et cinq piliers directement dans le texte des chapitres 3 à 6 ; un principe, distribué entre deux sous-systèmes, et deux piliers, consolidés dans le présent chapitre.
@@ -627,6 +635,7 @@ Cette distinction entre affirmation locale et consolidation globale n'est pas qu
 
 Ce chapitre cartographie les ADR existantes du dépôt vers les sections du Tome II qu'elles éclairent. Il distingue, pour chaque lien, si l'ADR est **source** de la décision architecturale décrite (le Tome II en dérive directement) ou seulement **cohérente avec** elle (les deux se rejoignent sans que l'un ait produit l'autre). Ce chapitre ne prend aucune nouvelle décision d'architecture — il trace des correspondances déjà établies dans les chapitres 3 à 7.
 
+---
 ## 8.1 ADR fondatrices — ACCEPTED
 
 | ADR | Statut | Section(s) du Tome II | Nature du lien |
@@ -640,16 +649,19 @@ Ce chapitre cartographie les ADR existantes du dépôt vers les sections du Tome
 | ADR-008 — Architecture du modèle de connexion électrique | ACCEPTED | 3.1 Document | Cohérente avec — le modèle de connexion qu'elle décrit n'est pas ce dont 3.1 dérive littéralement, mais reste pleinement compatible avec lui |
 | ADR-009 — Command Bus Architecture | ACCEPTED | 3.2 Mutation | Source directe |
 
+---
 ## 8.2 ADR proposées — PROPOSED
 
 | ADR | Statut | Section(s) du Tome II | Nature du lien |
 |---|---|---|---|
 | ADR-010 — Validation Engine Architecture | **PROPOSED** | 3.3 Validation | Éclaire et fonde la responsabilité architecturale décrite en 3.3, sans que ce statut ne soit jamais présenté comme une acceptation. Le Tome II décrit un rôle architectural compatible avec cette ADR, pas une validation de son contenu technique. |
 
+---
 ## 8.3 Documents historiques
 
 Deux documents d'architecture antérieurs au Tome II existent dans le dépôt : `docs/architecture/01-ARCHITECTURE.md` et `docs/governance/ARCHITECTURE.md`. Leur statut et leur articulation avec le présent document sont déjà traités par ADR-011 (« Audit documentaire des références architecturales »), elle-même **PROPOSED**. Ce chapitre ne réinterprète pas cet audit — il y renvoie. ADR-011 occupe une catégorie particulière : elle ne fonde aucun sous-système en particulier, mais porte sur la gouvernance documentaire et la légitimité de `PLATFORM_ARCHITECTURE.md` lui-même comme futur document de référence de l'Article 14 de la Constitution — une révision qui reste, à ce jour, une recommandation non actée.
 
+---
 ## 8.4 Anomalies documentaires constatées
 
 **ADR-003 — « VisualizationManager + Registry Pattern ».** Son statut affiché est ACCEPTED, mais son contenu réel est un doublon exact d'ADR-002, constaté déjà lors de l'audit préparatoire à la section 5.1. Elle ne constitue la source d'aucune décision propre au Tome II et n'est rattachée à aucune section de ce document. Elle est signalée ici explicitement plutôt que passée sous silence, pour qu'un futur lecteur ne la confonde ni avec un oubli, ni avec une source distincte d'ADR-002.
