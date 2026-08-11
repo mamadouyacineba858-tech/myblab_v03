@@ -1,6 +1,5 @@
 # PLATFORM_ARCHITECTURE.md
 
-Chapitre 1 — Introduction (version intégrée, prête pour gel)
 1. Introduction
 1.1 Objectifs du document
 
@@ -14,7 +13,7 @@ Des documents d'architecture historiques existent dans le dépôt. Leur statut e
 
 1.3 Relation avec le Tome I, les ADR et le code
 
-Chaque sous-système décrit dans ce document est relié explicitement aux piliers, principes et valeurs du Tome I dont il découle (section 7). Une décision d'architecture qui ne pourrait être rattachée à aucun d'entre eux n'a pas sa place ici.
+Chaque sous-système décrit dans ce document est relié explicitement aux piliers, principes et valeurs du Tome I dont il découle (section 7). Toute décision d'architecture doit citer les principes du Tome I qu'elle traduit et démontrer qu'elle n'en contredit aucun. Cette correspondance est consolidée au Chapitre 7 du présent document.
 
 Les ADR traduisent les principes de ce document en décisions techniques concrètes ; elles ne peuvent jamais les contredire (Engagement E4 du Tome I). Une ADR peut aussi bien découler de ce document que le précéder et l'éclairer — ADR-011 en est le premier exemple : produite avant l'achèvement de ce document, elle a directement informé la rédaction de cette section.
 
