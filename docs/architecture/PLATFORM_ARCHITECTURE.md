@@ -274,3 +274,33 @@ Registry fournit la connaissance des types déclarés permettant de vérifier qu
 Registry met en œuvre le Principe 7 (« la plateforme s'étend sans reconstruire ce qui existe déjà ») dans son expression la plus directe : c'est le sous-système dont l'existence rend possible l'ajout d'un type de composant sans modifier Document, Mutation ou Validation. Il met également en œuvre le Principe 10, en séparant nettement la connaissance déclarative de ce qui existe de l'exécution de ce que cela produit.
 
 Il se rattache au pilier Écosystème ouvert, qu'il rend concrètement possible au niveau du Core Layer. Il se rattache également à la valeur Architecture durable, puisque c'est la stabilité de cette connaissance déclarative qui permet à la plateforme d'accueillir de nouveaux types de composants sans jamais remettre en cause ceux qui existent déjà.
+
+---
+
+## 3.5 Project Synchronization
+
+### Pourquoi il existe
+
+Project Synchronization existe parce qu'un même projet peut exister sous plusieurs états simultanément, répartis entre plusieurs instances, sans qu'aucune de ces instances ne détienne à elle seule la totalité de la vérité. Sans ce sous-système, réconcilier ces états divergents deviendrait la responsabilité de chaque acteur qui en aurait besoin, au lieu d'être une responsabilité architecturale unique et cohérente.
+
+### Ce qu'il porte
+
+Project Synchronization porte le versionnement métier d'un projet : la réplication de son état entre plusieurs instances, la détection et la résolution de conflits entre versions divergentes, et la fusion de ces versions en un état cohérent.
+
+### Ce qu'il ne porte pas
+
+Project Synchronization ne possède pas elle-même l'état canonique d'un projet — le Document reste, en toute circonstance, l'unique source de vérité. Elle ne modifie jamais directement le Document : tout état fusionné qu'elle produit et qui doit devenir effectif transite par Mutation, puis suit le chemin de validation déjà établi pour toute modification. Elle ne porte pas la persistance technique des états qu'elle réplique ou fusionne — cette responsabilité appartient exclusivement à Storage, qu'elle ne consulte pas directement. Elle ne porte aucune fonctionnalité tournée vers l'utilisateur — présence, commentaires, permissions, notifications — ces responsabilités appartiennent à Collaboration.
+
+### Interfaces
+
+Project Synchronization expose la réplication de l'état d'un projet entre plusieurs instances, ainsi que la production d'un état fusionné lorsque des versions divergentes doivent être réconciliées. Cet état fusionné est exposé comme un résultat à transmettre, jamais comme une modification déjà appliquée.
+
+### Interactions
+
+Project Synchronization consulte Document pour connaître l'état à répliquer. Elle transmet à Mutation le résultat d'une fusion, sous la même forme que toute autre intention de modification — elle ne dispose d'aucun accès privilégié au Document. Elle est consultée par Collaboration, qui s'appuie sur elle sans dupliquer sa responsabilité ; Project Synchronization, à l'inverse, ne dépend jamais de Collaboration ni d'aucun sous-système de l'Application Layer. Elle ne consulte pas Storage directement — la persistance technique des états qu'elle manipule reste hors de son périmètre.
+
+### Rattachement au Tome I
+
+Project Synchronization met en œuvre le Principe 10 (séparation des responsabilités), en distinguant nettement le versionnement métier d'un projet de sa persistance technique (Storage) et de son usage collaboratif (Collaboration). Elle s'inscrit également dans le respect du Principe 1, puisque toute réconciliation qu'elle produit ne devient une donnée métier qu'après être passée par Mutation, sans jamais contourner le Document comme source unique de vérité.
+
+Elle se rattache au pilier Collaboration et partage, dans sa dimension structurelle plutôt que dans son usage — c'est elle qui rend possible, au niveau du Core Layer, ce que Collaboration donnera ensuite à vivre à l'utilisateur. Elle se rattache également à la valeur Architecture durable, puisque c'est la clarté de cette séparation qui permettra à la plateforme d'accueillir un usage collaboratif sans jamais remettre en cause l'intégrité du Document.
