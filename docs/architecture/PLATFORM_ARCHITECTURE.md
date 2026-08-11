@@ -495,3 +495,33 @@ Collaboration s'appuie sur Project Synchronization, qui ne dépend jamais d'elle
 Collaboration met en œuvre le Principe 10 (séparation des responsabilités), en distinguant nettement son usage collectif de la réplication métier déjà portée par Project Synchronization. Elle s'inscrit également dans le respect du Principe 1, puisqu'elle ne détient elle-même aucun état canonique — tout ce qu'elle porte reste subordonné à ce que Project Synchronization et, en dernier ressort, le Document établissent comme vérité.
 
 Elle se rattache au pilier Collaboration et partage, dans sa dimension d'usage — le pendant direct de ce que Project Synchronization en porte au niveau structurel. Elle se rattache également à la Continuité de l'expérience utilisateur, étendue ici à un usage à plusieurs : travailler à plusieurs sur un même projet doit rester aussi cohérent que d'y travailler seul.
+
+# 6. Platform Services
+
+## 6.1 Storage
+
+### Pourquoi il existe
+
+Storage existe parce qu'une source de vérité métier qui ne peut être restaurée après la fermeture de l'application ne peut soutenir aucun des principes que ce document a déjà établis. Sans lui, la continuité d'un projet — d'une session à l'autre, d'un usage à l'autre — resterait purement théorique.
+
+### Ce qu'il porte
+
+Storage porte la persistance technique d'un état sérialisé : lire, écrire, conserver, restaurer — sans jamais connaître la signification métier de ce qu'il persiste. Document est responsable de l'état métier et constitue son point d'accès architectural à Storage.
+
+### Ce qu'il ne porte pas
+
+Storage ne connaît aucune signification métier — ni composant, ni circuit, ni projet. Il ne décide jamais ce qui doit être persisté ni quand ; cette décision appartient à Document. Il n'est jamais consulté directement par un autre sous-système que Document : ni Mutation, ni Validation, ni Registry, ni Project Synchronization, ni aucun sous-système de l'Execution Layer ou de l'Application Layer ne s'adresse à lui directement — chacun, s'il a besoin de persistance, passe par Document.
+
+### Interfaces
+
+Storage reçoit une représentation sérialisée fournie par Document, et restaure un état à partir d'une représentation déjà persistée.
+
+### Interactions
+
+Storage est consulté exclusivement par Document. Project Synchronization ne le consulte jamais directement — la persistance technique des états qu'elle manipule reste hors de son périmètre, conformément à ce que 3.5 établit déjà. Storage, comme tout Platform Service, reste strictement passif : il répond à des appels, il n'en émet jamais vers une couche.
+
+### Rattachement au Tome I
+
+Storage met en œuvre le Principe 1 (« les données métier sont la seule source de vérité ») en le prolongeant au-delà d'une seule session : une source de vérité métier qui ne peut être restaurée après la fermeture de l'application ne peut soutenir ce principe dans la durée. Il s'inscrit également dans le Principe 10 (séparation des responsabilités), en maintenant une frontière stricte entre la persistance technique et la connaissance métier, que seul Document possède.
+
+Il se rattache à la valeur Architecture durable — la persistance ne doit jamais imposer sa forme au modèle métier, et c'est cette discipline qui permet à Storage de rester remplaçable sans jamais affecter Document ni aucun autre sous-système.
