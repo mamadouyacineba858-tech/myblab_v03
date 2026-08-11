@@ -525,3 +525,32 @@ Storage est consulté exclusivement par Document. Project Synchronization ne le 
 Storage met en œuvre le Principe 1 (« les données métier sont la seule source de vérité ») en le prolongeant au-delà d'une seule session : une source de vérité métier qui ne peut être restaurée après la fermeture de l'application ne peut soutenir ce principe dans la durée. Il s'inscrit également dans le Principe 10 (séparation des responsabilités), en maintenant une frontière stricte entre la persistance technique et la connaissance métier, que seul Document possède.
 
 Il se rattache à la valeur Architecture durable — la persistance ne doit jamais imposer sa forme au modèle métier, et c'est cette discipline qui permet à Storage de rester remplaçable sans jamais affecter Document ni aucun autre sous-système.
+
+---
+## 6.2 Plugin Loader
+
+### Pourquoi il existe
+
+Plugin Loader existe parce que déclarer l'existence d'une extension ne suffit pas à la rendre utilisable. Registry catalogue ; Plugin Loader charge et active. Sans ce sous-système, chaque couche ayant besoin d'une extension devrait porter elle-même la responsabilité de son chargement, dispersant une logique qui doit rester unique et cohérente.
+
+### Ce qu'il porte
+
+Plugin Loader porte le chargement, l'activation et la gestion du cycle de vie d'une extension déjà cataloguée par Registry. Ses consultations de Registry sont strictement en lecture, et effectuées uniquement dans le traitement d'une requête qu'il a lui-même reçue.
+
+### Ce qu'il ne porte pas
+
+Plugin Loader ne possède aucun catalogue — il ne déclare, ne décrit et ne valide aucun type ; cette connaissance reste exclusivement celle de Registry. Il ne modifie jamais Registry, quelle qu'en soit la raison : Registry reste seul propriétaire de son propre catalogue. Il ne modifie jamais directement le Document. Il n'émet aucune action spontanée vers une couche : il ne répond qu'aux requêtes qu'il reçoit, il n'en déclenche jamais de sa propre initiative. Il ne devient ni un second mécanisme de validation, ni une seconde source de connaissance déclarative — ces responsabilités restent respectivement celles de Validation et de Registry.
+
+### Interfaces
+
+Plugin Loader reçoit une requête de chargement, en provenance d'une couche qui a besoin d'une extension. Il expose le résultat chargé, consommable par la couche appelante, quelle qu'elle soit.
+
+### Interactions
+
+Plugin Loader est consulté par toute couche ayant besoin d'une extension — Execution comme Application, selon la nature de ce qui est chargé. Dans le traitement de cette requête, il consulte Registry en lecture seule, pour connaître les extensions déclarées ; cette consultation reste un échange en lecture au sens de 2.3 et intervient uniquement dans le traitement d'une requête reçue ; elle ne constitue aucune action spontanée initiée par Plugin Loader vers une couche. Plugin Loader ne consulte jamais Document ni Mutation, et n'initie jamais lui-même une action vers une couche.
+
+### Rattachement au Tome I
+
+Plugin Loader met en œuvre le Principe 7 (« la plateforme s'étend sans reconstruire ce qui existe déjà »), en rendant utilisable ce que Registry se contente de déclarer, sans jamais toucher aux sous-systèmes déjà en place. Il met également en œuvre le Principe 10 (séparation des responsabilités), en maintenant une frontière stricte entre cataloguer (Registry) et charger (Plugin Loader).
+
+Il se rattache au pilier Écosystème ouvert, dont il constitue, avec Registry, le mécanisme concret au niveau de la plateforme. Il se rattache également à la valeur Architecture durable : c'est parce que Plugin Loader reste strictement passif et cantonné à la lecture que l'extensibilité de MYBlab ne devient jamais une source de dépendance incontrôlée.
