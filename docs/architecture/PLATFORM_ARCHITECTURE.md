@@ -366,3 +366,11 @@ Embedded Runtime fournit des signaux à Simulation ; Simulation les consomme lor
 Embedded Runtime met en œuvre le Principe 3 (« les limites du modèle doivent être exposées, jamais dissimulées »), en assumant que la fidélité de son exécution a ses propres limites, aussi réelles que celles de Simulation. Il met également en œuvre le Principe 7 (« la plateforme s'étend sans reconstruire ce qui existe déjà »), puisque son existence permet d'introduire un comportement programmé sans jamais devoir modifier Simulation elle-même.
 
 Il se rattache au pilier Programmation et systèmes embarqués, dont il constitue le cœur, et à la valeur Fidélité scientifique, dans l'exigence la plus stricte que porte le Tome I : un comportement programmé doit se comporter, dans MYBlab, comme il se comporterait réellement.
+
+## 4.3 Communication entre moteurs
+
+Les sous-systèmes de l'Execution Layer ne se limitent pas nécessairement à Simulation et Embedded Runtime. Cette section ne redéfinit pas la relation qui les unit aujourd'hui — elle est déjà entièrement décrite en 4.1 et 4.2 — mais pose la règle générale que tout sous-système futur de cette couche devra respecter pour communiquer latéralement avec un autre.
+
+Un échange entre deux sous-systèmes de l'Execution Layer est toujours une consultation, au sens défini en 2.3 : l'un expose un résultat ou un signal, l'autre le consomme, sans que cela n'en modifie le contenu. Les échanges latéraux au sein de cette couche ne constituent pas des intentions de modification du Document : toute évolution du Document reste soumise au passage par Mutation.
+
+Cette règle ne crée aucun mécanisme nouveau : elle applique, au niveau de l'Execution Layer, la règle déjà posée en 2.2 pour les échanges latéraux intra-couche, et les deux formes d'interaction déjà définies en 2.3. Elle ne prescrit aucune technologie d'implémentation pour réaliser cette consultation.
