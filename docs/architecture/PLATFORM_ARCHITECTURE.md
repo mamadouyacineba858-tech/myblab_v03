@@ -239,3 +239,38 @@ Validation est consultée par Mutation avant toute application d'une modificatio
 Validation met en œuvre le Principe 3 (« les limites du modèle doivent être exposées, jamais dissimulées ») : c'est le sous-système dont l'existence permet de détecter une incohérence avant qu'elle ne s'installe silencieusement dans le Document. Elle met également en œuvre le Principe 1, en garantissant que ce qui devient une donnée métier reste une vérité cohérente.
 
 Elle se rattache à la valeur Fidélité scientifique — un modèle qui n'écarte pas ses propres incohérences ne peut prétendre représenter fidèlement le système qu'il décrit. Elle se rattache également, plus indirectement, à Compréhension avant reproduction : c'est parce qu'une incohérence est détectée et qualifiée par Validation qu'elle peut ensuite être expliquée par Knowledge, plutôt que découverte tardivement, sans explication, au moment de la simulation.
+
+---
+
+## 3.4 Registry
+
+### Pourquoi il existe
+
+Registry existe parce qu'aucun autre sous-système du Core Layer ne doit avoir à connaître, par lui-même, l'ensemble des types de composants que MYBlab peut représenter. Sans lui, chaque sous-système qui a besoin de savoir ce qu'est un type de composant devrait le savoir par construction, ce qui rendrait impossible l'ajout d'un nouveau type sans modifier ce qui existe déjà.
+
+### Ce qu'il porte
+
+Registry porte la connaissance déclarative de ce qui est disponible dans MYBlab, sous deux dimensions distinctes mais portées par une seule responsabilité :
+
+- la structure d'un type de composant : son identifiant, ses paramètres, ses bornes de connexion ;
+- la disponibilité d'un modèle de simulation associé à ce type, pour les sous-systèmes qui en ont besoin.
+
+Ces deux dimensions ne font qu'exposer ce qui est déclaré comme existant — Registry ne produit ni n'exécute lui-même aucun de ces modèles.
+
+### Ce qu'il ne porte pas
+
+Registry ne valide jamais une modification candidate — cette responsabilité appartient exclusivement à Validation, qui le consulte. Registry ne calcule et n'exécute aucun modèle de simulation — il se contente d'en exposer la disponibilité pour un type donné. Registry ne charge, n'active et ne gère le cycle de vie d'aucune extension — cette responsabilité appartient à Plugin Loader, qui consulte Registry comme source de connaissance sur les extensions déclarées. Registry ne décide jamais de l'acceptation d'une modification.
+
+### Interfaces
+
+Registry expose la consultation de l'existence et de la structure d'un type de composant déclaré, ainsi que la disponibilité d'un modèle de simulation associé à ce type.
+
+### Interactions
+
+Registry fournit la connaissance des types déclarés permettant de vérifier qu'un composant porté par le Document correspond à un type existant. Validation consulte Registry pour évaluer la validité structurelle d'une modification candidate. Plugin Loader consulte Registry pour connaître les extensions déclarées. Registry ne consulte aucun autre sous-système du Core Layer ; il reste une source de connaissance déclarative, jamais un demandeur.
+
+### Rattachement au Tome I
+
+Registry met en œuvre le Principe 7 (« la plateforme s'étend sans reconstruire ce qui existe déjà ») dans son expression la plus directe : c'est le sous-système dont l'existence rend possible l'ajout d'un type de composant sans modifier Document, Mutation ou Validation. Il met également en œuvre le Principe 10, en séparant nettement la connaissance déclarative de ce qui existe de l'exécution de ce que cela produit.
+
+Il se rattache au pilier Écosystème ouvert, qu'il rend concrètement possible au niveau du Core Layer. Il se rattache également à la valeur Architecture durable, puisque c'est la stabilité de cette connaissance déclarative qui permet à la plateforme d'accueillir de nouveaux types de composants sans jamais remettre en cause ceux qui existent déjà.
