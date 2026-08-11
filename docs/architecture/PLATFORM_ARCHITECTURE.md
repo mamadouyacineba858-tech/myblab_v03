@@ -435,3 +435,33 @@ Knowledge consulte Simulation pour les résultats qu'il doit expliquer, et Valid
 Knowledge met en œuvre le Principe 2 (« chaque comportement affiché doit pouvoir être expliqué ») dans son expression la plus directe : c'est le sous-système dont l'existence rend cette exigence réalisable, plutôt que déclarative. Son indépendance vis-à-vis de toute technologie particulière traduit directement l'esprit du pilier Intelligence et connaissance : ce que Knowledge sera dans dix ans changera sans doute, ce qu'il doit accomplir ne changera pas.
 
 Il se rattache à la valeur Compréhension avant reproduction, la première valeur du Tome I, ici élevée au rang de sous-système à part entière. Il se rattache également à La technologie s'efface derrière les idées : c'est Knowledge qui rend possible qu'un résultat scientifique devienne une compréhension, sans jamais imposer à l'utilisateur la charge de faire seul cette traduction.
+
+---
+
+## 5.3 Learning
+
+### Pourquoi il existe
+
+Learning existe parce qu'un même contenu ne convient pas à tous les moments d'un parcours. Sans un sous-système dédié à cette décision, chaque autre sous-système serait tenté d'y répondre à sa manière, au risque de disperser une responsabilité qui doit rester unique : décider ce qui doit être montré, simplifié ou approfondi, selon la progression de l'utilisateur.
+
+### Ce qu'il porte
+
+Learning porte la décision de l'usage et de l'adaptation du contenu produit par Knowledge, selon la progression de l'utilisateur telle qu'elle peut être appréciée à partir de l'état du Document.
+
+### Ce qu'il ne porte pas
+
+Learning ne produit aucune explication, aucun diagnostic, aucune annotation — cette responsabilité appartient exclusivement à Knowledge. Learning ne restitue rien lui-même à l'écran — cette responsabilité appartient exclusivement à Presentation. Learning ne modifie jamais le Document. Learning ne suppose l'existence d'aucun profil utilisateur, d'aucun historique d'apprentissage persistant, ni d'aucun sous-système dédié à leur conservation ; la progression qu'il apprécie se limite à ce que l'état du Document rend observable.
+
+### Interfaces
+
+Learning consulte le contenu que Knowledge met à disposition et l'état du Document. Il expose une décision d'usage et d'adaptation, consommable par Presentation.
+
+### Interactions
+
+Learning consulte Knowledge pour connaître le contenu disponible, et Document pour apprécier la progression du projet en cours. Il est consulté par Presentation, qui restitue selon la décision qu'il produit. Learning ne consulte jamais Presentation, et ne dépend d'aucun sous-système du Core Layer ou de l'Execution Layer au-delà du Document.
+
+### Rattachement au Tome I
+
+Learning met en œuvre le Principe 6 (« la complexité se révèle progressivement, elle ne se duplique jamais ») dans son expression la plus directe : c'est le sous-système dont l'existence rend cette progressivité possible, sans qu'aucun autre n'ait à la reproduire. Il met également en œuvre le Principe 4 (« aucune action ne doit être irréversible sans filet de sécurité explicite »), en veillant à ce que ce qui est montré reste toujours à la mesure de ce que l'utilisateur peut absorber sans se sentir dépassé.
+
+Il se rattache à la valeur Progression continue, dont il est l'expression la plus directe parmi les treize sous-systèmes du Tome II. Il se rattache également à Curiosité et expérimentation : c'est en partie grâce à Learning que l'exploration reste toujours proportionnée à ce que l'utilisateur est prêt à recevoir, sans jamais le décourager par excès ni le priver par excès de prudence.
