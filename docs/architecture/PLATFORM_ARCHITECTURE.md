@@ -374,3 +374,35 @@ Les sous-systèmes de l'Execution Layer ne se limitent pas nécessairement à Si
 Un échange entre deux sous-systèmes de l'Execution Layer est toujours une consultation, au sens défini en 2.3 : l'un expose un résultat ou un signal, l'autre le consomme, sans que cela n'en modifie le contenu. Les échanges latéraux au sein de cette couche ne constituent pas des intentions de modification du Document : toute évolution du Document reste soumise au passage par Mutation.
 
 Cette règle ne crée aucun mécanisme nouveau : elle applique, au niveau de l'Execution Layer, la règle déjà posée en 2.2 pour les échanges latéraux intra-couche, et les deux formes d'interaction déjà définies en 2.3. Elle ne prescrit aucune technologie d'implémentation pour réaliser cette consultation.
+
+---
+
+# 5. Application Layer
+
+## 5.1 Presentation
+
+### Pourquoi il existe
+
+Presentation existe parce que ce que les autres sous-systèmes produisent — un état, un résultat de calcul, une explication, une décision d'adaptation — doit être rendu visible pour avoir une utilité. Sans lui, chaque sous-système devrait porter, en plus de sa propre responsabilité, la charge de sa propre restitution.
+
+### Ce qu'il porte
+
+Presentation porte la restitution graphique des informations produites par les autres sous-systèmes : le Document, les résultats de Simulation, les explications de Knowledge, les décisions d'adaptation de Learning.
+
+### Ce qu'il ne porte pas
+
+Presentation ne décide jamais de ce qui doit être montré, simplifié ou mis en avant selon la progression de l'utilisateur ; cette décision appartient à Learning. Elle ne produit aucune explication, aucun diagnostic, aucune annotation ; cette responsabilité appartient à Knowledge. Elle ne modifie jamais le Document directement ; toute intention qui en émane doit transiter par Mutation. Elle ne calcule aucun comportement.
+
+### Interfaces
+
+Presentation consomme le Document, les résultats produits par Simulation, les explications produites par Knowledge, et les décisions d'adaptation produites par Learning. Elle expose l'émission d'intentions, transmises à Mutation.
+
+### Interactions
+
+Presentation consulte Document et Simulation, respectivement dans le Core Layer et l'Execution Layer — une même couche pouvant dépendre de plusieurs couches inférieures à la fois. Au sein de l'Application Layer, elle consulte Knowledge et Learning, chacun selon sa propre responsabilité. Elle émet des intentions vers Mutation, jamais de modification directe. Elle ne consulte aucun sous-système en dehors de ceux dont elle a besoin pour restituer ce qu'ils produisent.
+
+### Rattachement au Tome I
+
+Presentation met en œuvre le Principe 9 (« le retour du système doit être clair, compréhensible et proportionné ») dans son expression la plus directe : c'est le sous-système dont la responsabilité exclusive est de rendre ce retour effectivement perceptible. Elle met également en œuvre le Principe 6 (« la complexité se révèle progressivement, elle ne se duplique jamais »), en exécutant les décisions d'adaptation de Learning sans jamais les dupliquer par une logique qui lui serait propre.
+
+Elle se rattache à la valeur Simplicité sans simplification excessive, dans la tension qu'elle doit constamment arbitrer entre clarté et fidélité. Elle se rattache également à La technologie s'efface derrière les idées : c'est au niveau de Presentation que se joue, très concrètement, la promesse que l'utilisateur cesse de percevoir l'outil pour ne plus penser qu'à son projet.
