@@ -304,3 +304,35 @@ Project Synchronization consulte Document pour connaître l'état à répliquer.
 Project Synchronization met en œuvre le Principe 10 (séparation des responsabilités), en distinguant nettement le versionnement métier d'un projet de sa persistance technique (Storage) et de son usage collaboratif (Collaboration). Elle s'inscrit également dans le respect du Principe 1, puisque toute réconciliation qu'elle produit ne devient une donnée métier qu'après être passée par Mutation, sans jamais contourner le Document comme source unique de vérité.
 
 Elle se rattache au pilier Collaboration et partage, dans sa dimension structurelle plutôt que dans son usage — c'est elle qui rend possible, au niveau du Core Layer, ce que Collaboration donnera ensuite à vivre à l'utilisateur. Elle se rattache également à la valeur Architecture durable, puisque c'est la clarté de cette séparation qui permettra à la plateforme d'accueillir un usage collaboratif sans jamais remettre en cause l'intégrité du Document.
+
+---
+
+# 4. Execution Layer
+
+## 4.1 Simulation
+
+### Pourquoi il existe
+
+Simulation existe parce que concevoir un circuit ne suffit pas à en comprendre le comportement. Le Document décrit ce qu'un projet contient ; Simulation calcule ce que ce contenu produirait s'il était réellement mis en œuvre. Sans ce sous-système, cette compréhension resterait à la charge de l'utilisateur seul, sans que la plateforme ne puisse jamais la vérifier ni la lui montrer.
+
+### Ce qu'il porte
+
+Simulation porte le calcul du comportement d'un système décrit par le Document, pour une analyse donnée, à un instant donné, sans conserver aucun état entre deux calculs successifs. Elle produit un résultat structuré et scientifiquement qualifié.
+
+### Ce qu'il ne porte pas
+
+Simulation ne modifie jamais le Document, ni directement ni indirectement — elle le reçoit exclusivement en lecture. Elle ne décide pas de la manière dont son résultat est affiché ; cette responsabilité appartient à Presentation. Elle ne formule pas d'explication pédagogique, de diagnostic ou d'annotation destinés à l'utilisateur ; cette responsabilité appartient exclusivement à Knowledge. Simulation ne connaît ni le langage pédagogique ni l'interface utilisateur. Elle ne définit pas elle-même les types de composants ou les modèles qu'elle emploie ; cette connaissance lui est fournie par Registry.
+
+### Interfaces
+
+Simulation reçoit le Document en lecture seule, pour une analyse donnée. Elle expose un résultat structuré et qualifié scientifiquement, consommable par les sous-systèmes qui en ont besoin.
+
+### Interactions
+
+Simulation consulte Document pour connaître l'état du système à calculer. Elle consulte Registry pour obtenir les modèles de simulation associés aux types de composants concernés. Elle peut utiliser Embedded Runtime comme source de signaux, selon les interfaces que celui-ci expose. Elle ne consulte jamais Knowledge ni aucun sous-système de l'Application Layer. Son résultat est consulté par Presentation et par Knowledge, chacun selon sa propre responsabilité — restitution pour l'un, explication pour l'autre.
+
+### Rattachement au Tome I
+
+Simulation met en œuvre le Principe 2 (« chaque comportement affiché doit pouvoir être expliqué ») en produisant un résultat qui rend cette explication possible, sans la formuler elle-même. Elle met également en œuvre le Principe 3 (« les limites du modèle doivent être exposées, jamais dissimulées »), en qualifiant scientifiquement ce qu'elle calcule plutôt qu'en donnant l'apparence d'une exactitude qu'elle ne peut garantir.
+
+Elle se rattache au pilier Simulation scientifique, dont elle constitue le cœur, et à la valeur Fidélité scientifique dans son expression la plus directe : c'est Simulation qui porte, dans l'architecture, l'engagement du Tome I selon lequel la simulation cherche toujours à représenter fidèlement le comportement attendu du système étudié, dans les limites clairement assumées du modèle utilisé.
