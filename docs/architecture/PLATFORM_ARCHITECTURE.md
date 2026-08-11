@@ -554,3 +554,70 @@ Plugin Loader est consulté par toute couche ayant besoin d'une extension — Ex
 Plugin Loader met en œuvre le Principe 7 (« la plateforme s'étend sans reconstruire ce qui existe déjà »), en rendant utilisable ce que Registry se contente de déclarer, sans jamais toucher aux sous-systèmes déjà en place. Il met également en œuvre le Principe 10 (séparation des responsabilités), en maintenant une frontière stricte entre cataloguer (Registry) et charger (Plugin Loader).
 
 Il se rattache au pilier Écosystème ouvert, dont il constitue, avec Registry, le mécanisme concret au niveau de la plateforme. Il se rattache également à la valeur Architecture durable : c'est parce que Plugin Loader reste strictement passif et cantonné à la lecture que l'extensibilité de MYBlab ne devient jamais une source de dépendance incontrôlée.
+
+---
+# 7. Correspondance avec le Tome I
+
+Les chapitres 3 à 6 décrivent les responsabilités locales de chaque sous-système, et rattachent chacun aux valeurs, principes et piliers du Tome I qui le justifient. Le présent chapitre établit la traçabilité globale : il consolide ce qui est déjà affirmé dans les fiches, et complète, lorsque nécessaire, les correspondances que les fiches n'ont pas nommées explicitement — sans jamais modifier le texte déjà gelé des chapitres 3 à 6.
+
+Chaque tableau qui suit distingue deux natures de correspondance : celles **déjà affirmées localement**, directement lisibles dans la section « Rattachement au Tome I » du sous-système concerné, et celles **consolidées ici pour la première fois**, marquées explicitement comme telles.
+
+## 7.1 Valeurs → Architecture
+
+Les huit valeurs du Chapitre III sont toutes affirmées localement, par au moins un sous-système.
+
+| Valeur | Sous-systèmes qui la citent |
+|---|---|
+| Compréhension avant reproduction | Validation (3.3), Knowledge (5.2) |
+| Simplicité sans simplification excessive | Presentation (5.1) |
+| Fidélité scientifique | Validation (3.3), Simulation (4.1), Embedded Runtime (4.2) |
+| Curiosité et expérimentation | Mutation (3.2), Learning (5.3) |
+| La technologie s'efface derrière les idées | Presentation (5.1), Knowledge (5.2) |
+| Progression continue | Learning (5.3) |
+| Continuité de l'expérience utilisateur | Document (3.1), Mutation (3.2), Collaboration (5.4) |
+| Architecture durable | Document (3.1), Registry (3.4), Project Synchronization (3.5), Storage (6.1), Plugin Loader (6.2) |
+
+Aucune consolidation n'est nécessaire pour les valeurs : les huit sont déjà couvertes par le texte gelé des chapitres 3 à 6.
+
+## 7.2 Principes → Sous-systèmes
+
+Neuf des dix principes du Chapitre IV sont déjà affirmés localement.
+
+| Principe | Sous-systèmes qui le citent | Statut |
+|---|---|---|
+| P1 — Données métier, seule source de vérité | Document (3.1), Validation (3.3), Project Synchronization (3.5), Collaboration (5.4), Storage (6.1) | Affirmé localement |
+| P2 — Comportement explicable | Simulation (4.1), Knowledge (5.2) | Affirmé localement |
+| P3 — Limites du modèle exposées | Validation (3.3), Simulation (4.1), Embedded Runtime (4.2) | Affirmé localement |
+| P4 — Aucune action irréversible sans filet de sécurité | Mutation (3.2), Learning (5.3) | Affirmé localement |
+| P5 — Représentation unique pour tout le parcours | Document (3.1) | Affirmé localement |
+| P6 — Complexité révélée progressivement | Presentation (5.1), Learning (5.3) | Affirmé localement |
+| P7 — Extension sans reconstruction | Registry (3.4), Embedded Runtime (4.2), Plugin Loader (6.2) | Affirmé localement |
+| **P8 — Un comportement validé ne change plus silencieusement** | **Mutation (3.2), Validation (3.3)** | **Consolidé ici** |
+| P9 — Retour clair et proportionné | Presentation (5.1) | Affirmé localement |
+| P10 — Séparation des responsabilités | Registry (3.4), Project Synchronization (3.5), Collaboration (5.4), Storage (6.1), Plugin Loader (6.2) | Affirmé localement |
+
+**P8 n'est cité littéralement dans le texte d'aucune fiche.** Sa correspondance est établie ici, pour la première fois, comme une garantie distribuée entre deux sous-systèmes plutôt qu'une responsabilité unique : Validation empêche qu'un comportement incohérent soit accepté comme valide ; Mutation garantit que toute évolution du Document passe par le canal de modification contrôlé et traçable. Ensemble, ces deux responsabilités empêchent qu'un comportement validé puisse varier silencieusement. Cette correspondance ne prétend pas que P8 est explicitement cité dans les fiches 3.2 ou 3.3.
+
+## 7.3 Piliers → Sous-systèmes
+
+Cinq des sept piliers du Chapitre V sont déjà cités localement. Deux sont consolidés ici.
+
+| Pilier | Sous-système(s) | Statut |
+|---|---|---|
+| **Conception électronique** | — | **Consolidé ici : rattaché à Document (3.1)** |
+| Simulation scientifique | Simulation (4.1) | Affirmé localement |
+| Programmation et systèmes embarqués | Embedded Runtime (4.2) | Affirmé localement |
+| **Apprentissage et accompagnement** | — | **Consolidé ici : rattaché à Learning (5.3)** |
+| Intelligence et connaissance | Knowledge (5.2) | Affirmé localement |
+| Écosystème ouvert | Registry (3.4), Plugin Loader (6.2) | Affirmé localement |
+| Collaboration et partage | Project Synchronization (3.5), Collaboration (5.4) | Affirmé localement |
+
+**Conception électronique** n'est cité dans le texte d'aucune fiche, alors que Document (3.1) en est l'incarnation naturelle : c'est le sous-système qui porte la représentation d'un circuit et de son état métier, le geste le plus élémentaire de conception. Cette correspondance est établie ici pour la première fois.
+
+**Apprentissage et accompagnement** n'est cité nulle part non plus, alors que Learning (5.3) en est directement issu — la lacune est documentaire, pas architecturale : Learning a toujours été le sous-système dérivé de ce pilier, seul le mot n'a jamais été écrit dans sa fiche. La correspondance est établie ici, sans modifier 5.3.
+
+## 7.4 Synthèse de traçabilité
+
+Une fois les consolidations de ce chapitre prises en compte, la traçabilité entre le Tome I et le Tome II est complète : les huit valeurs, les dix principes et les sept piliers du Tome I sont tous rattachés à au moins un des treize sous-systèmes du Tome II — neuf principes et cinq piliers directement dans le texte des chapitres 3 à 6 ; un principe, distribué entre deux sous-systèmes, et deux piliers, consolidés dans le présent chapitre.
+
+Cette distinction entre affirmation locale et consolidation globale n'est pas qu'une formalité : elle établit une règle de gouvernance pour la suite du Tome II — les chapitres 3 à 6 décrivent des responsabilités locales, rédigées et gelées une à une ; le chapitre 7 établit la traçabilité globale, et peut la compléter sans jamais rouvrir une fiche déjà gelée. Toute omission constatée dans une fiche existante reste une lacune documentaire à consolider ici, jamais une ambiguïté architecturale à résoudre en modifiant ce qui est déjà stabilisé.
