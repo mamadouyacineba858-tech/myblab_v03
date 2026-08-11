@@ -406,3 +406,32 @@ Presentation consulte Document et Simulation, respectivement dans le Core Layer 
 Presentation met en œuvre le Principe 9 (« le retour du système doit être clair, compréhensible et proportionné ») dans son expression la plus directe : c'est le sous-système dont la responsabilité exclusive est de rendre ce retour effectivement perceptible. Elle met également en œuvre le Principe 6 (« la complexité se révèle progressivement, elle ne se duplique jamais »), en exécutant les décisions d'adaptation de Learning sans jamais les dupliquer par une logique qui lui serait propre.
 
 Elle se rattache à la valeur Simplicité sans simplification excessive, dans la tension qu'elle doit constamment arbitrer entre clarté et fidélité. Elle se rattache également à La technologie s'efface derrière les idées : c'est au niveau de Presentation que se joue, très concrètement, la promesse que l'utilisateur cesse de percevoir l'outil pour ne plus penser qu'à son projet.
+
+---
+## 5.2 Knowledge
+
+### Pourquoi il existe
+
+Knowledge existe parce qu'un résultat correct ne suffit pas à faire comprendre. Simulation et Validation produisent des résultats qualifiés, mais aucun des deux ne les formule pour un utilisateur. Sans Knowledge, cette transformation resterait à la charge de l'utilisateur seul, ou serait dispersée, sans cohérence, entre plusieurs sous-systèmes qui n'ont pourtant pas cette responsabilité.
+
+### Ce qu'il porte
+
+Knowledge porte la production d'explications, de diagnostics et d'annotations, à partir des résultats qualifiés que produisent Simulation et Validation. Il transforme un résultat scientifiquement qualifié ou une incohérence détectée en contenu compréhensible par l'utilisateur.
+
+### Ce qu'il ne porte pas
+
+Knowledge ne calcule aucun comportement — il interprète un résultat déjà produit, il ne le produit pas lui-même. Il ne décide pas quand ni comment son explication doit être montrée à l'utilisateur ; cette décision appartient à Learning. Il ne restitue rien lui-même à l'écran ; cette responsabilité appartient à Presentation. Il ne modifie jamais le Document.
+
+### Interfaces
+
+Knowledge consomme les résultats produits par Simulation et les résultats de validation produits par Validation. Il expose des explications structurées, consommables par les sous-systèmes qui décident de leur usage.
+
+### Interactions
+
+Knowledge consulte Simulation pour les résultats qu'il doit expliquer, et Validation pour les incohérences qu'elle a détectées et qualifiées. Il consulte Document lorsque le contexte du projet est nécessaire à son explication. Il est consulté par Learning, qui décide de l'usage et de l'adaptation de ce qu'il produit ; Presentation restitue ce contenu selon cette décision. Knowledge ne consulte jamais Presentation directement. Aucun sous-système du Core Layer ou de l'Execution Layer ne consulte Knowledge — cette absence de dépendance montante est requise par l'Invariant I1.
+
+### Rattachement au Tome I
+
+Knowledge met en œuvre le Principe 2 (« chaque comportement affiché doit pouvoir être expliqué ») dans son expression la plus directe : c'est le sous-système dont l'existence rend cette exigence réalisable, plutôt que déclarative. Son indépendance vis-à-vis de toute technologie particulière traduit directement l'esprit du pilier Intelligence et connaissance : ce que Knowledge sera dans dix ans changera sans doute, ce qu'il doit accomplir ne changera pas.
+
+Il se rattache à la valeur Compréhension avant reproduction, la première valeur du Tome I, ici élevée au rang de sous-système à part entière. Il se rattache également à La technologie s'efface derrière les idées : c'est Knowledge qui rend possible qu'un résultat scientifique devienne une compréhension, sans jamais imposer à l'utilisateur la charge de faire seul cette traduction.
