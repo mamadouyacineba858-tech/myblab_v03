@@ -336,3 +336,33 @@ Simulation consulte Document pour connaître l'état du système à calculer. El
 Simulation met en œuvre le Principe 2 (« chaque comportement affiché doit pouvoir être expliqué ») en produisant un résultat qui rend cette explication possible, sans la formuler elle-même. Elle met également en œuvre le Principe 3 (« les limites du modèle doivent être exposées, jamais dissimulées »), en qualifiant scientifiquement ce qu'elle calcule plutôt qu'en donnant l'apparence d'une exactitude qu'elle ne peut garantir.
 
 Elle se rattache au pilier Simulation scientifique, dont elle constitue le cœur, et à la valeur Fidélité scientifique dans son expression la plus directe : c'est Simulation qui porte, dans l'architecture, l'engagement du Tome I selon lequel la simulation cherche toujours à représenter fidèlement le comportement attendu du système étudié, dans les limites clairement assumées du modèle utilisé.
+
+---
+
+## 4.2 Embedded Runtime
+
+### Pourquoi il existe
+
+Embedded Runtime existe parce que la Mission de MYBlab promet un chemin continu de la conception d'un circuit jusqu'à l'exécution réelle d'un comportement programmé. Sans ce sous-système, un microcontrôleur resterait un composant purement passif dans le Document, incapable de produire lui-même le comportement qu'un utilisateur lui aurait destiné.
+
+### Ce qu'il porte
+
+Embedded Runtime porte l'exécution fidèle d'un comportement programmé, associé à un composant du Document. Il produit des signaux qu'il fournit à Simulation, qui les consomme selon les besoins de son analyse.
+
+### Ce qu'il ne porte pas
+
+Embedded Runtime ne calcule pas le comportement électrique du reste du circuit — cette responsabilité appartient exclusivement à Simulation, qu'il alimente sans jamais s'y substituer. Il ne décide pas de la manière dont son exécution est affichée ; cette responsabilité appartient à Presentation. Il ne formule aucune explication pédagogique, aucun diagnostic, aucune annotation destinés à l'utilisateur ; cette responsabilité appartient exclusivement à Knowledge. Il ne dépend jamais de Simulation — c'est Simulation qui, le cas échéant, dépend de lui.
+
+### Interfaces
+
+Embedded Runtime reçoit la description d'un comportement programmé, associée à un composant du Document. Il expose les signaux qu'il produit, consommables par Simulation selon les interfaces que celle-ci définit.
+
+### Interactions
+
+Embedded Runtime fournit des signaux à Simulation ; Simulation les consomme lorsqu'ils sont nécessaires à son analyse. Cette relation ne se lit jamais dans l'autre sens : Embedded Runtime ne consulte jamais Simulation ni n'en dépend. Il ne consulte aucun sous-système de l'Application Layer.
+
+### Rattachement au Tome I
+
+Embedded Runtime met en œuvre le Principe 3 (« les limites du modèle doivent être exposées, jamais dissimulées »), en assumant que la fidélité de son exécution a ses propres limites, aussi réelles que celles de Simulation. Il met également en œuvre le Principe 7 (« la plateforme s'étend sans reconstruire ce qui existe déjà »), puisque son existence permet d'introduire un comportement programmé sans jamais devoir modifier Simulation elle-même.
+
+Il se rattache au pilier Programmation et systèmes embarqués, dont il constitue le cœur, et à la valeur Fidélité scientifique, dans l'exigence la plus stricte que porte le Tome I : un comportement programmé doit se comporter, dans MYBlab, comme il se comporterait réellement.
