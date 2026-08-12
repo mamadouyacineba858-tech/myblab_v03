@@ -136,6 +136,17 @@ Facultative lorsque : ticket local et isolé · impact évident · aucune ambigu
 passage du Blueprint en statut `PRÊT_POUR_CONCEPTION`. L'agent concepteur ne
 doit jamais supposer une réponse à une question classée ici.
 
+**Exception — `QUESTION OUVERTE NON BLOQUANTE`** : le Chief Software Architect
+peut, par un arbitrage explicite, daté et portant sur une question précise,
+qualifier celle-ci de `NON BLOQUANTE`. Une question ainsi qualifiée reste non
+résolue sur le fond, continue de figurer dans le Blueprint sous l'étiquette
+`[QUESTION OUVERTE — NON BLOQUANTE]`, et ne bloque plus, à elle seule, le
+passage en `PRÊT_POUR_CONCEPTION`. Cette qualification ne dispense d'aucun
+arbitrage : elle **constitue** l'arbitrage exigé par le principe de
+vérifiabilité. Elle ne s'applique qu'à la question expressément visée par
+l'arbitrage et ne doit jamais être présumée, ni étendue par analogie à
+d'autres questions, par l'agent rédacteur.
+
 ---
 
 ## Historique de validation
