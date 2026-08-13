@@ -1,4 +1,102 @@
 import { createUid } from "../utils/ids.js"
+import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
+
+/**
+ * Présentation locale des pins. Les identifiants et rôles sont canoniques dans
+ * simulator/canonicalRegistry.js ; ce tableau ne contient que les propriétés
+ * propres à l'affichage et au positionnement.
+ */
+const PIN_PRESENTATION_BY_TYPE = {
+  LED: [
+    { label: "Anode", dx: 0, dy: 20 },
+    { label: "Cathode", dx: 80, dy: 20 },
+  ],
+  RESISTOR: [
+    { label: "A", dx: 0, dy: 14 },
+    { label: "B", dx: 90, dy: 14 },
+  ],
+  ARDUINO: [
+    { label: "D2", dx: 0, dy: 50 },
+    { label: "D3", dx: 0, dy: 75 },
+    { label: "GND", dx: 0, dy: 110 },
+    { label: "5V", dx: 120, dy: 50 },
+  ],
+  BUTTON: [
+    { label: "1", dx: 0, dy: 30 },
+    { label: "2", dx: 60, dy: 30 },
+  ],
+  BUTTON_LATCHING: [
+    { label: "1", dx: 0, dy: 30 },
+    { label: "2", dx: 60, dy: 30 },
+  ],
+  POWER: [
+    { label: "+5V", dx: 70, dy: 25 },
+    { label: "GND", dx: 70, dy: 65 },
+  ],
+  CAPACITOR: [
+    { label: "A", dx: 0, dy: 20 },
+    { label: "B", dx: 70, dy: 20 },
+  ],
+  BUZZER: [
+    { label: "+", dx: 10, dy: 50 },
+    { label: "-", dx: 60, dy: 50 },
+  ],
+  POTENTIOMETER: [
+    { label: "L", dx: 10, dy: 50 },
+    { label: "W", dx: 45, dy: 0 },
+    { label: "R", dx: 80, dy: 50 },
+  ],
+  LDR: [
+    { label: "A", dx: 0, dy: 18 },
+    { label: "B", dx: 90, dy: 18 },
+  ],
+  THERMISTOR: [
+    { label: "A", dx: 0, dy: 18 },
+    { label: "B", dx: 90, dy: 18 },
+  ],
+  DIODE: [
+    { label: "A", dx: 0, dy: 15 },
+    { label: "K", dx: 90, dy: 15 },
+  ],
+  RGB_LED: [
+    { label: "R", dx: 12, dy: 56 },
+    { label: "COM", dx: 34, dy: 56 },
+    { label: "G", dx: 56, dy: 56 },
+    { label: "B", dx: 78, dy: 56 },
+  ],
+  NPN_TRANSISTOR: [
+    { label: "C", dx: 45, dy: 0 },
+    { label: "B", dx: 0, dy: 45 },
+    { label: "E", dx: 90, dy: 45 },
+  ],
+  SERVO: [
+    { label: "SIG", dx: 90, dy: 20 },
+    { label: "VCC", dx: 90, dy: 35 },
+    { label: "GND", dx: 90, dy: 50 },
+  ],
+  DC_MOTOR: [
+    { label: "+", dx: 0, dy: 25 },
+    { label: "-", dx: 90, dy: 25 },
+  ],
+}
+
+function buildPins(type) {
+  const canonicalEntry = getCanonicalEntry(type)
+  const presentationPins = PIN_PRESENTATION_BY_TYPE[type]
+
+  if (!canonicalEntry || !presentationPins) {
+    throw new Error(`Unknown component pin definition: ${type}`)
+  }
+
+  if (canonicalEntry.pins.length !== presentationPins.length) {
+    throw new Error(`Pin count mismatch for component ${type}`)
+  }
+
+  return canonicalEntry.pins.map((canonicalPin, index) => ({
+    ...canonicalPin,
+    ...presentationPins[index],
+  }))
+}
 
 /**
  * Définitions des composants électroniques MYBlab.
@@ -15,10 +113,7 @@ export const COMPONENT_TYPES = {
     icon: "💡",
     width: 80,
     height: 40,
-    pins: [
-      { id: "anode", label: "Anode", dx: 0, dy: 20, role: "input" },
-      { id: "cathode", label: "Cathode", dx: 80, dy: 20, role: "input" },
-    ],
+    pins: buildPins("LED"),
   },
   RESISTOR: {
     id: "RESISTOR",
@@ -26,10 +121,7 @@ export const COMPONENT_TYPES = {
     icon: "〰️",
     width: 90,
     height: 28,
-    pins: [
-      { id: "A", label: "A", dx: 0, dy: 14, role: "passive" },
-      { id: "B", label: "B", dx: 90, dy: 14, role: "passive" },
-    ],
+    pins: buildPins("RESISTOR"),
   },
   ARDUINO: {
     id: "ARDUINO",
@@ -37,12 +129,7 @@ export const COMPONENT_TYPES = {
     icon: "🤖",
     width: 120,
     height: 140,
-    pins: [
-      { id: "D2", label: "D2", dx: 0, dy: 50, role: "gpio" },
-      { id: "D3", label: "D3", dx: 0, dy: 75, role: "gpio" },
-      { id: "GND", label: "GND", dx: 0, dy: 110, role: "ground" },
-      { id: "5V", label: "5V", dx: 120, dy: 50, role: "power" },
-    ],
+    pins: buildPins("ARDUINO"),
   },
   BUTTON: {
     id: "BUTTON",
@@ -50,10 +137,7 @@ export const COMPONENT_TYPES = {
     icon: "🔘",
     width: 60,
     height: 60,
-    pins: [
-      { id: "pin1", label: "1", dx: 0, dy: 30, role: "switch" },
-      { id: "pin2", label: "2", dx: 60, dy: 30, role: "switch" },
-    ],
+    pins: buildPins("BUTTON"),
   },
   BUTTON_LATCHING: {
     id: "BUTTON_LATCHING",
@@ -61,21 +145,15 @@ export const COMPONENT_TYPES = {
     icon: "🔲",
     width: 60,
     height: 60,
-    pins: [
-      { id: "pin1", label: "1", dx: 0, dy: 30, role: "switch" },
-      { id: "pin2", label: "2", dx: 60, dy: 30, role: "switch" },
-    ],
+    pins: buildPins("BUTTON_LATCHING"),
   },
-    POWER: {
+  POWER: {
     id: "POWER",
     label: "Alimentation",
     icon: "⚡",
     width: 70,
     height: 90,
-    pins: [
-      { id: "5V", label: "+5V", dx: 70, dy: 25, role: "power_out" },
-      { id: "GND", label: "GND", dx: 70, dy: 65, role: "ground_out" },
-    ],
+    pins: buildPins("POWER"),
   },
   CAPACITOR: {
     id: "CAPACITOR",
@@ -83,10 +161,7 @@ export const COMPONENT_TYPES = {
     icon: "║║",
     width: 70,
     height: 40,
-    pins: [
-      { id: "pinA", label: "A", dx: 0, dy: 20, role: "passive" },
-      { id: "pinB", label: "B", dx: 70, dy: 20, role: "passive" },
-    ],
+    pins: buildPins("CAPACITOR"),
   },
   BUZZER: {
     id: "BUZZER",
@@ -94,10 +169,7 @@ export const COMPONENT_TYPES = {
     icon: "🔊",
     width: 70,
     height: 50,
-    pins: [
-      { id: "plus", label: "+", dx: 10, dy: 50, role: "input" },
-      { id: "minus", label: "-", dx: 60, dy: 50, role: "input" },
-    ],
+    pins: buildPins("BUZZER"),
   },
   POTENTIOMETER: {
     id: "POTENTIOMETER",
@@ -105,11 +177,7 @@ export const COMPONENT_TYPES = {
     icon: "🎚",
     width: 90,
     height: 50,
-    pins: [
-      { id: "left", label: "L", dx: 10, dy: 50, role: "passive" },
-      { id: "wiper", label: "W", dx: 45, dy: 0, role: "output" },
-      { id: "right", label: "R", dx: 80, dy: 50, role: "passive" },
-    ],
+    pins: buildPins("POTENTIOMETER"),
   },
   LDR: {
     id: "LDR",
@@ -117,10 +185,7 @@ export const COMPONENT_TYPES = {
     icon: "☀️",
     width: 90,
     height: 36,
-    pins: [
-      { id: "A", label: "A", dx: 0, dy: 18, role: "sensor" },
-      { id: "B", label: "B", dx: 90, dy: 18, role: "sensor" },
-    ],
+    pins: buildPins("LDR"),
   },
   THERMISTOR: {
     id: "THERMISTOR",
@@ -128,10 +193,7 @@ export const COMPONENT_TYPES = {
     icon: "🌡",
     width: 90,
     height: 36,
-    pins: [
-      { id: "A", label: "A", dx: 0, dy: 18, role: "sensor" },
-      { id: "B", label: "B", dx: 90, dy: 18, role: "sensor" },
-    ],
+    pins: buildPins("THERMISTOR"),
   },
   DIODE: {
     id: "DIODE",
@@ -139,10 +201,7 @@ export const COMPONENT_TYPES = {
     icon: "↦|",
     width: 90,
     height: 30,
-    pins: [
-      { id: "anode", label: "A", dx: 0, dy: 15, role: "input" },
-      { id: "cathode", label: "K", dx: 90, dy: 15, role: "output" },
-    ],
+    pins: buildPins("DIODE"),
   },
   RGB_LED: {
     id: "RGB_LED",
@@ -150,12 +209,7 @@ export const COMPONENT_TYPES = {
     icon: "🌈",
     width: 90,
     height: 56,
-    pins: [
-      { id: "R", label: "R", dx: 12, dy: 56, role: "input" },
-      { id: "common", label: "COM", dx: 34, dy: 56, role: "ground" },
-      { id: "G", label: "G", dx: 56, dy: 56, role: "input" },
-      { id: "B", label: "B", dx: 78, dy: 56, role: "input" },
-    ],
+    pins: buildPins("RGB_LED"),
   },
   NPN_TRANSISTOR: {
     id: "NPN_TRANSISTOR",
@@ -163,11 +217,7 @@ export const COMPONENT_TYPES = {
     icon: "NPN",
     width: 90,
     height: 60,
-    pins: [
-      { id: "collector", label: "C", dx: 45, dy: 0, role: "input" },
-      { id: "base", label: "B", dx: 0, dy: 45, role: "input" },
-      { id: "emitter", label: "E", dx: 90, dy: 45, role: "output" },
-    ],
+    pins: buildPins("NPN_TRANSISTOR"),
   },
   SERVO: {
     id: "SERVO",
@@ -175,11 +225,7 @@ export const COMPONENT_TYPES = {
     icon: "⚙️",
     width: 90,
     height: 70,
-    pins: [
-      { id: "signal", label: "SIG", dx: 90, dy: 20, role: "gpio" },
-      { id: "vcc", label: "VCC", dx: 90, dy: 35, role: "power" },
-      { id: "gnd", label: "GND", dx: 90, dy: 50, role: "ground" },
-    ],
+    pins: buildPins("SERVO"),
   },
   DC_MOTOR: {
     id: "DC_MOTOR",
@@ -187,10 +233,7 @@ export const COMPONENT_TYPES = {
     icon: "🌀",
     width: 90,
     height: 50,
-    pins: [
-      { id: "plus", label: "+", dx: 0, dy: 25, role: "input" },
-      { id: "minus", label: "-", dx: 90, dy: 25, role: "input" },
-    ],
+    pins: buildPins("DC_MOTOR"),
   },
 }
 
@@ -201,7 +244,7 @@ export const PALETTE_ITEMS = [
   COMPONENT_TYPES.ARDUINO,
   COMPONENT_TYPES.BUTTON,
   COMPONENT_TYPES.BUTTON_LATCHING,
-    COMPONENT_TYPES.POWER,
+  COMPONENT_TYPES.POWER,
   COMPONENT_TYPES.CAPACITOR,
   COMPONENT_TYPES.BUZZER,
   COMPONENT_TYPES.POTENTIOMETER,
@@ -230,13 +273,14 @@ export function getComponentDef(type) {
 export function createComponent(type, x, y) {
   const def = getComponentDef(type)
   if (!def) return null
- return {
-  uid: createUid(),
-  type: def.id,
-  x,
-  y,
-  pins: def.pins.map((pin) => ({ ...pin })),
-  ...(def.id === "BUTTON" ? { state: "released" } : {}),
-  ...(def.id === "BUTTON_LATCHING" ? { state: "off" } : {}),
-}
+
+  return {
+    uid: createUid(),
+    type: def.id,
+    x,
+    y,
+    pins: def.pins.map((pin) => ({ ...pin })),
+    ...(def.id === "BUTTON" ? { state: "released" } : {}),
+    ...(def.id === "BUTTON_LATCHING" ? { state: "off" } : {}),
+  }
 }
