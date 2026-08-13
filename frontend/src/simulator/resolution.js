@@ -1,6 +1,8 @@
 import { Signal } from "./signals.js"
 import { PowerModel } from "./models/PowerModel.js"
 import { ResistorModel } from "./models/ResistorModel.js"
+import { LdrModel } from "./models/LdrModel.js"
+import { ThermistorModel } from "./models/ThermistorModel.js"
 
 /**
  * MB-SIM-006 : Résolution (ADR-004).
@@ -123,6 +125,58 @@ function computeDcAnalysis(components, prepared, pinSignals) {
     dcAnalysis.set(comp.uid, {
       voltage,
       current: voltage / resistance,
+    })
+  }
+
+  /**
+   * MB-SIM-008 : LDR — modèle DC simplifié à résistance fixe.
+   * Même motif que RESISTOR (isSimplePoweredLoop), aucune dépendance à la
+   * lumière (hors périmètre). Valeur de résistance exclusivement issue de
+   * LdrModel.defaultParameters (A3).
+   */
+  const ldrResistance = LdrModel.defaultParameters.resistance
+
+  for (const comp of components) {
+    if (comp.type !== "LDR") continue
+
+    const pinA = pinSignals.get(uf.key(comp.uid, "A"))
+    const pinB = pinSignals.get(uf.key(comp.uid, "B"))
+
+    const isSimplePoweredLoop =
+      (pinA === Signal.HIGH && pinB === Signal.LOW) ||
+      (pinA === Signal.LOW && pinB === Signal.HIGH)
+
+    if (!isSimplePoweredLoop) continue
+
+    dcAnalysis.set(comp.uid, {
+      voltage,
+      current: voltage / ldrResistance,
+    })
+  }
+
+  /**
+   * MB-SIM-008 : THERMISTOR (NTC) — modèle DC simplifié à résistance fixe.
+   * Même motif que RESISTOR (isSimplePoweredLoop), aucune dépendance à la
+   * température (hors périmètre). Valeur de résistance exclusivement issue
+   * de ThermistorModel.defaultParameters (A3).
+   */
+  const thermistorResistance = ThermistorModel.defaultParameters.resistance
+
+  for (const comp of components) {
+    if (comp.type !== "THERMISTOR") continue
+
+    const pinA = pinSignals.get(uf.key(comp.uid, "A"))
+    const pinB = pinSignals.get(uf.key(comp.uid, "B"))
+
+    const isSimplePoweredLoop =
+      (pinA === Signal.HIGH && pinB === Signal.LOW) ||
+      (pinA === Signal.LOW && pinB === Signal.HIGH)
+
+    if (!isSimplePoweredLoop) continue
+
+    dcAnalysis.set(comp.uid, {
+      voltage,
+      current: voltage / thermistorResistance,
     })
   }
 
