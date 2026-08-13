@@ -1,7 +1,7 @@
-import { getComponentDef } from "../config/componentDefinitions.js"
+import { getCanonicalEntry } from "./canonicalRegistry.js"
 
 /**
- * Union-Find pour regrouper les pins connectÃƒÂ©es par fils.
+ * Union-Find pour regrouper les pins connectées par fils.
  */
 class UnionFind {
   constructor() {
@@ -42,7 +42,7 @@ export function prepareCircuit(components, wires) {
   const allKeys = []
 
   for (const comp of components) {
-    const def = getComponentDef(comp.type)
+    const def = getCanonicalEntry(comp.type)
     if (!def) continue
     for (const pin of def.pins) {
       const k = uf.key(comp.uid, pin.id)
@@ -67,7 +67,7 @@ export function prepareCircuit(components, wires) {
     }
   }
 
-  /** netId Ã¢â€ â€™ liste de clÃƒÂ©s pin */
+  /** netId → liste de clés pin */
   const nets = new Map()
   for (const k of allKeys) {
     const root = uf.find(k)
