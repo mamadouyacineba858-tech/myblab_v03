@@ -27,13 +27,14 @@ function poweredLdrCircuit() {
   ]
   return { components, wires, power, ldr }
 }
+
 function poweredThermistorCircuit() {
   const power = { uid: "power1", type: "POWER", x: 0, y: 0 }
   const thermistor = { uid: "th1", type: "THERMISTOR", x: 10, y: 0 }
   const components = [power, thermistor]
   const wires = [
-     { fromUid: "power1", fromPin: "5V", toUid: "th1", toPin: "A" },
-     { fromUid: "th1", fromPin: "B", toUid: "power1", toPin: "GND" },
+    { fromUid: "power1", fromPin: "5V", toUid: "th1", toPin: "A" },
+    { fromUid: "th1", fromPin: "B", toUid: "power1", toPin: "GND" },
   ]
   return { components, wires, power, thermistor }
 }
@@ -70,7 +71,7 @@ describe("MB-SIM-008 - resolveSignals (analyse DC, LDR et THERMISTOR)", () => {
 
   it("n'inclut pas une THERMISTOR non alimentée (pins non résolues en HIGH/LOW)", () => {
     const thermistor = { uid: "th_isolated", type: "THERMISTOR", x: 0, y: 0 }
-    const prepared = prepareCircuit(thermistor], [])
+    const prepared = prepareCircuit([thermistor], [])
     const { pinSignals, dcAnalysis } = resolveSignals([thermistor], prepared)
     expect(pinSignals.get("th_isolated:A")).toBe(Signal.UNKNOWN)
     expect(pinSignals.get("th_isolated:B")).toBe(Signal.UNKNOWN)
