@@ -71,7 +71,7 @@ describe('LdrModel', () => {
 
     it('devrait rejeter des parametres invalides', () => {
       expect(LdrModel.validate({})).toBe(false)
-      expect(LdrModel.validate({ resistance: '10000' }).toBe(false)
+      expect(LdrModel.validate({ resistance: '10000' })).toBe(false)
       expect(LdrModel.validate(null)).toBe(false)
     })
   })
