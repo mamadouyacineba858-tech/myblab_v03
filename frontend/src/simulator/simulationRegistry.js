@@ -56,10 +56,11 @@ export function createSimulationRegistry({
   }
 
   function isSimulationModelAvailable(type) {
-    return (
-      canonicalRegistry.hasCanonicalType(type) &&
-      canonicalRegistry.getCanonicalEntry(type).modelAvailable === true
-    )
+    if (!canonicalRegistry.hasCanonicalType(type)) return false
+    const entry = canonicalRegistry.getCanonicalEntry(type)
+    if (!entry.modelAvailable) return false
+    const model = modelStore.get(type) ?? null
+    return isValidSimulationModel(model) && model.type === entry.type
   }
 
   function getSimulationDefaultParameters(type) {
