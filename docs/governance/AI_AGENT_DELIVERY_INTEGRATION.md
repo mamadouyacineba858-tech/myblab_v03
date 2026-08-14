@@ -8,8 +8,6 @@ En cas de divergence entre les règles R1–R10 de `GOVERNANCE.md` et les règle
 
 Les règles R1–R10 restent applicables pour les domaines qu'elles couvrent et qui ne sont pas contredits par R11–R17.
 
-## Règle de gouvernance — Livraison et intégration des agents IA
-
 ## Statut
 
 **Adopté — règle opérationnelle obligatoire**
