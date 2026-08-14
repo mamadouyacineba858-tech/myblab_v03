@@ -1,5 +1,5 @@
 import { Signal } from "./signals.js"
-import { getSimulationModel } from "./simulationRegistry.js"
+import { getSimulationDefaultParameters } from "./simulationRegistry.js"
 
 /**
  * MB-SIM-006 : Résolution (ADR-004).
@@ -47,8 +47,8 @@ export function resolveSignals(components, prepared) {
 
 function computeDcAnalysis(components, prepared, pinSignals) {
   const { uf } = prepared
-  const voltage = getSimulationModel("POWER").defaultParameters.voltage
-  const resistance = getSimulationModel("RESISTOR").defaultParameters.resistance
+  const voltage = getSimulationDefaultParameters("POWER").voltage
+  const resistance = getSimulationDefaultParameters("RESISTOR").resistance
   const dcAnalysis = new Map()
 
   for (const comp of components) {
@@ -62,7 +62,7 @@ function computeDcAnalysis(components, prepared, pinSignals) {
     dcAnalysis.set(comp.uid, { voltage, current: voltage / resistance })
   }
 
-  const ldrResistance = getSimulationModel("LDR").defaultParameters.resistance
+  const ldrResistance = getSimulationDefaultParameters("LDR").resistance
   for (const comp of components) {
     if (comp.type !== "LDR") continue
     const pinA = pinSignals.get(uf.key(comp.uid, "A"))
@@ -74,7 +74,7 @@ function computeDcAnalysis(components, prepared, pinSignals) {
     dcAnalysis.set(comp.uid, { voltage, current: voltage / ldrResistance })
   }
 
-  const thermistorResistance = getSimulationModel("THERMISTOR").defaultParameters.resistance
+  const thermistorResistance = getSimulationDefaultParameters("THERMISTOR").resistance
   for (const comp of components) {
     if (comp.type !== "THERMISTOR") continue
     const pinA = pinSignals.get(uf.key(comp.uid, "A"))
