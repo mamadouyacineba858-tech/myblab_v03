@@ -1,4 +1,3 @@
-import { ComponentRegistry } from './registry.js'
 import * as defaultCanonicalRegistry from './canonicalRegistry.js'
 import { PowerModel } from './models/PowerModel.js'
 import { ResistorModel } from './models/ResistorModel.js'
@@ -15,9 +14,8 @@ function isValidSimulationModel(model) {
   return (
     !!model &&
     typeof model === 'object' &&
-    !!model.defaultParameters &&
-    typeof model.defaultParameters === 'object' &&
-    Array.isArray(model.capabilities) &&
+    typeof model.type === 'string' &&
+    model.type.length > 0 &&
     typeof model.validate === 'function'
   )
 }
@@ -26,9 +24,9 @@ export function createSimulationRegistry({
   canonicalRegistry = defaultCanonicalRegistry,
   models = [],
 } = {}) {
-  const modelAnnuaire = new ComponentRegistry()
+  const modelStore = new Map()
   for (const model of models) {
-    modelAnnuaire.register(model)
+    if (model && typeof model.type === 'string') modelStore.set(model.type, model)
   }
 
   function getSimulationModel(type, { requireCapability } = {}) {
@@ -41,12 +39,16 @@ export function createSimulationRegistry({
       throw new SimulationModelUnavailableError(type)
     }
 
-    const model = modelAnnuaire.getModel(type)
+    const model = modelStore.get(type) ?? null
     if (!isValidSimulationModel(model)) {
       throw new InvalidSimulationModelError(type)
     }
 
-    if (requireCapability && !model.capabilities.includes(requireCapability)) {
+    if (model.type !== entry.type) {
+      throw new InvalidSimulationModelError(type)
+    }
+
+    if (requireCapability && !entry.capabilities.includes(requireCapability)) {
       throw new UnsupportedSimulationCapabilityError(type, requireCapability)
     }
 
@@ -60,7 +62,20 @@ export function createSimulationRegistry({
     )
   }
 
-  return { getSimulationModel, isSimulationModelAvailable }
+  function getSimulationDefaultParameters(type) {
+    if (!canonicalRegistry.hasCanonicalType(type)) {
+      throw new UnknownComponentTypeError(type)
+    }
+
+    const entry = canonicalRegistry.getCanonicalEntry(type)
+    if (!entry.modelAvailable || entry.defaultParameters === null) {
+      throw new SimulationModelUnavailableError(type)
+    }
+
+    return entry.defaultParameters
+  }
+
+  return { getSimulationModel, isSimulationModelAvailable, getSimulationDefaultParameters }
 }
 
 const defaultRegistry = createSimulationRegistry({
@@ -69,3 +84,4 @@ const defaultRegistry = createSimulationRegistry({
 
 export const getSimulationModel = defaultRegistry.getSimulationModel
 export const isSimulationModelAvailable = defaultRegistry.isSimulationModelAvailable
+export const getSimulationDefaultParameters = defaultRegistry.getSimulationDefaultParameters
