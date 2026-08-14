@@ -1,8 +1,3 @@
-import { PowerModel } from './models/PowerModel.js'
-import { ResistorModel } from './models/ResistorModel.js'
-import { LdrModel } from './models/LdrModel.js'
-import { ThermistorModel } from './models/ThermistorModel.js'
-
 const DECLARED_TYPES_PINS = {
   LED:[{id:'anode',role:'input'},{id:'cathode',role:'input'}],
   RESISTOR:[{id:'A',role:'passive'},{id:'B',role:'passive'}],
@@ -23,20 +18,49 @@ const DECLARED_TYPES_PINS = {
 }
 
 const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR']
-const MODELS_BY_TYPE = { POWER:PowerModel, RESISTOR:ResistorModel, LDR:LdrModel, THERMISTOR:ThermistorModel }
+
+const DECLARED_PARAMETER_SCHEMA = {
+  POWER:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:0.001,maximum:1000,defaultValue:5,description:'Tension de sortie de la source en Volts'}],
+  RESISTOR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e9,defaultValue:220,description:'Valeur de la résistance en Ohms'}],
+  LDR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:100,maximum:10000000,defaultValue:10000,description:'Résistance fixe (mode simplifié MB-SIM-008) : cette LDR est modélisée par une résistance constante et ne dépend pas de la lumière — la relation éclairement → résistance est hors périmètre de MB-SIM-008.'}],
+  THERMISTOR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:100,maximum:1000000,defaultValue:10000,description:'Résistance fixe (mode simplifié MB-SIM-008, type NTC) : cette thermistance est modélisée par une résistance constante et ne dépend pas de la température — la relation température → résistance est hors périmètre de MB-SIM-008.'}],
+}
+
+const DECLARED_DEFAULT_PARAMETERS = {
+  POWER:{voltage:5},
+  RESISTOR:{resistance:220},
+  LDR:{resistance:10000},
+  THERMISTOR:{resistance:10000},
+}
+
+const DECLARED_CAPABILITIES = {
+  POWER:['digital','dc'],
+  RESISTOR:['digital','dc'],
+  LDR:['digital','dc'],
+  THERMISTOR:['digital','dc'],
+}
+
+const DECLARED_MODEL_AVAILABLE = {
+  POWER:true,
+  RESISTOR:true,
+  LDR:true,
+  THERMISTOR:true,
+}
 
 function cloneParameterSchema(schema){ return schema.map((param)=>Object.freeze({...param})) }
+function cloneDefaultParameters(parameters){ return Object.freeze({...parameters}) }
 function cloneCapabilities(capabilities){ return Object.freeze([...capabilities]) }
 function clonePins(pins){ return Object.freeze(pins.map((pin)=>Object.freeze({...pin}))) }
 
 function buildEntry(type){
-  const model=MODELS_BY_TYPE[type] ?? null
+  const modelAvailable=DECLARED_MODEL_AVAILABLE[type] === true
   return Object.freeze({
     type,
     pins:clonePins(DECLARED_TYPES_PINS[type]),
-    parameterSchema:model ? cloneParameterSchema(model.parameterSchema) : null,
-    capabilities:model ? cloneCapabilities(model.capabilities) : null,
-    modelAvailable:model !== null,
+    parameterSchema:modelAvailable ? cloneParameterSchema(DECLARED_PARAMETER_SCHEMA[type]) : null,
+    defaultParameters:modelAvailable ? cloneDefaultParameters(DECLARED_DEFAULT_PARAMETERS[type]) : null,
+    capabilities:modelAvailable ? cloneCapabilities(DECLARED_CAPABILITIES[type]) : null,
+    modelAvailable,
   })
 }
 
@@ -68,6 +92,11 @@ export function validateCanonicalEntry(entry){
       if(hasDefault){if(hasMin&&param.defaultValue<param.minimum) errors.push(`parameterSchema[${index}] defaultValue (${param.defaultValue}) is below minimum (${param.minimum})`);if(hasMax&&param.defaultValue>param.maximum) errors.push(`parameterSchema[${index}] defaultValue (${param.defaultValue}) is above maximum (${param.maximum})`)}
     })
   }
+  if(entry.defaultParameters!==null && (!entry.defaultParameters || typeof entry.defaultParameters!=='object' || Array.isArray(entry.defaultParameters))) errors.push('defaultParameters must be an object or null')
+  if(entry.capabilities!==null && !Array.isArray(entry.capabilities)) errors.push('capabilities must be an array or null')
+  if(typeof entry.modelAvailable!=='boolean') errors.push('modelAvailable must be a boolean')
+  if(entry.modelAvailable && (entry.parameterSchema===null || entry.defaultParameters===null || entry.capabilities===null)) errors.push('available model must expose parameterSchema, defaultParameters and capabilities')
+  if(!entry.modelAvailable && (entry.parameterSchema!==null || entry.defaultParameters!==null || entry.capabilities!==null)) errors.push('unavailable model must not expose model-specific declarative metadata')
   return {valid:errors.length===0,errors}
 }
 
