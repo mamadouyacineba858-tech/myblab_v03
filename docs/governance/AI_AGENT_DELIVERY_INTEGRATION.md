@@ -1,5 +1,15 @@
 # Règle de gouvernance — Livraison et intégration des agents IA
 
+## Précédence documentaire
+
+Le présent document `AI_AGENT_DELIVERY_INTEGRATION.md` constitue la règle opérationnelle de référence pour tout ce qui concerne la livraison, l'audit, l'intégration et la vérification des contributions produites par les agents IA.
+
+En cas de divergence entre les règles R1–R10 de `GOVERNANCE.md` et les règles R11–R17 du présent document, les règles R11–R17 prévalent pour le processus de livraison et d'intégration des agents IA.
+
+Les règles R1–R10 restent applicables pour les domaines qu'elles couvrent et qui ne sont pas contredits par R11–R17.
+
+## Règle de gouvernance — Livraison et intégration des agents IA
+
 ## Statut
 
 **Adopté — règle opérationnelle obligatoire**
@@ -128,7 +138,6 @@ Les commandes sont adaptées au ticket, mais comprennent généralement :
 ```bash
 git fetch origin --prune
 git pull --ff-only origin main
-
 git status
 git rev-parse HEAD
 git rev-parse origin/main
