@@ -2,47 +2,16 @@ import { describe, it, expect } from 'vitest'
 import { ResistorModel } from '../../simulator/models/ResistorModel.js'
 
 describe('ResistorModel', () => {
-  describe('Structure du modèle', () => {
+  describe('Structure du modèle exécutable', () => {
     it('devrait avoir un type "RESISTOR"', () => {
       expect(ResistorModel.type).toBe('RESISTOR')
     })
 
-    it('devrait avoir des defaultParameters', () => {
-      expect(ResistorModel.defaultParameters).toBeDefined()
-      expect(ResistorModel.defaultParameters.resistance).toBe(220)
-    })
-
-    it('devrait avoir un parameterSchema valide', () => {
-      expect(Array.isArray(ResistorModel.parameterSchema)).toBe(true)
-      expect(ResistorModel.parameterSchema.length).toBeGreaterThan(0)
-    })
-
-    it('devrait avoir des capabilities', () => {
-      expect(Array.isArray(ResistorModel.capabilities)).toBe(true)
-      expect(ResistorModel.capabilities).toContain('digital')
-      expect(ResistorModel.capabilities).toContain('dc')
-    })
-
-    it('devrait avoir une fonction validate', () => {
+    it('devrait exposer uniquement son comportement exécutable', () => {
       expect(typeof ResistorModel.validate).toBe('function')
-    })
-  })
-
-  describe('parameterSchema', () => {
-    it('devrait définir le paramètre "resistance"', () => {
-      const resistanceParam = ResistorModel.parameterSchema.find(p => p.key === 'resistance')
-      expect(resistanceParam).toBeDefined()
-      expect(resistanceParam.parameterType).toBe('resistance')
-      expect(resistanceParam.unit).toBe('Ω')
-      expect(resistanceParam.defaultValue).toBe(220)
-      expect(resistanceParam.minimum).toBeGreaterThan(0)
-    })
-
-    it('devrait avoir une description pour chaque paramètre', () => {
-      for (const param of ResistorModel.parameterSchema) {
-        expect(typeof param.description).toBe('string')
-        expect(param.description.length).toBeGreaterThan(0)
-      }
+      expect(ResistorModel.defaultParameters).toBeUndefined()
+      expect(ResistorModel.parameterSchema).toBeUndefined()
+      expect(ResistorModel.capabilities).toBeUndefined()
     })
   })
 
@@ -65,22 +34,21 @@ describe('ResistorModel', () => {
       expect(ResistorModel.validate({})).toBe(false)
       expect(ResistorModel.validate({ resistance: '220' })).toBe(false)
       expect(ResistorModel.validate(null)).toBe(false)
+      expect(ResistorModel.validate({ resistance: Number.NaN })).toBe(false)
+      expect(ResistorModel.validate({ resistance: Number.POSITIVE_INFINITY })).toBe(false)
     })
   })
 
-  describe('Conformité au contrat MB-SIM-001', () => {
-    it('devrait être un annuaire pur (pas de logique métier)', () => {
+  describe('Conformité au contrat MB-SIM-001 / ADR-012', () => {
+    it('ne devrait pas contenir de logique de résolution ou de calcul', () => {
       expect(typeof ResistorModel.solve).toBe('undefined')
       expect(typeof ResistorModel.compute).toBe('undefined')
     })
 
-    it('ne doit pas interpréter les parameterType', () => {
-      expect(ResistorModel.parameterSchema[0].parameterType).toBe('resistance')
-    })
-
-    it('doit déclarer ses capabilities explicitement', () => {
-      expect(ResistorModel.capabilities).toBeDefined()
-      expect(ResistorModel.capabilities.length).toBeGreaterThan(0)
+    it('ne devrait pas porter les métadonnées déclaratives du Registry canonique', () => {
+      expect(ResistorModel.defaultParameters).toBeUndefined()
+      expect(ResistorModel.parameterSchema).toBeUndefined()
+      expect(ResistorModel.capabilities).toBeUndefined()
     })
   })
 })
