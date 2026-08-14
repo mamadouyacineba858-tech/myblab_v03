@@ -1,3 +1,15 @@
+# Gouvernance MYBlab — Règle de précédence pour les agents IA
+
+## Précédence documentaire
+
+Pour tout ce qui concerne la livraison, l'audit, l'intégration et la vérification des contributions produites par les agents IA, les règles R11–R17 du document `AI_AGENT_DELIVERY_INTEGRATION.md` constituent la règle opérationnelle de référence et prévalent sur les règles R1–R10 ci-dessous en cas de divergence.
+
+Les règles R1–R10 restent applicables pour les domaines qu'elles couvrent et qui ne sont pas contredits par R11–R17.
+
+Voir `docs/governance/AI_AGENT_DELIVERY_INTEGRATION.md` pour le workflow opérationnel détaillé.
+
+---
+
 Amendement de gouvernance — Validation des livraisons externes
 Principe
 Les propositions d'implémentation produites par un agent externe (Claude, Qwen, DeepSeek, Copilot, Gemini, etc.) sont considérées comme des propositions de patch, et non comme des livraisons définitives.
@@ -88,30 +100,21 @@ Aucun agent IA ne décide qu'un ticket est terminé.                            
 Un agent peut affirmer qu'une modification est réalisée uniquement si cette affirmation peut être vérifiée sur le dépôt officiel.
 
 Par exemple :
-
 Affirmation :
 ✓ le fichier existe
-
 → vérification :
-
 git ls-files <fichier>
 Affirmation :
 ✓ la fonction a disparu
-
 → vérification :
-
 git grep "nomDeLaFonction"
 Affirmation :
 ✓ aucun changement supplémentaire
-
 → vérification :
-
 git diff
 Affirmation :
 ✓ commit créé
-
 → vérification :
-
 git show HASH
 Ainsi, on ne débat plus des affirmations : on les valide par des commandes reproductibles.
 
