@@ -2,55 +2,16 @@ import { describe, it, expect } from 'vitest'
 import { LdrModel } from '../../simulator/models/LdrModel.js'
 
 describe('LdrModel', () => {
-  describe('Structure du modèle', () => {
+  describe('Structure du modèle exécutable', () => {
     it('devrait avoir un type "LDR"', () => {
       expect(LdrModel.type).toBe('LDR')
     })
 
-    it('devrait avoir des defaultParameters', () => {
-      expect(LdrModel.defaultParameters).toBeDefined()
-      expect(LdrModel.defaultParameters.resistance).toBe(10000)
-    })
-
-    it('devrait avoir un parameterSchema valide', () => {
-      expect(Array.isArray(LdrModel.parameterSchema)).toBe(true)
-      expect(LdrModel.parameterSchema.length).toBeGreaterThan(0)
-    })
-
-    it('devrait avoir des capabilities', () => {
-      expect(Array.isArray(LdrModel.capabilities)).toBe(true)
-      expect(LdrModel.capabilities).toContain('digital')
-      expect(LdrModel.capabilities).toContain('dc')
-    })
-
-    it('devrait avoir une fonction validate', () => {
+    it('devrait exposer uniquement son comportement exécutable', () => {
       expect(typeof LdrModel.validate).toBe('function')
-    })
-  })
-
-  describe('parameterSchema', () => {
-    it('devrait définir cle parametre "resistance"', () => {
-      const resistanceParam = LdrModel.parameterSchema.find(p => p.key === 'resistance')
-      expect(resistanceParam).toBeDefined()
-      expect(resistanceParam.parameterType).toBe('resistance')
-      expect(resistanceParam.unit).toBe('Ω')
-      expect(resistanceParam.defaultValue).toBe(10000)
-      expect(resistanceParam.minimum).toBe(100)
-      expect(resistanceParam.maximum).toBe(10000000)
-    })
-
-    it('devrait avoir une description pour chaque paramètre', () => {
-      for (const param of LdrModel.parameterSchema) {
-        expect(typeof param.description).toBe('string')
-        expect(param.description.length).toBeGreaterThan(0)
-      }
-    })
-
-    it('la description devrait indiquer explicitement le mode simplifié et l\'absence de dépendance à la lumière', () => {
-      const resistanceParam = LdrModel.parameterSchema.find(p => p.key === 'resistance')
-      expect(resistanceParam.description).toMatch(/simplifi/i)
-      expect(resistanceParam.description).toMatch(/résistance fixe|constante/i)
-      expect(resistanceParam.description).toMatch(/lumière/i)
+      expect(LdrModel.defaultParameters).toBeUndefined()
+      expect(LdrModel.parameterSchema).toBeUndefined()
+      expect(LdrModel.capabilities).toBeUndefined()
     })
   })
 
@@ -61,7 +22,7 @@ describe('LdrModel', () => {
       expect(LdrModel.validate({ resistance: 10000000 })).toBe(true)
     })
 
-    it('devrait rejeter une résistance negative', () => {
+    it('devrait rejeter une résistance négative', () => {
       expect(LdrModel.validate({ resistance: -100 })).toBe(false)
     })
 
@@ -69,26 +30,25 @@ describe('LdrModel', () => {
       expect(LdrModel.validate({ resistance: 0 })).toBe(false)
     })
 
-    it('devrait rejeter des parametres invalides', () => {
+    it('devrait rejeter des paramètres invalides', () => {
       expect(LdrModel.validate({})).toBe(false)
       expect(LdrModel.validate({ resistance: '10000' })).toBe(false)
       expect(LdrModel.validate(null)).toBe(false)
+      expect(LdrModel.validate({ resistance: Number.NaN })).toBe(false)
+      expect(LdrModel.validate({ resistance: Number.POSITIVE_INFINITY })).toBe(false)
     })
   })
 
-  describe('Conformité au contrat MB-SIM-001 / MB-SIM-008', () => {
-    it('devrait être un annuaire pur (pas de logique métier)', () => {
+  describe('Conformité au contrat MB-SIM-001 / MB-SIM-008 / ADR-012', () => {
+    it('ne devrait pas contenir de logique de résolution ou de calcul', () => {
       expect(typeof LdrModel.solve).toBe('undefined')
       expect(typeof LdrModel.compute).toBe('undefined')
     })
 
-    it('ne doit pas interpréter les parameterType', () => {
-      expect(LdrModel.parameterSchema[0].parameterType).toBe('resistance')
-    })
-
-    it('doit déclarer ses capabilities explicitement', () => {
-      expect(LdrModel.capabilities).toBeDefined()
-      expect(LdrModel.capabilities.length).toBeGreaterThan(0)
+    it('ne devrait pas porter les métadonnées déclaratives du Registry canonique', () => {
+      expect(LdrModel.defaultParameters).toBeUndefined()
+      expect(LdrModel.parameterSchema).toBeUndefined()
+      expect(LdrModel.capabilities).toBeUndefined()
     })
   })
 })
