@@ -41,6 +41,49 @@ describe('canonicalRegistry — contract shape', () => {
     expect(entry.modelAvailable).toBe(true);
   });
 
+  it('LDR entry exposes the complete declarative contract', () => {
+    const entry = getCanonicalEntry('LDR');
+    expect(entry.pins).toEqual(COMPONENT_TYPES.LDR.pins.map(({ id, role }) => ({ id, role })));
+    expect(entry.parameterSchema).toEqual([
+      {
+        key: 'resistance',
+        parameterType: 'resistance',
+        unit: 'Ω',
+        minimum: 100,
+        maximum: 10000000,
+        defaultValue: 10000,
+        description: expect.stringMatching(/mode simplifié/i),
+      },
+    ]);
+    expect(entry.parameterSchema[0].description).toMatch(/résistance fixe|constante/i);
+    expect(entry.parameterSchema[0].description).toMatch(/lumière/i);
+    expect(entry.defaultParameters).toEqual({ resistance: 10000 });
+    expect(entry.capabilities).toEqual(['digital', 'dc']);
+    expect(entry.modelAvailable).toBe(true);
+  });
+
+  it('THERMISTOR entry exposes the complete declarative contract', () => {
+    const entry = getCanonicalEntry('THERMISTOR');
+    expect(entry.pins).toEqual(COMPONENT_TYPES.THERMISTOR.pins.map(({ id, role }) => ({ id, role })));
+    expect(entry.parameterSchema).toEqual([
+      {
+        key: 'resistance',
+        parameterType: 'resistance',
+        unit: 'Ω',
+        minimum: 100,
+        maximum: 1000000,
+        defaultValue: 10000,
+        description: expect.stringMatching(/mode simplifié/i),
+      },
+    ]);
+    expect(entry.parameterSchema[0].description).toMatch(/résistance fixe|constante/i);
+    expect(entry.parameterSchema[0].description).toMatch(/NTC/);
+    expect(entry.parameterSchema[0].description).toMatch(/température/i);
+    expect(entry.defaultParameters).toEqual({ resistance: 10000 });
+    expect(entry.capabilities).toEqual(['digital', 'dc']);
+    expect(entry.modelAvailable).toBe(true);
+  });
+
   it('LED is a known declared type with no model — no model-specific contract', () => {
     const entry = getCanonicalEntry('LED');
     expect(entry).not.toBeNull();
