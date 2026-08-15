@@ -2,10 +2,7 @@ import { describe, it, expect } from "vitest"
 import { prepareCircuit } from "../preparation.js"
 import { resolveSignals } from "../resolution.js"
 import { Signal } from "../signals.js"
-import { PowerModel } from "../models/PowerModel.js"
-import { ResistorModel } from "../models/ResistorModel.js"
-import { LdrModel } from "../models/LdrModel.js"
-import { ThermistorModel } from "../models/ThermistorModel.js"
+import { getSimulationDefaultParameters } from "../simulationRegistry.js"
 
 /**
  * MB-SIM-008 — Tests d'intégration du solveur DC pour LDR et THERMISTOR.
@@ -46,8 +43,8 @@ describe("MB-SIM-008 - resolveSignals (analyse DC, LDR et THERMISTOR)", () => {
     const { dcAnalysis } = resolveSignals(components, prepared)
     expect(dcAnalysis.has(ldr.uid)).toBe(true)
     const result = dcAnalysis.get(ldr.uid)
-    expect(result.voltage).toBe(PowerModel.defaultParameters.voltage)
-    expect(result.current).toBe(PowerModel.defaultParameters.voltage / LdrModel.defaultParameters.resistance)
+    expect(result.voltage).toBe(getSimulationDefaultParameters("POWER").voltage)
+    expect(result.current).toBe(getSimulationDefaultParameters("POWER").voltage / getSimulationDefaultParameters("LDR").resistance)
   })
 
   it("THERMISTOR alimenté : calcule I = U / R avec la résistance fixe de ThermistorModel", () => {
@@ -56,8 +53,8 @@ describe("MB-SIM-008 - resolveSignals (analyse DC, LDR et THERMISTOR)", () => {
     const { dcAnalysis } = resolveSignals(components, prepared)
     expect(dcAnalysis.has(thermistor.uid)).toBe(true)
     const result = dcAnalysis.get(thermistor.uid)
-    expect(result.voltage).toBe(PowerModel.defaultParameters.voltage)
-    expect(result.current).toBe(PowerModel.defaultParameters.voltage / ThermistorModel.defaultParameters.resistance)
+    expect(result.voltage).toBe(getSimulationDefaultParameters("POWER").voltage)
+    expect(result.current).toBe(getSimulationDefaultParameters("POWER").voltage / getSimulationDefaultParameters("THERMISTOR").resistance)
   })
 
   it("n'inclut pas une LDR non alimentée (pins non résolues en HIGH/LOW)", () => {
@@ -96,11 +93,11 @@ describe("MB-SIM-008 - resolveSignals (analyse DC, LDR et THERMISTOR)", () => {
     const { dcAnalysis } = resolveSignals(components, prepared)
     expect(dcAnalysis.size).toBe(3)
     const rResult = dcAnalysis.get(resistor.uid)
-    expect(rResult.current).toBe(PowerModel.defaultParameters.voltage / ResistorModel.defaultParameters.resistance)
+    expect(rResult.current).toBe(getSimulationDefaultParameters("POWER").voltage / getSimulationDefaultParameters("RESISTOR").resistance)
     const ldrResult = dcAnalysis.get(ldr.uid)
-    expect(ldrResult.current).toBe(PowerModel.defaultParameters.voltage / LdrModel.defaultParameters.resistance)
+    expect(ldrResult.current).toBe(getSimulationDefaultParameters("POWER").voltage / getSimulationDefaultParameters("LDR").resistance)
     const thResult = dcAnalysis.get(thermistor.uid)
-    expect(thResult.current).toBe(PowerModel.defaultParameters.voltage / ThermistorModel.defaultParameters.resistance)
+    expect(thResult.current).toBe(getSimulationDefaultParameters("POWER").voltage / getSimulationDefaultParameters("THERMISTOR").resistance)
   })
 
   it("gère un circuit totalement vide (components=[], wires=[])", () => {

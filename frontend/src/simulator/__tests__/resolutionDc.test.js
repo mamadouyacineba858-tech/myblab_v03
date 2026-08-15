@@ -2,8 +2,7 @@ import { describe, it, expect } from "vitest"
 import { prepareCircuit } from "../preparation.js"
 import { resolveSignals } from "../resolution.js"
 import { Signal } from "../signals.js"
-import { PowerModel } from "../models/PowerModel.js"
-import { ResistorModel } from "../models/ResistorModel.js"
+import { getSimulationDefaultParameters } from "../simulationRegistry.js"
 
 /**
  * MB-SIM-007 — Tests du solveur DC.
@@ -38,7 +37,7 @@ describe("MB-SIM-007 - resolveSignals (analyse DC)", () => {
     expect(dcAnalysis.has(resistor.uid)).toBe(true)
 
     const result = dcAnalysis.get(resistor.uid)
-    expect(result.voltage).toBe(PowerModel.defaultParameters.voltage)
+    expect(result.voltage).toBe(getSimulationDefaultParameters("POWER").voltage)
     expect(result.current).toBeCloseTo(0.0227272727, 6)
   })
 
@@ -49,7 +48,7 @@ describe("MB-SIM-007 - resolveSignals (analyse DC)", () => {
     const { dcAnalysis } = resolveSignals(components, prepared)
     const result = dcAnalysis.get(resistor.uid)
 
-    const expectedCurrent = PowerModel.defaultParameters.voltage / ResistorModel.defaultParameters.resistance
+    const expectedCurrent = getSimulationDefaultParameters("POWER").voltage / getSimulationDefaultParameters("RESISTOR").resistance
     expect(result.current).toBe(expectedCurrent)
   })
 
