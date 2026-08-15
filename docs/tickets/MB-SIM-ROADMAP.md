@@ -8,7 +8,7 @@
 
 ## Tableau de suivi
 
-*Ajouté par MB-SIM-DOC-001.*
+*Réconcilié par MB-SIM-DOC-002.*
 
 | Ticket | Statut documentaire | Référence |
 |---|---|---|
@@ -16,9 +16,9 @@
 | MB-SIM-003 | Décision architecturale (hors dépôt) | conversation |
 | MB-SIM-004 | ✅ Intégré | `a0f1f23` |
 | MB-SIM-005 | ✅ Intégré | `fb40a8a` |
-| MB-SIM-006 | À faire | — |
-| MB-SIM-007 | À faire | — |
-| MB-SIM-008 | À faire | — |
+| MB-SIM-006 | ✅ Intégré | `d70b738` |
+| MB-SIM-007 | ✅ Intégré | `e0a4ef4` |
+| MB-SIM-008 | 🟡 Partiel (2/8 — LDR, THERMISTOR) | `9d7d531`, `517b7a0`, `2b0c2b3` |
 | MB-SIM-009 | À faire | — |
 | MB-SIM-010 | À faire | — |
 
@@ -27,9 +27,17 @@ d'un document officiel dans le dépôt. Leur contenu provient des travaux
 préparatoires réalisés avant la mise en place de la gouvernance
 documentaire actuelle.
 
-**Une divergence a été identifiée entre la feuille de route actuelle et
-l'état du dépôt officiel.** Cette divergence sera arbitrée dans un ticket
-documentaire ultérieur et n'est pas résolue par MB-SIM-DOC-001.
+**Note MB-SIM-DOC-002 — Réconciliation documentaire :** La divergence
+identifiée dans MB-SIM-DOC-001 entre la feuille de route et l'état du dépôt
+a été réconciliée pour MB-SIM-006, MB-SIM-007 et MB-SIM-008. MB-SIM-006 et
+MB-SIM-007 sont intégrés ; MB-SIM-008 est partiellement intégré (2/8,
+LDR et THERMISTOR). Les six composants restant à couvrir sont :
+CAPACITOR, POTENTIOMETER, DIODE, NPN_TRANSISTOR, SERVO et DC_MOTOR.
+MB-SIM-009 et MB-SIM-010 restent à faire.
+
+La correspondance détaillée entre les tickets MB-SIM et les Épics SIM1,
+SIM2 et SIM3 n'est pas encore explicitement documentée et fera l'objet
+d'un arbitrage documentaire séparé.
 
 ---
 
