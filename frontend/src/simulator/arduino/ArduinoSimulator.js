@@ -34,7 +34,18 @@ export class ArduinoSimulator {
   }
 
   /**
-   * Une frame de simulation (à brancher sur requestAnimationFrame ou setInterval).
+   * Une frame de simulation (à brancher sur requestAnimationFrame ou setInterval,
+   * ou — MB-SIM-010 — sur le Scheduler via runtimeOrchestrator.js).
+   *
+   * MB-SIM-010 : adaptation minimale (Ticket §Phase 2). Cette méthode ne
+   * réalise aucun calcul (aucun accès à Signal, aucune horloge, aucune
+   * interprétation de code) : elle expose fidèlement l'état déjà présent
+   * dans pinOutputs (déjà écrit par digitalWrite()), conformément à son
+   * propre contrat documenté ci-dessous, plutôt que d'ignorer cet état comme
+   * le faisait la version stub précédente. Aucun calcul électrique n'est
+   * introduit (contrainte absolue #6) ; aucun PWM, aucun firmware réel,
+   * aucun interpréteur (contraintes #9-#16) : pinOutputs ne peut être
+   * peuplé que par un appel explicite et déjà-existant à digitalWrite().
    * @param {number} _deltaMs
    * @returns {Map<string, string>} pinId → Signal pour ce composant
    */
@@ -42,7 +53,7 @@ export class ArduinoSimulator {
     void deltaMs
 
     if (!this.running) return new Map()
-    return new Map()
+    return new Map(this.pinOutputs)
 }
 
   /**
