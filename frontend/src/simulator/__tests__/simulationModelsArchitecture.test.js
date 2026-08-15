@@ -4,7 +4,18 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const modelsDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'models')
-const modelFiles = ['PowerModel.js', 'ResistorModel.js', 'LdrModel.js', 'ThermistorModel.js']
+const modelFiles = [
+  'PowerModel.js',
+  'ResistorModel.js',
+  'LdrModel.js',
+  'ThermistorModel.js',
+  // MB-SIM-008 v2 :
+  'DiodeModel.js',
+  'DcMotorModel.js',
+  'CapacitorModel.js',
+  'PotentiometerModel.js',
+  'NpnTransistorModel.js',
+]
 
 describe('ADR-012 executable model boundary', () => {
   for (const file of modelFiles) {

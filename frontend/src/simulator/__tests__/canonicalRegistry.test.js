@@ -84,6 +84,75 @@ describe('canonicalRegistry — contract shape', () => {
     expect(entry.modelAvailable).toBe(true);
   });
 
+  it('MB-SIM-008 v2 : DIODE entry exposes the complete declarative contract', () => {
+    const entry = getCanonicalEntry('DIODE');
+    expect(entry.pins).toEqual(COMPONENT_TYPES.DIODE.pins.map(({ id, role }) => ({ id, role })));
+    expect(entry.parameterSchema).toEqual([
+      { key: 'forwardVoltage', parameterType: 'voltage', unit: 'V', minimum: 0, maximum: 5, defaultValue: 0.7, description: expect.stringMatching(/simplifié/i) },
+      { key: 'onResistance', parameterType: 'resistance', unit: 'Ω', minimum: 0.001, maximum: 1e9, defaultValue: 10, description: expect.stringMatching(/simplifié/i) },
+    ]);
+    expect(entry.defaultParameters).toEqual({ forwardVoltage: 0.7, onResistance: 10 });
+    expect(entry.capabilities).toEqual(['digital', 'dc']);
+    expect(entry.modelAvailable).toBe(true);
+  });
+
+  it('MB-SIM-008 v2 : DC_MOTOR entry exposes the complete declarative contract', () => {
+    const entry = getCanonicalEntry('DC_MOTOR');
+    expect(entry.pins).toEqual(COMPONENT_TYPES.DC_MOTOR.pins.map(({ id, role }) => ({ id, role })));
+    expect(entry.parameterSchema).toEqual([
+      { key: 'resistance', parameterType: 'resistance', unit: 'Ω', minimum: 0.001, maximum: 1e6, defaultValue: 20, description: expect.stringMatching(/simplifié/i) },
+    ]);
+    expect(entry.parameterSchema[0].description).toMatch(/vitesse|couple|inertie/i);
+    expect(entry.defaultParameters).toEqual({ resistance: 20 });
+    expect(entry.capabilities).toEqual(['digital', 'dc']);
+    expect(entry.modelAvailable).toBe(true);
+  });
+
+  it('MB-SIM-008 v2 : CAPACITOR entry exposes the complete declarative contract', () => {
+    const entry = getCanonicalEntry('CAPACITOR');
+    expect(entry.pins).toEqual(COMPONENT_TYPES.CAPACITOR.pins.map(({ id, role }) => ({ id, role })));
+    expect(entry.parameterSchema).toEqual([
+      { key: 'capacitance', parameterType: 'capacitance', unit: 'F', minimum: 1e-12, maximum: 1, defaultValue: 0.0001, description: expect.stringMatching(/DC établi/i) },
+    ]);
+    expect(entry.parameterSchema[0].description).toMatch(/circuit ouvert/i);
+    expect(entry.defaultParameters).toEqual({ capacitance: 0.0001 });
+    expect(entry.capabilities).toEqual(['digital', 'dc']);
+    expect(entry.modelAvailable).toBe(true);
+  });
+
+  it('MB-SIM-008 v2 : POTENTIOMETER entry exposes the complete declarative contract', () => {
+    const entry = getCanonicalEntry('POTENTIOMETER');
+    expect(entry.pins).toEqual(COMPONENT_TYPES.POTENTIOMETER.pins.map(({ id, role }) => ({ id, role })));
+    expect(entry.parameterSchema).toEqual([
+      { key: 'resistance', parameterType: 'resistance', unit: 'Ω', minimum: 1, maximum: 1e7, defaultValue: 10000, description: expect.stringMatching(/simplifié/i) },
+      { key: 'position', parameterType: 'ratio', unit: '', minimum: 0, maximum: 1, defaultValue: 0.5, description: expect.stringMatching(/curseur/i) },
+    ]);
+    expect(entry.defaultParameters).toEqual({ resistance: 10000, position: 0.5 });
+    expect(entry.capabilities).toEqual(['digital', 'dc']);
+    expect(entry.modelAvailable).toBe(true);
+  });
+
+  it('MB-SIM-008 v2 : NPN_TRANSISTOR entry exposes the complete declarative contract', () => {
+    const entry = getCanonicalEntry('NPN_TRANSISTOR');
+    expect(entry.pins).toEqual(COMPONENT_TYPES.NPN_TRANSISTOR.pins.map(({ id, role }) => ({ id, role })));
+    expect(entry.parameterSchema).toEqual([
+      { key: 'onResistance', parameterType: 'resistance', unit: 'Ω', minimum: 0.001, maximum: 1e6, defaultValue: 1, description: expect.stringMatching(/simplifié/i) },
+    ]);
+    expect(entry.parameterSchema[0].description).toMatch(/β réel/);
+    expect(entry.defaultParameters).toEqual({ onResistance: 1 });
+    expect(entry.capabilities).toEqual(['digital', 'dc']);
+    expect(entry.modelAvailable).toBe(true);
+  });
+
+  it('MB-SIM-008 v2 : SERVO reste un type déclaré sans modèle disponible (exclusion explicite, dépendance PWM/MB-SIM-009)', () => {
+    const entry = getCanonicalEntry('SERVO');
+    expect(entry).not.toBeNull();
+    expect(entry.modelAvailable).toBe(false);
+    expect(entry.parameterSchema).toBeNull();
+    expect(entry.defaultParameters).toBeNull();
+    expect(entry.capabilities).toBeNull();
+  });
+
   it('LED is a known declared type with no model — no model-specific contract', () => {
     const entry = getCanonicalEntry('LED');
     expect(entry).not.toBeNull();

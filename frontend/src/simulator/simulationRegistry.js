@@ -3,6 +3,11 @@ import { PowerModel } from './models/PowerModel.js'
 import { ResistorModel } from './models/ResistorModel.js'
 import { LdrModel } from './models/LdrModel.js'
 import { ThermistorModel } from './models/ThermistorModel.js'
+import { DiodeModel } from './models/DiodeModel.js'
+import { DcMotorModel } from './models/DcMotorModel.js'
+import { CapacitorModel } from './models/CapacitorModel.js'
+import { PotentiometerModel } from './models/PotentiometerModel.js'
+import { NpnTransistorModel } from './models/NpnTransistorModel.js'
 import {
   UnknownComponentTypeError,
   SimulationModelUnavailableError,
@@ -80,7 +85,17 @@ export function createSimulationRegistry({
 }
 
 const defaultRegistry = createSimulationRegistry({
-  models: [PowerModel, ResistorModel, LdrModel, ThermistorModel],
+  models: [
+    PowerModel,
+    ResistorModel,
+    LdrModel,
+    ThermistorModel,
+    DiodeModel,
+    DcMotorModel,
+    CapacitorModel,
+    PotentiometerModel,
+    NpnTransistorModel,
+  ],
 })
 
 export const getSimulationModel = defaultRegistry.getSimulationModel
