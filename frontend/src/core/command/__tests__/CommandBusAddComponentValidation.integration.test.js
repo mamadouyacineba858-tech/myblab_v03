@@ -10,8 +10,8 @@ import { alwaysWarningRule } from '../../validation/__tests__/fixtures/rules/alw
 import { alwaysInfoRule } from '../../validation/__tests__/fixtures/rules/alwaysInfoRule.js';
 
 function createValidatedAddComponentBus(rule) {
-  const documentApi = createHandlerTestContext(createTestDocument()).documentApi;
-  const historyService = createHandlerTestContext(createTestDocument()).historyService;
+  const ctx = createHandlerTestContext(createTestDocument());
+  const { documentApi, historyService } = ctx;
   const registry = new CommandRegistry();
   registry.register('ADD_COMPONENT', new AddComponentHandler({ historyService, documentApi }));
 
