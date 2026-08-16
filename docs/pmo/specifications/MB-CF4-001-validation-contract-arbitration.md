@@ -8,11 +8,11 @@
 | Programme | Core Foundation |
 | Épic | CF4 — Stabilisation de la Validation |
 | Type | ARCHITECTURE / ARBITRAGE |
-| Statut | DRAFT — soumission au CSA |
+| Statut | DRAFT — consolidé après vérification ADR-010 |
 | Baseline | `a4b2aec2638c705490a5ecf62299bbd94bd24965` |
 | Branche de travail | `docs/cf4-arbitration` |
 
-Ce document ne lance aucune implémentation. Il transforme les faits observés sur `main` en questions d'arbitrage explicites afin qu'aucune décision implicite ne soit introduite dans CF4.
+Ce document ne lance aucune implémentation. Il transforme les faits observés sur `main` et les décisions déjà explicites d'ADR-010 en contrat d'arbitrage pour CF4.
 
 ---
 
@@ -20,17 +20,42 @@ Ce document ne lance aucune implémentation. Il transforme les faits observés s
 
 CF4 doit stabiliser la responsabilité de `Validation` dans le Core et préciser son interaction avec le canal de mutation déjà activé par CF3.
 
-La roadmap définit CF4 comme la stabilisation de la Validation afin qu'elle puisse servir de fondation aux consommateurs dépendant de résultats de validation. Elle maintient également ADR-010 au statut `PROPOSED` tant qu'une décision explicite ultérieure ne le modifie.
+La roadmap définit CF4 comme la stabilisation de la Validation afin qu'elle puisse servir de fondation aux consommateurs dépendant de résultats de validation.
 
-Le présent document ne reconstruit donc pas Validation. Il cherche à arbitrer son contrat d'utilisation.
+ADR-010 est l'artefact normatif de référence et porte le statut `PROPOSED`, avec validation CSA indiquée dans son en-tête. Il définit déjà le positionnement de Validation entre la commande et le Handler, ainsi que la distinction ERROR/WARNING/INFO.
+
+Le présent document ne reconstruit donc pas Validation. Il formalise les décisions existantes d'ADR-010 et identifie uniquement les points d'intégration restant à contractualiser.
 
 ---
 
-## 2. Faits établis sur la baseline
+## 2. Référence normative — ADR-010
 
-### 2.1 Validation existe déjà
+Artefact canonique :
 
-Le dépôt contient :
+`docs/governance/ADR/ADR-010-validation-engine-architecture.md`
+
+ADR-010 établit explicitement :
+
+1. Validation intervient avant l'exécution du Handler pour la validation pré-exécution.
+2. `ValidationEngine` analyse la commande et le Document courant.
+3. `ValidationEngine` produit un `ValidationReport` et ne modifie jamais le Document.
+4. `ValidationEngine` ne décide pas de l'exécution.
+5. `CommandBus` appelle Validation et interprète le rapport.
+6. `ERROR` est bloquant.
+7. `WARNING` et `INFO` autorisent l'exécution.
+8. La validation candidate porte sur `Document + Command`.
+9. Une validation post-exécution est également prévue comme capacité distincte.
+10. Validation ne dépend ni de l'interface ni de la simulation.
+
+**Conséquence :** ces éléments ne doivent pas être ré-arbitrés ni réinventés par MB-CF4-001 sauf découverte factuelle d'une contradiction avec l'implémentation actuelle.
+
+---
+
+## 3. Faits établis sur la baseline
+
+### 3.1 Validation existe déjà
+
+Le dépôt contient notamment :
 
 - `ValidationEngine.js` ;
 - `ValidationRegistry.js` ;
@@ -39,157 +64,48 @@ Le dépôt contient :
 - constantes et erreurs dédiées ;
 - une suite de tests unitaires dédiée.
 
-### 2.2 Responsabilité actuelle du ValidationEngine
+### 3.2 Responsabilité du ValidationEngine
 
-`ValidationEngine` :
+Le contrat observé et l'ADR convergent sur les responsabilités suivantes :
 
-- reçoit un Document et une commande optionnelle ;
-- exécute les règles du Registry ;
-- transforme les résultats en `ValidationProblem` ;
-- produit un `ValidationReport` ;
-- ne modifie jamais le Document ;
-- ne stocke aucun état persistant ;
-- ne décide pas lui-même de l'exécution.
+- recevoir un Document et une commande optionnelle ;
+- exécuter les règles du Registry ;
+- produire un `ValidationReport` ;
+- ne jamais modifier le Document ;
+- ne pas stocker d'état métier persistant ;
+- ne pas décider lui-même de l'exécution.
 
-Cette séparation constitue une contrainte de référence pour CF4.
+### 3.3 CommandBus
 
-### 2.3 Contrat actuel du ValidationReport
+Le CommandBus possède une injection de validators et l'architecture ADR-010 prévoit que la validation soit appelée avant le Handler. L'objectif de CF4 est donc d'établir la connexion contractuelle manquante sans changer la responsabilité du ValidationEngine.
 
-Le rapport distingue trois niveaux :
+### 3.4 Contrat ValidationReport
+
+Les niveaux sont :
 
 - `ERROR` ;
 - `WARNING` ;
 - `INFO`.
 
-Le statut global est calculé selon la priorité :
-
-`ERROR > WARNING > OK`.
-
-Le contrat actuel indique également qu'un rapport contenant uniquement des warnings reste `isValid() === true`.
-
-### 2.4 CommandBus
-
-`CommandBus` accepte déjà une injection optionnelle nommée `validators` et sa documentation indique que la validation métier est déléguée au Validation Engine via ADR-010.
-
-Cependant, dans l'implémentation observée sur la baseline, `dispatch()` ne consomme pas encore `this._validators` pour appeler le Validation Engine.
-
-Le flux réellement exécuté reste donc :
-
-`Command → CommandRegistry → Handler → résultat`
-
-et non encore :
-
-`Command → Validation → CommandRegistry/Handler → résultat`.
-
-Ce point est une lacune d'intégration observée, pas encore une décision de correction.
+Le contrat actuel distingue les erreurs bloquantes des warnings et informations. Un warning ne doit pas être transformé implicitement en erreur par CF4.
 
 ---
 
-## 3. Contexte CF3
+## 4. Contexte CF3 et frontière de responsabilité
 
 CF3 a activé, de manière bornée, le canal :
 
 `CommandBus → AddComponentHandler → HistoryService → Document API`.
 
-L'amendement CSA-CF3-001-A a explicitement levé certains verrous CF1 pour cette activation, uniquement pour `addComponent`.
+CF4 ne remplace pas ce canal et ne crée pas de canal parallèle.
 
-CF4 doit donc préserver les décisions CF3 et ne pas élargir silencieusement le périmètre du canal de mutation.
-
-La présence de Validation dans ou autour du CommandBus ne doit pas modifier les responsabilités déjà établies de `HistoryService`, `Document`, `Registry` ou `Presentation`.
-
----
-
-## 4. Questions d'arbitrage CSA
-
-### Q1 — Moment de la validation
-
-**Question :** la validation d'une commande candidate doit-elle être effectuée avant l'exécution du Handler ?
-
-**Option A — Pré-validation obligatoire**
-
-`Command → ValidationEngine → décision de politique → Handler`
-
-Avantage : une commande invalide ne déclenche pas la mutation.
-
-Risque : nécessite de définir précisément la politique de blocage et la représentation de la commande candidate.
-
-**Option B — Validation post-exécution uniquement**
-
-`Command → Handler → Document → ValidationEngine`
-
-Avantage : utile pour contrôler l'état produit.
-
-Risque : ne protège pas le Document contre une mutation invalide déjà appliquée.
-
-**Option C — Double validation**
-
-Pré-validation de la commande puis validation de l'état résultant.
-
-Avantage : couverture maximale.
-
-Risque : complexité et coût supplémentaires ; nécessite un contrat clair sur les deux rapports.
-
-**Recommandation CSA provisoire :** ne pas retenir C sans besoin démontré. La première décision à stabiliser est la pré-validation d'une commande candidate si CF4 doit constituer une porte de sécurité du canal Mutation.
-
----
-
-### Q2 — Politique ERROR / WARNING / INFO
-
-**Question :** quels niveaux bloquent une mutation ?
-
-Le contrat actuel du `ValidationReport` établit déjà que `WARNING` n'est pas une erreur bloquante au niveau de `isValid()`.
-
-Options :
-
-- **P1 :** seul `ERROR` bloque ; `WARNING` et `INFO` permettent l'exécution.
-- **P2 :** `ERROR` et certains `WARNING` peuvent bloquer selon une politique externe.
-- **P3 :** chaque règle déclare explicitement sa politique de blocage indépendamment de son niveau.
-
-**Point de vigilance :** ne pas changer la sémantique de `ValidationReport.isValid()` simplement pour résoudre le besoin du CommandBus. Si une politique supplémentaire est nécessaire, elle doit être explicitement contractualisée.
-
-**Recommandation CSA provisoire :** P1 pour le premier contrat CF4, sauf preuve architecturale contraire. Cela conserve la sémantique déjà matérialisée et évite de transformer `WARNING` en erreur implicite.
-
----
-
-### Q3 — Qui décide du blocage ?
-
-`ValidationEngine` indique explicitement qu'il « ne décide pas de l'exécution ».
-
-La décision ne doit donc pas être déplacée dans `ValidationEngine`.
-
-Deux possibilités principales :
-
-- `CommandBus` applique la politique à partir du `ValidationReport` ;
-- un composant de politique dédié, consommé par `CommandBus`, applique cette décision.
-
-**Recommandation CSA provisoire :** pour le premier périmètre CF4, `CommandBus` peut appliquer un contrat minimal fondé sur `report.hasErrors()` sans introduire prématurément un nouveau sous-système de politique.
-
-Cette recommandation devra être confirmée par le CSA avant implémentation.
-
----
-
-### Q4 — Validation du Document ou de la paire Document + Command ?
-
-Le `ValidationEngine` accepte déjà :
-
-`validate(document, command = null)`.
-
-Cela permet à une règle d'examiner la modification candidate sans que Validation devienne elle-même un moteur de mutation.
-
-**Recommandation CSA provisoire :** la pré-validation du canal Mutation doit fournir la commande candidate au ValidationEngine :
-
-`validate(document, command)`.
-
-La validation postérieure d'un Document seul reste une capacité distincte et déjà supportée par `validateDocument()`.
-
----
-
-## 5. Contrat cible proposé pour arbitrage
-
-Sans constituer encore une décision acquise, le contrat minimal proposé est :
+La responsabilité cible est :
 
 ```text
-Command candidate
+Commande candidate
+      │
+      ▼
+CommandBus
       │
       ▼
 ValidationEngine.validate(document, command)
@@ -197,51 +113,82 @@ ValidationEngine.validate(document, command)
       ▼
 ValidationReport
       │
-      ├── ERROR ──► mutation refusée
+      ├── ERROR ──► refus
       │
-      └── aucun ERROR ──► CommandBus poursuit le dispatch
-                                │
-                                ▼
-                              Handler
-                                │
-                                ▼
-                         HistoryService / Document
+      └── aucun ERROR ──► Handler
+                              │
+                              ▼
+                       HistoryService
+                              │
+                              ▼
+                          Document
 ```
 
-Contraintes :
-
-1. Validation ne modifie jamais le Document.
-2. Validation ne possède aucun état métier persistant.
-3. Validation ne décide pas elle-même de l'exécution.
-4. CommandBus applique explicitement la politique de blocage.
-5. `ERROR` est le seul niveau bloquant dans le contrat minimal proposé.
-6. Les warnings restent observables dans le rapport.
-7. Le Handler ne doit pas contourner Validation lorsque le chemin passe par le canal Mutation contractualisé.
-8. Aucun nouveau canal parallèle de mutation ne doit être créé par CF4.
+Ce flux est cohérent avec ADR-010 et avec CF3. Il reste à vérifier contre le code réel avant toute modification.
 
 ---
 
-## 6. Questions restant ouvertes
+## 5. Décisions déjà établies — ne pas ré-arbitrer
 
-### O1 — Statut d'ADR-010
+### D1 — Moment de validation
 
-La roadmap référence ADR-010 comme `PROPOSED`, mais le répertoire `docs/adr/` actuellement observé ne contient pas de fichier `ADR-010`.
+**Décision héritée ADR-010 : pré-validation avant le Handler.**
 
-**Décision requise :** retrouver l'artefact de référence s'il existe ailleurs, ou formaliser explicitement l'ADR avant toute implémentation CF4 dépendante de celui-ci.
+### D2 — Politique de blocage
 
-### O2 — Portée du premier consommateur
+**Décision héritée ADR-010 : `ERROR` bloque ; `WARNING` et `INFO` autorisent.**
 
-CF3 a activé `addComponent` uniquement.
+### D3 — Autorité de blocage
 
-**Décision requise :** CF4 doit-il intégrer Validation au seul chemin `addComponent` comme preuve minimale, ou définir d'abord un contrat générique du CommandBus sans brancher immédiatement toutes les mutations ?
+**Décision héritée ADR-010 : CommandBus applique la politique.**
 
-**Recommandation :** contrat générique, intégration minimale sur le chemin déjà activé par CF3.
+### D4 — Forme de la validation candidate
 
-### O3 — Nature des règles bloquantes
+**Décision héritée ADR-010 : `validate(document, command)`.**
 
-Le Registry possède actuellement une notion de niveau (`ERROR`, `WARNING`, `INFO`).
+### D5 — Responsabilité de ValidationEngine
 
-**Décision requise :** confirmer qu'aucune seconde notion de « blocking » n'est nécessaire dans CF4.
+Validation analyse et rapporte ; elle ne modifie pas le Document et ne décide pas de l'exécution.
+
+### D6 — Historisation
+
+Les `ValidationReport` ne sont **pas historisés par défaut**. Ils décrivent un résultat de validation et ne constituent pas un nouvel état persistant du Document.
+
+### D7 — Premier consommateur
+
+Le premier chemin d'intégration CF4 reste limité à `addComponent`, déjà activé par CF3, afin de démontrer le contrat sans migration générale.
+
+---
+
+## 6. Questions restantes réellement ouvertes
+
+Après prise en compte d'ADR-010, les questions précédemment ouvertes sont réduites à des vérifications d'implémentation :
+
+### Q1 — Compatibilité du CommandBus réel
+
+Le CommandBus de la baseline consomme-t-il déjà effectivement l'injection `validators` conformément au contrat ADR-010, ou cette capacité reste-t-elle inactive ?
+
+**Action GATE 1 :** vérifier le code et les tests avant toute modification.
+
+### Q2 — Compatibilité du ValidationEngine réel
+
+Le chemin `validate(document, command)` existe-t-il exactement avec les types attendus par `addComponent` ?
+
+**Action GATE 1 :** vérifier le code et les tests.
+
+### Q3 — Représentation de la commande candidate
+
+Le `AddComponentHandler` et le CommandBus fournissent-ils au ValidationEngine une commande candidate suffisante sans adaptation architecturale supplémentaire ?
+
+**Action GATE 1 :** démontrer factuellement la compatibilité.
+
+### Q4 — Gestion du résultat
+
+Le résultat de validation peut-il être attaché au résultat de dispatch sans modifier la responsabilité du Document ou de HistoryService ?
+
+**Action GATE 1 :** vérifier le contrat existant avant de créer une nouvelle structure.
+
+Aucune de ces questions ne justifie à elle seule une nouvelle API. Elles doivent être résolues par inspection du code existant.
 
 ---
 
@@ -249,73 +196,148 @@ Le Registry possède actuellement une notion de niveau (`ERROR`, `WARNING`, `INF
 
 ### Inclus
 
-- formaliser le contrat Validation ↔ CommandBus ;
-- définir la politique de blocage ;
-- définir le comportement avec `ValidationReport` ;
-- clarifier le rôle de `ValidationEngine`, `ValidationRegistry` et `ValidationReport` ;
-- établir la traçabilité avec ADR-010 ;
-- définir les tests contractuels nécessaires à l'intégration future.
+- brancher le contrat Validation au canal CommandBus existant si les GATE le confirment ;
+- utiliser `ValidationEngine.validate(document, command)` pour la pré-validation ;
+- appliquer la politique `ERROR` bloquant / `WARNING` et `INFO` autorisés ;
+- conserver Validation comme composant d'analyse sans mutation ;
+- conserver CommandBus comme autorité de décision ;
+- couvrir le premier consommateur `addComponent` ;
+- ajouter les tests contractuels nécessaires ;
+- démontrer la non-régression CF1/CF2/CF3.
 
 ### Exclus
 
-- réécriture de `ValidationEngine` ;
+- réécriture générale de `ValidationEngine` ;
 - migration générale de toutes les mutations ;
-- nouvelle architecture de Registry ;
-- modification de `HistoryService` ;
+- modification du Registry canonique CF2 ;
+- modification de `HistoryService` sans nécessité démontrée ;
 - nouvelle couche Presentation ;
 - validation de la simulation analogique ;
-- implémentation du firmware ;
-- création d'un nouveau sous-système de politique sans décision CSA explicite.
+- firmware ;
+- historisation des `ValidationReport` ;
+- création d'un nouveau sous-système de politique sans nécessité factuelle.
 
 ---
 
-## 8. Critères de décision
+## 8. Invariants CF4 proposés
 
-Le dossier ne sera considéré comme prêt pour implémentation que si :
-
-- [ ] le statut et le contenu de référence d'ADR-010 sont établis ;
-- [ ] le point d'insertion de Validation dans le flux de mutation est décidé ;
-- [ ] la politique ERROR/WARNING/INFO est décidée ;
-- [ ] la responsabilité de la décision de blocage est décidée ;
-- [ ] la portée du premier consommateur est décidée ;
-- [ ] aucun invariant CF1/CF3 n'est implicitement levé ;
-- [ ] les tests contractuels nécessaires sont définis ;
-- [ ] aucun travail d'implémentation n'est lancé avant le GO CSA.
-
----
-
-## 9. Décision CSA
-
-### Q1 — Moment de validation
-
-**Décision : À ARBITRER**
-
-### Q2 — Politique de blocage
-
-**Décision : À ARBITRER**
-
-### Q3 — Autorité de blocage
-
-**Décision : À ARBITRER**
-
-### Q4 — Forme de la validation candidate
-
-**Décision : À ARBITRER**
-
-### Q5 — ADR-010
-
-**Décision : À ARBITRER**
-
-### Q6 — Portée du premier consommateur
-
-**Décision : À ARBITRER**
+- **INV-CF4-001** — Toute commande `addComponent` passant par le canal CF3 est pré-validée avant son Handler.
+- **INV-CF4-002** — Une validation contenant un `ERROR` empêche la mutation.
+- **INV-CF4-003** — Uniquement des `WARNING` ou `INFO` n'empêche pas la mutation.
+- **INV-CF4-004** — `ValidationEngine` ne modifie jamais le Document.
+- **INV-CF4-005** — `CommandBus` reste l'autorité appliquant la politique de blocage.
+- **INV-CF4-006** — `ValidationReport` n'est pas un état persistant du Document et n'est pas historisé par défaut.
+- **INV-CF4-007** — CF4 n'introduit aucun canal de mutation parallèle à CF3.
+- **INV-CF4-008** — CF4 ne modifie pas la responsabilité du Registry canonique, de Simulation ou de Presentation.
+- **INV-CF4-009** — Le comportement `ERROR/WARNING/INFO` d'ADR-010 est conservé sans affaiblissement des tests existants.
+- **INV-CF4-010** — Le périmètre initial reste limité à `addComponent` tant qu'une extension n'est pas explicitement décidée.
 
 ---
 
-## 10. Conclusion
+## 9. STOP conditions
 
-CF4 dispose déjà d'une fondation Validation substantielle. Le risque principal n'est donc pas l'absence de code, mais l'absence d'un contrat explicite entre Validation et le canal de mutation.
+Le ticket d'implémentation doit s'arrêter immédiatement si :
 
-La prochaine étape doit être une décision architecturale courte et contrôlée, puis seulement ensuite un ticket d'implémentation si le contrat est approuvé.
+- **STOP-01** — le CommandBus réel ne peut pas intégrer Validation sans inventer une API non documentée ;
+- **STOP-02** — `validate(document, command)` n'est pas compatible avec le modèle réellement utilisé ;
+- **STOP-03** — la validation nécessite de modifier le Document ;
+- **STOP-04** — la politique `ERROR/WARNING/INFO` d'ADR-010 doit être changée ;
+- **STOP-05** — HistoryService doit être modifié sans nécessité architecturale démontrée ;
+- **STOP-06** — une seconde source de vérité ou un canal parallèle de mutation apparaît ;
+- **STOP-07** — un invariant CF1, CF2 ou CF3 doit être levé sans nouvel arbitrage CSA ;
+- **STOP-08** — une migration au-delà de `addComponent` devient nécessaire pour satisfaire le contrat ;
+- **STOP-09** — un test existant doit être supprimé ou affaibli pour obtenir le vert ;
+- **STOP-10** — le périmètre réel dépasse celui explicitement défini ici.
 
-**Statut final du présent document : DRAFT — PRÊT POUR REVUE QWEN, puis arbitrage CSA.**
+---
+
+## 10. GATES d'implémentation
+
+### GATE 0 — Baseline
+
+Confirmer `main == origin/main == a4b2aec...` et working tree compatible.
+
+### GATE 1 — Cartographie
+
+Vérifier directement :
+
+- CommandBus ;
+- ValidationEngine ;
+- ValidationReport ;
+- ValidationRegistry ;
+- AddComponentHandler ;
+- HistoryService ;
+- tests existants.
+
+### GATE 2 — Contrat
+
+Démontrer que le flux cible est compatible sans inventer d'API.
+
+### GATE 3 — Intégration minimale
+
+Brancher Validation sur `addComponent` uniquement, si GATE 2 est PASS.
+
+### GATE 4 — Tests
+
+Ajouter les tests nécessaires pour :
+
+- ERROR bloque ;
+- WARNING autorise ;
+- INFO autorise ;
+- validation avant Handler ;
+- Document inchangé en cas de rejet ;
+- succès conserve le canal CF3 et HistoryService ;
+- Undo/Redo restent cohérents ;
+- non-régression CF1/CF2/CF3.
+
+### GATE 5 — Audit de périmètre
+
+Vérifier les fichiers modifiés, absence de modification hors contrat, `git diff --check`, absence de tests affaiblis.
+
+### GATE 6 — Livraison
+
+Produire commit, patch autonome, SHA-256, vérification `apply --check`, reverse-check et rapport final structuré.
+
+---
+
+## 11. Critères d'acceptation
+
+Le ticket ne peut être déclaré PASS que si :
+
+1. le flux `CommandBus → ValidationEngine → Handler` est démontré ;
+2. `ERROR` empêche effectivement `addComponent` ;
+3. `WARNING` et `INFO` n'empêchent pas `addComponent` ;
+4. le Document n'est pas modifié lorsqu'une commande est rejetée ;
+5. le chemin accepté continue par `AddComponentHandler → HistoryService → Document` ;
+6. Undo/Redo restent fonctionnels ;
+7. aucune responsabilité CF1/CF2/CF3 n'est déplacée ;
+8. les tests existants restent verts ;
+9. aucun test n'est supprimé ou affaibli ;
+10. le patch est reconstructible et son reverse-check est PASS.
+
+---
+
+## 12. Rapport final obligatoire
+
+Le rapport devra fournir :
+
+- baseline exacte ;
+- GATE 0 à 6 ;
+- fichiers modifiés ;
+- invariants CF4 vérifiés individuellement ;
+- STOP conditions rencontrées ou non ;
+- tests ciblés ;
+- suite complète ;
+- commit final et parent ;
+- SHA-256 du patch ;
+- résultat apply-check ;
+- résultat reverse-check ;
+- confirmation qu'aucun push hors procédure autorisée n'a été effectué pendant l'implémentation.
+
+---
+
+## 13. Statut
+
+**🟢 CONTRAT CF4 CONSOLIDÉ — PRÊT POUR AUDIT FACTUEL QWEN.**
+
+Aucune implémentation de production n'est autorisée par ce document avant passage des GATE 0–2 et confirmation de compatibilité factuelle.
