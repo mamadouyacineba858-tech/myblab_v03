@@ -22,6 +22,25 @@ import { fileURLToPath } from "node:url"
  * Core. Un test positif (et non une simple absence) confirme explicitement
  * que l'état React historique reste présent et n'est pas traité comme une
  * violation (cf. describe « état transitoire CF1 » ci-dessous).
+ *
+ * [AMENDEMENT CSA-CF3-001-A — MB-CF3-001] Trois verrous CF1 ont été levés
+ * explicitement par le CSA pour permettre l'activation contrôlée du canal
+ * de mutation Core depuis useCircuitState.js (addComponent uniquement) :
+ *   - AC-011 : useCircuitState.js peut désormais importer CommandBus.js et
+ *     HistoryService.js (c'était l'objet même de CF3 : activer un canal que
+ *     CF1 avait délibérément laissé « établi et testé, mais pas activé »).
+ *   - AC-006 : documentApi peut exposer des méthodes au-delà des 6 méthodes
+ *     granulaires de CF1, à condition qu'elles soient un contrat démontré à
+ *     partir d'API Core déjà existantes (ici getDocument/applyDocument,
+ *     dérivés de ReactDocumentMapper.toCore/.toReact) — aucune API ad hoc.
+ *   - CF1-003-E : useCircuitState.js peut désormais appeler
+ *     ReactDocumentMapper.toReact(), sans faire de React une source de
+ *     vérité (le Document Core n'est pas dupliqué en un second état
+ *     persistant — INV-CF1-011/012 ci-dessous restent pleinement vérifiés).
+ * Cet amendement est additif : il ne supprime ni n'affaiblit aucun autre
+ * invariant CF1 de ce fichier. Voir
+ * docs/pmo/specifications/MB-CF3-001-mutation-channel-cartography-and-contract.md
+ * §8-9 pour le constat empirique complet et le texte intégral de l'arbitrage.
  */
 
 const dir = path.dirname(fileURLToPath(import.meta.url))
@@ -83,24 +102,42 @@ describe("MB-CF1-001 — INV-CF1-012 : pas de synchronisation parallèle permane
   })
 })
 
-describe("MB-CF1-001 — CF1-003-E / GATE 3 : la projection Core → React est établie et testée, mais PAS activée en production", () => {
-  it("useCircuitState.js n'importe pas ReactCoreBridge.js (le canal Core → React n'est pas branché à l'UI)", () => {
+describe("MB-CF1-001 — CF1-003-E / GATE 3 [AMENDÉ par CSA-CF3-001-A pour MB-CF3-001] : la projection Core → React est activée, de façon contrôlée, via documentApi.applyDocument uniquement", () => {
+  it("useCircuitState.js n'importe toujours pas ReactCoreBridge.js (chemin non composable avec HistoryService, écarté — cf. cartographie MB-CF3-001 §2.7, hors périmètre)", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     expect(source).not.toMatch(/from\s+["'].*ReactCoreBridge\.js["']/)
   })
 
-  it("useCircuitState.js n'appelle pas ReactDocumentMapper.toReact() (seule la direction React → Core, déjà existante, est utilisée)", () => {
+  it("[CSA-CF3-001-A] useCircuitState.js appelle désormais ReactDocumentMapper.toReact(), mais uniquement à l'intérieur de documentApi.applyDocument (pas dans un useEffect de synchronisation continue — INV-CF1-012 reste vérifié séparément ci-dessus)", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     expect(source).toMatch(/ReactDocumentMapper\.toCore\(/)
-    expect(source).not.toMatch(/ReactDocumentMapper\.toReact\(/)
+    expect(source).toMatch(/ReactDocumentMapper\.toReact\(/)
+
+    const applyDocumentBlock = source.match(/applyDocument:\s*\([^)]*\)\s*=>\s*\{[\s\S]*?\n {4}\},/)
+    expect(applyDocumentBlock, "applyDocument doit être défini comme méthode de documentApi").not.toBeNull()
+    expect(applyDocumentBlock[0]).toMatch(/ReactDocumentMapper\.toReact\(/)
+
+    // toReact() ne doit apparaître nulle part ailleurs que dans ce bloc.
+    const toReactOccurrences = (source.match(/\.toReact\(/g) || []).length
+    const toReactInApplyDocument = (applyDocumentBlock[0].match(/\.toReact\(/g) || []).length
+    expect(toReactOccurrences).toBe(toReactInApplyDocument)
   })
 })
 
-describe("MB-CF1-001 — AC-011 : périmètre respecté, aucun branchement CommandBus ↔ UI", () => {
-  it("useCircuitState.js n'importe ni CommandBus.js ni HistoryService.js (core/history)", () => {
+describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A pour MB-CF3-001] : branchement CommandBus ↔ UI activé, mais borné à addComponent", () => {
+  it("[CSA-CF3-001-A] useCircuitState.js importe désormais CommandBus.js et HistoryService.js (activation du canal — c'était l'objet de CF3)", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
-    expect(source).not.toMatch(/from\s+["'].*core\/command\/CommandBus\.js["']/)
-    expect(source).not.toMatch(/from\s+["'].*core\/history\/HistoryService\.js["']/)
+    expect(source).toMatch(/from\s+["'].*core\/command\/CommandBus\.js["']/)
+    expect(source).toMatch(/from\s+["'].*core\/history\/HistoryService\.js["']/)
+  })
+
+  it("[CSA-CF3-001-A] le canal reste borné à ADD_COMPONENT : aucun AddWireHandler n'existe, aucun autre type de commande n'est enregistré dans useCircuitState.js", () => {
+    const source = readSourceWithoutComments(useCircuitStatePath)
+    const registerCalls = source.match(/\.register\(\s*["'][A-Z_]+["']/g) || []
+    expect(registerCalls).toEqual(['.register("ADD_COMPONENT"'])
+
+    const wireHandlerPath = path.join(dir, "..", "..", "core", "handlers", "component", "AddWireHandler.js")
+    expect(fs.existsSync(wireHandlerPath), "AddWireHandler ne doit pas exister (hors périmètre MB-CF3-001)").toBe(false)
   })
 
   it("CommandBus.js n'a pas été modifié pour ce ticket : dispatch() ignore toujours this._validators (écart CF4, hors périmètre)", () => {
@@ -120,7 +157,7 @@ describe("MB-CF1-001 — état transitoire CF1 (CSA-CF1-003-B) : l'état React h
     expect(source).toMatch(/const\s*\[\s*wires\s*,\s*setWires\s*\]\s*=\s*useState/)
   })
 
-  it("[CORRECTION CSA v3.1 — AC-006] aucun nouveau mécanisme de mutation du Document Core n'est introduit : documentApi expose exactement les 6 méthodes granulaires pré-existantes, ni getDocument ni applyDocument", () => {
+  it("[AMENDÉ par CSA-CF3-001-A — AC-006] documentApi conserve les 6 méthodes granulaires CF1 et gagne exactement getDocument/applyDocument, dérivés d'API Core existantes (ReactDocumentMapper) — pas d'API ad hoc", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     const documentApiBlock = source.match(/const documentApi = useMemo\(\(\) => \(\{[\s\S]*?\}\), \[[^\]]*\]\)/)
     expect(documentApiBlock).not.toBeNull()
@@ -133,12 +170,16 @@ describe("MB-CF1-001 — état transitoire CF1 (CSA-CF1-003-B) : l'état React h
       "removeWires",
       "restoreComponents",
       "restoreWires",
+      "getDocument",
+      "applyDocument",
     ]) {
       expect(block).toMatch(new RegExp(`\\b${method}\\b`))
     }
 
-    expect(block).not.toMatch(/\bgetDocument\b/)
-    expect(block).not.toMatch(/\bapplyDocument\b/)
+    // getDocument/applyDocument doivent être des dérivations directes de
+    // ReactDocumentMapper (aucune API inventée), pas une implémentation ad hoc.
+    expect(block).toMatch(/getDocument:\s*\(\)\s*=>\s*ReactDocumentMapper\.toCore\(/)
+    expect(block).toMatch(/ReactDocumentMapper\.toReact\(/)
   })
 })
 

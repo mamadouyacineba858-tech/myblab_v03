@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
-import { createComponent } from "../config/componentDefinitions.js"
+import { getComponentDef } from "../config/componentDefinitions.js"
 import { createUid } from "../utils/ids.js"
 import { snapToGrid } from "../utils/grid.js"
 import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js"
@@ -24,6 +24,13 @@ import { HistoryManager } from "../history/HistoryManager.js"
 import { MoveCommand } from "../history/commands/MoveCommand.js"
 import { DeleteCommand } from "../history/commands/DeleteCommand.js"
 import { ToggleLatchingButtonCommand } from "../history/commands/ToggleLatchingButtonCommand.js"
+// MB-CF3-001 (amendement CSA-CF3-001-A) : canal de mutation cible
+// (CommandBus -> Handler -> HistoryService), addComponent uniquement.
+import { Command } from "../core/command/Command.js"
+import { CommandBus } from "../core/command/CommandBus.js"
+import { CommandRegistry } from "../core/command/CommandRegistry.js"
+import { AddComponentHandler } from "../core/handlers/component/AddComponentHandler.js"
+import { HistoryService } from "../core/history/HistoryService.js"
 
 const EMPTY_MAP = new Map()
 
@@ -50,13 +57,25 @@ export function useCircuitState(canvasRef) {
   // =========================================================================
 
   const historyManagerRef = useRef(new HistoryManager(50))
+  // MB-CF3-001 (GATE 3/4) : assigné plus bas, une fois documentApi prêt (même
+  // instance de historyManagerRef.current — cf. commandBusRef ci-dessous).
+  const historyServiceRef = useRef(null)
 
   const undo = useCallback(() => {
-    return historyManagerRef.current.undo()
+    // MB-CF3-001 : délègue à HistoryService (et non plus à HistoryManager
+    // directement) pour que les commandes issues du canal CommandBus
+    // (AdaptedHistoryCommand) réappliquent correctement leur document au
+    // documentApi lors d'un undo — comportement déjà prouvé par
+    // AddComponentHandler.test.js (« should support undo/redo through the
+    // real HistoryManager »). Les commandes legacy (MoveCommand/DeleteCommand/
+    // ToggleLatchingButtonCommand) s'auto-appliquent toujours via
+    // HistoryManager.undo() en interne — HistoryService ne fait qu'envelopper
+    // cet appel, sans changer leur comportement.
+    return historyServiceRef.current.undo()
   }, [])
 
   const redo = useCallback(() => {
-    return historyManagerRef.current.redo()
+    return historyServiceRef.current.redo()
   }, [])
 
   const canUndo = useCallback(() => {
@@ -114,17 +133,16 @@ const adapted = toEngineInput(coreDoc);
     componentsRef.current = safeComponents
   }, [safeComponents])
 
+  // MB-CF3-001 : référence synchrone équivalente pour les wires, nécessaire
+  // à documentApi.getDocument() (GATE 3 — canal de mutation cible).
+  const wiresRef = useRef(safeWires)
+  useEffect(() => {
+    wiresRef.current = safeWires
+  }, [safeWires])
+
   // =========================================================================
   // FIN MB-004.5
   // =========================================================================
-
-  const addComponent = useCallback((type, x = 120, y = 180) => {
-    const comp = createComponent(type, snapToGrid(x), snapToGrid(y))
-    if (!comp) return
-    const normalized = normalizeComponent(comp)
-    if (!normalized) return
-    setComponents((prev) => [...prev, normalized])
-  }, [])
 
   // =========================================================================
   // DOCUMENT SYSTEM Point d'écriture unique (MB-003.3.3)
@@ -182,14 +200,79 @@ const adapted = toEngineInput(coreDoc);
         }
         return newWires
       })
-    }
+    },
+    // MB-CF3-001 (amendement CSA-CF3-001-A, AC-006 levé/évolutif) : contrat
+    // requis par HistoryService/HistoryCommandAdapter pour le canal de
+    // mutation cible. Dérivés d'API Core existantes (ReactDocumentMapper,
+    // déjà en production pour toCore) — aucune API inventée.
+    getDocument: () => ReactDocumentMapper.toCore({
+      components: componentsRef.current,
+      wires: wiresRef.current,
+    }),
+    applyDocument: (coreDocument) => {
+      const reactDocument = ReactDocumentMapper.toReact(coreDocument)
+      const nextComponents = (reactDocument.components || [])
+        .map(normalizeComponent)
+        .filter((c) => c !== null)
+      const nextWires = (reactDocument.wires || [])
+        .map(normalizeWire)
+        .filter((w) => w !== null)
+      // Synchronisation immédiate (pas seulement via l'effet MB-004.5) :
+      // sans cela, deux dispatches successifs dans le même batch React (avant
+      // tout rendu) liraient tous deux le même componentsRef/wiresRef périmé
+      // via getDocument(), et le second applyDocument() écraserait le premier
+      // (remplacement non fonctionnel de l'état). Vérifié empiriquement via
+      // DeleteCommand.integration.test.jsx (deux addComponent() consécutifs
+      // dans le même act()).
+      componentsRef.current = nextComponents
+      wiresRef.current = nextWires
+      setComponents(nextComponents)
+      setWires(nextWires)
+    },
   }), [updateComponentPositions])
 
   // =========================================================================
   // FIN MB-004.5
   // =========================================================================
 
+  // =========================================================================
+  // MB-CF3-001 (GATE 3, amendement CSA-CF3-001-A) : canal de mutation cible —
+  // CommandBus -> Handler -> HistoryService. Enveloppe historyManagerRef.current
+  // (même instance que le canal legacy) pour préserver une pile Undo/Redo
+  // unique. Portée : addComponent uniquement. addWire reste hors périmètre.
+  // =========================================================================
 
+  const commandBusRef = useRef(null)
+  if (commandBusRef.current === null) {
+    const registry = new CommandRegistry()
+    const historyService = new HistoryService(historyManagerRef.current, documentApi)
+    registry.register("ADD_COMPONENT", new AddComponentHandler({ historyService, documentApi }))
+    commandBusRef.current = new CommandBus(registry)
+    // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
+    // instance de HistoryService pour que les commandes CommandBus se
+    // réappliquent correctement à documentApi lors d'un undo/redo.
+    historyServiceRef.current = historyService
+  }
+
+  const addComponent = useCallback((type, x = 120, y = 180) => {
+    if (!getComponentDef(type)) return
+    const snappedX = snapToGrid(x)
+    const snappedY = snapToGrid(y)
+    try {
+      const coreDocument = documentApi.getDocument()
+      const command = new Command("ADD_COMPONENT", {
+        componentType: type,
+        position: { x: snappedX, y: snappedY },
+      })
+      commandBusRef.current.dispatch(command, coreDocument)
+    } catch (error) {
+      console.error("addComponent: échec du dispatch via CommandBus", error)
+    }
+  }, [documentApi])
+
+  // =========================================================================
+  // FIN MB-CF3-001 (GATE 3 — addComponent)
+  // =========================================================================
 
   const addWire = useCallback((fromUid, fromPin, toUid, toPin) => {
     if (!fromUid || !fromPin || !toUid || !toPin) return
