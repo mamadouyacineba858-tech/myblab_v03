@@ -3,7 +3,9 @@ import {
   runSimulationWithRuntime,
   circuitRequiresRuntime,
 } from "../simulationRuntimeIntegration.js"
-import { runSimulation } from "../engine.js"
+import { runSimulation, getLedState } from "../engine.js"
+import { prepareCircuit } from "../preparation.js"
+import { resolveSignals } from "../resolution.js"
 import { createRuntimeOrchestrator } from "../runtimeOrchestrator.js"
 import { Signal } from "../signals.js"
 
@@ -200,5 +202,74 @@ describe("MB-SIM-011 — plusieurs composants ARDUINO : une seule source de temp
 
     expect(result.get("ard1:D2")).toBe(Signal.HIGH)
     expect(orchestrators.get("ard2").getRuntime()).not.toBe(a1.getRuntime())
+  })
+})
+
+describe("MB-SIM-012 — TEST 10 : runSimulation() historique inchangé (aucun Runtime utilisé)", () => {
+  it("runSimulation(components, wires) produit un résultat identique à avant MB-SIM-012, quel que soit le circuit", () => {
+    const components = [
+      { uid: "power1", type: "POWER", x: 0, y: 0 },
+      { uid: "led1", type: "LED", x: 10, y: 0 },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "led1", toPin: "anode" },
+      { fromUid: "power1", fromPin: "GND", toUid: "led1", toPin: "cathode" },
+    ]
+    const direct = resolveSignals(components, prepareCircuit(components, wires)).pinSignals
+    const historique = runSimulation(components, wires)
+    expect([...historique.entries()]).toEqual([...direct.entries()])
+  })
+})
+
+describe("MB-SIM-012 — TEST 11 (essentiel) : runSimulationWithRuntime() injecte réellement avant résolution/propagation, sans dupliquer le moteur", () => {
+  it("un signal Runtime HIGH sur D2, câblé à une LED, allume réellement la LED via runSimulationWithRuntime() (pas une fusion post-résolution)", () => {
+    const components = [
+      { uid: "ard1", type: "ARDUINO", x: 0, y: 0 },
+      { uid: "led1", type: "LED", x: 10, y: 0 },
+      { uid: "power1", type: "POWER", x: 20, y: 0 },
+    ]
+    const wires = [
+      { fromUid: "ard1", fromPin: "D2", toUid: "led1", toPin: "anode" },
+      { fromUid: "power1", fromPin: "GND", toUid: "led1", toPin: "cathode" },
+    ]
+
+    const sansRuntimeDemarre = runSimulationWithRuntime(components, wires, { dt: 16 })
+    expect(getLedState("led1", sansRuntimeDemarre).on).toBe(false)
+
+    const orchestrator = createRuntimeOrchestrator()
+    orchestrator.getRuntime().start()
+    orchestrator.getRuntime().digitalWrite("D2", Signal.HIGH)
+    const orchestrators = new Map([["ard1", orchestrator]])
+
+    const avecRuntimeDemarre = runSimulationWithRuntime(components, wires, { dt: 16, orchestrators })
+    expect(getLedState("led1", avecRuntimeDemarre).on).toBe(true)
+  })
+
+  it("obtient les signaux Runtime, les transmet à resolveSignals(components, prepared, externalSignals), et produit un résultat identique à composer manuellement les mêmes briques (aucun second moteur)", () => {
+    const components = [
+      { uid: "ard1", type: "ARDUINO", x: 0, y: 0 },
+      { uid: "led1", type: "LED", x: 10, y: 0 },
+      { uid: "power1", type: "POWER", x: 20, y: 0 },
+    ]
+    const wires = [
+      { fromUid: "ard1", fromPin: "D2", toUid: "led1", toPin: "anode" },
+      { fromUid: "power1", fromPin: "GND", toUid: "led1", toPin: "cathode" },
+    ]
+
+    const orchestrator = createRuntimeOrchestrator()
+    orchestrator.getRuntime().start()
+    orchestrator.getRuntime().digitalWrite("D2", Signal.HIGH)
+    const orchestrators = new Map([["ard1", orchestrator]])
+
+    const viaIntegration = runSimulationWithRuntime(components, wires, { dt: 16, orchestrators })
+
+    // Composition manuelle des mêmes briques que celles que
+    // runSimulationWithRuntime() est censée composer (pas réimplémenter) :
+    // prepareCircuit() + resolveSignals(..., externalSignals) avec le même
+    // SignalMap Runtime, converti au même format de clé "uid:pinId".
+    const externalSignals = new Map([["ard1:D2", Signal.HIGH]])
+    const viaCompositionManuelle = resolveSignals(components, prepareCircuit(components, wires), externalSignals).pinSignals
+
+    expect([...viaIntegration.entries()]).toEqual([...viaCompositionManuelle.entries()])
   })
 })

@@ -1,5 +1,7 @@
 import { runSimulation } from "./engine.js"
-import { createRuntimeOrchestrator, mergeRuntimeSignalsIntoPinSignals } from "./runtimeOrchestrator.js"
+import { prepareCircuit } from "./preparation.js"
+import { resolveSignals } from "./resolution.js"
+import { createRuntimeOrchestrator } from "./runtimeOrchestrator.js"
 
 /**
  * MB-SIM-011 — Intégration Simulation ↔ Scheduler/Runtime (SIM3).
@@ -18,6 +20,21 @@ import { createRuntimeOrchestrator, mergeRuntimeSignalsIntoPinSignals } from "./
  * utilisable directement, sans dépendance obligatoire au Scheduler ou à
  * ArduinoSimulator (GATE 0 — non-régression) : ce module ne fait
  * qu'ENVELOPPER runSimulation(), jamais le contraire.
+ *
+ * MB-SIM-012 : lorsqu'au moins un composant Runtime est présent, ce module
+ * n'appelle plus runSimulation() (qui ne connaît pas externalSignals et ne
+ * doit pas être modifié par défaut — §10 du ticket) mais compose
+ * directement les deux mêmes briques que runSimulation() utilise en
+ * interne : prepareCircuit() (preparation.js, importée telle quelle, non
+ * modifiée, non dupliquée) puis resolveSignals(components, prepared,
+ * externalSignals) (resolution.js, dont seule la signature a été étendue
+ * d'un 3e paramètre optionnel — §4.1/§9 du ticket : aucune logique de
+ * préparation/résolution/propagation/production n'est réimplémentée ici,
+ * seules les fonctions existantes sont appelées avec un argument
+ * supplémentaire). Le SignalMap du Runtime est ainsi transmis à la
+ * résolution AVANT la propagation (externalSignals), et non plus fusionné
+ * après coup dans le résultat final (ancien comportement MB-SIM-011,
+ * remplacé — voir resolution.js pour le détail de l'injection).
  */
 
 /**
@@ -45,21 +62,22 @@ export function circuitRequiresRuntime(components) {
 }
 
 /**
- * Point d'entrée SIM3 : exécute le chemin de simulation historique
- * (runSimulation, inchangé) puis, uniquement si le circuit contient au
- * moins un composant Runtime (ARDUINO), fait progresser un
- * RuntimeOrchestrator par composant et fusionne son SignalMap dans le
- * pinSignals via mergeRuntimeSignalsIntoPinSignals (réutilisé tel quel,
- * aucune deuxième fonction de fusion créée — Q2).
+ * Point d'entrée SIM3 : pour un circuit sans composant Runtime (ARDUINO),
+ * délègue intégralement à runSimulation() (chemin historique, inchangé —
+ * GATE 0). Dès qu'au moins un composant Runtime est présent, obtient
+ * d'abord le SignalMap de chaque Runtime (Scheduler.advance(dt) TOUJOURS
+ * avant ArduinoSimulator.tick(dt), hérité de RuntimeOrchestrator.advance(),
+ * inchangé), les convertit en `externalSignals` (même format de clé
+ * "uid:pinId" que pinSignals — aucune conversion conceptuelle, §5 du
+ * ticket), puis appelle prepareCircuit() + resolveSignals(components,
+ * prepared, externalSignals) : le signal Runtime participe ainsi
+ * réellement à la résolution (nets, propagation), avant que pinSignals ne
+ * soit calculé — et non plus fusionné après coup (MB-SIM-011).
  *
  * GATE 0 (non-régression) : pour un circuit sans composant Runtime, cette
  * fonction retourne exactement runSimulation(components, wires) — même
  * référence de Map, aucun Scheduler ni Runtime créé, aucun paramètre
  * supplémentaire requis.
- *
- * Ordre temporel garanti (hérité de RuntimeOrchestrator.advance(),
- * inchangé) : Scheduler.advance(dt) est TOUJOURS exécuté avant
- * ArduinoSimulator.tick(dt) pour chaque composant Runtime.
  *
  * Déterminisme : aucune dépendance à Date.now()/setTimeout()/
  * setInterval()/performance.now() ; dt est fourni explicitement par
@@ -77,15 +95,13 @@ export function circuitRequiresRuntime(components) {
  *   les RuntimeOrchestrator créés automatiquement par un même appel
  *   partagent un unique Scheduler (une seule source de temps, GATE 1).
  * @returns {Map<string, string>} pinSignals — même format que
- *   runSimulation() (clé "uid:pinId" → Signal), augmenté des signaux
- *   Runtime le cas échéant.
+ *   runSimulation() (clé "uid:pinId" → Signal), désormais calculé avec
+ *   les signaux Runtime comme entrées de la résolution le cas échéant.
  */
 export function runSimulationWithRuntime(components, wires, options = {}) {
-  const pinSignals = runSimulation(components, wires)
-
   const runtimeComponents = (components || []).filter((c) => c && c.type === RUNTIME_COMPONENT_TYPE)
   if (runtimeComponents.length === 0) {
-    return pinSignals
+    return runSimulation(components, wires)
   }
 
   const dt = options.dt ?? 0
@@ -109,7 +125,13 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // Scheduler.advance().
   let schedulerAlreadyAdvancedThisCall = false
 
-  let merged = pinSignals
+  // externalSignals : Map<"uid:pinId", Signal>, alimentée directement
+  // depuis le SignalMap brut (pinId -> Signal) de chaque Runtime — même
+  // mécanisme de préfixage par uid que l'ancien
+  // mergeRuntimeSignalsIntoPinSignals(), désormais appliqué AVANT la
+  // résolution plutôt qu'après (§5/§9 du ticket : pas de nouveau système
+  // de clés, pas de conversion conceptuelle).
+  const externalSignals = new Map()
   for (const comp of runtimeComponents) {
     let orchestrator = orchestrators.get(comp.uid)
     if (!orchestrator) {
@@ -128,8 +150,12 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
       signalMap = orchestrator.getRuntime().tick(dt)
     }
 
-    merged = mergeRuntimeSignalsIntoPinSignals(merged, comp.uid, signalMap)
+    for (const [pinId, signal] of signalMap) {
+      externalSignals.set(`${comp.uid}:${pinId}`, signal)
+    }
   }
 
-  return merged
+  const prepared = prepareCircuit(components, wires)
+  const { pinSignals } = resolveSignals(components, prepared, externalSignals)
+  return pinSignals
 }

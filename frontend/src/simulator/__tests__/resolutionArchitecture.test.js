@@ -48,3 +48,27 @@ describe('MB-SIM-008 v2 — contribution DC générique', () => {
     }
   })
 })
+
+/**
+ * MB-SIM-012 — TEST 9 (§13/§14 GATE 1) : preuve par inspection statique que
+ * resolution.js reste totalement indépendant du domaine Runtime, malgré
+ * l'ajout du paramètre externalSignals (simple Map, aucun import).
+ */
+describe('MB-SIM-012 — GATE 1 : resolution.js reste indépendant du Runtime', () => {
+  it("resolution.js n'importe ni runtimeOrchestrator.js, ni ArduinoSimulator.js, ni simulationRuntimeIntegration.js", () => {
+    const source = fs.readFileSync(sourcePath, 'utf-8')
+    // Recherche des imports réels (pas du texte descriptif en commentaire :
+    // la documentation de externalSignals peut légitimement nommer, en
+    // prose, le module Runtime qui l'alimente typiquement, sans que cela
+    // constitue un import).
+    expect(source).not.toMatch(/from\s+["'][^"']*runtimeOrchestrator[^"']*["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*ArduinoSimulator[^"']*["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*simulationRuntimeIntegration[^"']*["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*arduino[^"']*["']/i)
+  })
+
+  it("resolveSignals accepte un 3e paramètre externalSignals, purement structurel (Map), sans référence au Runtime", () => {
+    const source = fs.readFileSync(sourcePath, 'utf-8')
+    expect(source).toMatch(/resolveSignals\(components,\s*prepared,\s*externalSignals\s*=\s*null\)/)
+  })
+})

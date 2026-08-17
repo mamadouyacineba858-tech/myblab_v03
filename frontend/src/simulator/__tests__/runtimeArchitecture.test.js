@@ -119,6 +119,13 @@ describe("MB-SIM-011 — GATE 1 : simulationRuntimeIntegration.js est l'unique p
     expect(integrationSource).toMatch(/from\s+["']\.\/runtimeOrchestrator\.js["']/)
   })
 
+  it("[MB-SIM-012] simulationRuntimeIntegration.js importe aussi directement preparation.js et resolution.js (composition, pas duplication de leur logique) pour transmettre externalSignals à resolveSignals()", () => {
+    const integrationSource = readSourceWithoutComments(integrationPath)
+    expect(integrationSource).toMatch(/from\s+["']\.\/preparation\.js["']/)
+    expect(integrationSource).toMatch(/from\s+["']\.\/resolution\.js["']/)
+    expect(integrationSource).toMatch(/resolveSignals\([^)]*externalSignals[^)]*\)/)
+  })
+
   it("preparation.js, resolution.js et production.js n'importent pas simulationRuntimeIntegration.js (le pipeline Simulation reste ignorant du Runtime)", () => {
     for (const sourcePath of [preparationPath, resolutionPath, productionPath]) {
       const source = readSourceWithoutComments(sourcePath)
