@@ -16,7 +16,7 @@ jobs:
         run: npm install --prefix frontend
 
       - name: Run lint
-        run: npm run lint --prefix frontend > lint-report.txt
+        run: bash -o pipefail -c 'npm run lint --prefix frontend 2>&1 | tee lint-report.txt'
 
       - name: Run tests with coverage
         run: npm test --prefix frontend -- --coverage --reporter=json --outputFile=test-report.json
