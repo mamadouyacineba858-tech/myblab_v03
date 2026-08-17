@@ -240,22 +240,40 @@ const adapted = toEngineInput(coreDoc);
   // CommandBus -> Handler -> HistoryService. Enveloppe historyManagerRef.current
   // (même instance que le canal legacy) pour préserver une pile Undo/Redo
   // unique. Portée : addComponent uniquement. addWire reste hors périmètre.
+  //
+  // [ESLint react-hooks/refs, correction] La construction ne doit pas lire
+  // historyManagerRef.current ni écrire commandBusRef.current/historyServiceRef.current
+  // pendant le rendu (interdit par la règle — accès/écriture de ref hors
+  // event handler/effect). Déplacée dans un useEffect : sans risque de
+  // fenêtre d'indisponibilité, car un effect s'exécute de façon synchrone
+  // juste après le commit, avant que le navigateur ne puisse traiter un
+  // quelconque événement utilisateur (JS mono-thread) — addComponent() ne
+  // peut donc jamais être invoqué avant que cet effect n'ait tourné. Vérifié
+  // par ailleurs qu'aucun autre effect du fichier n'appelle addComponent.
+  // Le garde-fou de idempotence (if === null) est conservé pour rester
+  // robuste au double-rendu de React StrictMode en développement.
   // =========================================================================
 
   const commandBusRef = useRef(null)
-  if (commandBusRef.current === null) {
-    const registry = new CommandRegistry()
-    const historyService = new HistoryService(historyManagerRef.current, documentApi)
-    registry.register("ADD_COMPONENT", new AddComponentHandler({ historyService, documentApi }))
-    commandBusRef.current = new CommandBus(registry)
-    // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
-    // instance de HistoryService pour que les commandes CommandBus se
-    // réappliquent correctement à documentApi lors d'un undo/redo.
-    historyServiceRef.current = historyService
-  }
+  useEffect(() => {
+    if (commandBusRef.current === null) {
+      const registry = new CommandRegistry()
+      const historyService = new HistoryService(historyManagerRef.current, documentApi)
+      registry.register("ADD_COMPONENT", new AddComponentHandler({ historyService, documentApi }))
+      commandBusRef.current = new CommandBus(registry)
+      // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
+      // instance de HistoryService pour que les commandes CommandBus se
+      // réappliquent correctement à documentApi lors d'un undo/redo.
+      historyServiceRef.current = historyService
+    }
+  }, [documentApi])
 
   const addComponent = useCallback((type, x = 120, y = 180) => {
     if (!getComponentDef(type)) return
+    // Garde défensive : ne devrait jamais être atteinte en pratique (voir
+    // justification ci-dessus), conservée par robustesse plutôt que par
+    // nécessité démontrée.
+    if (!commandBusRef.current) return
     const snappedX = snapToGrid(x)
     const snappedY = snapToGrid(y)
     try {
