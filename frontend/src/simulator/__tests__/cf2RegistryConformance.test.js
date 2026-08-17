@@ -23,6 +23,17 @@ import {
  *
  * Aucune modification n'a été apportée à canonicalRegistry.js,
  * componentDefinitions.js ou simulationRegistry.js pour produire ces tests.
+ *
+ * [AMENDEMENT CSA-CF4-001-A — MB-CF4-001] INV-CF2-009 est restreint (et non
+ * supprimé) : le noyau du Validation Engine (ValidationEngine.js,
+ * ValidationRegistry.js, ValidationReport.js, ValidationProblem.js,
+ * constants.js, errors/) reste agnostique du Registry canonique, exactement
+ * comme avant. Seul core/validation/rules/** (règles métier CF4, par nature
+ * spécifiques au domaine électronique) est désormais explicitement autorisé
+ * à consulter canonicalRegistry — condition posée par le contrat CF4 pour
+ * éviter toute duplication des types/rôles/parameterSchema/defaultParameters.
+ * Amendement additif, scopé à ce seul sous-dossier ; voir le rapport de
+ * livraison MB-CF4-001 pour le texte intégral de l'arbitrage.
  */
 
 const simulatorDir = path.dirname(fileURLToPath(import.meta.url))
@@ -30,6 +41,7 @@ const srcDir = path.join(simulatorDir, "..", "..")
 const registryJsPath = path.join(simulatorDir, "..", "registry.js")
 const componentRegistryTsPath = path.join(srcDir, "core", "ComponentRegistry.ts")
 const validationDir = path.join(srcDir, "core", "validation")
+const validationRulesDir = path.join(validationDir, "rules")
 const canonicalRegistryPath = path.join(simulatorDir, "..", "canonicalRegistry.js")
 
 function listJsFilesRecursive(dir) {
@@ -112,9 +124,10 @@ describe("MB-CF2-001 — INV-CF2-006 : la connaissance déclarative est détermi
   })
 })
 
-describe("MB-CF2-001 — INV-CF2-009 : Validation reste propriétaire de la validation (aucun couplage avec le Registry)", () => {
-  it("core/validation/ ne référence ni canonicalRegistry.js, ni componentDefinitions.js, ni simulationRegistry.js", () => {
+describe("MB-CF2-001 — INV-CF2-009 [AMENDÉ par CSA-CF4-001-A] : le noyau Validation reste indépendant du Registry ; seules les règles métier CF4 peuvent le consulter", () => {
+  it("le noyau du Validation Engine (hors rules/**) ne référence ni canonicalRegistry.js, ni componentDefinitions.js, ni simulationRegistry.js", () => {
     for (const file of listJsFilesRecursive(validationDir)) {
+      if (file.startsWith(validationRulesDir + path.sep)) continue // rules/** : autorisé par CSA-CF4-001-A
       const source = fs.readFileSync(file, "utf-8")
       expect(source, `${path.relative(srcDir, file)} ne devrait pas référencer le Registry`).not.toMatch(
         /canonicalRegistry|componentDefinitions|simulationRegistry/
@@ -122,7 +135,33 @@ describe("MB-CF2-001 — INV-CF2-009 : Validation reste propriétaire de la vali
     }
   })
 
-  it("canonicalRegistry.js ne référence pas ValidationEngine ni core/validation/", () => {
+  it("[CSA-CF4-001-A] au moins une règle de core/validation/rules/ consulte réellement canonicalRegistry (l'amendement est utilisé, pas seulement permis)", () => {
+    const ruleFiles = listJsFilesRecursive(validationRulesDir).filter(
+      (f) => !f.includes(`${path.sep}__tests__${path.sep}`) && !f.includes(`${path.sep}tests${path.sep}`)
+    )
+    expect(ruleFiles.length).toBeGreaterThan(0)
+    const referencingFiles = ruleFiles.filter((f) => /canonicalRegistry/.test(fs.readFileSync(f, "utf-8")))
+    expect(referencingFiles.length).toBeGreaterThan(0)
+  })
+
+  it("[CSA-CF4-001-A] core/validation/rules/ ne duplique ni les types, ni les rôles/pins, ni les parameterSchema, ni les defaultParameters déclarés dans canonicalRegistry.js", () => {
+    const DUPLICATED_DATA_MARKERS = [
+      "DECLARED_TYPE_ORDER",
+      "DECLARED_TYPES_PINS",
+      "DECLARED_PARAMETER_SCHEMA",
+      "DECLARED_DEFAULT_PARAMETERS",
+    ]
+    for (const file of listJsFilesRecursive(validationRulesDir)) {
+      const source = fs.readFileSync(file, "utf-8")
+      for (const marker of DUPLICATED_DATA_MARKERS) {
+        expect(source, `${path.relative(srcDir, file)} ne devrait pas redéclarer ${marker}`).not.toMatch(
+          new RegExp(marker)
+        )
+      }
+    }
+  })
+
+  it("canonicalRegistry.js ne référence pas ValidationEngine ni core/validation/ (dépendance inverse toujours interdite)", () => {
     const source = fs.readFileSync(canonicalRegistryPath, "utf-8")
     expect(source).not.toMatch(/ValidationEngine/)
     expect(source).not.toMatch(/core\/validation/)

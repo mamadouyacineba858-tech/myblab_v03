@@ -49,6 +49,26 @@ export class CommandBus {
       // Récupérer le handler
       const handler = this._registry.getHandler(command.type);
 
+      // MB-CF4-001 (ADR-010) : validation pré-exécution, avant le handler.
+      // Rétro-compatible : si aucun validationEngine n'est injecté (this._validators
+      // vide, comportement historique), aucune validation n'a lieu et le contrat de
+      // retour reste strictement identique à l'ancien comportement.
+      const validationEngine = this._validators && this._validators.validationEngine;
+      let validationReport = null;
+      if (validationEngine) {
+        validationReport = validationEngine.validate(document, command);
+        if (validationReport.hasErrors()) {
+          // Le Handler ne doit jamais être appelé lorsque validationReport.hasErrors() === true.
+          return {
+            success: false,
+            commandId: command.id,
+            commandType: command.type,
+            rejected: true,
+            validationReport,
+          };
+        }
+      }
+
       // Exécuter la chaîne de middlewares
       const execute = (cmd, doc) => handler.execute(cmd, doc);
 
@@ -57,12 +77,20 @@ export class CommandBus {
         execute
       )(command, document);
 
-      return {
-        success: true,
-        commandId: command.id,
-        commandType: command.type,
-        result,
-      };
+      return validationReport
+        ? {
+            success: true,
+            commandId: command.id,
+            commandType: command.type,
+            result,
+            validationReport,
+          }
+        : {
+            success: true,
+            commandId: command.id,
+            commandType: command.type,
+            result,
+          };
     } catch (error) {
       // Wrapper des erreurs en CommandExecutionError
       if (error instanceof CommandExecutionError) {

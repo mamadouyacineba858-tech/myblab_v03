@@ -2,6 +2,12 @@ import { describe, it, expect } from "vitest"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { Command } from "../../core/command/Command.js"
+import { CommandBus } from "../../core/command/CommandBus.js"
+import { CommandRegistry } from "../../core/command/CommandRegistry.js"
+import { CommandHandler } from "../../core/command/CommandHandler.js"
+import { ValidationEngine } from "../../core/validation/ValidationEngine.js"
+import { ValidationRegistry } from "../../core/validation/ValidationRegistry.js"
 
 /**
  * MB-CF1-001 v3.1/final — Tests architecturaux (Ticket §9, §11 « Tests
@@ -41,6 +47,18 @@ import { fileURLToPath } from "node:url"
  * invariant CF1 de ce fichier. Voir
  * docs/pmo/specifications/MB-CF3-001-mutation-channel-cartography-and-contract.md
  * §8-9 pour le constat empirique complet et le texte intégral de l'arbitrage.
+ *
+ * [AMENDEMENT CSA-CF4-001-A — MB-CF4-001] Le verrou CF1 qui interdisait à
+ * CommandBus.dispatch() de référencer this._validators (intitulé d'origine :
+ * « écart CF4, hors périmètre ») est levé, exactement comme son propre nom
+ * l'annonçait : CF4 active désormais le mécanisme d'injection validators
+ * que CF1 avait délibérément posé (constructor(registry, validators = {}))
+ * sans jamais l'utiliser. Remplacé par une assertion positive ET un test
+ * comportemental exécutable démontrant le contrat ADR-010 (ERROR bloque le
+ * Handler ; absence de ValidationEngine préserve le comportement CF1
+ * historique). Amendement additif et scopé à ce seul point : CommandRegistry,
+ * middlewares, HandlerNotFoundError, CommandExecutionError et dispatchAsync()
+ * restent vérifiés inchangés dans le même test.
  */
 
 const dir = path.dirname(fileURLToPath(import.meta.url))
@@ -140,13 +158,85 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A pour MB-CF3-001] : br
     expect(fs.existsSync(wireHandlerPath), "AddWireHandler ne doit pas exister (hors périmètre MB-CF3-001)").toBe(false)
   })
 
-  it("CommandBus.js n'a pas été modifié pour ce ticket : dispatch() ignore toujours this._validators (écart CF4, hors périmètre)", () => {
+  it("[AMENDÉ par CSA-CF4-001-A] CommandBus.js utilise désormais this._validators dans dispatch() : le canal ADR-010 est activé sans nouvelle architecture parallèle", () => {
     const source = readSourceWithoutComments(commandBusPath)
+
+    // Le mécanisme d'injection posé par CF1 n'est pas remplacé : il est
+    // désormais réellement utilisé (c'était l'objet même de CF4).
+    expect(source).toMatch(/constructor\(registry,\s*validators\s*=\s*\{\}\)/)
     expect(source).toMatch(/this\._validators\s*=\s*validators/)
-    // dispatch() ne doit pas référencer _validators : si ce test échoue, CommandBus a été modifié hors périmètre CF1.
+
     const dispatchMatch = source.match(/dispatch\(command, document\)\s*\{[\s\S]*?\n {2}\}/)
     expect(dispatchMatch).not.toBeNull()
-    expect(dispatchMatch[0]).not.toMatch(/_validators/)
+    // [AMENDÉ par CSA-CF4-001-A] dispatch() DOIT désormais référencer
+    // _validators — assertion inversée par rapport à l'ancien verrou CF1
+    // (qui l'interdisait explicitement, sous le nom « écart CF4, hors
+    // périmètre »), conformément à l'arbitrage CSA-CF4-001-A.
+    expect(dispatchMatch[0]).toMatch(/_validators/)
+
+    // Invariants CF1 structurels préservés : aucune architecture parallèle
+    // n'a remplacé les mécanismes existants.
+    expect(source).toMatch(/this\._registry\.getHandler/)
+    expect(source).toMatch(/this\._middlewares/)
+    expect(source).toMatch(/HandlerNotFoundError/)
+    expect(source).toMatch(/CommandExecutionError/)
+    expect(source).toMatch(/dispatchAsync/)
+  })
+
+  it("[AMENDÉ par CSA-CF4-001-A] preuve comportementale minimale : ERROR bloque le Handler, l'absence de ValidationEngine préserve le comportement CF1 historique", () => {
+    // Couverture comportementale complète (OK/WARNING/INFO/ERROR, avec et
+    // sans ValidationEngine, middlewares, dispatchAsync) dans
+    // frontend/src/core/command/__tests__/CommandBusValidation.test.js et
+    // frontend/src/__tests__/CF4ValidationIntegration.test.js (principe de
+    // conservation : non dupliquée ici). Ce test-ci vérifie, au point précis
+    // où l'ancien verrou CF1 se trouvait, que le contrat tient réellement à
+    // l'exécution — pas seulement par inspection statique du source.
+    const errorRule = {
+      id: "always_error_probe",
+      category: "structural",
+      level: "ERROR",
+      validate: () => ({ message: "probe error" }),
+    }
+
+    class ProbeHandler extends CommandHandler {
+      execute(cmd, doc) {
+        return { success: true, document: doc }
+      }
+    }
+
+    // Cas 1 : ValidationEngine avec une règle ERROR -> Handler jamais appelé.
+    const registryWithErrorRule = new ValidationRegistry()
+    registryWithErrorRule.add(errorRule)
+    const engineRejecting = new ValidationEngine(registryWithErrorRule)
+
+    let handlerCalled = false
+    const commandRegistry1 = new CommandRegistry()
+    class TrackingHandler extends ProbeHandler {
+      execute(cmd, doc) {
+        handlerCalled = true
+        return super.execute(cmd, doc)
+      }
+    }
+    commandRegistry1.register("PROBE", new TrackingHandler())
+    const busRejecting = new CommandBus(commandRegistry1, { validationEngine: engineRejecting })
+
+    const rejectedResult = busRejecting.dispatch(new Command("PROBE", {}), { components: [] })
+    expect(handlerCalled).toBe(false)
+    expect(rejectedResult.success).toBe(false)
+    expect(rejectedResult.rejected).toBe(true)
+
+    // Cas 2 : sans ValidationEngine -> comportement CF1 historique préservé.
+    const commandRegistry2 = new CommandRegistry()
+    commandRegistry2.register("PROBE", new ProbeHandler())
+    const busHistorique = new CommandBus(commandRegistry2)
+    const historiqueResult = busHistorique.dispatch(new Command("PROBE", {}), { components: [] })
+    expect(historiqueResult).toEqual({
+      success: true,
+      commandId: historiqueResult.commandId,
+      commandType: "PROBE",
+      result: { success: true, document: { components: [] } },
+    })
+    expect(historiqueResult.validationReport).toBeUndefined()
   })
 })
 

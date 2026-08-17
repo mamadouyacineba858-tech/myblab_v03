@@ -31,6 +31,8 @@ import { CommandBus } from "../core/command/CommandBus.js"
 import { CommandRegistry } from "../core/command/CommandRegistry.js"
 import { AddComponentHandler } from "../core/handlers/component/AddComponentHandler.js"
 import { HistoryService } from "../core/history/HistoryService.js"
+import { ValidationEngine } from "../core/validation/ValidationEngine.js"
+import { createDefaultValidationRegistry } from "../core/validation/createValidationRegistry.js"
 
 const EMPTY_MAP = new Map()
 
@@ -252,6 +254,14 @@ const adapted = toEngineInput(coreDoc);
   // par ailleurs qu'aucun autre effect du fichier n'appelle addComponent.
   // Le garde-fou de idempotence (if === null) est conservé pour rester
   // robuste au double-rendu de React StrictMode en développement.
+  //
+  // [MB-CF4-001] Câblage du Validation Engine (ADR-010) dans le CommandBus,
+  // via le mécanisme d'injection déjà existant (constructor(registry,
+  // validators = {})). Aucune règle métier ici : le registre de règles par
+  // défaut est construit par la factory Core createDefaultValidationRegistry
+  // (frontend/src/core/validation/createValidationRegistry.js). Le hook ne
+  // fait qu'assembler et injecter — la validation elle-même reste
+  // entièrement dans le Core.
   // =========================================================================
 
   const commandBusRef = useRef(null)
@@ -260,7 +270,8 @@ const adapted = toEngineInput(coreDoc);
       const registry = new CommandRegistry()
       const historyService = new HistoryService(historyManagerRef.current, documentApi)
       registry.register("ADD_COMPONENT", new AddComponentHandler({ historyService, documentApi }))
-      commandBusRef.current = new CommandBus(registry)
+      const validationEngine = new ValidationEngine(createDefaultValidationRegistry())
+      commandBusRef.current = new CommandBus(registry, { validationEngine })
       // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
       // instance de HistoryService pour que les commandes CommandBus se
       // réappliquent correctement à documentApi lors d'un undo/redo.
