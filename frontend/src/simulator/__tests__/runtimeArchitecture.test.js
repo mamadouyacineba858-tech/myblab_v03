@@ -25,6 +25,7 @@ const clockPath = path.join(dir, "..", "clock.js")
 const orchestratorPath = path.join(dir, "..", "runtimeOrchestrator.js")
 const arduinoSimulatorPath = path.join(dir, "..", "arduino", "ArduinoSimulator.js")
 const canonicalRegistryPath = path.join(dir, "..", "canonicalRegistry.js")
+const integrationPath = path.join(dir, "..", "simulationRuntimeIntegration.js")
 
 function readSourceWithoutComments(sourcePath) {
   const raw = fs.readFileSync(sourcePath, "utf-8")
@@ -97,5 +98,38 @@ describe("MB-SIM-010 v2 — non-régression du Registry canonique (contrainte ab
     const source = readSourceWithoutComments(canonicalRegistryPath)
     expect(source).not.toMatch(/runtimeOrchestrator/)
     expect(source).not.toMatch(/ArduinoSimulator/)
+  })
+})
+
+describe("MB-SIM-011 — GATE 1 : simulationRuntimeIntegration.js est l'unique point d'intégration, sans dépendance cyclique", () => {
+  it("engine.js et runtimeOrchestrator.js restent exactement comme avant MB-SIM-011 : ni l'un ni l'autre n'importe simulationRuntimeIntegration.js, ni l'un ni l'autre ne s'importent mutuellement", () => {
+    const engineSource = readSourceWithoutComments(enginePath)
+    const orchestratorSource = readSourceWithoutComments(orchestratorPath)
+    expect(engineSource).not.toMatch(/simulationRuntimeIntegration/)
+    expect(engineSource).not.toMatch(/runtimeOrchestrator/)
+    expect(engineSource).not.toMatch(/ArduinoSimulator/)
+    expect(orchestratorSource).not.toMatch(/simulationRuntimeIntegration/)
+    expect(orchestratorSource).not.toMatch(/from\s+["']\.\/engine\.js["']/)
+    expect(orchestratorSource).not.toMatch(/runSimulation/)
+  })
+
+  it("simulationRuntimeIntegration.js est le seul fichier à importer à la fois engine.js et runtimeOrchestrator.js", () => {
+    const integrationSource = readSourceWithoutComments(integrationPath)
+    expect(integrationSource).toMatch(/from\s+["']\.\/engine\.js["']/)
+    expect(integrationSource).toMatch(/from\s+["']\.\/runtimeOrchestrator\.js["']/)
+  })
+
+  it("preparation.js, resolution.js et production.js n'importent pas simulationRuntimeIntegration.js (le pipeline Simulation reste ignorant du Runtime)", () => {
+    for (const sourcePath of [preparationPath, resolutionPath, productionPath]) {
+      const source = readSourceWithoutComments(sourcePath)
+      expect(source).not.toMatch(/simulationRuntimeIntegration/)
+    }
+  })
+
+  it("scheduler.js et clock.js n'importent pas simulationRuntimeIntegration.js (le Scheduler reste générique)", () => {
+    for (const sourcePath of [schedulerPath, clockPath]) {
+      const source = readSourceWithoutComments(sourcePath)
+      expect(source).not.toMatch(/simulationRuntimeIntegration/)
+    }
   })
 })

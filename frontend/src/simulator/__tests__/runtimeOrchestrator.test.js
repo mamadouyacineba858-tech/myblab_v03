@@ -136,4 +136,67 @@ describe("mergeRuntimeSignalsIntoPinSignals — fusion pure vers le format Simul
     const merged = mergeRuntimeSignalsIntoPinSignals(new Map(), "ard1", new Map())
     expect(merged.size).toBe(0)
   })
+
+  it("[MB-SIM-011] en cas de conflit de clé, le signal du Runtime écrase le signal Simulation existant (comportement réel de Map.set, non inventé)", () => {
+    const pinSignals = new Map([["ard1:D2", Signal.LOW]])
+    const runtimeSignalMap = new Map([["D2", Signal.HIGH]])
+
+    const merged = mergeRuntimeSignalsIntoPinSignals(pinSignals, "ard1", runtimeSignalMap)
+
+    expect(merged.get("ard1:D2")).toBe(Signal.HIGH)
+    // pinSignals original inchangé (fonction pure) : la valeur LOW d'origine
+    // y reste, seule la copie fusionnée reflète l'écrasement par le Runtime.
+    expect(pinSignals.get("ard1:D2")).toBe(Signal.LOW)
+  })
+
+  it("[MB-SIM-011] absence de signal Runtime pour un pin donné : la clé Simulation existante n'est pas touchée", () => {
+    const pinSignals = new Map([["power1:5V", Signal.HIGH], ["led1:anode", Signal.HIGH]])
+    const runtimeSignalMap = new Map() // aucun digitalWrite() pour ce composant
+
+    const merged = mergeRuntimeSignalsIntoPinSignals(pinSignals, "ard1", runtimeSignalMap)
+
+    expect(merged.get("power1:5V")).toBe(Signal.HIGH)
+    expect(merged.get("led1:anode")).toBe(Signal.HIGH)
+    expect(merged.size).toBe(2)
+  })
+})
+
+describe("[MB-SIM-011] RuntimeOrchestrator.advance(dt) — ordre démontré : Scheduler avant Runtime (TEST 2)", () => {
+  it("le Scheduler a déjà progressé lorsque Runtime.tick(dt) est invoqué", () => {
+    class OrderProbeRuntime extends ArduinoSimulator {
+      constructor(scheduler) {
+        super()
+        this.scheduler = scheduler
+        this.timeSeenDuringTick = null
+        this.start()
+      }
+      tick(deltaMs) {
+        // Si le Scheduler n'avait pas encore avancé, cette valeur serait 0.
+        this.timeSeenDuringTick = this.scheduler.getCurrentTime()
+        return super.tick(deltaMs)
+      }
+    }
+
+    const scheduler = new Scheduler()
+    const runtime = new OrderProbeRuntime(scheduler)
+    const orchestrator = new RuntimeOrchestrator({ scheduler, runtime })
+
+    orchestrator.advance(25)
+
+    expect(runtime.timeSeenDuringTick).toBe(25)
+  })
+
+  it("une erreur du Scheduler (dt invalide) empêche complètement l'appel à Runtime.tick()", () => {
+    let tickCalled = false
+    class TrackingRuntime extends ArduinoSimulator {
+      tick(deltaMs) {
+        tickCalled = true
+        return super.tick(deltaMs)
+      }
+    }
+
+    const orchestrator = new RuntimeOrchestrator({ runtime: new TrackingRuntime() })
+    expect(() => orchestrator.advance(-1)).toThrow(InvalidTimeDeltaError)
+    expect(tickCalled).toBe(false)
+  })
 })
