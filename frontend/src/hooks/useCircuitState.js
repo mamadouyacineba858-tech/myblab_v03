@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
-import { createUid } from "../utils/ids.js"
 import { snapToGrid } from "../utils/grid.js"
 import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js"
 import { toEngineInput } from "../simulator/engineAdapter.js"
@@ -25,11 +24,14 @@ import { MoveCommand } from "../history/commands/MoveCommand.js"
 import { DeleteCommand } from "../history/commands/DeleteCommand.js"
 import { ToggleLatchingButtonCommand } from "../history/commands/ToggleLatchingButtonCommand.js"
 // MB-CF3-001 (amendement CSA-CF3-001-A) : canal de mutation cible
-// (CommandBus -> Handler -> HistoryService), addComponent uniquement.
+// (CommandBus -> Handler -> HistoryService).
+// MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) : le canal est désormais
+// étendu à ADD_WIRE, en plus de ADD_COMPONENT — et à rien d'autre.
 import { Command } from "../core/command/Command.js"
 import { CommandBus } from "../core/command/CommandBus.js"
 import { CommandRegistry } from "../core/command/CommandRegistry.js"
 import { AddComponentHandler } from "../core/handlers/component/AddComponentHandler.js"
+import { AddWireHandler } from "../core/handlers/wire/AddWireHandler.js"
 import { HistoryService } from "../core/history/HistoryService.js"
 import { ValidationEngine } from "../core/validation/ValidationEngine.js"
 import { createDefaultValidationRegistry } from "../core/validation/createValidationRegistry.js"
@@ -270,6 +272,12 @@ const adapted = toEngineInput(coreDoc);
       const registry = new CommandRegistry()
       const historyService = new HistoryService(historyManagerRef.current, documentApi)
       registry.register("ADD_COMPONENT", new AddComponentHandler({ historyService, documentApi }))
+      // MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) : deuxième et dernier
+      // type actuellement autorisé sur ce canal. REMOVE_COMPONENT/
+      // MOVE_COMPONENT/UPDATE_COMPONENT restent explicitement hors périmètre
+      // (verrou CSA-CF3-001-A, étendu par CSA-CF3-002-ADD-WIRE-001, voir
+      // cf1DocumentArchitecture.test.js).
+      registry.register("ADD_WIRE", new AddWireHandler({ historyService, documentApi }))
       const validationEngine = new ValidationEngine(createDefaultValidationRegistry())
       commandBusRef.current = new CommandBus(registry, { validationEngine })
       // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
@@ -303,16 +311,37 @@ const adapted = toEngineInput(coreDoc);
   // FIN MB-CF3-001 (GATE 3 — addComponent)
   // =========================================================================
 
+  // =========================================================================
+  // MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) : canal de mutation cible —
+  // CommandBus -> AddWireHandler -> HistoryService. Même patron que
+  // addComponent (MB-CF3-001). La détection de doublon (wireAlreadyExists)
+  // n'est pas déplacée côté Core (instruction CSA explicite) : elle reste
+  // appliquée ici, côté UI, avant tout dispatch — seul le mécanisme de
+  // mutation change (CommandBus au lieu d'un setWires() direct), pas la
+  // garantie elle-même. wiresRef.current (MB-CF3-001, référence synchrone)
+  // est utilisé plutôt que safeWires pour éviter toute stale closure.
+  // =========================================================================
   const addWire = useCallback((fromUid, fromPin, toUid, toPin) => {
     if (!fromUid || !fromPin || !toUid || !toPin) return
     if (fromUid === toUid && fromPin === toPin) return
-    setWires((prev) => {
-      if (wireAlreadyExists(prev, fromUid, fromPin, toUid, toPin)) return prev
-      const wire = normalizeWire({ id: createUid(), fromUid, fromPin, toUid, toPin })
-      if (!wire) return prev
-      return [...prev, wire]
-    })
-  }, [])
+    if (!commandBusRef.current) return
+    if (wireAlreadyExists(wiresRef.current, fromUid, fromPin, toUid, toPin)) return
+    try {
+      const coreDocument = documentApi.getDocument()
+      const command = new Command("ADD_WIRE", {
+        fromUid,
+        fromPin,
+        toUid,
+        toPin,
+      })
+      commandBusRef.current.dispatch(command, coreDocument)
+    } catch (error) {
+      console.error("addWire: échec du dispatch via CommandBus", error)
+    }
+  }, [documentApi])
+  // =========================================================================
+  // FIN MB-CF3-002 (ADD_WIRE)
+  // =========================================================================
 
   const cancelWiring = useCallback(() => setPendingPin(null), [])
 

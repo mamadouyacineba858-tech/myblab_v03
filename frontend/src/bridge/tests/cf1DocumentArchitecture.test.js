@@ -59,6 +59,22 @@ import { ValidationRegistry } from "../../core/validation/ValidationRegistry.js"
  * historique). Amendement additif et scopé à ce seul point : CommandRegistry,
  * middlewares, HandlerNotFoundError, CommandExecutionError et dispatchAsync()
  * restent vérifiés inchangés dans le même test.
+ *
+ * [AMENDEMENT CSA-CF3-002-ADD-WIRE-001 — MB-CF3-002] Le verrou CSA-CF3-001-A
+ * qui bornait le canal à ADD_COMPONENT seul est étendu, explicitement et
+ * uniquement, à ADD_WIRE. AddWireHandler (core/handlers/wire/AddWireHandler.js)
+ * est désormais autorisé à exister et à être enregistré dans
+ * useCircuitState.js — sur le même patron que AddComponentHandler
+ * (_applyMutation/_applyRedo/_applyInverse, _executeWithHistory, aucune
+ * nouvelle mécanique d'historique). REMOVE_COMPONENT, MOVE_COMPONENT et
+ * UPDATE_COMPONENT restent explicitement hors périmètre — ce ruling ne les
+ * autorise pas, ils nécessitent chacun leur propre arbitrage CSA (atomicité
+ * multi-sélection pour Remove/Move, absence de point d'entrée UI pour
+ * Update — voir le rapport d'arbitrage MB-CF3-002 correspondant). La
+ * détection de doublon (wireAlreadyExists) n'a pas été déplacée vers le
+ * Core : elle reste appliquée côté UI, avant dispatch, sur instruction CSA
+ * explicite. Amendement additif : ne supprime ni n'affaiblit aucun autre
+ * invariant CF1 de ce fichier.
  */
 
 const dir = path.dirname(fileURLToPath(import.meta.url))
@@ -142,20 +158,20 @@ describe("MB-CF1-001 — CF1-003-E / GATE 3 [AMENDÉ par CSA-CF3-001-A pour MB-C
   })
 })
 
-describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A pour MB-CF3-001] : branchement CommandBus ↔ UI activé, mais borné à addComponent", () => {
+describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A puis CSA-CF3-002-ADD-WIRE-001] : branchement CommandBus ↔ UI activé, borné à ADD_COMPONENT + ADD_WIRE", () => {
   it("[CSA-CF3-001-A] useCircuitState.js importe désormais CommandBus.js et HistoryService.js (activation du canal — c'était l'objet de CF3)", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     expect(source).toMatch(/from\s+["'].*core\/command\/CommandBus\.js["']/)
     expect(source).toMatch(/from\s+["'].*core\/history\/HistoryService\.js["']/)
   })
 
-  it("[CSA-CF3-001-A] le canal reste borné à ADD_COMPONENT : aucun AddWireHandler n'existe, aucun autre type de commande n'est enregistré dans useCircuitState.js", () => {
+  it("[CSA-CF3-002-ADD-WIRE-001] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE : AddWireHandler existe, aucun autre type de commande n'est enregistré dans useCircuitState.js", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     const registerCalls = source.match(/\.register\(\s*["'][A-Z_]+["']/g) || []
-    expect(registerCalls).toEqual(['.register("ADD_COMPONENT"'])
+    expect(registerCalls).toEqual(['.register("ADD_COMPONENT"', '.register("ADD_WIRE"'])
 
-    const wireHandlerPath = path.join(dir, "..", "..", "core", "handlers", "component", "AddWireHandler.js")
-    expect(fs.existsSync(wireHandlerPath), "AddWireHandler ne doit pas exister (hors périmètre MB-CF3-001)").toBe(false)
+    const wireHandlerPath = path.join(dir, "..", "..", "core", "handlers", "wire", "AddWireHandler.js")
+    expect(fs.existsSync(wireHandlerPath), "AddWireHandler doit exister (MB-CF3-002, ruling CSA-CF3-002-ADD-WIRE-001)").toBe(true)
   })
 
   it("[AMENDÉ par CSA-CF4-001-A] CommandBus.js utilise désormais this._validators dans dispatch() : le canal ADR-010 est activé sans nouvelle architecture parallèle", () => {
