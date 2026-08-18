@@ -245,9 +245,8 @@ describe("MB-SIM-013 — T9 : dépendance au Scheduler, pas au temps réel", () 
     }
   })
 
-  it("pwmSignal.js n'est importé par aucun module de production câblé (ArduinoSimulator.js, runtimeOrchestrator.js, resolution.js, canonicalRegistry.js, simulationRuntimeIntegration.js) — contrat non implémenté dans ce ticket", () => {
+  it("pwmSignal.js n'est importé par aucun module de production du pipeline Simulation/résolution (runtimeOrchestrator.js, resolution.js, canonicalRegistry.js, simulationRuntimeIntegration.js) — inchangé depuis MB-SIM-013", () => {
     const productionFiles = [
-      path.join(dir, "..", "arduino", "ArduinoSimulator.js"),
       path.join(dir, "..", "runtimeOrchestrator.js"),
       path.join(dir, "..", "resolution.js"),
       path.join(dir, "..", "canonicalRegistry.js"),
@@ -255,10 +254,19 @@ describe("MB-SIM-013 — T9 : dépendance au Scheduler, pas au temps réel", () 
     ]
     for (const filePath of productionFiles) {
       const source = readSourceWithoutComments(filePath)
-      expect(source, `${path.basename(filePath)} ne devrait pas importer pwmSignal.js dans ce ticket`).not.toMatch(
+      expect(source, `${path.basename(filePath)} ne devrait pas importer pwmSignal.js`).not.toMatch(
         /from\s+["'][^"']*pwmSignal[^"']*["']/
       )
     }
+  })
+
+  it("MB-SIM-014A : ArduinoSimulator.js importe désormais pwmSignal.js, mais UNIQUEMENT pour validatePwmFrequencyHz (configuration), jamais pour evaluatePwmSignal (aucun comportement PWM runtime câblé)", () => {
+    const source = readSourceWithoutComments(path.join(dir, "..", "arduino", "ArduinoSimulator.js"))
+    expect(source).toMatch(/from\s+["']\.\.\/pwmSignal\.js["']/)
+    expect(source).toMatch(/validatePwmFrequencyHz/)
+    expect(source).not.toMatch(/evaluatePwmSignal/)
+    expect(source).not.toMatch(/\bcreatePwmSignal\b/)
+    expect(source).not.toMatch(/analogValueToDutyCycle/)
   })
 })
 

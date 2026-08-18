@@ -38,6 +38,15 @@ import { Signal } from "./signals.js"
  *   notion de broche ;
  * - le câblage dans ArduinoSimulator.tick()/analogWrite() ;
  * - toute décision canonicalRegistry.js sur les broches PWM-capables.
+ *
+ * MB-SIM-014A — PWM Frequency Configuration : `validatePwmFrequencyHz` est
+ * exportée pour être réutilisée par ArduinoSimulator.js afin de valider sa
+ * configuration `pwmFrequencyHz` sans dupliquer la règle de validité déjà
+ * appliquée par `validatePwmSignal`/`createPwmSignal`. Ce module reste
+ * cependant un module mathématique/contractuel pur : il ne stocke, ne
+ * décide, ni n'expose aucune fréquence PWM par défaut pour le runtime —
+ * cette responsabilité appartient exclusivement à la configuration
+ * explicite du runtime (ArduinoSimulator), jamais à ce fichier.
  */
 
 /**
@@ -46,6 +55,29 @@ import { Signal } from "./signals.js"
  */
 function isFiniteNumber(value) {
   return typeof value === "number" && Number.isFinite(value)
+}
+
+/**
+ * Valide une fréquence PWM candidate isolément (sans dutyCycle ni
+ * startTime), sans lever d'exception. Règle unique, seule source de
+ * vérité pour "qu'est-ce qu'une fréquence PWM valide" : réutilisée en
+ * interne par validatePwmSignal ci-dessous, et exportée pour être
+ * réutilisée par tout autre module ayant besoin de valider une fréquence
+ * PWM avant de construire un PwmSignal (MB-SIM-014A —
+ * ArduinoSimulator.js valide ainsi sa configuration `pwmFrequencyHz` sans
+ * dupliquer cette règle).
+ *
+ * @param {unknown} value
+ * @returns {{valid: boolean, errors: string[]}}
+ */
+export function validatePwmFrequencyHz(value) {
+  const errors = []
+  if (!isFiniteNumber(value)) {
+    errors.push("frequencyHz must be a finite number")
+  } else if (value <= 0) {
+    errors.push("frequencyHz must be strictly greater than 0 (0 Hz and negative frequencies are not a valid PWM period)")
+  }
+  return { valid: errors.length === 0, errors }
 }
 
 /**
@@ -62,11 +94,7 @@ export function validatePwmSignal(config) {
     return { valid: false, errors: ["config must be a non-null object"] }
   }
 
-  if (!isFiniteNumber(config.frequencyHz)) {
-    errors.push("frequencyHz must be a finite number")
-  } else if (config.frequencyHz <= 0) {
-    errors.push("frequencyHz must be strictly greater than 0 (0 Hz and negative frequencies are not a valid PWM period)")
-  }
+  errors.push(...validatePwmFrequencyHz(config.frequencyHz).errors)
 
   if (!isFiniteNumber(config.dutyCycle)) {
     errors.push("dutyCycle must be a finite number")
