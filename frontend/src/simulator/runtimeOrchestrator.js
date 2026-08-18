@@ -80,18 +80,25 @@ export class RuntimeOrchestrator {
    * pour obtenir l'état courant de ses pins de sortie (Tome II §4.1/§4.2 :
    * consultation à sens unique, jamais l'inverse — INV-SIM010-N03).
    *
+   * MB-SIM-014 §4/§5 : le Scheduler reste l'unique source de temps — le
+   * Runtime ne possède pas sa propre horloge. `this._runtime.tick()` reçoit
+   * désormais le `currentTimeMs` absolu retourné par
+   * `this._scheduler.advance(dt)` (et non plus `dt` lui-même) : le Runtime
+   * n'a donc jamais à reconstruire son propre temps par accumulation de
+   * deltas. L'ordre Scheduler → Runtime reste garanti.
+   *
    * @param {number} dt Délégué tel quel au Scheduler (mêmes règles de
-   *   validation que Scheduler.advance/SimulatedClock.advance) puis au
-   *   Runtime (tick(dt) — dt n'est pas revalidé par le Runtime, qui l'ignore
-   *   actuellement : voir ArduinoSimulator.tick()).
+   *   validation que Scheduler.advance/SimulatedClock.advance). N'est plus
+   *   transmis directement au Runtime : c'est `time` (temps absolu après
+   *   avance) qui est transmis à `Runtime.tick(time)`.
    * @returns {{ time: number, signalMap: Map<string, string> }}
    *   `signalMap` : pinId → Signal, tel qu'exposé par le Runtime. Vide si
    *   le Runtime n'est pas démarré (`runtime.start()` non appelé) ou si
-   *   aucun digitalWrite() n'a encore été effectué.
+   *   aucun digitalWrite()/analogWrite() n'a encore été effectué.
    */
   advance(dt) {
     const time = this._scheduler.advance(dt)
-    const signalMap = this._runtime.tick(dt)
+    const signalMap = this._runtime.tick(time)
     return { time, signalMap }
   }
 

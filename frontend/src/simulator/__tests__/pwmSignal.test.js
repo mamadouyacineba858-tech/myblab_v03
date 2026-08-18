@@ -260,13 +260,13 @@ describe("MB-SIM-013 — T9 : dépendance au Scheduler, pas au temps réel", () 
     }
   })
 
-  it("MB-SIM-014A : ArduinoSimulator.js importe désormais pwmSignal.js, mais UNIQUEMENT pour validatePwmFrequencyHz (configuration), jamais pour evaluatePwmSignal (aucun comportement PWM runtime câblé)", () => {
+  it("MB-SIM-014 : ArduinoSimulator.js importe pwmSignal.js et utilise désormais l'ensemble de son contrat (validatePwmFrequencyHz, createPwmSignal, analogValueToDutyCycle, evaluatePwmSignal) — met à jour la garde MB-SIM-014A qui interdisait encore evaluatePwmSignal/createPwmSignal/analogValueToDutyCycle avant ce ticket ; pwmSignal.js lui-même reste un module pur, non modifié dans son contrat public", () => {
     const source = readSourceWithoutComments(path.join(dir, "..", "arduino", "ArduinoSimulator.js"))
     expect(source).toMatch(/from\s+["']\.\.\/pwmSignal\.js["']/)
     expect(source).toMatch(/validatePwmFrequencyHz/)
-    expect(source).not.toMatch(/evaluatePwmSignal/)
-    expect(source).not.toMatch(/\bcreatePwmSignal\b/)
-    expect(source).not.toMatch(/analogValueToDutyCycle/)
+    expect(source).toMatch(/evaluatePwmSignal/)
+    expect(source).toMatch(/\bcreatePwmSignal\b/)
+    expect(source).toMatch(/analogValueToDutyCycle/)
   })
 })
 

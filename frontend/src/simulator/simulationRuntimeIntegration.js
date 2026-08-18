@@ -66,13 +66,17 @@ export function circuitRequiresRuntime(components) {
  * délègue intégralement à runSimulation() (chemin historique, inchangé —
  * GATE 0). Dès qu'au moins un composant Runtime est présent, obtient
  * d'abord le SignalMap de chaque Runtime (Scheduler.advance(dt) TOUJOURS
- * avant ArduinoSimulator.tick(dt), hérité de RuntimeOrchestrator.advance(),
- * inchangé), les convertit en `externalSignals` (même format de clé
- * "uid:pinId" que pinSignals — aucune conversion conceptuelle, §5 du
- * ticket), puis appelle prepareCircuit() + resolveSignals(components,
- * prepared, externalSignals) : le signal Runtime participe ainsi
- * réellement à la résolution (nets, propagation), avant que pinSignals ne
- * soit calculé — et non plus fusionné après coup (MB-SIM-011).
+ * avant ArduinoSimulator.tick(currentTimeMs), hérité de
+ * RuntimeOrchestrator.advance() — MB-SIM-014 : le Runtime reçoit désormais
+ * le currentTimeMs absolu retourné par le Scheduler, jamais dt lui-même,
+ * et TOUS les Runtime d'un même appel partageant un Scheduler reçoivent
+ * exactement le même currentTimeMs, voir sharedCurrentTimeMs ci-dessous),
+ * les convertit en `externalSignals` (même format de clé "uid:pinId" que
+ * pinSignals — aucune conversion conceptuelle, §5 du ticket), puis appelle
+ * prepareCircuit() + resolveSignals(components, prepared, externalSignals) :
+ * le signal Runtime participe ainsi réellement à la résolution (nets,
+ * propagation), avant que pinSignals ne soit calculé — et non plus fusionné
+ * après coup (MB-SIM-011).
  *
  * GATE 0 (non-régression) : pour un circuit sans composant Runtime, cette
  * fonction retourne exactement runSimulation(components, wires) — même
@@ -120,10 +124,17 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // (dt * nombre de composants). Le premier composant traité avance le
   // Scheduler (via RuntimeOrchestrator.advance(), qui préserve l'ordre
   // Scheduler -> Runtime) ; les suivants, partageant déjà ce Scheduler
-  // désormais à jour, ne font progresser que leur propre Runtime
-  // (orchestrator.getRuntime().tick(dt)), sans réappeler
+  // désormais à jour, ne font progresser que leur propre Runtime.
+  //
+  // MB-SIM-014 §4/§6 : le Scheduler reste l'unique source de temps — tous
+  // les Runtime d'un même appel doivent recevoir EXACTEMENT le même
+  // currentTimeMs (jamais dt, une simple durée). Le currentTimeMs retourné
+  // par le premier orchestrator.advance(dt) est donc mémorisé et réutilisé
+  // tel quel pour tous les Runtime suivants de cet appel
+  // (orchestrator.getRuntime().tick(sharedCurrentTimeMs)), sans réappeler
   // Scheduler.advance().
   let schedulerAlreadyAdvancedThisCall = false
+  let sharedCurrentTimeMs = null
 
   // externalSignals : Map<"uid:pinId", Signal>, alimentée directement
   // depuis le SignalMap brut (pinId -> Signal) de chaque Runtime — même
@@ -144,10 +155,12 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
 
     let signalMap
     if (!schedulerAlreadyAdvancedThisCall) {
-      ;({ signalMap } = orchestrator.advance(dt))
+      const result = orchestrator.advance(dt)
+      signalMap = result.signalMap
+      sharedCurrentTimeMs = result.time
       schedulerAlreadyAdvancedThisCall = true
     } else {
-      signalMap = orchestrator.getRuntime().tick(dt)
+      signalMap = orchestrator.getRuntime().tick(sharedCurrentTimeMs)
     }
 
     for (const [pinId, signal] of signalMap) {

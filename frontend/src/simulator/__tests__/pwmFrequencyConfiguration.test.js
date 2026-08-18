@@ -108,8 +108,8 @@ describe("MB-SIM-014A — T8 : plusieurs fréquences possibles, aucune limitée 
   })
 })
 
-describe("MB-SIM-014A — T9 : contrat analogWrite(pin, value) inchangé", () => {
-  it("analogWrite conserve sa signature à deux arguments et reste un stub sans effet observable sur pinOutputs", () => {
+describe("MB-SIM-014A — T9 : contrat analogWrite(pin, value) — signature inchangée", () => {
+  it("analogWrite conserve sa signature à deux arguments et n'écrit jamais directement dans pinOutputs (MB-SIM-014 §12)", () => {
     const sim = new ArduinoSimulator({ pwmFrequencyHz: 100 })
     expect(sim.analogWrite.length).toBe(2)
     sim.start()
@@ -117,11 +117,11 @@ describe("MB-SIM-014A — T9 : contrat analogWrite(pin, value) inchangé", () =>
     expect(sim.pinOutputs.has("D5")).toBe(false)
   })
 
-  it("analogWrite fonctionne identiquement avec ou sans pwmFrequencyHz configurée", () => {
+  it("MB-SIM-014 §9 : sans pwmFrequencyHz configurée, analogWrite() échoue désormais explicitement (mise à jour de l'assertion MB-SIM-014A, dont le stub acceptait tout appel sans effet)", () => {
     const withFreq = new ArduinoSimulator({ pwmFrequencyHz: 100 })
     const withoutFreq = new ArduinoSimulator()
     expect(() => withFreq.analogWrite("D5", 128)).not.toThrow()
-    expect(() => withoutFreq.analogWrite("D5", 128)).not.toThrow()
+    expect(() => withoutFreq.analogWrite("D5", 128)).toThrow(RangeError)
   })
 })
 
@@ -183,14 +183,16 @@ describe("MB-SIM-014A — T13 : absence d'horloge réelle", () => {
   })
 })
 
-describe("MB-SIM-014A — non-régression du périmètre : pas d'implémentation PWM runtime introduite", () => {
-  it("tick() n'appelle pas evaluatePwmSignal et ignore toujours deltaMs (aucun comportement PWM ajouté)", () => {
-    const source = readSourceWithoutComments(arduinoSimulatorSourcePath)
-    expect(source).not.toMatch(/evaluatePwmSignal/)
-  })
-
-  it("ArduinoSimulator.js n'importe pas runtimeOrchestrator.js (le sens de dépendance reste inchangé)", () => {
+describe("MB-SIM-014A — périmètre à la livraison de ce ticket (rappel historique)", () => {
+  it("ArduinoSimulator.js n'importe pas runtimeOrchestrator.js (le sens de dépendance reste inchangé, y compris après MB-SIM-014)", () => {
     const source = readSourceWithoutComments(arduinoSimulatorSourcePath)
     expect(source).not.toMatch(/from\s+["'][^"']*runtimeOrchestrator[^"']*["']/)
+  })
+})
+
+describe("MB-SIM-014 — mise à jour de la garde de périmètre : le comportement PWM runtime est désormais introduit, exactement comme prévu", () => {
+  it("tick() appelle désormais evaluatePwmSignal (comportement PWM runtime, MB-SIM-014 §13) — remplace l'ancienne garde MB-SIM-014A qui l'interdisait explicitement avant ce ticket", () => {
+    const source = readSourceWithoutComments(arduinoSimulatorSourcePath)
+    expect(source).toMatch(/evaluatePwmSignal/)
   })
 })
