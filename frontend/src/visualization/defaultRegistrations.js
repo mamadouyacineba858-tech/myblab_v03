@@ -1,14 +1,18 @@
 /**
  * Registrations par défaut des composants de visualisation
- * 
+ *
  * Ce fichier centralise les associations type → composant React.
- * Il sera utilisé par PartRenderer lors de la migration (MB-VIS-001-B).
- * 
- * ⚠️ Pour l'instant, ce fichier existe mais n'est utilisé par aucun
- * composant existant. C'est volontaire — la migration viendra plus tard.
- * 
+ * Utilisé par PartRenderer.jsx (migration effectuée, MB-VIS-001-B) : chaque
+ * rendu de composant passe par ce tableau via
+ * createDefaultVisualizationManager(DEFAULT_REGISTRATIONS).
+ *
  * ⚠️ ATTENTION : N'ajouter que des imports correspondant à des fichiers
  * existant dans src/components/parts/.
+ *
+ * [MB-VIS-002 — GATE 1] Commentaire corrigé : il décrivait une migration
+ * "à venir" alors qu'elle est déjà en production. Correction explicitement
+ * autorisée par le ruling CSA (GATE 1 PASS), sans autre changement à ce
+ * fichier.
  */
 
 // Imports des composants de visualisation EXISTANTS

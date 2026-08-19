@@ -37,8 +37,48 @@
   box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
 }
 
-.part-led__bulb {
-  font-size: 1.25rem;
+.part-led__dome {
+  fill: #4b5563;
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+  transition: fill 0.2s ease, filter 0.2s ease;
+}
+
+.part-led--on .part-led__dome {
+  fill: #22c55e;
+  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.9));
+}
+
+.part-led__flange {
+  fill: #1f2937;
+}
+
+.part-led__leg {
+  stroke: #9ca3af;
+  stroke-width: 2;
+}
+
+.part-resistor {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.part-resistor__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+}
+
+.part-resistor__body {
+  fill: #e3c393;
+  stroke: #a9793f;
+  stroke-width: 1.5;
+}
+
+.part-resistor__band {
+  fill: #3f3f46;
 }
 
 .part-arduino__board {
@@ -105,23 +145,28 @@
 
 .part-capacitor {
   width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
 }
 
 .part-capacitor__lead {
-  width: 12px;
-  height: 2px;
-  background: #9ca3af;
+  stroke: #9ca3af;
+  stroke-width: 2.5;
 }
 
-.part-capacitor__plate {
-  width: 3px;
-  height: 20px;
-  background: #e2e8f0;
-  border-radius: 2px;
+.part-capacitor__disc {
+  fill: #f5b942;
+  stroke: #b8860b;
+  stroke-width: 1.5;
+}
+
+.part-capacitor__disc-outline {
+  fill: none;
+  stroke: #8a5a00;
+  stroke-width: 1;
+  opacity: 0.4;
 }
 
 .part-buzzer {
@@ -182,31 +227,25 @@
 
 .part-diode {
   width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
 }
 
 .part-diode__lead {
-  width: 14px;
-  height: 2px;
-  background: #94a3b8;
+  stroke: #94a3b8;
+  stroke-width: 2.5;
 }
 
-.part-diode__triangle {
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-left: 12px solid #f8fafc;
+.part-diode__body {
+  fill: #1f2937;
+  stroke: #111827;
+  stroke-width: 1.5;
 }
 
-.part-diode__bar {
-  width: 3px;
-  height: 18px;
-  border-radius: 2px;
-  background: #f8fafc;
+.part-diode__cathode-band {
+  fill: #e5e7eb;
 }
 
 .part-rgb-led {
