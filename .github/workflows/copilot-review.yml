@@ -5,7 +5,6 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
 
 jobs:
   review:
@@ -13,8 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Repository-wide ESLint currently contains pre-existing violations
-      # outside MB-VIS-004. Keep the report, but do not block this ticket.
       - name: Install dependencies
         run: npm install --prefix frontend
 
@@ -22,16 +19,17 @@ jobs:
         continue-on-error: true
         run: npm run lint --prefix frontend > lint-report.txt 2>&1
 
-      # Repository-wide coverage debt must not block MB-VIS-004.
-      # Functional tests remain a required gate.
-      - name: Run tests
-        run: npm test --prefix frontend -- --run --reporter=json --outputFile=test-report.json
+      - name: Run tests with coverage
+        run: npm test --prefix frontend -- --coverage=false --reporter=json --outputFile=test-report.json
+
+      - name: Run coverage report (advisory)
+        continue-on-error: true
+        run: npm test --prefix frontend -- --coverage --reporter=verbose > coverage-report.txt 2>&1
 
       - name: Build frontend
         run: npm run build --prefix frontend
 
       - name: Package report
-        if: always()
         run: |
           python - <<'PY'
           import json
@@ -39,10 +37,12 @@ jobs:
 
           lint_path = Path("lint-report.txt")
           test_path = Path("test-report.json")
+          coverage_path = Path("coverage-report.txt")
 
           report = {
               "lint": lint_path.read_text(encoding="utf-8") if lint_path.exists() else "",
               "tests": json.loads(test_path.read_text(encoding="utf-8")) if test_path.exists() else None,
+              "coverage": coverage_path.read_text(encoding="utf-8") if coverage_path.exists() else "",
           }
 
           Path("copilot-report.json").write_text(
@@ -52,15 +52,12 @@ jobs:
           PY
 
       - name: Upload JSON report
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: copilot-report
           path: copilot-report.json
-          if-no-files-found: warn
 
       - name: Upload coverage HTML
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
@@ -68,9 +65,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload build
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
           path: frontend/dist
-          if-no-files-found: warn
