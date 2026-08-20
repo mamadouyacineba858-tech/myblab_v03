@@ -99,8 +99,10 @@ const getUndoCount = useCallback(() => {
   const safeComponents = useMemo(() => components.map(normalizeComponent).filter((c) => c !== null), [components])
   const safeWires = useMemo(() => wires.map(normalizeWire).filter((w) => w !== null), [wires])
 
-  const activeWireId = activeItem?.type === 'wire' ? activeItem.id : null
-  const wirePaths = useMemo(() => buildWirePaths(safeComponents, safeWires, activeWireId), [safeComponents, safeWires, activeWireId])
+  // MB-VIS-004 : buildWirePaths ne prend plus selectedWireId (géométrie pure,
+  // cf. circuitSelectors.js) — la sélection est désormais lue directement par
+  // WiresLayer.jsx via isSelected(), sans variable dérivée intermédiaire ici.
+  const wirePaths = useMemo(() => buildWirePaths(safeComponents, safeWires), [safeComponents, safeWires])
   const connectedPins = useMemo(() => buildConnectedPinsSet(safeWires), [safeWires])
 
   const pinSignals = useMemo(() => {

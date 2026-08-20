@@ -12,3 +12,26 @@
   z-index: 3;
   overflow: visible;
 }
+
+/*
+ * États visuels des fils (MB-VIS-004).
+ * La couleur de trait (stroke) est calculée et posée inline par WiresLayer.jsx
+ * (getWireStrokeColor) — ces règles ne portent que des accents additionnels,
+ * statiques (aucune animation, conformément au périmètre exclu du Ticket).
+ */
+
+.wires-layer__wire {
+  transition: stroke 0.12s ease, opacity 0.12s ease, filter 0.12s ease;
+}
+
+.wires-layer__wire--unknown {
+  opacity: 0.75;
+}
+
+.wires-layer__wire--floating {
+  opacity: 0.85;
+}
+
+.wires-layer__wire--hover {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.65));
+}

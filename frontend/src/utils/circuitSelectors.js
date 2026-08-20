@@ -1,6 +1,6 @@
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { getPinPosition } from "./geometry.js"
-import { buildWirePath, getWireColor } from "../wires/wirePath.js"
+import { buildWirePath } from "../wires/wirePath.js"
 
 /** @param {string} uid @param {string} pinId */
 export function pinRefKey(uid, pinId) {
@@ -29,12 +29,23 @@ export function buildConnectedPinsSet(wires) {
 
 /**
  * Chemins SVG des fils — positions calculées au render, jamais stockées dans le modèle.
+ *
+ * Géométrie pure (MB-VIS-004) : ne calcule plus de couleur/état visuel.
+ * Avant ce ticket, cette fonction pré-calculait une couleur via
+ * getWireColor({highlight: wire.id === selectedWireId}), redondante avec le
+ * calcul de sélection (isSelected, Set de multi-sélection) déjà effectué
+ * indépendamment par WiresLayer.jsx — deux implémentations parallèles du
+ * même concept. Consolidation retenue (Blueprint MB-VIS-004, section E ;
+ * condition de l'arbitrage CSA Q2, 2026-08-20 : "ne doit pas introduire une
+ * nouvelle duplication") : tout le calcul visuel (sélection, hover, état
+ * logique) est désormais centralisé dans WiresLayer.jsx, seul endroit ayant
+ * accès aux trois informations à la fois.
+ *
  * @param {Array<{ uid, type, x, y }>} components
  * @param {Array<{ id, fromUid, fromPin, toUid, toPin }>} wires
- * @param {string|null} selectedWireId
- * @returns {Array<{ id: string, d: string, color: string }>}
+ * @returns {Array<{ id: string, d: string }>}
  */
-export function buildWirePaths(components, wires, selectedWireId = null) {
+export function buildWirePaths(components, wires) {
   if (!Array.isArray(components) || !Array.isArray(wires)) return []
 
   const byUid = new Map(
@@ -65,11 +76,7 @@ export function buildWirePaths(components, wires, selectedWireId = null) {
     const d = buildWirePath(fromPos, toPos)
     if (!d) continue
 
-    paths.push({
-      id: wire.id,
-      d,
-      color: getWireColor({ highlight: wire.id === selectedWireId }),
-    })
+    paths.push({ id: wire.id, d })
   }
 
   return paths
