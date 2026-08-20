@@ -1,9 +1,9 @@
 # MYBLAB-CONSTITUTION.md
 
-**Version :** 1.1
-**Statut :** OFFICIELLE
-**Niveau documentaire :** 1 (Document fondateur)
-**Dernière révision :** 2026-08-04
+**Version :** 1.2  
+**Statut :** OFFICIELLE  
+**Niveau documentaire :** 1 (Document fondateur)  
+**Dernière révision :** 2026-08-20
 
 ---
 
@@ -155,12 +155,14 @@ Ordre de référence :
 
 1. MYBLAB-CONSTITUTION.md
 2. GOVERNANCE.md
-3. ARCHITECTURE.md
+3. `docs/architecture/PLATFORM_ARCHITECTURE.md`
 4. CONVENTIONS.md
 5. ADR
 6. RFC
 7. Documentation technique
 8. Code source
+
+`docs/architecture/PLATFORM_ARCHITECTURE.md` constitue désormais le document d'architecture de référence de **niveau 3** pour l'architecture plateforme de MYBlab. `docs/governance/ARCHITECTURE.md` est conservé comme documentation de gouvernance/architecture existante, mais ne prévaut pas sur `PLATFORM_ARCHITECTURE.md` pour les décisions d'architecture plateforme.
 
 En cas de contradiction, le document de niveau supérieur prévaut jusqu'à résolution.
 
