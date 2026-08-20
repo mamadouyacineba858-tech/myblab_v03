@@ -12,6 +12,55 @@ La roadmap ne définit pas les mécanismes d'implémentation. Elle ne remplace n
 
 Elle définit les grandes unités de progression, leurs dépendances, leurs priorités et leurs jalons.
 
+### 1.1 Trajectoire stratégique de l'expérience MYBlab
+
+L'évolution de l'expérience utilisateur et de la représentation des circuits suit une trajectoire stratégique en trois niveaux. Cette trajectoire constitue une orientation durable de la plateforme et doit guider les futurs Épics et Tickets PMO sans devenir elle-même un mécanisme d'implémentation.
+
+```text
+MYBlab actuel
+     ↓
+NIVEAU 1 — Atteindre le niveau Tinkercad
+     ↓
+NIVEAU 2 — Dépasser Tinkercad
+     ↓
+NIVEAU 3 — Tendre vers un laboratoire électronique virtuel
+           avancé, réaliste, immersif et extensible
+```
+
+**Tinkercad est un benchmark intermédiaire, pas la destination finale de MYBlab.**
+
+Le niveau 1 vise notamment à atteindre un niveau de référence en matière de :
+
+* qualité et cohérence de la représentation des composants ;
+* manipulation et expérience du canvas ;
+* câblage et assemblage des circuits ;
+* breadboard, cartes et composants usuels ;
+* cohérence générale de l'environnement de travail.
+
+Le niveau 2 vise à identifier puis construire les capacités par lesquelles MYBlab pourra dépasser ce benchmark, en privilégiant les capacités qui apportent une valeur propre à la plateforme plutôt qu'une simple reproduction de fonctionnalités existantes.
+
+Le niveau 3 constitue la direction d'évolution à long terme vers un véritable laboratoire électronique virtuel, notamment :
+
+* représentation physique et réalisme avancés ;
+* environnement de laboratoire immersif ;
+* composants et assemblages complexes ;
+* instrumentation et observation des phénomènes ;
+* visualisation avancée des états de simulation ;
+* interaction spatiale et, lorsque l'architecture le permettra, représentation 3D ;
+* intégration cohérente entre expérience, simulation et apprentissage.
+
+Les références externes utilisées pour éclairer cette trajectoire sont des **benchmarks et sources d'inspiration**, et non des spécifications à reproduire. Elles comprennent notamment Tinkercad pour le premier seuil de référence, les références vidéo fournies pour le niveau de réalisme et d'immersion recherché, ainsi que des plateformes telles que Wokwi, LogixSim 3DLab et ExoSynk pour certaines dimensions de simulation, de laboratoire virtuel et d'instrumentation.
+
+### 1.2 Principe de continuité stratégique
+
+Cette trajectoire doit rester visible dans la roadmap même lorsque les travaux immédiats portent sur des fondations, de la gouvernance, du Core, de la Simulation ou d'autres dépendances.
+
+Les futurs tickets ne doivent donc pas être évalués uniquement selon leur valeur locale. Ils doivent également être examinés selon leur contribution à la trajectoire :
+
+**Atteindre Tinkercad → Dépasser Tinkercad → Laboratoire virtuel MYBlab avancé.**
+
+Cette orientation ne constitue pas une autorisation d'implémenter immédiatement une architecture 3D ou une fonctionnalité particulière. Toute évolution architecturale nécessaire devra suivre les règles de gouvernance, les ADR et le cycle PMO appropriés.
+
 ---
 
 ## 2. Gouvernance de référence
@@ -154,6 +203,8 @@ SIM3 traite l'intégration entre Simulation, Scheduler et runtime embarqué. EMB
 ## 7.1 Objectif
 
 Faire évoluer la restitution utilisateur sans déplacer dans Presentation des responsabilités appartenant au Core, à l'Execution ou aux autres sous-systèmes de l'Application Layer.
+
+La trajectoire stratégique de l'expérience est définie en §1.1 : **atteindre le niveau Tinkercad, dépasser ce benchmark, puis tendre vers un laboratoire électronique virtuel avancé**. Les Épics Experience doivent contribuer à cette trajectoire sans transformer la roadmap en spécification d'implémentation.
 
 ## 7.2 Épics
 
@@ -490,3 +541,5 @@ Les états « réalisé », « partiel », « planifié » ou « non commencé �
 Toute évolution future de cette roadmap doit préserver la traçabilité :
 
 **Vision → Architecture → Programme → Épic → PMO → Implémentation → Vérification.**
+
+La trajectoire stratégique définie en §1.1 fait désormais partie intégrante de cette référence : **atteindre le niveau Tinkercad, dépasser ce benchmark, puis tendre vers un laboratoire électronique virtuel MYBlab avancé.** Elle ne doit pas être perdue ou implicitement abandonnée au fil des tickets futurs ; toute évolution significative de cette ambition doit être explicitement décidée et tracée dans la roadmap et les documents de gouvernance appropriés.
