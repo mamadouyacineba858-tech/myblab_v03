@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import "./WiresLayer.css"
 import { useCircuit } from "../context/useCircuit.js"
 import { getWireStrokeColor, getWireStateClassName } from "./wirePath.js"
