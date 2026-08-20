@@ -160,3 +160,41 @@ export function hasDcContribution(type) {
 export function getAllDcContributionTypes() {
   return Object.freeze([...DC_CONTRIBUTIONS.keys()])
 }
+
+/**
+ * MB-SIM-015 (ruling CSA, GATE 1 PASS / GATE 2 AUTHORIZED, 2026-08-20).
+ *
+ * Registre déclaratif des composants passifs à deux bornes considérés,
+ * dans ce modèle simplifié, comme des « conducteurs inconditionnels » pour
+ * les besoins de la propagation logique dérivée de resolution.js : un
+ * composant listé ici ne bloque jamais la continuité entre ses deux bornes
+ * déclarées (contrairement à DIODE/NPN_TRANSISTOR, conditionnels, ou à
+ * CAPACITOR, un circuit ouvert en régime DC établi).
+ *
+ * Ruling CSA explicite pour ce ticket : seul RESISTOR est autorisé
+ * maintenant. LDR/THERMISTOR/DC_MOTOR partagent la même forme physique
+ * (resistiveTwoTerminalDc) mais sont volontairement reportés à un ticket
+ * ultérieur pour ne pas élargir le périmètre de MB-SIM-015 au-delà de ce
+ * qui est nécessaire pour reproduire et corriger le bug. DIODE, CAPACITOR,
+ * POTENTIOMETER et NPN_TRANSISTOR restent explicitement exclus (voir leurs
+ * fonctions de contribution ci-dessus pour la justification physique de
+ * chaque exclusion).
+ *
+ * resolution.js ne doit consulter cette capacité que via
+ * getUnconditionalConductionPinPair(type) — jamais par une comparaison
+ * littérale comp.type === "RESISTOR" (verrouillé par
+ * resolutionArchitecture.test.js).
+ */
+const UNCONDITIONAL_CONDUCTION_PIN_PAIRS = new Map([
+  ["RESISTOR", ["A", "B"]],
+])
+
+/**
+ * @param {string} type
+ * @returns {[string, string] | null} La paire de broches (ids canoniques)
+ *   considérée comme un conducteur inconditionnel pour ce type, ou null si
+ *   ce type n'est pas éligible à la propagation passive dérivée.
+ */
+export function getUnconditionalConductionPinPair(type) {
+  return UNCONDITIONAL_CONDUCTION_PIN_PAIRS.get(type) ?? null
+}

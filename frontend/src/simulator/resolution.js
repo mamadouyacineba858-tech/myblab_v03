@@ -1,7 +1,7 @@
 import { Signal } from "./signals.js"
 import { getSimulationDefaultParameters } from "./simulationRegistry.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
-import { getDcContribution } from "./dcContributionRegistry.js"
+import { getDcContribution, getUnconditionalConductionPinPair } from "./dcContributionRegistry.js"
 
 /**
  * MB-SIM-006 : Résolution (ADR-004).
@@ -89,8 +89,96 @@ export function resolveSignals(components, prepared, externalSignals = null) {
     }
   }
 
+  propagatePassiveConduction(components, prepared, pinSignals)
+
   const dcAnalysis = computeDcAnalysis(components, prepared, pinSignals)
   return { pinSignals, dcAnalysis }
+}
+
+/**
+ * MB-SIM-015 (ruling CSA, GATE 1 PASS / GATE 2 AUTHORIZED, 2026-08-20) —
+ * Propagation passive dérivée (mécanisme "B'").
+ *
+ * Corrige POWER → RESISTOR → LED → GND (et les topologies équivalentes) :
+ * un composant passif "conducteur inconditionnel" (déclaré par
+ * dcContributionRegistry.getUnconditionalConductionPinPair — RESISTOR
+ * uniquement pour ce ticket) ne bloque jamais la continuité électrique
+ * entre ses deux bornes, contrairement à ce que la propagation par nets
+ * seule peut représenter (les deux bornes d'un composant ne sont jamais
+ * unies par un fil, donc jamais dans le même net).
+ *
+ * Correction CSA explicite par rapport à la conception initiale : ceci
+ * N'EST PAS une union Union-Find (uf.union) qui modifierait la topologie
+ * canonique construite par prepareCircuit() — `prepared.uf`/`prepared.nets`
+ * ne sont jamais mutés ici, uniquement lus. Le résultat dérivé est écrit
+ * exclusivement dans `pinSignals` (la sortie de la Résolution), exactement
+ * comme le fait déjà propagate() pour la propagation par nets. La
+ * séparation Topologie physique / Propagation logique dérivée est ainsi
+ * préservée : prepareCircuit() reste inchangé, et un futur appelant qui
+ * relirait prepared.nets verrait toujours la topologie physique réelle,
+ * pas une version enrichie par cette dérivation.
+ *
+ * Garde de sûreté (jamais d'écrasement, jamais de court-circuit logique
+ * créé volontairement) : une valeur n'est propagée vers le net cible que
+ * si CE NET EST ENTIÈREMENT UNKNOWN (aucun de ses membres n'a déjà une
+ * valeur HIGH ou LOW, quelle qu'elle soit). Par construction, cela rend
+ * impossible toute fusion de deux valeurs différentes déjà résolues : si
+ * le net cible portait déjà une valeur, la borne examinée du composant ne
+ * serait, par définition, pas UNKNOWN, et la condition de déclenchement
+ * (une borne connue, l'autre UNKNOWN) ne s'activerait jamais pour ce net.
+ * Idempotent : une fois un net résolu, il n'est plus jamais réécrit (son
+ * statut "entièrement UNKNOWN" devient faux dès la première écriture).
+ *
+ * Rounds à point fixe (nécessaire pour les chaînes de composants passifs
+ * en série, ex. POWER → R1 → R2 → LED → GND — une résistance ne peut être
+ * pontée qu'une fois la résistance en amont déjà résolue) : borné à
+ * `components.length + 1` rounds (autorisé explicitement par le ruling
+ * CSA), avec arrêt dès qu'un round complet ne produit plus aucun
+ * changement.
+ */
+function propagatePassiveConduction(components, prepared, pinSignals) {
+  const { uf, nets } = prepared
+  const maxRounds = components.length + 1
+
+  for (let round = 0; round < maxRounds; round++) {
+    let changed = false
+
+    for (const comp of components) {
+      const pinPair = getUnconditionalConductionPinPair(comp.type)
+      if (!pinPair) continue
+
+      const [pinIdA, pinIdB] = pinPair
+      const keyA = uf.key(comp.uid, pinIdA)
+      const keyB = uf.key(comp.uid, pinIdB)
+      if (!pinSignals.has(keyA) || !pinSignals.has(keyB)) continue
+
+      if (bridgeIfEligible(keyA, keyB, uf, nets, pinSignals)) changed = true
+      if (bridgeIfEligible(keyB, keyA, uf, nets, pinSignals)) changed = true
+    }
+
+    if (!changed) break
+  }
+}
+
+/**
+ * Si `sourceKey` porte une valeur connue (HIGH/LOW) et `targetKey` est
+ * UNKNOWN, tente de propager cette valeur vers le net entier de
+ * `targetKey` — uniquement si ce net est entièrement UNKNOWN (garde de
+ * sûreté, voir propagatePassiveConduction). Ne mute jamais `uf`/`nets`.
+ * @returns {boolean} true si une propagation a effectivement eu lieu.
+ */
+function bridgeIfEligible(sourceKey, targetKey, uf, nets, pinSignals) {
+  const sourceValue = pinSignals.get(sourceKey)
+  if (sourceValue !== Signal.HIGH && sourceValue !== Signal.LOW) return false
+  if (pinSignals.get(targetKey) !== Signal.UNKNOWN) return false
+
+  const root = uf.find(targetKey)
+  const netKeys = nets.get(root) ?? [targetKey]
+  const netEntirelyUnknown = netKeys.every((k) => pinSignals.get(k) === Signal.UNKNOWN)
+  if (!netEntirelyUnknown) return false
+
+  for (const k of netKeys) pinSignals.set(k, sourceValue)
+  return true
 }
 
 /**
