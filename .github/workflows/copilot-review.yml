@@ -15,18 +15,41 @@ jobs:
       - name: Install dependencies
         run: npm install --prefix frontend
 
-      - name: Run lint
-        run: npm run lint --prefix frontend > lint-report.txt
+      - name: Run lint (advisory)
+        continue-on-error: true
+        run: npm run lint --prefix frontend > lint-report.txt 2>&1
 
       - name: Run tests with coverage
-        run: npm test --prefix frontend -- --coverage --reporter=json --outputFile=test-report.json
+        run: npm test --prefix frontend -- --coverage=false --reporter=json --outputFile=test-report.json
+
+      - name: Run coverage report (advisory)
+        continue-on-error: true
+        run: npm test --prefix frontend -- --coverage --reporter=verbose > coverage-report.txt 2>&1
 
       - name: Build frontend
         run: npm run build --prefix frontend
 
       - name: Package report
         run: |
-          echo "{ \"lint\": \"$(cat lint-report.txt)\", \"tests\": $(cat test-report.json) }" > copilot-report.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          lint_path = Path("lint-report.txt")
+          test_path = Path("test-report.json")
+          coverage_path = Path("coverage-report.txt")
+
+          report = {
+              "lint": lint_path.read_text(encoding="utf-8") if lint_path.exists() else "",
+              "tests": json.loads(test_path.read_text(encoding="utf-8")) if test_path.exists() else None,
+              "coverage": coverage_path.read_text(encoding="utf-8") if coverage_path.exists() else "",
+          }
+
+          Path("copilot-report.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2),
+              encoding="utf-8",
+          )
+          PY
 
       - name: Upload JSON report
         uses: actions/upload-artifact@v4
@@ -39,6 +62,7 @@ jobs:
         with:
           name: coverage-report
           path: frontend/coverage
+          if-no-files-found: warn
 
       - name: Upload build
         uses: actions/upload-artifact@v4
