@@ -8,7 +8,6 @@
  * Précédent le plus proche en forme : RealisticRenderers.test.jsx
  * (MB-VIS-002), qui rend directement les composants de rendu réels.
  */
-import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/react'
 import { WiresLayer } from '../WiresLayer.jsx'
