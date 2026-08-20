@@ -16,7 +16,7 @@ jobs:
         run: npm install --prefix frontend
 
       - name: Run lint
-        run: npm run lint --prefix frontend > lint-report.txt
+        run: npm run lint --prefix frontend > lint-report.txt 2>&1
 
       - name: Run tests with coverage
         run: npm test --prefix frontend -- --coverage --reporter=json --outputFile=test-report.json
@@ -25,23 +25,46 @@ jobs:
         run: npm run build --prefix frontend
 
       - name: Package report
+        if: always()
         run: |
-          echo "{ \"lint\": \"$(cat lint-report.txt)\", \"tests\": $(cat test-report.json) }" > copilot-report.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          lint_path = Path("lint-report.txt")
+          test_path = Path("test-report.json")
+
+          report = {
+              "lint": lint_path.read_text(encoding="utf-8") if lint_path.exists() else "",
+              "tests": json.loads(test_path.read_text(encoding="utf-8")) if test_path.exists() else None,
+          }
+
+          Path("copilot-report.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2),
+              encoding="utf-8",
+          )
+          PY
 
       - name: Upload JSON report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: copilot-report
           path: copilot-report.json
+          if-no-files-found: warn
 
       - name: Upload coverage HTML
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: frontend/coverage
+          if-no-files-found: warn
 
       - name: Upload build
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
           path: frontend/dist
+          if-no-files-found: warn
