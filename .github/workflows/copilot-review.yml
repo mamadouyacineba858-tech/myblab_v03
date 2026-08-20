@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   review:
@@ -12,20 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Repository-wide ESLint currently contains pre-existing violations
+      # outside MB-VIS-004. Keep the report, but do not block this ticket.
       - name: Install dependencies
         run: npm install --prefix frontend
 
-      # ESLint currently reports pre-existing repository-wide violations
-      # outside MB-VIS-004. Keep the report, but do not prevent the
-      # ticket's tests and build from running.
       - name: Run lint (advisory)
         continue-on-error: true
         run: npm run lint --prefix frontend > lint-report.txt 2>&1
 
-      # The repository-wide Vitest coverage threshold is currently below
-      # 80% because of unrelated legacy/uncovered modules. MB-VIS-004 is
-      # validated by its test suite; do not turn that repository-wide
-      # coverage debt into a false failure for this ticket.
+      # Repository-wide coverage debt must not block MB-VIS-004.
+      # Functional tests remain a required gate.
       - name: Run tests
         run: npm test --prefix frontend -- --run --reporter=json --outputFile=test-report.json
 
