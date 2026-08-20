@@ -8,7 +8,7 @@
 | **Titre** | Régularisation du premier lot de renderers réalistes |
 | **Pilier** | Expérience utilisateur |
 | **Programme** | Experience |
-| **Épic** | Experience visuelle et réalisme des composants |
+| **Épic** | EXP-VIS — Réalisme et fidélité de représentation |
 | **Type** | DOCUMENTATION |
 | **Importance** | HIGH |
 | **Urgence** | THIS_RELEASE |
@@ -49,7 +49,7 @@ La régularisation doit permettre de retracer sans ambiguïté le travail déjà
 ### Critères d'acceptation
 - Le périmètre réellement livré est décrit sans extrapolation.
 - Les éléments non documentés avant cette régularisation sont explicitement signalés comme tels.
-- Le Ticket est rattaché à la roadmap officielle.
+- Le Ticket est rattaché à l'axe stratégique `EXP-VIS` proposé dans la roadmap Experience.
 - Un Delivery Report associé décrit les preuves disponibles et les limites de la régularisation.
 - Aucun changement de code n'est requis par cette régularisation.
 - Le travail n'est pas présenté comme une nouvelle implémentation.
@@ -92,6 +92,7 @@ MYBlab v0.3 — Experience / premier seuil Tinkercad.
 |---|---|---|---|
 | 2026-08-20 | Chief Software Architect | Régularisation documentaire décidée | L'audit MB-VIS-003 a constaté que le travail réel existait sur `main` mais qu'aucun Ticket PMO ni Delivery Report correspondant n'était présent dans la chaîne documentaire. |
 | 2026-08-20 | Chief Software Architect | Aucune extrapolation historique | Les éléments non établis par des artefacts antérieurs doivent rester explicitement non documentés plutôt que reconstruits comme des décisions passées. |
+| 2026-08-20 | Chief Software Architect | Rattachement provisoire à EXP-VIS | L'axe Experience « Réalisme et fidélité de représentation » est proposé par amendment de roadmap pour donner une unité stratégique cohérente au travail déjà livré. Ce rattachement reste soumis à validation PMO. |
 
 ## H. ÉTAT DE RÉFÉRENCE
 
@@ -103,9 +104,12 @@ Le commit de référence identifié pendant l'audit est `a9064d8`, dont le messa
 
 Aucun document original de MB-VIS-002 antérieur à cette régularisation n'est actuellement présent dans `docs/pmo/tickets/` ou `docs/pmo/blueprints/`. Les décisions qui ne sont attestées que par des traces indirectes ne doivent pas être requalifiées en spécification historique.
 
+Le rattachement `EXP-VIS` est actuellement documenté comme **proposition d'amendement de roadmap**, et non comme un Épic définitivement accepté.
+
 ## J. RÉFÉRENCES
 
 - `docs/roadmaps/ROADMAP_PLATFORM.md`
+- `docs/roadmaps/amendments/2026-08-20-MB-VIS-002.md`
 - `docs/pmo/standards/SPEC-PMO-002.md`
 - Rapport d'audit MB-VIS-003 — Qwen
 - Rapport d'audit MB-VIS-003 — Claude
