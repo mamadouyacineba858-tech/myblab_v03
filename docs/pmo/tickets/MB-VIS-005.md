@@ -66,7 +66,9 @@ Permettre à l'utilisateur de manipuler le tracé d'un Wire par ajout, déplacem
 - étendre le contrat du Wire avec `waypoints` ;
 - préserver la rétrocompatibilité ;
 - conserver `pinA` et `pinB` comme références topologiques des extrémités ;
-- ne pas introduire de propriété de rendu arbitraire dans le Wire.
+- ne pas introduire de propriété de rendu arbitraire dans le Wire ;
+- **étendre `frontend/src/utils/circuitModel.js::normalizeWire()` afin de préserver `waypoints` lors de toute normalisation d'un Wire ;**
+- **vérifier les trois chemins actuels qui utilisent `normalizeWire()` (calcul de `safeWires`, `documentApi.applyDocument` et import de document) afin qu'aucun ne puisse supprimer silencieusement `waypoints`.**
 
 ### 5.2 Mutation / CF3
 
@@ -102,6 +104,8 @@ La validation minimale doit garantir :
 6. les waypoints ne sont jamais ajoutés au Registry des pins.
 
 **Hors scope de la validation :** détection de croisement, évitement d'obstacles, distance minimale, pathfinding ou toute validation géométrique avancée.
+
+La validation doit être active **avant toute application de la mutation**, dans le chemin de pré-validation CF3. Le Handler ne doit jamais pouvoir rendre un Document atteignable avec des waypoints invalides par absence temporaire de la règle de validation.
 
 ### 5.5 History / Undo / Redo
 
@@ -174,13 +178,15 @@ Le ticket n'autorise pas :
 - **Tome II — PLATFORM_ARCHITECTURE.md** — frontières Document / Mutation / Validation / Presentation ;
 - **CF3** — canal de mutation unique ;
 - **MB-VIS-004** — visualisation réactive des fils ;
-- **ADR-014** — contrat des pins, inchangé par ce ticket.
+- **ADR-014** — contrat des pins, inchangé par ce ticket ;
+- **`frontend/src/utils/circuitModel.js::normalizeWire()`** — point de normalisation obligatoire à préserver pour éviter toute perte silencieuse de `waypoints`.
 
 ### Dépendances de gouvernance
 
 - régularisation d'ADR-003 effectuée avant ce ticket ;
 - amendement d'ADR-008 effectué avant ce ticket ;
-- la question Core vs Presentation-only est considérée comme tranchée et ne doit pas être rouverte sauf découverte factuelle contradictoire.
+- la question Core vs Presentation-only est considérée comme tranchée et ne doit pas être rouverte sauf découverte factuelle contradictoire ;
+- **`frontend/src/bridge/tests/cf1DocumentArchitecture.test.js` constitue un verrou architectural existant sur les commandes enregistrées dans `CommandRegistry`. L'ajout de la commande de waypoints doit faire l'objet d'un ruling CSA explicite avant ou au moment de l'enregistrement ; aucune modification de ce verrou ne peut être faite silencieusement.**
 
 ## 9. Contrat fonctionnel attendu
 
@@ -197,7 +203,8 @@ Le ticket n'autorise pas :
 9. Presentation utilise les waypoints du Document pour produire le tracé ;
 10. la manipulation utilisateur ne crée pas d'état métier concurrent dans Presentation ;
 11. la suppression d'un Wire ne laisse aucune donnée de waypoint orpheline ;
-12. les références de pins restent conformes à ADR-014.
+12. les références de pins restent conformes à ADR-014 ;
+13. **aucun passage par `normalizeWire()` ne supprime, tronque ou réinitialise les waypoints présents.**
 
 ## 10. Critères d'acceptation
 
@@ -249,6 +256,14 @@ Aucune dépendance Core → Presentation, aucune mutation directe du Document de
 
 Les états visuels déjà livrés par MB-VIS-004 restent fonctionnels lorsque le Wire possède ou non des waypoints.
 
+### AC-13 — Préservation par normalisation
+
+Pour un Wire contenant des waypoints valides, chacun des chemins actuels utilisant `normalizeWire()` préserve intégralement le tableau `waypoints`. Aucun waypoint ne peut être perdu silencieusement lors d'un rendu, d'un `applyDocument()` ou d'un import.
+
+### AC-14 — Verrou CommandRegistry
+
+L'enregistrement de la nouvelle commande de waypoints respecte le protocole de gouvernance du verrou `cf1DocumentArchitecture.test.js` : le test architectural est explicitement amendé uniquement sous ruling CSA traçable, sans suppression ou affaiblissement silencieux du verrou.
+
 ## 11. Tests attendus
 
 ### 11.1 Tests Document / modèle
@@ -266,7 +281,8 @@ Les états visuels déjà livrés par MB-VIS-004 restent fonctionnels lorsque le
 - suppression de tous les waypoints ;
 - rejet d'un Wire inexistant ;
 - vérification du passage CommandBus / Handler / HistoryService ;
-- absence de mutation directe depuis Presentation.
+- absence de mutation directe depuis Presentation ;
+- **vérification que la commande de waypoints n'est enregistrée qu'après le ruling CSA requis pour le verrou `cf1DocumentArchitecture.test.js`.**
 
 ### 11.3 Tests Validation
 
@@ -275,7 +291,8 @@ Les états visuels déjà livrés par MB-VIS-004 restent fonctionnels lorsque le
 - `NaN` / `Infinity` ;
 - structure malformée ;
 - Wire topologiquement invalide ;
-- conservation de l'intégrité `pinA` / `pinB`.
+- conservation de l'intégrité `pinA` / `pinB` ;
+- **vérification que le Handler ne peut pas appliquer une mutation de waypoints avant le passage de la validation CF3.**
 
 ### 11.4 Tests History
 
@@ -294,7 +311,16 @@ Les états visuels déjà livrés par MB-VIS-004 restent fonctionnels lorsque le
 - suppression d'un waypoint met à jour le tracé ;
 - non-régression des états visuels MB-VIS-004.
 
-### 11.6 Tests d'architecture / gouvernance
+### 11.6 Tests normalisation / conservation du Wire
+
+- `normalizeWire()` conserve `waypoints: []` ;
+- `normalizeWire()` conserve plusieurs waypoints à l'identique ;
+- le chemin `safeWires` conserve les waypoints ;
+- `documentApi.applyDocument` conserve les waypoints après dispatch ;
+- l'import d'un document contenant des waypoints les conserve ;
+- aucun passage de normalisation ne réinitialise ou supprime silencieusement `waypoints`.
+
+### 11.7 Tests d'architecture / gouvernance
 
 Vérifier au minimum :
 
@@ -302,7 +328,8 @@ Vérifier au minimum :
 - aucune mutation directe du Document depuis Presentation ;
 - aucun stockage parallèle persistant des waypoints dans Presentation ;
 - aucune modification du Registry canonique pour les waypoints ;
-- aucune référence active à ADR-003 comme source du contrat des waypoints.
+- aucune référence active à ADR-003 comme source du contrat des waypoints ;
+- **le verrou `cf1DocumentArchitecture.test.js` reste effectif et son extension est couverte par un ruling CSA traçable.**
 
 ## 12. Invariants à préserver
 
@@ -314,6 +341,7 @@ Vérifier au minimum :
 6. **Pin identity = ADR-014 ; aucun waypoint dans le Registry canonique.**
 7. **Aucun nouveau canal de mutation.**
 8. **Aucune décision architecturale implicite dans l'implémentation.**
+9. **Toute normalisation d'un Wire doit préserver les propriétés persistantes prévues par son contrat, notamment `waypoints`.**
 
 ## 13. Règles de gouvernance
 
@@ -349,16 +377,30 @@ Le ticket est un contrat PMO. Les agents d'implémentation ne peuvent pas modifi
 
 Le ticket est précédé de la confrontation indépendante Qwen / Claude et de la régularisation documentaire ADR-003 / ADR-008. Aucun nouvel audit d'architecture n'est requis pour rouvrir la question Core vs Presentation-only, sauf découverte factuelle contradictoire.
 
+### G-09 — Ruling CSA obligatoire pour le verrou CommandRegistry
+
+L'ajout de la commande de waypoints doit être accompagné d'un ruling CSA explicite autorisant l'extension du `CommandRegistry` et l'amendement correspondant de `cf1DocumentArchitecture.test.js`. Le verrou ne peut être supprimé, affaibli ou contourné pour faire passer l'implémentation.
+
+### G-10 — Validation simultanée avec la mutation
+
+La règle de validation des waypoints doit être active avant ou au plus tard avec l'enregistrement effectif de la commande. Aucune étape intermédiaire ne doit permettre à `UpdateWireWaypointsHandler` d'appliquer des waypoints non validés.
+
+### G-11 — Préservation obligatoire par normalisation
+
+Toute modification de `normalizeWire()` ou de ses chemins d'appel doit préserver le contrat persistant des waypoints. Une suppression ou réinitialisation silencieuse de `waypoints` constitue une non-conformité au ticket et doit être traitée avant clôture.
+
 ## 14. Livrables attendus
 
 - évolution du contrat Wire ;
+- préservation de `waypoints` par `normalizeWire()` et ses chemins d'appel ;
 - mutation CF3 dédiée aux waypoints ;
-- validation minimale ;
+- ruling CSA traçable pour l'extension du CommandRegistry et l'amendement du verrou architectural ;
+- validation minimale des waypoints active avant application ;
 - intégration History ;
 - calcul de géométrie compatible avec les waypoints ;
 - interaction utilisateur ;
 - tests unitaires, intégration et architecture ;
-- rapport final du ticket avec preuves de conformité aux AC-01 à AC-12.
+- rapport final du ticket avec preuves de conformité aux AC-01 à AC-14.
 
 ## 15. État de départ / état de fin
 
@@ -369,13 +411,17 @@ Le ticket est précédé de la confrontation indépendante Qwen / Claude et de l
 - CF3 établi mais non universellement migré ;
 - aucune mutation de waypoints ;
 - aucune validation de waypoints ;
-- aucune géométrie exploitant des waypoints.
+- aucune géométrie exploitant des waypoints ;
+- `normalizeWire()` ne préserve actuellement pas `waypoints` et constitue donc un point technique à corriger dans le périmètre du ticket ;
+- le `CommandRegistry` de production est actuellement verrouillé par `cf1DocumentArchitecture.test.js` sur les commandes existantes.
 
 **État de fin attendu :**
 
 - Wire persistant avec waypoints optionnels ;
+- `normalizeWire()` et tous ses chemins d'appel préservent les waypoints ;
 - mutation des waypoints intégrée à CF3 ;
-- validation minimale ;
+- ruling CSA traçable pour l'extension du CommandRegistry ;
+- validation minimale active avant mutation ;
 - History/Undo/Redo fonctionnels ;
 - rendu et manipulation utilisateur des waypoints ;
 - rétrocompatibilité ;
@@ -385,11 +431,13 @@ Le ticket est précédé de la confrontation indépendante Qwen / Claude et de l
 
 MB-VIS-005 ne peut être déclaré techniquement terminé que lorsque :
 
-- tous les critères AC-01 à AC-12 sont démontrés ;
+- tous les critères AC-01 à AC-14 sont démontrés ;
 - les tests attendus sont exécutés avec succès ou toute exception est explicitement arbitrée ;
 - aucune modification hors scope n'est intégrée sans justification ;
 - le rapport final fournit les preuves de conformité ;
 - l'état Git et la portée des changements sont vérifiés ;
-- aucune régression de MB-VIS-004 n'est constatée.
+- aucune régression de MB-VIS-004 n'est constatée ;
+- le chemin `normalizeWire()` ne perd aucun waypoint ;
+- le ruling CSA relatif au `CommandRegistry` est traçable avant l'intégration de la nouvelle commande.
 
 **Aucune implémentation n'est autorisée par ce document seul : le ticket constitue le contrat PMO d'exécution et doit être traité selon le protocole d'agents et de validation du projet.**
