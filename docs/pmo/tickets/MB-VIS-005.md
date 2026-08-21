@@ -3,7 +3,7 @@
 **Programme :** Experience  
 **Épic :** EXP2 — Visualisation des fils  
 **Type :** Ticket PMO — Architecture / Presentation / Core integration  
-**Statut :** READY FOR IMPLEMENTATION  
+**Statut :** READY FOR FINAL AUDIT  
 **Priorité :** P1 — Seuil Tinkercad  
 **Date de rédaction :** 2026-08-21  
 
@@ -11,104 +11,143 @@
 
 MB-VIS-005 établit le routage utilisateur des fils par points intermédiaires (**waypoints**) persistants.
 
-Le ticket transforme le contrat architectural désormais verrouillé par **ADR-008 — ACCEPTED / AMENDED** en périmètre d'exécution contrôlé.
+Le ticket transforme le contrat architectural verrouillé par **ADR-008 — ACCEPTED / AMENDED** en périmètre d'exécution contrôlé.
 
-Le ticket intervient après MB-VIS-004. MB-VIS-004 reste limité à la visualisation réactive des fils et ne constitue pas une implémentation partielle de MB-VIS-005.
+MB-VIS-005 intervient après MB-VIS-004. MB-VIS-004 reste limité à la visualisation réactive des fils et ne constitue pas une implémentation partielle de MB-VIS-005.
 
-## 2. Autorité architecturale
+## 2. Décisions architecturales de référence
 
-La source de vérité du contrat des waypoints est **ADR-008 — Architecture du modèle de connexion électrique**, dans sa version amendée.
+Ce ticket applique les décisions suivantes, déjà verrouillées :
 
-Le contrat architectural est :
+- **ADR-008 amendé** : les waypoints sont une propriété persistante du Wire dans le Core (Document). Cette décision n'est pas remise en débat dans MB-VIS-005.
+- **ADR-003 régularisé** : il ne constitue pas une source d'autorité pour le contrat des waypoints ; le canal de mutation persistant applicable est celui établi par CF3.
+- **ADR-014** : le contrat des pins (identité, sémantique, Registry canonique) n'est pas modifié par ce ticket.
+- **Amendement EXP2** : séparation stricte entre MB-VIS-004 (visualisation réactive) et MB-VIS-005 (routage utilisateur). MB-VIS-005 ne modifie pas le contrat de MB-VIS-004.
 
-```text
-Wire {
-  id,
-  pinA,
-  pinB,
-  waypoints: [{ x, y }, ...]
+`ADR-003-visualization-manager-registry.md` ne doit plus être cité comme justification du contrat des waypoints.
+
+## 3. Contrat des waypoints
+
+### 3.1 Modèle de données
+
+Le Wire est étendu avec une collection optionnelle de waypoints :
+
+```javascript
+interface Wire {
+  id: string;
+  pinA: PinReference;
+  pinB: PinReference;
+  waypoints: Array<Waypoint>;
+}
+
+interface Waypoint {
+  x: number;
+  y: number;
 }
 ```
 
-Les waypoints sont :
+Les waypoints sont une propriété du Wire, persistante dans le Document, indépendante de l'identité et de la sémantique des pins et consommée par Presentation pour produire la géométrie.
 
-- une propriété du Wire ;
-- persistants dans le Document ;
-- indépendants de l'identité et de la sémantique des pins ;
-- consommés par Presentation pour produire la géométrie du fil ;
-- soumis au canal Mutation lorsqu'ils sont modifiés ;
-- soumis à Validation avant application ;
-- historisables et réversibles selon le mécanisme de Mutation.
+### 3.2 Rétrocompatibilité
 
-`ADR-003-visualization-manager-registry.md` n'est pas une source d'autorité pour ce ticket. Le doublon documentaire historique a été régularisé et ne doit plus être cité comme justification du contrat des waypoints.
+- Un document historique sans champ `waypoints` reste chargeable.
+- L'absence de `waypoints` est interprétée comme `waypoints: []`.
+- La sérialisation/désérialisation doit préserver les waypoints lorsqu'ils sont présents.
+- Un Wire sans waypoint conserve le tracé par défaut équivalent à celui d'avant MB-VIS-005.
 
-## 3. Objectif
+## 4. Objectif
 
-Permettre à l'utilisateur de manipuler le tracé d'un Wire par ajout, déplacement et suppression de points intermédiaires, tout en conservant ces points dans le Document et en garantissant leur cohérence avec les responsabilités Core / Presentation.
+Permettre à l'utilisateur de manipuler le tracé d'un Wire par ajout, déplacement et suppression de points intermédiaires, tout en conservant ces points dans le Document et en garantissant la cohérence Core / Mutation / Validation / History / Presentation.
 
-## 4. Scope IN
+## 5. Scope IN
 
-### 4.1 Document / Wire
+### 5.1 Document / Wire
 
-- étendre le contrat du Wire afin de supporter une collection optionnelle de waypoints ;
-- préserver la rétrocompatibilité avec les documents existants ne contenant aucun waypoint ;
-- conserver les références `pinA` et `pinB` comme seules références topologiques des extrémités du Wire ;
-- ne pas introduire de propriété de rendu dans le Wire au-delà des données de routage nécessaires au contrat architectural.
+- étendre le contrat du Wire avec `waypoints` ;
+- préserver la rétrocompatibilité ;
+- conserver `pinA` et `pinB` comme références topologiques des extrémités ;
+- ne pas introduire de propriété de rendu arbitraire dans le Wire.
 
-### 4.2 Mutation / CF3
+### 5.2 Mutation / CF3
 
-Introduire le chemin de mutation persistant nécessaire à la modification des waypoints.
-
-Le premier contrat de mutation attendu est une opération globale de type :
+Introduire une seule mutation persistante pour MB-VIS-005 :
 
 ```text
 updateWireWaypoints(wireId, waypoints)
 ```
 
-La mutation doit respecter le canal CF3 établi :
+Le chemin obligatoire est :
 
 ```text
-CommandBus → Handler → HistoryService → Document
+UI → CommandBus → UpdateWireWaypointsHandler → HistoryService → Document
 ```
 
-Le nom définitif de la commande et du Handler peut suivre les conventions déjà établies dans CF3, mais ne doit pas créer un second canal de mutation.
+Le nom définitif de la commande et du Handler peut suivre les conventions CF3, mais aucun second canal de mutation n'est autorisé.
 
-### 4.3 Validation
+### 5.3 Granularité
 
-Étendre la validation du Wire au minimum nécessaire pour accepter ou refuser une modification de waypoints selon le contrat de données arrêté par ADR-008.
+- La mutation porte atomiquement sur l'état complet du tableau `waypoints`.
+- MB-VIS-005 v1 n'introduit pas `addWireWaypoint`, `removeWireWaypoint` ou `moveWireWaypoint` comme mutations séparées.
+- Une éventuelle évolution de granularité ou de performance relève d'un nouveau ticket et d'un nouvel arbitrage.
 
-La validation minimale doit notamment garantir :
+### 5.4 Validation
 
-- coordonnées numériques et finies ;
-- structure valide de chaque waypoint ;
-- absence de valeur manifestement invalide (`NaN`, `Infinity`, structure malformée) ;
-- conservation de l'intégrité du Wire et de ses références topologiques.
+La validation minimale doit garantir :
 
-Les règles avancées de routage ne font pas partie de ce ticket.
+1. `waypoints` est un tableau ;
+2. chaque waypoint possède `x` et `y` numériques et finis ;
+3. aucune valeur `NaN`, `Infinity`, non numérique ou structure malformée n'est acceptée ;
+4. l'ordre du tableau constitue l'ordre de routage de `pinA` vers `pinB` ;
+5. l'intégrité topologique du Wire et de ses références `pinA` / `pinB` est conservée ;
+6. les waypoints ne sont jamais ajoutés au Registry des pins.
 
-### 4.4 History / Undo / Redo
+**Hors scope de la validation :** détection de croisement, évitement d'obstacles, distance minimale, pathfinding ou toute validation géométrique avancée.
 
-Une modification persistante des waypoints doit être intégrée au mécanisme d'historisation existant.
+### 5.5 History / Undo / Redo
 
-Les opérations suivantes doivent être réversibles :
+Une modification persistante des waypoints doit utiliser le mécanisme d'historisation existant. L'état complet du tableau est restaurable avant/après chaque mutation atomique.
 
-- ajout/modification d'un ensemble de waypoints ;
-- suppression de waypoints ;
-- déplacement d'un ou plusieurs waypoints via la mutation globale.
+- Undo restaure l'état précédent.
+- Redo restaure l'état suivant.
+- Une nouvelle action après Undo invalide le Redo conformément au contrat History existant.
+- Aucun système d'historisation parallèle n'est autorisé.
 
-Un nouveau système d'historisation parallèle est interdit.
-
-### 4.5 Presentation / géométrie
+### 5.6 Presentation / géométrie
 
 - consommer les waypoints persistants du Wire ;
-- intégrer les waypoints au calcul de géométrie du fil ;
-- permettre leur manipulation utilisateur dans Presentation ;
-- maintenir la séparation entre donnée métier persistante et restitution graphique ;
+- intégrer les waypoints au calcul de géométrie du fil dans leur ordre persistant ;
+- permettre leur manipulation utilisateur ;
+- recalculer et redessiner immédiatement le fil après modification ;
 - conserver les états visuels issus de MB-VIS-004 sans leur faire porter la responsabilité du routage persistant.
 
-Le rendu exact (ligne, segments, courbe, interpolation) doit rester déterminé par le contrat de géométrie existant et les choix d'implémentation validés dans le périmètre du ticket ; aucune nouvelle décision architecturale sur le modèle Wire ne doit être introduite implicitement à ce niveau.
+Le rendu exact (ligne, segments, courbe ou interpolation) doit rester cohérent avec le contrat de géométrie existant. Aucune nouvelle décision architecturale sur le modèle Wire ne doit être introduite implicitement.
 
-## 5. Scope OUT
+## 6. Interaction utilisateur — contrat fonctionnel
+
+Le ticket impose le comportement suivant sans imposer un mécanisme UX particulier :
+
+1. L'utilisateur peut sélectionner un Wire et entrer dans l'édition de son routage.
+2. L'utilisateur peut créer un waypoint sur le tracé.
+3. L'utilisateur peut déplacer un waypoint existant.
+4. L'utilisateur peut supprimer un waypoint.
+5. Chaque modification persistante aboutit à `updateWireWaypoints`.
+6. Undo / Redo restaurent l'état complet du tableau avant / après la modification.
+7. Le nouveau tracé est visible immédiatement après chaque modification.
+8. La manipulation ne crée aucun état métier concurrent dans Presentation.
+
+### Choix UX non verrouillés
+
+Le ticket ne prescrit pas :
+
+- clic simple ou mode dédié ;
+- raccourcis clavier ;
+- clic droit ;
+- icônes ou boutons précis ;
+- feedback visuel particulier pendant le drag.
+
+Ces choix relèvent de l'implémentation UX et doivent rester cohérents avec l'application sans modifier le contrat fonctionnel ci-dessus.
+
+## 7. Scope OUT
 
 Le ticket n'autorise pas :
 
@@ -116,49 +155,51 @@ Le ticket n'autorise pas :
 - évitement automatique d'obstacles ;
 - routage 3D ;
 - simulation ou physique des fils ;
-- calcul de courant ou de tension ;
+- calcul de courant ou tension ;
 - animations avancées de flux ;
 - modification du contrat d'identité des pins ;
-- modification de `canonicalRegistry.js` pour y placer les waypoints ;
+- modification de `canonicalRegistry.js` pour les waypoints ;
 - création d'un Registry de présentation ;
 - introduction d'un `VisualizationManager` comme source d'autorité ;
-- stockage parallèle des waypoints dans Presentation ;
+- stockage parallèle persistant des waypoints dans Presentation ;
 - nouvelle capacité de collaboration temps réel ;
-- refonte générale de la géométrie des composants ou des fils hors besoin direct du ticket.
+- refonte générale de la géométrie hors besoin direct du ticket ;
+- migration opportuniste de mutations legacy CF3 non nécessaires à MB-VIS-005.
 
-## 6. Dépendances
+## 8. Dépendances
 
 ### Obligatoires
 
-- **ADR-008 — Architecture du modèle de connexion électrique :** contrat architectural amendé des waypoints.
-- **Tome II — PLATFORM_ARCHITECTURE.md :** Document, Mutation, Validation et Presentation comme frontières de responsabilité.
-- **CF3 — Canal Mutation unique :** le chemin de mutation persistante doit respecter le canal établi.
-- **MB-VIS-004 :** visualisation réactive des fils terminée et disponible comme base de restitution.
-- **ADR-014 :** contrat des pins ; aucune modification de ce contrat n'est autorisée dans MB-VIS-005.
+- **ADR-008 amendé** — contrat persistant des waypoints ;
+- **Tome II — PLATFORM_ARCHITECTURE.md** — frontières Document / Mutation / Validation / Presentation ;
+- **CF3** — canal de mutation unique ;
+- **MB-VIS-004** — visualisation réactive des fils ;
+- **ADR-014** — contrat des pins, inchangé par ce ticket.
 
 ### Dépendances de gouvernance
 
-- régularisation d'ADR-003 : effectuée avant ce ticket ; ADR-003 ne constitue plus une autorité pour les waypoints ;
-- amendement d'ADR-008 : effectué avant ce ticket ; la question Core vs Presentation-only est considérée comme tranchée.
+- régularisation d'ADR-003 effectuée avant ce ticket ;
+- amendement d'ADR-008 effectué avant ce ticket ;
+- la question Core vs Presentation-only est considérée comme tranchée et ne doit pas être rouverte sauf découverte factuelle contradictoire.
 
-## 7. Contrat fonctionnel attendu
+## 9. Contrat fonctionnel attendu
 
 À la fin du ticket :
 
 1. un Wire sans waypoint reste valide et se comporte comme aujourd'hui ;
 2. un Wire peut contenir zéro, un ou plusieurs waypoints persistants ;
 3. les waypoints sont sauvegardés avec le Document ;
-4. une modification de waypoints passe par Mutation ;
-5. la modification est validée avant application ;
-6. la modification est historisée ;
-7. Undo restaure l'état précédent des waypoints ;
+4. toute modification persistante passe par Mutation ;
+5. toute modification est validée avant application ;
+6. toute modification est historisée ;
+7. Undo restaure l'état précédent ;
 8. Redo restaure l'état suivant ;
 9. Presentation utilise les waypoints du Document pour produire le tracé ;
-10. la manipulation utilisateur ne crée pas un état métier concurrent dans Presentation ;
-11. la suppression d'un Wire ne laisse pas d'état de waypoint orphelin ;
+10. la manipulation utilisateur ne crée pas d'état métier concurrent dans Presentation ;
+11. la suppression d'un Wire ne laisse aucune donnée de waypoint orpheline ;
 12. les références de pins restent conformes à ADR-014.
 
-## 8. Critères d'acceptation
+## 10. Critères d'acceptation
 
 ### AC-01 — Contrat Wire
 
@@ -170,11 +211,11 @@ Après modification puis sérialisation/rechargement du Document, les waypoints 
 
 ### AC-03 — Mutation unique
 
-Toute modification persistante des waypoints passe par le canal CF3. Aucun accès direct au Document depuis Presentation n'est accepté.
+Toute modification persistante des waypoints passe par CF3. Aucun accès direct au Document depuis Presentation n'est accepté.
 
 ### AC-04 — Validation
 
-Une modification contenant une structure de waypoint invalide est refusée avant application au Document.
+Une modification contenant une structure de waypoint invalide est refusée avant application au Document selon les règles minimales de la section 5.4.
 
 ### AC-05 — Historisation
 
@@ -182,11 +223,11 @@ Une modification de waypoints peut être annulée puis rétablie avec Undo/Redo 
 
 ### AC-06 — Géométrie
 
-La géométrie rendue d'un Wire tient compte de ses waypoints dans leur ordre persistant.
+La géométrie rendue d'un Wire tient compte des waypoints dans leur ordre persistant.
 
 ### AC-07 — Interaction utilisateur
 
-L'utilisateur peut manipuler les waypoints prévus par le périmètre du ticket et observer immédiatement le nouveau tracé.
+L'utilisateur peut créer, déplacer et supprimer des waypoints conformément au contrat fonctionnel, avec mise à jour immédiate du tracé.
 
 ### AC-08 — Rétrocompatibilité
 
@@ -202,32 +243,32 @@ Aucune modification du contrat `pin.id` ou du Registry canonique n'est introduit
 
 ### AC-11 — Séparation architecturale
 
-Aucune dépendance Core → Presentation, aucune mutation directe du Document depuis Presentation et aucun état métier parallèle des waypoints dans Presentation ne sont introduits.
+Aucune dépendance Core → Presentation, aucune mutation directe du Document depuis Presentation et aucun état métier parallèle persistant des waypoints dans Presentation ne sont introduits.
 
 ### AC-12 — Non-régression MB-VIS-004
 
 Les états visuels déjà livrés par MB-VIS-004 restent fonctionnels lorsque le Wire possède ou non des waypoints.
 
-## 9. Tests attendus
+## 11. Tests attendus
 
-### 9.1 Tests Document / modèle
+### 11.1 Tests Document / modèle
 
 - Wire sans waypoints ;
-- Wire avec `waypoints: []` ;
-- Wire avec plusieurs waypoints ;
+- `waypoints: []` ;
+- plusieurs waypoints ;
 - sérialisation/désérialisation ;
 - rétrocompatibilité avec document historique sans champ `waypoints`.
 
-### 9.2 Tests Mutation / CF3
+### 11.2 Tests Mutation / CF3
 
 - création d'une modification de waypoints ;
 - modification d'un ensemble existant ;
 - suppression de tous les waypoints ;
 - rejet d'un Wire inexistant ;
-- vérification du passage par CommandBus / Handler / HistoryService ;
+- vérification du passage CommandBus / Handler / HistoryService ;
 - absence de mutation directe depuis Presentation.
 
-### 9.3 Tests Validation
+### 11.3 Tests Validation
 
 - waypoint valide ;
 - coordonnées non numériques ;
@@ -236,24 +277,24 @@ Les états visuels déjà livrés par MB-VIS-004 restent fonctionnels lorsque le
 - Wire topologiquement invalide ;
 - conservation de l'intégrité `pinA` / `pinB`.
 
-### 9.4 Tests History
+### 11.4 Tests History
 
 - Undo après modification ;
 - Redo après Undo ;
 - nouvelle action après Undo invalide correctement le Redo selon le contrat History existant ;
-- plusieurs modifications successives de waypoints.
+- plusieurs modifications successives.
 
-### 9.5 Tests Presentation / géométrie
+### 11.5 Tests Presentation / géométrie
 
 - Wire sans waypoint ;
 - Wire avec un waypoint ;
 - Wire avec plusieurs waypoints ;
-- ordre des waypoints respecté ;
+- ordre respecté ;
 - déplacement d'un waypoint met à jour le tracé ;
 - suppression d'un waypoint met à jour le tracé ;
-- non-régression des états visuels de MB-VIS-004.
+- non-régression des états visuels MB-VIS-004.
 
-### 9.6 Tests d'architecture / gouvernance
+### 11.6 Tests d'architecture / gouvernance
 
 Vérifier au minimum :
 
@@ -263,7 +304,7 @@ Vérifier au minimum :
 - aucune modification du Registry canonique pour les waypoints ;
 - aucune référence active à ADR-003 comme source du contrat des waypoints.
 
-## 10. Invariants à préserver
+## 12. Invariants à préserver
 
 1. **Document = source de vérité métier.**
 2. **Mutation = seul mécanisme d'évolution du Document.**
@@ -274,7 +315,7 @@ Vérifier au minimum :
 7. **Aucun nouveau canal de mutation.**
 8. **Aucune décision architecturale implicite dans l'implémentation.**
 
-## 11. Règles de gouvernance
+## 13. Règles de gouvernance
 
 ### G-01 — Aucun élargissement silencieux
 
@@ -284,7 +325,7 @@ Tout besoin hors scope doit être signalé et faire l'objet d'un arbitrage avant
 
 Toute interprétation du modèle persistant des waypoints doit être conforme à ADR-008 amendé.
 
-### G-03 — ADR-003 n'est pas une référence active
+### G-03 — ADR-003 n'est pas une référence active pour les waypoints
 
 Aucune implémentation ou documentation nouvelle ne doit présenter ADR-003 comme fondement du routage.
 
@@ -306,20 +347,20 @@ Le ticket est un contrat PMO. Les agents d'implémentation ne peuvent pas modifi
 
 ### G-08 — Audit avant implémentation
 
-Le présent ticket est précédé de la confrontation indépendante Qwen / Claude et de la régularisation documentaire ADR-003 / ADR-008. Aucun nouvel audit d'architecture n'est requis pour rouvrir la question Core vs Presentation-only, sauf découverte factuelle contradictoire.
+Le ticket est précédé de la confrontation indépendante Qwen / Claude et de la régularisation documentaire ADR-003 / ADR-008. Aucun nouvel audit d'architecture n'est requis pour rouvrir la question Core vs Presentation-only, sauf découverte factuelle contradictoire.
 
-## 12. Livrables attendus
+## 14. Livrables attendus
 
 - évolution du contrat Wire ;
 - mutation CF3 dédiée aux waypoints ;
-- validation minimale des waypoints ;
+- validation minimale ;
 - intégration History ;
 - calcul de géométrie compatible avec les waypoints ;
 - interaction utilisateur ;
 - tests unitaires, intégration et architecture ;
 - rapport final du ticket avec preuves de conformité aux AC-01 à AC-12.
 
-## 13. État de départ / état de fin
+## 15. État de départ / état de fin
 
 **État de départ :**
 
@@ -340,7 +381,7 @@ Le présent ticket est précédé de la confrontation indépendante Qwen / Claud
 - rétrocompatibilité ;
 - aucun contournement architectural.
 
-## 14. Condition de clôture PMO
+## 16. Condition de clôture PMO
 
 MB-VIS-005 ne peut être déclaré techniquement terminé que lorsque :
 
