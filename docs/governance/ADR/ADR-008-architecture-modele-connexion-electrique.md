@@ -1,9 +1,113 @@
-# ADR-008 — Architecture du modèle de connexion électrique (Netlist / Nodes) 
+# ADR-008 — Architecture du modèle de connexion électrique (Netlist / Nodes)
 
-**Statut :** ACCEPTED  
-**Date :** 2026-08-04  
+**Statut :** ACCEPTED — AMENDED  
+**Date d'origine :** 2026-08-04  
+**Date d'amendement :** 2026-08-21  
 **Auteur :** Équipe Architecture MYBlab  
 **Statut de validation :** Validé par le Chief Software Architect
+
+---
+
+## Amendement CSA — 2026-08-21
+
+### Objet
+
+Le présent amendement régularise le contrat des **waypoints de wire** afin qu'il constitue une décision architecturale actuelle, explicite et exploitable par les futurs travaux de routage utilisateur, notamment MB-VIS-005.
+
+### Décision amendée
+
+Les **points intermédiaires d'un wire sont des données persistantes du Wire Core**, stockées dans le Document Circuit comme propriété optionnelle du wire.
+
+Le contrat conceptuel du wire est donc :
+
+```text
+Wire
+├── id
+├── pinA
+├── pinB
+└── waypoints[]   (optionnel, persistant)
+```
+
+Chaque waypoint représente une position de routage exprimée sous forme de coordonnées de données :
+
+```text
+Waypoint
+├── x : number
+└── y : number
+```
+
+Les waypoints :
+
+- appartiennent au **Wire**, et non aux pins ;
+- ne font pas partie du `canonicalRegistry` des pins ;
+- ne modifient pas le contrat de source de vérité des pins défini par ADR-014 ;
+- sont persistants avec le Document ;
+- peuvent être absents sur les documents existants ;
+- sont consommés par la Presentation pour calculer la géométrie du wire ;
+- ne contiennent aucune information de rendu telle que couleur, épaisseur ou style.
+
+### Rétrocompatibilité
+
+Un wire dépourvu de `waypoints` reste valide. L'absence de cette propriété est équivalente à une liste vide pour les besoins du routage.
+
+Cette décision n'impose **aucune migration immédiate des documents existants** et ne modifie pas leur structure tant qu'aucune implémentation de MB-VIS-005 n'est engagée.
+
+### Frontière Core / Presentation
+
+Le Core possède la donnée de routage persistante. La Presentation possède la responsabilité de transformer cette donnée en géométrie et de la rendre visuellement.
+
+```text
+Document / Core
+Wire { id, pinA, pinB, waypoints[] }
+              │
+              ▼
+Presentation / Geometry
+              │
+              ▼
+        SVG / Canvas
+```
+
+La Presentation ne devient donc pas une seconde source de vérité pour les waypoints.
+
+### Mutation et historique
+
+Toute future modification persistante des waypoints devra respecter le canal de mutation établi par CF3 :
+
+```text
+CommandBus → Handler → HistoryService → documentApi
+```
+
+La présente décision ne crée pas la mutation correspondante et n'autorise aucune implémentation anticipée. Le choix d'une commande globale telle que `UPDATE_WIRE_WAYPOINTS` pourra être arrêté dans le contrat d'exécution de MB-VIS-005.
+
+### Validation
+
+Le présent amendement établit la propriété et la persistance des waypoints, mais **ne fixe pas encore les règles détaillées de validation géométrique**. Les règles minimales nécessaires à l'intégrité des coordonnées et du document devront être définies dans le contrat d'exécution de MB-VIS-005.
+
+Les règles avancées de routage (croisements, collisions, optimisation automatique, etc.) ne sont pas introduites par cet amendement.
+
+### Rendu
+
+La géométrie du wire reste une responsabilité de la Presentation. Le présent amendement n'impose ni algorithme de routage, ni type de courbe, ni technologie de rendu.
+
+### Référence ADR-003
+
+La justification historique qui renvoyait les waypoints à `ADR-003` est retirée comme référence normative. Le fichier `ADR-003-visualization-manager-registry.md` a été régularisé comme doublon documentaire invalide et ne constitue plus une source d'autorité.
+
+Le présent ADR-008 porte désormais directement le contrat architectural des waypoints.
+
+### Limite de l'amendement
+
+Cet amendement :
+
+- ne modifie aucun code de production ;
+- ne crée aucun Handler ;
+- ne crée aucune mutation ;
+- ne modifie aucune validation existante ;
+- ne modifie pas `canonicalRegistry.js` ;
+- ne clôture ni ne crée le ticket MB-VIS-005 ;
+- ne constitue pas un GO d'implémentation.
+
+Il transforme uniquement la décision architecturale historique sur les waypoints en contrat explicite et actuel.
 
 ---
 
@@ -29,7 +133,7 @@ Comment concevoir un modèle de connexion électrique qui :
 3. Permette la **génération d'une netlist** exploitable par le moteur de simulation (ADR-004) ;
 4. Soit **indépendant** de l'interface, du rendu et de la simulation ;
 5. Supporte la **validation** des connexions (structurelle et électrique) ;
-6. Respecte le **principe Open/Closed** (extensible à de nouveaux types de connexions) ?
+6. Respecte le principe Open/Closed (extensible à de nouveaux types de connexions) ?
 
 ---
 
@@ -37,7 +141,7 @@ Comment concevoir un modèle de connexion électrique qui :
 
 Nous adoptons une **architecture à trois niveaux** pour représenter les connexions :
 
-```
+```text
 Document Circuit
        |
        ↓
@@ -71,7 +175,7 @@ Les pins sont définis dans le modèle de composants (ADR-005). Chaque pin poss�
 - **Identifiant unique** (local au composant) : ex: `'pin1'`, `'anode'`, `'collector'`.
 - **Nom** : ex: `'Anode'`, `'Base'`, `'Pin 1'`.
 - **Rôle électrique** (optionnel) : ex: `'input'`, `'output'`, `'power'`, `'ground'`, `'bidirectional'`.
-- **Position physique** : coordonnées relatives au composant pour le rendu (utilisées par ADR-003).
+- **Position physique** : coordonnées relatives au composant pour le rendu.
 
 Les pins sont la seule interface entre un composant et le reste du circuit.
 
@@ -86,7 +190,7 @@ Chaque wire possède :
 - **Identifiant unique** : permet de référencer le wire dans l'historique (ADR-007) et pour la validation.
 - **Extrémité A** : référence vers un pin (composant + pin).
 - **Extrémité B** : référence vers un pin (composant + pin).
-- **Points intermédiaires** (optionnels) : liste de coordonnées pour le routage graphique (utilisées uniquement par ADR-003).
+- **Points intermédiaires (optionnels)** : liste persistante de coordonnées pour le routage utilisateur.
 
 Un wire représente une liaison **point-à-point** entre deux pins. Les connexions multipoints (ex: trois résistances en étoile) sont représentées par plusieurs wires qui seront regroupés en un même nœud électrique.
 
@@ -95,6 +199,7 @@ Le wire ne connaît pas :
 - Le moteur de simulation.
 - L'interface utilisateur.
 - La notion de potentiel électrique.
+- Les propriétés de rendu (couleur, épaisseur, style).
 
 ---
 
@@ -124,7 +229,7 @@ Le node n'est pas stocké dans le Document. Il est recalculé à chaque simulati
 
 ### Relations entre les niveaux
 
-```
+```text
 Composant (ADR-005)
     └── Pin
            │
@@ -204,7 +309,7 @@ Les validations sont effectuées :
 ## Conséquences positives
 
 ✅ **Séparation claire** : wires (physique) vs. nodes (électrique) sont distincts.  
-✅ **Indépendance** : le modèle de connexion ne connaît ni l'UI ni la simulation.  
+✅ **Indépendance** : le modèle de connexion ne connaît ni UI ni simulation.  
 ✅ **Validabilité** : vérification structurelle et électrique possible avant simulation.  
 ✅ **Compatibilité ADR-001** : les wires sont dans le Document, les nodes sont reconstruits.  
 ✅ **Extensibilité** : on peut ajouter de nouveaux types de connexions (ex: connecteurs, câbles) via le modèle de wire.  
@@ -218,18 +323,18 @@ Les validations sont effectuées :
 ❌ **Complexité** : trois niveaux à comprendre et à maintenir (pins, wires, nodes).  
 ❌ **Coût de construction** : les nodes doivent être reconstruits à chaque simulation ou validation.  
 ❌ **Risque d'erreur** : l'utilisateur peut créer des wires incohérents (mais la validation les détecte).  
-❌ **Surcharge de données** : les points intermédiaires des wires sont stockés même s'ils ne servent qu'au rendu.  
-❌ **Routage limité** : les wires ne supportent que des segments de droite (les points intermédiaires sont des coordonnées).  
+❌ **Surcharge de données** : les points intermédiaires des wires sont persistants même s'ils ne sont pas nécessaires à la simulation électrique.  
+❌ **Routage limité** : le contrat stocke des coordonnées de routage ; l'algorithme de rendu reste une responsabilité de la Presentation.
 
 ---
 
 ## Impact sur les développements futurs
 
 - **Simulation (ADR-004)** : recevra une netlist construite à partir des wires et des composants, sans avoir à connaître la structure du Document.
-- **Visualisation (ADR-003)** : affichera les wires avec leurs points intermédiaires, indépendamment des nodes électriques.
-- **Undo/Redo (ADR-007)** : toute création/suppression de wire sera une transformation enregistrée dans l'historique.
+- **Visualisation** : affichera les wires avec leurs points intermédiaires, indépendamment des nodes électriques. Aucune référence normative à un ADR-003 de visualisation n'est requise.
+- **Undo/Redo (ADR-007)** : toute création/suppression de wire et toute future modification persistante des waypoints devront être enregistrées dans l'historique.
 - **Validation pédagogique** : pourra signaler les erreurs de connexion aux étudiants (ex: "composant flottant détecté").
-- **Export/Import** : la netlist pourra être exportée dans des formats standards (ex: SPICE netlist).
+- **Export/Import** : la netlist pourra être exportée dans des formats standards (ex: SPICE netlist), avec préservation des données de routage si le format d'échange le permet.
 - **Nouveaux composants** : l'ajout d'un composant avec des pins spécifiques est supporté par le modèle de wire.
 
 ---
@@ -242,6 +347,12 @@ Les validations sont effectuées :
 - **ADR-005** : Architecture du modèle de composants électroniques
 - **ADR-006** : Registry des modèles de simulation
 - **ADR-007** : Architecture Undo/Redo (History Manager)
+- **ADR-014** : Source de vérité des pins — contrat indépendant des waypoints de wire
 
+---
 
+## Statut d'implémentation
 
+À la date du présent amendement, le contrat des waypoints est **décidé architecturalement mais non implémenté** dans le code de production. Le modèle Wire actuel peut donc ne pas encore contenir la propriété `waypoints`.
+
+Cette divergence est intentionnelle à ce stade : l'ADR fixe la cible architecturale ; un futur ticket d'exécution devra définir et réaliser les changements nécessaires sans être implicite dans le présent amendement.
