@@ -124,6 +124,8 @@ Une modification persistante des waypoints doit utiliser le mécanisme d'histori
 - recalculer et redessiner immédiatement le fil après modification ;
 - conserver les états visuels issus de MB-VIS-004 sans leur faire porter la responsabilité du routage persistant.
 
+**Fonctions de géométrie impactées :** `frontend/src/wires/wirePath.js::buildWirePath()` et `frontend/src/utils/circuitSelectors.js::buildWirePaths()`, actuellement strictement bipoints, doivent être étendues pour consommer les waypoints persistants dans leur ordre. Cette précision localise l'évolution technique sans imposer un nouvel algorithme de rendu.
+
 Le rendu exact (ligne, segments, courbe ou interpolation) doit rester cohérent avec le contrat de géométrie existant. Aucune nouvelle décision architecturale sur le modèle Wire ne doit être introduite implicitement.
 
 ## 6. Interaction utilisateur — contrat fonctionnel
