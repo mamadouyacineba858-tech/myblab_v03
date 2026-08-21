@@ -35,3 +35,19 @@
 .wires-layer__wire--hover {
   filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.65));
 }
+
+/*
+ * Poignées de waypoint (MB-VIS-005, Phase E). Visibles uniquement quand le
+ * fil est sélectionné (rendu conditionnel côté WiresLayer.jsx) — aucune
+ * règle de survol ici, pas de dépendance à l'arbitrage CSA Q1.
+ */
+.wires-layer__waypoint-handle {
+  fill: #22c55e;
+  stroke: #0f172a;
+  stroke-width: 1.5;
+  cursor: grab;
+}
+
+.wires-layer__waypoint-handle:hover {
+  fill: #4ade80;
+}

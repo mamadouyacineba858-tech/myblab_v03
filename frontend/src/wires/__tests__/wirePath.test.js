@@ -26,6 +26,48 @@ describe('MB-VIS-004 — buildWirePath (non-régression géométrique)', () => {
   })
 })
 
+describe('MB-VIS-005 — buildWirePath (routage par waypoints persistants)', () => {
+  it('sans waypoints, produit exactement le même chemin en L qu\'avant MB-VIS-005 (AC-08, non-régression bit à bit)', () => {
+    expect(buildWirePath({ x: 0, y: 0 }, { x: 100, y: 50 }, [])).toBe(
+      buildWirePath({ x: 0, y: 0 }, { x: 100, y: 50 })
+    )
+    expect(buildWirePath({ x: 0, y: 0 }, { x: 100, y: 50 }, [])).toBe('M 0 0 L 50 0 L 50 50 L 100 50')
+  })
+
+  it('un waypoint unique produit un chemin en deux segments passant par ce point (AC-06)', () => {
+    const d = buildWirePath({ x: 0, y: 0 }, { x: 100, y: 0 }, [{ x: 50, y: 80 }])
+    expect(d).toBe('M 0 0 L 50 80 L 100 0')
+  })
+
+  it('plusieurs waypoints sont consommés dans leur ordre persistant (AC-06)', () => {
+    const d = buildWirePath({ x: 0, y: 0 }, { x: 30, y: 0 }, [
+      { x: 10, y: 10 },
+      { x: 20, y: -10 },
+    ])
+    expect(d).toBe('M 0 0 L 10 10 L 20 -10 L 30 0')
+  })
+
+  it('ignore défensivement un waypoint aux coordonnées non finies (retombe sur le chemin en L historique)', () => {
+    const d = buildWirePath({ x: 0, y: 0 }, { x: 10, y: 0 }, [{ x: NaN, y: 1 }])
+    expect(d).toBe(buildWirePath({ x: 0, y: 0 }, { x: 10, y: 0 }, []))
+  })
+
+  it('ignore uniquement le waypoint invalide au sein d\'un tableau par ailleurs valide', () => {
+    const d = buildWirePath({ x: 0, y: 0 }, { x: 20, y: 0 }, [
+      { x: 5, y: 5 },
+      { x: NaN, y: 1 },
+      { x: 15, y: 5 },
+    ])
+    expect(d).toBe('M 0 0 L 5 5 L 15 5 L 20 0')
+  })
+
+  it('waypoints non fourni (undefined) se comporte comme un tableau vide', () => {
+    expect(buildWirePath({ x: 0, y: 0 }, { x: 10, y: 10 })).toBe(
+      buildWirePath({ x: 0, y: 0 }, { x: 10, y: 10 }, undefined)
+    )
+  })
+})
+
 describe('MB-VIS-004 — getWireStrokeColor (précédence sélection > signal > neutre)', () => {
   it('couleur neutre par défaut (non-régression : identique à l\'ancien getWireColor() sans options)', () => {
     expect(getWireStrokeColor()).toBe('#f97316')

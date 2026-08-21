@@ -25,13 +25,20 @@ import { DeleteCommand } from "../history/commands/DeleteCommand.js"
 import { ToggleLatchingButtonCommand } from "../history/commands/ToggleLatchingButtonCommand.js"
 // MB-CF3-001 (amendement CSA-CF3-001-A) : canal de mutation cible
 // (CommandBus -> Handler -> HistoryService).
-// MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) : le canal est désormais
-// étendu à ADD_WIRE, en plus de ADD_COMPONENT — et à rien d'autre.
+// MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) : étendu à ADD_WIRE.
+// MB-VIS-005 (ruling CSA du 2026-08-21) : étendu à UPDATE_WIRE_WAYPOINTS —
+// trois commandes au total, et rien de plus (verrou cf1DocumentArchitecture.test.js).
 import { Command } from "../core/command/Command.js"
 import { CommandBus } from "../core/command/CommandBus.js"
 import { CommandRegistry } from "../core/command/CommandRegistry.js"
 import { AddComponentHandler } from "../core/handlers/component/AddComponentHandler.js"
 import { AddWireHandler } from "../core/handlers/wire/AddWireHandler.js"
+// MB-VIS-005 (ruling CSA — autorisation du 2026-08-21, "CSA RULING — MB-VIS-005
+// / Command Registry") : troisième et dernier type actuellement autorisé sur
+// ce canal, strictement limité à UPDATE_WIRE_WAYPOINTS. Voir
+// frontend/src/bridge/tests/cf1DocumentArchitecture.test.js pour le verrou
+// amendé en conséquence.
+import { UpdateWireWaypointsHandler } from "../core/handlers/wire/UpdateWireWaypointsHandler.js"
 import { HistoryService } from "../core/history/HistoryService.js"
 import { ValidationEngine } from "../core/validation/ValidationEngine.js"
 import { createDefaultValidationRegistry } from "../core/validation/createValidationRegistry.js"
@@ -55,6 +62,19 @@ export function useCircuitState(canvasRef) {
   const marqueeSessionRef = useRef(null)
   const [marqueeRect, setMarqueeRect] = useState(null)
   const justFinishedMarqueeWithSelectionRef = useRef(false)
+
+  // =========================================================================
+  // MB-VIS-005 (Phase E) : session de déplacement d'un waypoint existant.
+  // Même patron que dragSessionRef (composants) : la position est mise à
+  // jour localement, en aperçu (waypointPreview), pendant le drag ; une
+  // seule mutation CF3 (updateWireWaypoints) est dispatchée au relâchement,
+  // uniquement si la position a réellement changé — jamais une mutation par
+  // pixel. waypointPreview n'écrit jamais dans `wires` : il n'influence que
+  // le calcul de géométrie (wirePaths), afin qu'aucun code Presentation ne
+  // mute jamais le Document en dehors du canal CF3 (AC-03/AC-11).
+  // =========================================================================
+  const waypointDragSessionRef = useRef(null)
+  const [waypointPreview, setWaypointPreview] = useState(null)
 
   // =========================================================================
   // MB-004.3 : Historique (infrastructure uniquement)
@@ -99,10 +119,23 @@ const getUndoCount = useCallback(() => {
   const safeComponents = useMemo(() => components.map(normalizeComponent).filter((c) => c !== null), [components])
   const safeWires = useMemo(() => wires.map(normalizeWire).filter((w) => w !== null), [wires])
 
+  // MB-VIS-005 (Phase E) : pendant un drag de waypoint, la géométrie rendue
+  // doit refléter la position en cours SANS que `wires`/le Document ne soit
+  // muté (AC-03/AC-11 — seul updateWireWaypoints(), au relâchement, passe
+  // par CF3). wiresForGeometry substitue localement les waypoints du seul
+  // wire en cours de drag pour le calcul de tracé ; safeWires (donc le
+  // Document réel) reste inchangé jusqu'au commit.
+  const wiresForGeometry = useMemo(() => {
+    if (!waypointPreview) return safeWires
+    return safeWires.map((w) =>
+      w.id === waypointPreview.wireId ? { ...w, waypoints: waypointPreview.waypoints } : w
+    )
+  }, [safeWires, waypointPreview])
+
   // MB-VIS-004 : buildWirePaths ne prend plus selectedWireId (géométrie pure,
   // cf. circuitSelectors.js) — la sélection est désormais lue directement par
   // WiresLayer.jsx via isSelected(), sans variable dérivée intermédiaire ici.
-  const wirePaths = useMemo(() => buildWirePaths(safeComponents, safeWires), [safeComponents, safeWires])
+  const wirePaths = useMemo(() => buildWirePaths(safeComponents, wiresForGeometry), [safeComponents, wiresForGeometry])
   const connectedPins = useMemo(() => buildConnectedPinsSet(safeWires), [safeWires])
 
   const pinSignals = useMemo(() => {
@@ -280,6 +313,13 @@ const adapted = toEngineInput(coreDoc);
       // (verrou CSA-CF3-001-A, étendu par CSA-CF3-002-ADD-WIRE-001, voir
       // cf1DocumentArchitecture.test.js).
       registry.register("ADD_WIRE", new AddWireHandler({ historyService, documentApi }))
+      // MB-VIS-005 (ruling CSA du 2026-08-21) : troisième et dernier type
+      // actuellement autorisé sur ce canal — mutation atomique unique du
+      // tableau waypoints d'un wire existant. Aucune autre commande
+      // (REMOVE_COMPONENT/MOVE_COMPONENT/UPDATE_COMPONENT, ou toute mutation
+      // granulaire de waypoint) n'est autorisée par ce ruling — voir
+      // cf1DocumentArchitecture.test.js.
+      registry.register("UPDATE_WIRE_WAYPOINTS", new UpdateWireWaypointsHandler({ historyService, documentApi }))
       const validationEngine = new ValidationEngine(createDefaultValidationRegistry())
       commandBusRef.current = new CommandBus(registry, { validationEngine })
       // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
@@ -343,6 +383,71 @@ const adapted = toEngineInput(coreDoc);
   }, [documentApi])
   // =========================================================================
   // FIN MB-CF3-002 (ADD_WIRE)
+  // =========================================================================
+
+  // =========================================================================
+  // MB-VIS-005 (ruling CSA du 2026-08-21) : canal de mutation cible —
+  // CommandBus -> UpdateWireWaypointsHandler -> HistoryService. Même patron
+  // que addComponent/addWire : mutation atomique unique du tableau complet
+  // des waypoints (§5.3 du ticket parent — aucune mutation granulaire).
+  // wiresRef.current (référence synchrone, même précédent que addWire) évite
+  // toute stale closure.
+  // =========================================================================
+  const updateWireWaypoints = useCallback((wireId, waypoints) => {
+    if (!wireId || !Array.isArray(waypoints)) return
+    if (!commandBusRef.current) return
+    if (!wiresRef.current.some((w) => w.id === wireId)) return
+    try {
+      const coreDocument = documentApi.getDocument()
+      const command = new Command("UPDATE_WIRE_WAYPOINTS", { wireId, waypoints })
+      commandBusRef.current.dispatch(command, coreDocument)
+    } catch (error) {
+      console.error("updateWireWaypoints: échec du dispatch via CommandBus", error)
+    }
+  }, [documentApi])
+  // =========================================================================
+  // FIN MB-VIS-005 (UPDATE_WIRE_WAYPOINTS)
+  // =========================================================================
+
+  // =========================================================================
+  // MB-VIS-005 (Phase E) : déplacement d'un waypoint existant par
+  // pointer-drag. Même patron que startDrag (composants) : la position
+  // affichée pendant le drag est un aperçu local (waypointPreview), jamais
+  // une écriture dans `wires` — seul le relâchement dispatche
+  // updateWireWaypoints() (mutation CF3 unique), et seulement si la
+  // position a réellement changé.
+  // =========================================================================
+  const startWaypointDrag = useCallback((event, wireId, index) => {
+    if (!wireId || !Number.isInteger(index) || !canvasRef?.current) return
+
+    // Garde I-M1 (même principe que startDrag/startMarquee) : aucune autre
+    // interaction de pointeur active simultanément.
+    if (dragSessionRef.current !== null) return
+    if (marqueeSessionRef.current !== null) return
+    if (pendingPin !== null) return
+
+    const wire = wiresRef.current.find((w) => w.id === wireId)
+    if (!wire || !Array.isArray(wire.waypoints) || !wire.waypoints[index]) return
+
+    event.stopPropagation()
+
+    const rect = canvasRef.current.getBoundingClientRect()
+    const pointer = clientToCanvas(event, rect)
+    const baseWaypoints = wire.waypoints.map((wp) => ({ ...wp }))
+
+    waypointDragSessionRef.current = {
+      wireId,
+      index,
+      pointerStart: { x: pointer.x, y: pointer.y },
+      baseWaypoints,
+      liveWaypoints: baseWaypoints,
+    }
+    setWaypointPreview({ wireId, waypoints: baseWaypoints })
+
+    event.preventDefault()
+  }, [canvasRef, pendingPin])
+  // =========================================================================
+  // FIN MB-VIS-005 (Phase E — déplacement de waypoint)
   // =========================================================================
 
   const cancelWiring = useCallback(() => setPendingPin(null), [])
@@ -767,6 +872,26 @@ if (import.meta.env.DEV) {
         return
       }
 
+      // MB-VIS-005 (Phase E) : déplacement d'un waypoint existant — aperçu
+      // local uniquement (setWaypointPreview), aucune mutation du Document
+      // tant que le pointeur n'est pas relâché (AC-03/AC-11).
+      const waypointSession = waypointDragSessionRef.current
+      if (waypointSession && canvasRef?.current) {
+        const rect = canvasRef.current.getBoundingClientRect()
+        const pointer = clientToCanvas(event, rect)
+        const deltaX = pointer.x - waypointSession.pointerStart.x
+        const deltaY = pointer.y - waypointSession.pointerStart.y
+
+        const liveWaypoints = waypointSession.baseWaypoints.map((wp, i) =>
+          i === waypointSession.index
+            ? { x: wp.x + deltaX, y: wp.y + deltaY }
+            : wp
+        )
+        waypointSession.liveWaypoints = liveWaypoints
+        setWaypointPreview({ wireId: waypointSession.wireId, waypoints: liveWaypoints })
+        return
+      }
+
       const session = dragSessionRef.current
       if (!session || !canvasRef?.current) return
 
@@ -791,6 +916,26 @@ if (import.meta.env.DEV) {
     const handlePointerUp = () => {
       if (marqueeSessionRef.current !== null) {
         endMarquee()
+        return
+      }
+
+      // MB-VIS-005 (Phase E) : commit du déplacement de waypoint — une seule
+      // mutation CF3 (updateWireWaypoints), uniquement si la position a
+      // effectivement changé (même garde que I-H10 pour le drag de
+      // composant), puis nettoyage systématique de la session/aperçu.
+      const waypointSession = waypointDragSessionRef.current
+      if (waypointSession) {
+        const { wireId, baseWaypoints, liveWaypoints } = waypointSession
+        const changed =
+          liveWaypoints.length !== baseWaypoints.length ||
+          liveWaypoints.some((wp, i) => wp.x !== baseWaypoints[i].x || wp.y !== baseWaypoints[i].y)
+
+        if (changed) {
+          updateWireWaypoints(wireId, liveWaypoints)
+        }
+
+        waypointDragSessionRef.current = null
+        setWaypointPreview(null)
         return
       }
 
@@ -832,6 +977,13 @@ if (import.meta.env.DEV) {
         setMarqueeRect(null)
         return
       }
+      // MB-VIS-005 (Phase E) : I-P10 — nettoyage sans historique, aucun
+      // commit CF3.
+      if (waypointDragSessionRef.current !== null) {
+        waypointDragSessionRef.current = null
+        setWaypointPreview(null)
+        return
+      }
       // I-P10 : Nettoyage sans historique
       dragSessionRef.current = null
     }
@@ -840,6 +992,13 @@ if (import.meta.env.DEV) {
       if (marqueeSessionRef.current !== null) {
         marqueeSessionRef.current = null
         setMarqueeRect(null)
+        return
+      }
+      // MB-VIS-005 (Phase E) : I-P10 — nettoyage sans historique, aucun
+      // commit CF3.
+      if (waypointDragSessionRef.current !== null) {
+        waypointDragSessionRef.current = null
+        setWaypointPreview(null)
         return
       }
       // I-P10 : Nettoyage sans historique
@@ -857,7 +1016,7 @@ if (import.meta.env.DEV) {
       window.removeEventListener("pointercancel", handlePointerCancel)
       window.removeEventListener("blur", handleBlur)
     }
-  }, [canvasRef, updateComponentPositions, updateMarquee, endMarquee, documentApi])
+  }, [canvasRef, updateComponentPositions, updateMarquee, endMarquee, documentApi, updateWireWaypoints])
 
   // =========================================================================
   // WRAPPERS DE COMPATIBILITé
@@ -961,6 +1120,13 @@ if (import.meta.env.DEV) {
   isPinPending,
   isPinConnected,
 
+  // MB-VIS-005 (ruling CSA du 2026-08-21, Phase E) : mutation atomique
+  // unique (création/déplacement/suppression de waypoints composent toutes
+  // le nouveau tableau complet côté Presentation puis appellent cette seule
+  // fonction) et déclenchement du drag d'un waypoint existant.
+  updateWireWaypoints,
+  startWaypointDrag,
+
   startDrag,
   startSimulation,
   stopSimulation,
@@ -1027,6 +1193,9 @@ if (import.meta.env.DEV) {
   cancelWiring,
   isPinPending,
   isPinConnected,
+
+  updateWireWaypoints,
+  startWaypointDrag,
 
   startDrag,
   startSimulation,

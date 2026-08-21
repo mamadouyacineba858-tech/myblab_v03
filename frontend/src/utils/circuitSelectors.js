@@ -42,7 +42,7 @@ export function buildConnectedPinsSet(wires) {
  * accès aux trois informations à la fois.
  *
  * @param {Array<{ uid, type, x, y }>} components
- * @param {Array<{ id, fromUid, fromPin, toUid, toPin }>} wires
+ * @param {Array<{ id, fromUid, fromPin, toUid, toPin, waypoints? }>} wires waypoints (MB-VIS-005, ADR-008 amendé) : points intermédiaires persistants optionnels, consommés dans leur ordre par buildWirePath().
  * @returns {Array<{ id: string, d: string }>}
  */
 export function buildWirePaths(components, wires) {
@@ -73,7 +73,7 @@ export function buildWirePaths(components, wires) {
     const toPos = getPinPosition(toComp, toPinDef)
     if (!fromPos || !toPos) continue
 
-    const d = buildWirePath(fromPos, toPos)
+    const d = buildWirePath(fromPos, toPos, wire.waypoints)
     if (!d) continue
 
     paths.push({ id: wire.id, d })

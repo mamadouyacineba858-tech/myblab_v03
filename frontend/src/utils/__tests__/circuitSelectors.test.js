@@ -39,3 +39,18 @@ describe('MB-VIS-004 — buildWirePaths (géométrie pure)', () => {
     expect(buildWirePaths([led, resistor], null)).toEqual([])
   })
 })
+
+describe('MB-VIS-005 — buildWirePaths consomme les waypoints persistants du wire', () => {
+  it('un wire sans waypoints produit le même tracé qu\'avant MB-VIS-005 (non-régression)', () => {
+    const withoutField = buildWirePaths([led, resistor], [wire])
+    const withEmptyArray = buildWirePaths([led, resistor], [{ ...wire, waypoints: [] }])
+    expect(withoutField[0].d).toBe(withEmptyArray[0].d)
+  })
+
+  it('un wire avec waypoints produit un tracé qui les traverse, dans leur ordre', () => {
+    const routedWire = { ...wire, waypoints: [{ x: 90, y: 40 }] }
+    const paths = buildWirePaths([led, resistor], [routedWire])
+    expect(paths).toHaveLength(1)
+    expect(paths[0].d).toContain('L 90 40')
+  })
+})

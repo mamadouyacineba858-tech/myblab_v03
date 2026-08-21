@@ -158,20 +158,38 @@ describe("MB-CF1-001 — CF1-003-E / GATE 3 [AMENDÉ par CSA-CF3-001-A pour MB-C
   })
 })
 
-describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A puis CSA-CF3-002-ADD-WIRE-001] : branchement CommandBus ↔ UI activé, borné à ADD_COMPONENT + ADD_WIRE", () => {
+describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD-WIRE-001, puis CSA RULING — AUTORISATION DE REPRISE MB-VIS-005 (2026-08-21)] : branchement CommandBus ↔ UI activé, borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS", () => {
   it("[CSA-CF3-001-A] useCircuitState.js importe désormais CommandBus.js et HistoryService.js (activation du canal — c'était l'objet de CF3)", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     expect(source).toMatch(/from\s+["'].*core\/command\/CommandBus\.js["']/)
     expect(source).toMatch(/from\s+["'].*core\/history\/HistoryService\.js["']/)
   })
 
-  it("[CSA-CF3-002-ADD-WIRE-001] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE : AddWireHandler existe, aucun autre type de commande n'est enregistré dans useCircuitState.js", () => {
+  // [CSA RULING — AUTORISATION DE REPRISE MB-VIS-005, 2026-08-21] Ce ruling
+  // autorise explicitement l'enregistrement en production d'UNE seule
+  // commande supplémentaire, UPDATE_WIRE_WAYPOINTS (mutation atomique unique
+  // du tableau waypoints d'un wire existant), et rien d'autre : aucune
+  // migration opportuniste d'autre mutation legacy, aucune commande
+  // granulaire (addWireWaypoint/removeWireWaypoint/moveWireWaypoint). Le
+  // verrou reste actif : il borne désormais le canal à exactement ces trois
+  // commandes, ni plus, ni moins.
+  it("[CSA RULING MB-VIS-005 du 2026-08-21] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS : AddWireHandler et UpdateWireWaypointsHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     const registerCalls = source.match(/\.register\(\s*["'][A-Z_]+["']/g) || []
-    expect(registerCalls).toEqual(['.register("ADD_COMPONENT"', '.register("ADD_WIRE"'])
+    expect(registerCalls).toEqual([
+      '.register("ADD_COMPONENT"',
+      '.register("ADD_WIRE"',
+      '.register("UPDATE_WIRE_WAYPOINTS"',
+    ])
 
     const wireHandlerPath = path.join(dir, "..", "..", "core", "handlers", "wire", "AddWireHandler.js")
     expect(fs.existsSync(wireHandlerPath), "AddWireHandler doit exister (MB-CF3-002, ruling CSA-CF3-002-ADD-WIRE-001)").toBe(true)
+
+    const waypointsHandlerPath = path.join(dir, "..", "..", "core", "handlers", "wire", "UpdateWireWaypointsHandler.js")
+    expect(
+      fs.existsSync(waypointsHandlerPath),
+      "UpdateWireWaypointsHandler doit exister (MB-VIS-005, ruling CSA du 2026-08-21)"
+    ).toBe(true)
   })
 
   it("[AMENDÉ par CSA-CF4-001-A] CommandBus.js utilise désormais this._validators dans dispatch() : le canal ADR-010 est activé sans nouvelle architecture parallèle", () => {

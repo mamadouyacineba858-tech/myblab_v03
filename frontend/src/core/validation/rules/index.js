@@ -16,6 +16,11 @@ export { ComponentPinsRule } from './structural/ComponentPinsRule.js'
 export { WirePinsExistRule } from './structural/WirePinsExistRule.js'
 export { SelfLoopRule } from './structural/SelfLoopRule.js'
 export { ReferenceCoherenceRule } from './structural/ReferenceCoherenceRule.js'
+// MB-VIS-005 : valide la structure des waypoints d'une commande
+// UPDATE_WIRE_WAYPOINTS en attente. N'implique aucun enregistrement de
+// cette commande dans un CommandRegistry — indépendant du verrou
+// cf1DocumentArchitecture.test.js (portée : ValidationRegistry uniquement).
+export { WireWaypointsStructureRule } from './structural/WireWaypointsStructureRule.js'
 
 // Électriques
 export { ResistancePositiveRule } from './electrical/ResistancePositiveRule.js'
@@ -33,6 +38,7 @@ import { ComponentPinsRule } from './structural/ComponentPinsRule.js'
 import { WirePinsExistRule } from './structural/WirePinsExistRule.js'
 import { SelfLoopRule } from './structural/SelfLoopRule.js'
 import { ReferenceCoherenceRule } from './structural/ReferenceCoherenceRule.js'
+import { WireWaypointsStructureRule } from './structural/WireWaypointsStructureRule.js'
 import { ResistancePositiveRule } from './electrical/ResistancePositiveRule.js'
 import { CapacitancePositiveRule } from './electrical/CapacitancePositiveRule.js'
 import { VoltageDefinedRule } from './electrical/VoltageDefinedRule.js'
@@ -47,6 +53,7 @@ export const ALL_VALIDATION_RULES = [
   WirePinsExistRule,
   SelfLoopRule,
   ReferenceCoherenceRule,
+  WireWaypointsStructureRule,
   ResistancePositiveRule,
   CapacitancePositiveRule,
   VoltageDefinedRule,

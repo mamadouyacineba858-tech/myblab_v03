@@ -1,22 +1,53 @@
 /**
  * Génération de chemins SVG pour les fils.
- * Coordonnées toujours passées en live (jamais stockées dans le modèle wire).
+ * Les extrémités (`from`/`to`) sont toujours passées en live, dérivées de
+ * la position courante des composants (jamais stockées dans le modèle
+ * wire). Les points intermédiaires (`waypoints`), lorsqu'ils sont fournis,
+ * sont en revanche des données persistantes du Wire Core (ADR-008 amendé,
+ * MB-VIS-005) — seule leur consommation ici est en lecture pure.
  */
 
 /**
- * Chemin en L (horizontal puis vertical) — style breadboard.
+ * Chemin SVG d'un wire.
+ *
+ * Sans waypoint (comportement historique, MB-VIS-004, non-régression
+ * stricte bit à bit — AC-08) : chemin en L (horizontal puis vertical) —
+ * style breadboard.
+ *
+ * Avec waypoints persistants (MB-VIS-005, ADR-008 amendé) : segments
+ * droits successifs de `from` à travers chaque waypoint, dans leur ordre
+ * persistant, jusqu'à `to` (AC-06). Aucune courbe/interpolation n'est
+ * mandatée par ADR-008 ni par docs/pmo/tickets/MB-VIS-005.md §5.6 : ce
+ * choix de segments droits reste un détail d'implémentation borné par le
+ * contrat de géométrie existant, pas une nouvelle décision architecturale
+ * sur le modèle Wire.
+ *
  * @param {{ x: number, y: number }} from
  * @param {{ x: number, y: number }} to
+ * @param {Array<{ x: number, y: number }>} [waypoints] Points intermédiaires persistants, dans l'ordre pinA -> pinB (MB-VIS-005).
  * @returns {string} attribut d du path SVG
  */
-export function buildWirePath(from, to) {
+export function buildWirePath(from, to, waypoints = []) {
   if (!from || !to) return ""
   const { x: x1, y: y1 } = from
   const { x: x2, y: y2 } = to
   if (![x1, y1, x2, y2].every(Number.isFinite)) return ""
 
-  const midX = (x1 + x2) / 2
-  return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`
+  const points = Array.isArray(waypoints)
+    ? waypoints.filter((wp) => wp && Number.isFinite(wp.x) && Number.isFinite(wp.y))
+    : []
+
+  if (points.length === 0) {
+    const midX = (x1 + x2) / 2
+    return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`
+  }
+
+  const segments = [`M ${x1} ${y1}`]
+  for (const wp of points) {
+    segments.push(`L ${wp.x} ${wp.y}`)
+  }
+  segments.push(`L ${x2} ${y2}`)
+  return segments.join(" ")
 }
 
 import { Signal } from "../simulator/signals.js"

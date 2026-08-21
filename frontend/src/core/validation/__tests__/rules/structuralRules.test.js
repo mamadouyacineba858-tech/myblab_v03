@@ -4,6 +4,7 @@ import { ComponentPinsRule } from '../../rules/structural/ComponentPinsRule.js'
 import { WirePinsExistRule } from '../../rules/structural/WirePinsExistRule.js'
 import { SelfLoopRule } from '../../rules/structural/SelfLoopRule.js'
 import { ReferenceCoherenceRule } from '../../rules/structural/ReferenceCoherenceRule.js'
+import { WireWaypointsStructureRule } from '../../rules/structural/WireWaypointsStructureRule.js'
 
 const component = (id, type, extra = {}) => ({ id, type, position: { x: 0, y: 0 }, parameters: {}, ...extra })
 const wire = (id, fromId, fromPin, toId, toPin) => ({
@@ -113,5 +114,82 @@ describe('STR-005 ReferenceCoherenceRule', () => {
     expect(problem).not.toBeNull()
     expect(ReferenceCoherenceRule.level).toBe('ERROR')
     expect(problem.context.dangling[0].componentId).toBe('GHOST')
+  })
+})
+
+describe('STR-006 WireWaypointsStructureRule (MB-VIS-005)', () => {
+  it('ne signale rien en l\'absence de commande (Wire existant sans waypoints, rétrocompatibilité)', () => {
+    const document = { components: [], wires: [wire('W1', 'L1', 'anode', 'R1', 'A')] }
+    expect(WireWaypointsStructureRule.validate(document, null)).toBeNull()
+  })
+
+  it('ne signale rien pour une commande étrangère (ADD_COMPONENT, ADD_WIRE...)', () => {
+    const document = { components: [], wires: [] }
+    const command = { type: 'ADD_WIRE', payload: { fromUid: 'L1', fromPin: 'anode', toUid: 'R1', toPin: 'A' } }
+    expect(WireWaypointsStructureRule.validate(document, command)).toBeNull()
+  })
+
+  it('ne signale rien pour une mutation UPDATE_WIRE_WAYPOINTS valide (tableau vide)', () => {
+    const document = { components: [], wires: [] }
+    const command = { type: 'UPDATE_WIRE_WAYPOINTS', payload: { wireId: 'W1', waypoints: [] } }
+    expect(WireWaypointsStructureRule.validate(document, command)).toBeNull()
+    expect(WireWaypointsStructureRule.level).toBe('ERROR')
+  })
+
+  it('ne signale rien pour une mutation UPDATE_WIRE_WAYPOINTS valide (plusieurs points finis)', () => {
+    const document = { components: [], wires: [] }
+    const command = {
+      type: 'UPDATE_WIRE_WAYPOINTS',
+      payload: { wireId: 'W1', waypoints: [{ x: 10, y: 20 }, { x: -5, y: 0 }] },
+    }
+    expect(WireWaypointsStructureRule.validate(document, command)).toBeNull()
+  })
+
+  it('signale ERROR si waypoints n\'est pas un tableau', () => {
+    const document = { components: [], wires: [] }
+    const command = { type: 'UPDATE_WIRE_WAYPOINTS', payload: { wireId: 'W1', waypoints: 'nope' } }
+    const problem = WireWaypointsStructureRule.validate(document, command)
+    expect(problem).not.toBeNull()
+    expect(problem.context.wireId).toBe('W1')
+  })
+
+  it('signale ERROR pour des coordonnées non numériques', () => {
+    const document = { components: [], wires: [] }
+    const command = {
+      type: 'UPDATE_WIRE_WAYPOINTS',
+      payload: { wireId: 'W1', waypoints: [{ x: 'a', y: 1 }] },
+    }
+    const problem = WireWaypointsStructureRule.validate(document, command)
+    expect(problem).not.toBeNull()
+    expect(problem.context.invalidIndexes).toEqual([0])
+  })
+
+  it('signale ERROR pour NaN', () => {
+    const document = { components: [], wires: [] }
+    const command = {
+      type: 'UPDATE_WIRE_WAYPOINTS',
+      payload: { wireId: 'W1', waypoints: [{ x: NaN, y: 1 }] },
+    }
+    expect(WireWaypointsStructureRule.validate(document, command)).not.toBeNull()
+  })
+
+  it('signale ERROR pour Infinity', () => {
+    const document = { components: [], wires: [] }
+    const command = {
+      type: 'UPDATE_WIRE_WAYPOINTS',
+      payload: { wireId: 'W1', waypoints: [{ x: 1, y: Infinity }] },
+    }
+    expect(WireWaypointsStructureRule.validate(document, command)).not.toBeNull()
+  })
+
+  it('signale ERROR pour une structure de waypoint malformée', () => {
+    const document = { components: [], wires: [] }
+    const command = {
+      type: 'UPDATE_WIRE_WAYPOINTS',
+      payload: { wireId: 'W1', waypoints: [null, 'x', 42] },
+    }
+    const problem = WireWaypointsStructureRule.validate(document, command)
+    expect(problem).not.toBeNull()
+    expect(problem.context.invalidIndexes).toEqual([0, 1, 2])
   })
 })
