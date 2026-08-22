@@ -9,11 +9,13 @@
 
 ## 1. Pourquoi ce cadre est nécessaire
 
-La roadmap Phase 2 définit déjà la direction vers le Niveau 1. Ce cadre ajoute ce qui manque pour éviter trois échecs récurrents :
+La roadmap Phase 2 définit la direction vers le Niveau 1. Ce cadre ajoute les mécanismes nécessaires pour éviter :
 
 1. choisir un ticket parce qu'il est disponible plutôt que parce qu'il ferme un gap produit ;
 2. considérer une capacité technique comme une capacité produit alors qu'elle n'est pas observable de bout en bout ;
-3. avancer plusieurs tickets sans mettre à jour la mémoire de projet.
+3. avancer plusieurs tickets sans mettre à jour la mémoire du projet ;
+4. déclarer un scénario « terminé » alors qu'une dépendance critique reste non démontrée ;
+5. perdre la raison des décisions lorsque le projet change d'agent ou de session.
 
 La Phase 2 est donc pilotée par **capacités démontrées**, pas par volume de code.
 
@@ -33,13 +35,54 @@ PREUVE ATTENDUE
 TICKETS NÉCESSAIRES
 ```
 
-Un ticket qui ne peut pas être relié à un scénario Level 1 ou à une dépendance indispensable est **secondaire** jusqu'à justification CSA.
+Un ticket qui ne peut pas être relié à un scénario Level 1 ou à une dépendance indispensable est secondaire jusqu'à justification CSA.
 
 ---
 
-## 3. Matrice de maturité Level 1
+## 3. Registre des capacités — nouvelle source de vérité opérationnelle
 
-Une capacité n'est pas simplement « faite / pas faite ».
+La Phase 2 doit maintenir un registre unique des capacités, distinct de la liste des tickets.
+
+Pour chaque capacité :
+
+```text
+ID
+NOM
+SCÉNARIOS SERVIS
+MATURITÉ L0-L4
+PREUVES DISPONIBLES
+GAP RESTANT
+DÉPENDANCES
+TICKET ACTUEL
+NEXT
+NEXT+1
+BLOQUEUR
+DATE DE DERNIÈRE ÉVALUATION
+```
+
+**Règle :** un ticket peut être clôturé sans qu'une capacité soit certifiée ; inversement, une capacité ne peut être déclarée acquise uniquement parce que ses tickets sont clos.
+
+---
+
+## 4. Matrice Scénario × Capacité
+
+Pour chaque scénario Level 1, la roadmap doit pouvoir répondre à :
+
+| Scénario | Workspace | Wiring | Simulation | Observation | Measurement | Temporal | Physical | Embedded | Recovery | Save/Reopen |
+|---|---|---|---|---|---|---|---|---|---|---|
+| LED de base | — | — | — | — | — | — | — | — | — | — |
+| Interaction | — | — | — | — | — | — | — | — | — | — |
+| PWM/dynamique | — | — | — | — | — | — | — | — | — | — |
+| Measurement | — | — | — | — | — | — | — | — | — | — |
+| Waveform | — | — | — | — | — | — | — | — | — | — |
+| Breadboard | — | — | — | — | — | — | — | — | — | — |
+| Embedded E2E | — | — | — | — | — | — | — | — | — | — |
+
+Les cellules doivent être alimentées par le registre des capacités et non par une appréciation subjective.
+
+---
+
+## 5. Matrice de maturité Level 1
 
 | Niveau | Signification |
 |---|---|
@@ -49,41 +92,87 @@ Une capacité n'est pas simplement « faite / pas faite ».
 | L3 | workflow robuste + tests + intégration |
 | L4 | capacité validée dans le scénario Level 1 |
 
-**Règle de certification :** un scénario Level 1 ne peut être déclaré acquis que si toutes ses capacités critiques atteignent au minimum L3 et si le scénario complet est démontré de bout en bout.
+### Règle spéciale de preuve insuffisante
+
+Les états suivants sont distincts :
+
+- **ABSENT** : la capacité n'existe pas ;
+- **NON DÉMONTRÉ** : elle peut exister techniquement, mais aucune preuve suffisante n'est disponible ;
+- **TECHNIQUE SEULEMENT** : le moteur ou le code possède la capacité, mais pas le workflow utilisateur ;
+- **PRODUIT** : le workflow utilisateur fonctionne ;
+- **CERTIFIÉ** : le scénario complet satisfait les critères Level 1.
+
+Une absence de métrique automatisée n'autorise pas à transformer une capacité visiblement insuffisante en « atteinte ». L'évaluation doit rester fondée sur les preuves disponibles.
+
+**Certification :** un scénario Level 1 ne peut être déclaré acquis que si ses capacités critiques atteignent au minimum L3 et si le scénario complet est démontré de bout en bout.
 
 ---
 
-## 4. Les cinq preuves obligatoires
+## 6. Les cinq preuves obligatoires
 
 Pour tout nouveau ticket fonctionnel important :
 
 ### P1 — Preuve architecture
-
 Le contrat et les frontières entre sous-systèmes sont explicitement définis.
 
 ### P2 — Preuve comportement
-
 Le comportement attendu est démontré par des tests déterministes.
 
 ### P3 — Preuve utilisateur
-
 Un scénario réel peut être exécuté depuis l'interface, sans accès interne au moteur.
 
 ### P4 — Preuve intégration
-
 Simulation, Document, Presentation et/ou Runtime impliqués dans le scénario communiquent par les contrats officiels.
 
 ### P5 — Preuve traçabilité
-
 Ticket → ruling → code → tests → commit → Delivery Report → roadmap mise à jour.
 
-Un ticket peut être techniquement vert tout en restant **non clos** si P3 ou P5 manque.
+Un ticket peut être techniquement vert tout en restant non clos si P3 ou P5 manque.
 
 ---
 
-## 5. Score de priorité des candidats
+## 7. Benchmark produit : « atteindre Tinkercad » puis « dépasser Tinkercad »
 
-Lorsqu'il existe plusieurs candidats raisonnables, le CSA les compare avec cette grille :
+Le Level 1 doit être évalué par des **scénarios comparables**, pas par le nombre de composants ou de lignes de code.
+
+### Benchmark de référence
+
+À terme, nous devons pouvoir comparer au minimum :
+
+- création d'un circuit ;
+- placement et déplacement ;
+- câblage et correction du câblage ;
+- simulation ;
+- observation ;
+- mesure ;
+- signaux dynamiques ;
+- montage physique/breadboard ;
+- workflow embedded ;
+- sauvegarde/réouverture ;
+- récupération après erreur ;
+- édition multi-objet et Undo/Redo.
+
+### Règle « atteindre »
+
+MYBlab ne sera pas déclaré au niveau benchmark tant que les scénarios essentiels comparables ne sont pas démontrés de manière suffisamment équivalente pour l'objectif défini.
+
+### Règle « dépasser »
+
+« Dépasser Tinkercad » doit correspondre à des **avantages démontrés**, par exemple :
+
+- observation plus profonde ;
+- déterminisme et reproductibilité ;
+- instrumentation plus riche ;
+- workflows pédagogiques ;
+- architecture permettant une évolution vers le laboratoire virtuel spatial/3D.
+
+Une fonctionnalité simplement différente n'est pas automatiquement un avantage.
+
+---
+
+## 8. Score de priorité des candidats
+
+Lorsqu'il existe plusieurs candidats raisonnables :
 
 | Critère | Poids |
 |---|---:|
@@ -95,20 +184,18 @@ Lorsqu'il existe plusieurs candidats raisonnables, le CSA les compare avec cette
 | Coût / portée raisonnable | 10 |
 | **Total** | **100** |
 
-Seuils :
+- 80–100 : candidat prioritaire ;
+- 65–79 : candidat valable, dépendances à vérifier ;
+- 50–64 : candidat secondaire ;
+- <50 : pas de prochain ticket sans arbitrage explicite.
 
-- **80–100 :** candidat prioritaire ;
-- **65–79 :** candidat valable, dépendances à vérifier ;
-- **50–64 :** candidat secondaire ;
-- **<50 :** ne doit pas devenir le prochain ticket sans arbitrage explicite.
-
-Ce score n'est pas une décision automatique : il sert à rendre la décision explicable.
+Le score rend la décision explicable ; il ne la automatise pas.
 
 ---
 
-## 6. Graphe de dépendances plutôt que simple liste
+## 9. Graphe de dépendances
 
-La roadmap doit maintenir au minimum :
+La roadmap doit maintenir un graphe et non une simple liste :
 
 ```text
 OBSERVATION CONTRACT
@@ -128,187 +215,139 @@ SIMULATION
                     └──→ EMBEDDED END-TO-END
 ```
 
-Le graphe est prioritaire sur la numérotation. Une branche bloquée doit afficher explicitement son bloqueur.
+Une dépendance bloquée doit afficher explicitement son bloqueur et la décision nécessaire pour le lever.
 
 ---
 
-## 7. Fenêtre de planification obligatoire
+## 10. Fenêtre de planification obligatoire
 
-À tout instant, la roadmap doit connaître au minimum :
+À tout instant :
 
-- **NOW** : ticket/capacité actuellement intégrée ou en clôture ;
-- **NEXT** : prochain ticket autorisé après les gates ;
-- **NEXT+1** : ticket immédiatement suivant, sous réserve des résultats de NEXT ;
+- **NOW** : état actuellement en clôture/intégration ;
+- **NEXT** : prochain ticket autorisable ;
+- **NEXT+1** : suivant, sous réserve des résultats de NEXT ;
 - **LATER** : trajectoire ultérieure ;
-- **BLOCKED** : éléments bloqués et raison.
+- **BLOCKED** : éléments bloqués + raison + propriétaire de la décision.
 
-Exemple cible :
-
-```text
-NOW      → clôture / réconciliation Phase 2
-NEXT     → MB-OBS-001
-NEXT+1   → MB-MEASURE-001
-LATER    → MB-OBS-002 / waveform
-BLOCKED  → éléments dépendant d'un contrat non stabilisé
-```
-
-Cette fenêtre doit être mise à jour après chaque intégration.
+Cette fenêtre est mise à jour après chaque intégration.
 
 ---
 
-## 8. GATE du premier ticket fonctionnel
+## 11. GATE du premier ticket fonctionnel
 
-`MB-OBS-001` ne doit passer en implémentation que si les questions suivantes ont une réponse documentée :
+`MB-OBS-001` ne passe en implémentation que si sont documentés :
 
 1. source exacte de la grandeur ;
-2. granularité (pin/net/branche/composant) ;
+2. granularité ;
 3. unité ;
-4. validité et indisponibilité ;
+4. validité/indisponibilité ;
 5. instantané vs temporel ;
 6. origine du temps simulé ;
 7. frontière Simulation/Presentation ;
-8. comportement déterministe ;
-9. API de consommation par futurs instruments ;
+8. déterminisme ;
+9. API future des instruments ;
 10. stratégie de test ;
-11. impact sur les contrats CF3 existants ;
-12. absence de duplication d'un canal de mutation existant.
+11. impact CF3 ;
+12. absence de duplication de mutation ;
+13. scénario utilisateur de référence ;
+14. critère de succès observable.
 
-**Condition GO :** aucun point critique ne doit rester implicite.
+**GO seulement si aucun point critique n'est implicite.**
 
 ---
 
-## 9. Observation et mesure : distinction fondamentale
-
-La Phase 2 ne doit pas confondre :
+## 12. Observation ≠ Measurement
 
 ```text
 OBSERVATION = obtenir une grandeur simulée qualifiée
-MEASUREMENT = présenter cette grandeur comme un instrument ayant
+MEASUREMENT = présenter cette grandeur comme un instrument avec
               une sémantique de mesure
 ```
 
-Ainsi, le contrat commun doit précéder l'interface du multimètre.
+Le contrat commun doit précéder les interfaces de multimètre et d'oscilloscope.
 
-Cette distinction permettra ensuite de réutiliser le même socle pour :
-
-- multimètre ;
-- oscilloscope ;
-- sondes ;
-- indicateurs ;
-- diagnostics ;
-- instrumentation pédagogique.
+Il doit pouvoir servir également aux sondes, indicateurs, diagnostics et instrumentation pédagogique.
 
 ---
 
-## 10. Déterminisme temporel : règle absolue
+## 13. Déterminisme temporel
 
-Toute observation dynamique doit utiliser le temps simulé officiel.
+Toute observation dynamique utilise le temps simulé officiel.
 
-Le code ne doit introduire pour la simulation aucune dépendance à :
+Aucune dépendance de simulation à `Date.now()`, `performance.now()`, `setTimeout()`, `setInterval()` ou horloge système implicite.
 
-- `Date.now()` ;
-- `performance.now()` ;
-- `setTimeout()` ;
-- `setInterval()` ;
-- horloge système implicite.
-
-Le module PWM actuel confirme déjà cette orientation : son évaluation reçoit explicitement `currentTimeMs` et ne lit pas lui-même l'horloge. Cette propriété doit être conservée pour les futures waveforms. fileciteturn502file0L2-L2
+Le PWM existant reçoit explicitement son temps d'évaluation ; cette propriété doit être conservée pour les futures waveforms. fileciteturn502file0L2-L2
 
 ---
 
-## 11. Breadboard : ne pas reproduire le piège du « joli canvas »
+## 14. Breadboard : modèle avant décor
 
-Le breadboard doit être traité comme un **modèle de connectivité et d'assemblage**, avec une représentation visuelle au-dessus.
+Le breadboard est un **modèle de connectivité et d'assemblage** avec une projection visuelle au-dessus.
 
-Avant implémentation, le ticket devra définir :
+Avant implémentation : rails, groupes électriquement connectés, insertion/retrait, règles de connectivité, relation position/connectivité, Document, Simulation, erreurs de montage et instrumentation doivent être définis.
 
-- rails d'alimentation ;
-- groupes de trous électriquement connectés ;
-- insertion/retrait ;
-- règles de connectivité ;
-- relation entre position physique et connectivité logique ;
-- projection vers le Document ;
-- comportement de la Simulation ;
-- erreurs de montage ;
-- compatibilité avec les instruments.
-
-Une simple grille ressemblant à une breadboard n'est pas considérée comme la capacité Level 1.
+Une simple grille visuelle ne constitue pas la capacité Level 1.
 
 ---
 
-## 12. Embedded : critère de réussite réaliste
+## 15. Embedded : critère E2E
 
-Le workflow embedded Level 1 doit pouvoir être démontré sous une forme minimale :
+Le scénario minimal est :
 
 ```text
-COMPOSANTS
-   ↓
-CÂBLAGE
-   ↓
-PROGRAMME
-   ↓
-EXÉCUTION
-   ↓
-CHANGEMENT DE COMPORTEMENT
-   ↓
-OBSERVATION / MESURE
+COMPOSANTS → CÂBLAGE → PROGRAMME → EXÉCUTION
+→ CHANGEMENT DE COMPORTEMENT → OBSERVATION / MESURE
 ```
 
-Ajouter des APIs Arduino sans démontrer cette chaîne complète ne suffit pas.
+Ajouter des APIs sans démontrer cette chaîne ne suffit pas.
 
 ---
 
-## 13. Save / Reopen et récupération : portes transversales
+## 16. Save / Reopen et Recovery
 
-Ces fonctions ne doivent pas attendre la fin de Level 1 pour être considérées.
-
-Pour chaque capacité importante, vérifier au minimum :
+Pour chaque capacité importante :
 
 ```text
 créer → modifier → sauvegarder → rouvrir → simuler → observer
 ```
 
-et, lorsqu'une erreur est attendue :
+Et lorsqu'une erreur est attendue :
 
 ```text
 erreur → message exploitable → état cohérent → reprise possible
 ```
 
----
-
-## 14. Protection contre la dérive de scope
-
-Un ticket Level 1 ne doit pas absorber automatiquement :
-
-- refonte générale du Core ;
-- nettoyage legacy non nécessaire ;
-- nouvelle architecture non justifiée ;
-- redesign visuel complet ;
-- 3D ;
-- nouveaux composants sans scénario ;
-- migration d'un autre sous-système sans dépendance démontrée.
-
-Tout élargissement doit être enregistré comme **scope additionnel**, **nouveau ticket** ou **décision CSA**.
+Ces portes sont transversales et ne sont pas repoussées à la fin du Niveau 1.
 
 ---
 
-## 15. Règle spéciale pour la 3D
+## 17. Protection contre la dérive de scope
 
-La 3D reste explicitement Level 3.
+Un ticket Level 1 ne doit pas absorber automatiquement une refonte générale du Core, nettoyage legacy non nécessaire, nouvelle architecture non justifiée, redesign complet, 3D, composants sans scénario ou migration d'un autre sous-système sans dépendance démontrée.
 
-Cependant, la Phase 2 doit éviter de créer des contrats qui empêcheraient ultérieurement une représentation 3D.
-
-Donc :
-
-**préparer les contrats, ne pas construire la 3D.**
-
-Les données métier (Document, connectivité, géométrie logique, instrumentation) doivent rester indépendantes de la projection 2D ou 3D.
+Tout élargissement devient scope additionnel, nouveau ticket ou décision CSA.
 
 ---
 
-## 16. Certification Level 1 — tableau de sortie
+## 18. Réserve architecturale 3D
 
-Le Niveau 1 ne sera déclaré que lorsque le tableau suivant pourra être rempli avec des preuves :
+La 3D reste Level 3 et n'est pas un objectif de Phase 2.
+
+Mais les contrats métier doivent rester indépendants de la projection :
+
+```text
+DONNÉES MÉTIER / CONNECTIVITÉ / GÉOMÉTRIE LOGIQUE
+                    ↓
+              PRESENTATION
+               ↙       ↘
+             2D         3D (futur)
+```
+
+Toute décision Phase 2 qui rend cette séparation impossible doit être signalée comme risque architectural avant implémentation.
+
+---
+
+## 19. Certification Level 1
 
 | Scénario | Technique | Produit | E2E | Traçabilité | Statut |
 |---|---|---|---|---|---|
@@ -323,13 +362,13 @@ Le Niveau 1 ne sera déclaré que lorsque le tableau suivant pourra être rempli
 | Recovery | preuve | preuve | preuve | preuve | à certifier |
 | Multi-edit + Undo/Redo | preuve | preuve | preuve | preuve | à certifier |
 
-Aucune ligne ne peut être remplacée par un simple « tests verts ».
+Aucune ligne ne peut être remplacée par « tests verts ».
 
 ---
 
-## 17. Journal de décision obligatoire
+## 20. Decision Ledger
 
-Chaque changement important de trajectoire doit enregistrer :
+Chaque changement important doit enregistrer :
 
 ```text
 DATE
@@ -338,40 +377,83 @@ DÉCISION
 RAISON
 ALTERNATIVES ÉCARTÉES
 IMPACT ROADMAP
+NOW
 NEXT
 NEXT+1
 PREUVES
+CONSÉQUENCE FUTURE
 ```
 
-Le journal doit permettre, six mois plus tard, de comprendre **pourquoi** une décision a été prise, et pas seulement **ce qui** a été codé.
+Le journal doit permettre, six mois plus tard, de comprendre pourquoi une décision a été prise et pas seulement ce qui a été codé.
 
 ---
 
-## 18. Règle de clôture d'un ticket
+## 21. Journal STOP / NE PAS FAIRE
 
-Un ticket n'est pas réellement « terminé » à son commit.
+Les décisions négatives sont conservées comme des décisions de gouvernance à part entière.
 
-La clôture Phase 2 exige :
+Exemples actuels :
+
+- ne pas commencer la 3D avant les critères Level 1 ;
+- ne pas construire un oscilloscope sans contrat d'observation ;
+- ne pas construire une breadboard purement décorative ;
+- ne pas multiplier les systèmes de mutation ;
+- ne pas ajouter des composants sans scénario utilisateur ;
+- ne pas reprendre d'anciens tickets uniquement pour remplir la documentation.
+
+Chaque entrée doit comporter la condition qui permet éventuellement de lever le STOP.
+
+---
+
+## 22. Anti-dérive automatique après intégration
+
+Après chaque ticket intégré, le cycle obligatoire devient :
+
+```text
+DÉPÔT
+ ↓
+AUDIT DELTA
+ ↓
+CAPACITÉS AFFECTÉES
+ ↓
+SCÉNARIOS AFFECTÉS
+ ↓
+ROADMAP
+ ↓
+DECISION LEDGER
+ ↓
+NOW / NEXT / NEXT+1 / BLOCKED
+```
+
+Si ce cycle n'est pas effectué, la livraison est techniquement intégrée mais **documentairement incomplète**.
+
+---
+
+## 23. Règle de clôture d'un ticket
 
 ```text
 IMPLEMENTATION
-      ↓
+ ↓
 TESTS
-      ↓
+ ↓
 INTEGRATION
-      ↓
+ ↓
 DELIVERY REPORT
-      ↓
+ ↓
 ROADMAP UPDATE
-      ↓
+ ↓
+CAPABILITY UPDATE
+ ↓
+DECISION LEDGER
+ ↓
 TRACE NEXT / NEXT+1
 ```
 
-Le dernier commit doit donc toujours laisser la roadmap dans un état permettant au prochain agent de reprendre sans reconstruire l'historique.
+Le dernier état du dépôt doit toujours permettre au prochain agent de reprendre sans reconstruire l'historique.
 
 ---
 
-## 19. Décision actuelle
+## 24. Décision actuelle
 
 À la date du 2026-08-22 :
 
@@ -386,10 +468,10 @@ Le dernier commit doit donc toujours laisser la roadmap dans un état permettant
 
 ---
 
-## 20. Principe directeur
+## 25. Principe directeur
 
 > **Nous ne cherchons plus seulement à faire fonctionner MYBlab. Nous construisons progressivement la preuve qu'il devient un véritable laboratoire électronique.**
 
-Et à chaque étape :
+À chaque étape :
 
 > **Où sommes-nous ? → Où allons-nous ? → Pourquoi ? → Quelle preuve ? → Quel ticket après ?**
