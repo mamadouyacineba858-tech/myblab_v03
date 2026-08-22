@@ -20,25 +20,34 @@ import {
 import { runSimulation } from "../simulator/engine.js"
 import { getSelectionKey, parseSelectionKey, promoteActiveItem } from "../utils/selection.js"
 import { HistoryManager } from "../history/HistoryManager.js"
-import { MoveCommand } from "../history/commands/MoveCommand.js"
 import { DeleteCommand } from "../history/commands/DeleteCommand.js"
 import { ToggleLatchingButtonCommand } from "../history/commands/ToggleLatchingButtonCommand.js"
 // MB-CF3-001 (amendement CSA-CF3-001-A) : canal de mutation cible
 // (CommandBus -> Handler -> HistoryService).
 // MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) : étendu à ADD_WIRE.
-// MB-VIS-005 (ruling CSA du 2026-08-21) : étendu à UPDATE_WIRE_WAYPOINTS —
-// trois commandes au total, et rien de plus (verrou cf1DocumentArchitecture.test.js).
+// MB-VIS-005 (ruling CSA du 2026-08-21) : étendu à UPDATE_WIRE_WAYPOINTS.
+// MB-CF3-003 (ruling CSA-CF3-003-MOVE-001 du 2026-08-22) : étendu à
+// MOVE_COMPONENT — quatre commandes au total, et rien de plus (verrou
+// cf1DocumentArchitecture.test.js).
 import { Command } from "../core/command/Command.js"
 import { CommandBus } from "../core/command/CommandBus.js"
 import { CommandRegistry } from "../core/command/CommandRegistry.js"
 import { AddComponentHandler } from "../core/handlers/component/AddComponentHandler.js"
 import { AddWireHandler } from "../core/handlers/wire/AddWireHandler.js"
 // MB-VIS-005 (ruling CSA — autorisation du 2026-08-21, "CSA RULING — MB-VIS-005
-// / Command Registry") : troisième et dernier type actuellement autorisé sur
-// ce canal, strictement limité à UPDATE_WIRE_WAYPOINTS. Voir
+// / Command Registry") : troisième type autorisé sur ce canal, strictement
+// limité à UPDATE_WIRE_WAYPOINTS. Voir
 // frontend/src/bridge/tests/cf1DocumentArchitecture.test.js pour le verrou
 // amendé en conséquence.
 import { UpdateWireWaypointsHandler } from "../core/handlers/wire/UpdateWireWaypointsHandler.js"
+// MB-CF3-003 (ruling CSA-CF3-003-MOVE-001, 2026-08-22 — traçable dans
+// docs/pmo/tickets/MB-CF3-003.md §R) : quatrième et dernier type
+// actuellement autorisé sur ce canal — déplacement d'un ou plusieurs
+// composants, contrat canonique { moves: [...] }, toujours une seule
+// commande conceptuelle. Remplace le canal legacy MoveCommand/HistoryManager
+// pour le drag de production (MoveCommand.js n'est plus instancié ici, mais
+// reste présent et testé séparément — MoveCommand.test.js).
+import { MoveComponentHandler } from "../core/handlers/component/MoveComponentHandler.js"
 import { HistoryService } from "../core/history/HistoryService.js"
 import { ValidationEngine } from "../core/validation/ValidationEngine.js"
 import { createDefaultValidationRegistry } from "../core/validation/createValidationRegistry.js"
@@ -75,6 +84,24 @@ export function useCircuitState(canvasRef) {
   // =========================================================================
   const waypointDragSessionRef = useRef(null)
   const [waypointPreview, setWaypointPreview] = useState(null)
+
+  // =========================================================================
+  // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001, 2026-08-22 — traçable dans
+  // docs/pmo/tickets/MB-CF3-003.md §R) : dragPreview, Presentation-only,
+  // même patron que waypointPreview ci-dessus. Pendant un drag de
+  // composant(s), la position affichée est un aperçu local
+  // (Map<uid,{x,y}>) — JAMAIS une écriture dans `components`/le Document
+  // réel. Le Document persistant (safeComponents, componentsRef,
+  // documentApi.getDocument(), la simulation, exportCircuit) reste
+  // inchangé pendant tout pointermove ; seule componentsForRender (dérivée
+  // ci-dessous) reflète l'aperçu, pour le rendu visuel et la géométrie des
+  // wires. Une seule mutation CF3 (MOVE_COMPONENT) est dispatchée au
+  // relâchement (pointerup), uniquement si la position a réellement changé.
+  // C'est cette séparation qui corrige à la racine le bug
+  // oldPosition === newPosition (le Document réel n'est plus jamais
+  // pré-muté avant dispatch).
+  // =========================================================================
+  const [dragPreview, setDragPreview] = useState(null)
 
   // =========================================================================
   // MB-004.3 : Historique (infrastructure uniquement)
@@ -132,10 +159,31 @@ const getUndoCount = useCallback(() => {
     )
   }, [safeWires, waypointPreview])
 
+  // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001) : componentsForRender superpose
+  // dragPreview à safeComponents UNIQUEMENT pour le rendu visuel et la
+  // géométrie des wires (wirePaths ci-dessous, et le `components` renvoyé en
+  // bas de ce hook). Tous les autres consommateurs (componentsRef,
+  // documentApi.getDocument/applyDocument, pinSignals/simulation,
+  // exportCircuit, startDrag, deleteSelection, endMarquee,
+  // toggleLatchingButton) continuent d'utiliser safeComponents/components
+  // (état réel) directement — jamais componentsForRender. Confirmé par audit
+  // de code (Phase 1, MB-CF3-003) : aucun autre point de lecture n'a besoin
+  // de basculer.
+  const componentsForRender = useMemo(() => {
+    if (!dragPreview || dragPreview.size === 0) return safeComponents
+    return safeComponents.map((c) => {
+      const preview = dragPreview.get(c.uid)
+      return preview ? { ...c, x: preview.x, y: preview.y } : c
+    })
+  }, [safeComponents, dragPreview])
+
   // MB-VIS-004 : buildWirePaths ne prend plus selectedWireId (géométrie pure,
   // cf. circuitSelectors.js) — la sélection est désormais lue directement par
   // WiresLayer.jsx via isSelected(), sans variable dérivée intermédiaire ici.
-  const wirePaths = useMemo(() => buildWirePaths(safeComponents, wiresForGeometry), [safeComponents, wiresForGeometry])
+  // MB-CF3-003 : componentsForRender (et non plus safeComponents) alimente la
+  // géométrie visuelle des wires, afin que les wires suivent visuellement
+  // l'aperçu de drag — le Document réel (safeComponents) n'est pas concerné.
+  const wirePaths = useMemo(() => buildWirePaths(componentsForRender, wiresForGeometry), [componentsForRender, wiresForGeometry])
   const connectedPins = useMemo(() => buildConnectedPinsSet(safeWires), [safeWires])
 
   const pinSignals = useMemo(() => {
@@ -320,6 +368,12 @@ const adapted = toEngineInput(coreDoc);
       // granulaire de waypoint) n'est autorisée par ce ruling — voir
       // cf1DocumentArchitecture.test.js.
       registry.register("UPDATE_WIRE_WAYPOINTS", new UpdateWireWaypointsHandler({ historyService, documentApi }))
+      // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001 du 2026-08-22) : quatrième et
+      // dernier type actuellement autorisé sur ce canal — déplacement d'un
+      // ou plusieurs composants, contrat canonique { moves: [...] } (voir
+      // MoveComponentHandler.js). REMOVE_COMPONENT/UPDATE_COMPONENT restent
+      // explicitement hors périmètre — voir cf1DocumentArchitecture.test.js.
+      registry.register("MOVE_COMPONENT", new MoveComponentHandler({ historyService, documentApi }))
       const validationEngine = new ValidationEngine(createDefaultValidationRegistry())
       commandBusRef.current = new CommandBus(registry, { validationEngine })
       // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
@@ -725,7 +779,12 @@ if (import.meta.env.DEV) {
     dragSessionRef.current = {
       pointerStart: { x: pointer.x, y: pointer.y },
       beforePositions: beforePositions,
-      componentsStart: componentsStart
+      componentsStart: componentsStart,
+      // MB-CF3-003 : miroir mutable de l'aperçu courant (même patron que
+      // waypointDragSessionRef.liveWaypoints) — lu par handlePointerUp pour
+      // éviter toute stale closure sur l'état React dragPreview (cet effect
+      // ne se ré-exécute pas à chaque pointermove).
+      livePositions: beforePositions,
     }
 
     event.preventDefault()
@@ -900,16 +959,22 @@ if (import.meta.env.DEV) {
       const deltaX = pointer.x - session.pointerStart.x
       const deltaY = pointer.y - session.pointerStart.y
 
+      // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001) : aperçu local uniquement
+      // (setDragPreview) — AUCUNE mutation persistante, AUCUNE entrée
+      // d'historique, AUCUN dispatch tant que le pointeur n'est pas relâché.
+      // Le snap-to-grid est appliqué ici (même comportement visuel qu'avant
+      // cette extension, auparavant assuré par updateComponentPositions).
       const positionsMap = new Map()
       session.componentsStart.forEach((startPos, uid) => {
         positionsMap.set(uid, {
-          x: startPos.startX + deltaX,
-          y: startPos.startY + deltaY
+          x: snapToGrid(startPos.startX + deltaX),
+          y: snapToGrid(startPos.startY + deltaY)
         })
       })
 
       if (positionsMap.size > 0) {
-        updateComponentPositions(positionsMap)
+        session.livePositions = positionsMap
+        setDragPreview(positionsMap)
       }
     }
 
@@ -939,36 +1004,51 @@ if (import.meta.env.DEV) {
         return
       }
 
-      // MB-004.5 : Historisation du drag
+      // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001, 2026-08-22) : commit du
+      // drag — une seule commande MOVE_COMPONENT via CommandBus, quelle que
+      // soit la taille de la sélection (I-H10 : une seule entrée
+      // d'historique par drag). `after` est lu depuis dragPreview
+      // (Presentation), JAMAIS depuis componentsRef.current/le Document réel
+      // — celui-ci n'a subi aucune mutation pendant pointermove. Le canal
+      // legacy MoveCommand/HistoryManager n'est plus utilisé pour ce drag.
       const session = dragSessionRef.current
       if (session) {
         const before = session.beforePositions
         if (before && before.size > 0) {
-          const currentComponents = componentsRef.current
-          const componentMap = new Map(currentComponents.map(c => [c.uid, c]))
-
+          // Lu depuis le ref de session (livePositions), jamais depuis la
+          // closure de l'état React dragPreview — cet effect (donc ce
+          // handler) n'est pas recréé à chaque pointermove (mêmes
+          // dépendances stables que waypointDragSessionRef/liveWaypoints).
+          const preview = session.livePositions
           const after = new Map()
+          const moves = []
           before.forEach((pos, uid) => {
-            const comp = componentMap.get(uid)
-            if (comp) {
-              after.set(uid, { x: comp.x, y: comp.y })
-            }
+            const previewPos = preview && preview.get(uid)
+            const toPosition = previewPos ? { x: previewPos.x, y: previewPos.y } : { x: pos.x, y: pos.y }
+            after.set(uid, toPosition)
+            moves.push({
+              componentId: uid,
+              fromPosition: { x: pos.x, y: pos.y },
+              toPosition,
+            })
           })
 
-          // I-H10 : Une seule commande par drag, uniquement si changement
-          if (hasPositionsChanged(before, after)) {
-            const command = new MoveCommand(
-              documentApi,
-              before,
-              after
-            )
-            historyManagerRef.current.execute(command)
+          // I-H10 : Une seule commande par drag, uniquement si changement.
+          if (hasPositionsChanged(before, after) && commandBusRef.current) {
+            try {
+              const coreDocument = documentApi.getDocument()
+              const command = new Command("MOVE_COMPONENT", { moves })
+              commandBusRef.current.dispatch(command, coreDocument)
+            } catch (error) {
+              console.error("moveComponents: échec du dispatch via CommandBus", error)
+            }
           }
         }
       }
 
       // I-P10 : Nettoyage systématique
       dragSessionRef.current = null
+      setDragPreview(null)
     }
 
     const handlePointerCancel = () => {
@@ -984,8 +1064,10 @@ if (import.meta.env.DEV) {
         setWaypointPreview(null)
         return
       }
-      // I-P10 : Nettoyage sans historique
+      // I-P10 : Nettoyage sans historique (dragPreview également réinitialisé
+      // — MB-CF3-003, aucun commit sur annulation).
       dragSessionRef.current = null
+      setDragPreview(null)
     }
 
     const handleBlur = () => {
@@ -1001,8 +1083,10 @@ if (import.meta.env.DEV) {
         setWaypointPreview(null)
         return
       }
-      // I-P10 : Nettoyage sans historique
+      // I-P10 : Nettoyage sans historique (dragPreview également réinitialisé
+      // — MB-CF3-003, aucun commit sur perte de focus).
       dragSessionRef.current = null
+      setDragPreview(null)
     }
 
     window.addEventListener("pointermove", handlePointerMove)
@@ -1016,7 +1100,7 @@ if (import.meta.env.DEV) {
       window.removeEventListener("pointercancel", handlePointerCancel)
       window.removeEventListener("blur", handleBlur)
     }
-  }, [canvasRef, updateComponentPositions, updateMarquee, endMarquee, documentApi, updateWireWaypoints])
+  }, [canvasRef, updateMarquee, endMarquee, documentApi, updateWireWaypoints])
 
   // =========================================================================
   // WRAPPERS DE COMPATIBILITé
@@ -1033,6 +1117,7 @@ if (import.meta.env.DEV) {
     setSelection(new Set())
     setActiveItem(null)
     dragSessionRef.current = null
+    setDragPreview(null)
     marqueeSessionRef.current = null
     setMarqueeRect(null)
     justFinishedMarqueeWithSelectionRef.current = false
@@ -1049,6 +1134,7 @@ if (import.meta.env.DEV) {
     setSelection(new Set())
     setActiveItem(null)
     dragSessionRef.current = null
+    setDragPreview(null)
     marqueeSessionRef.current = null
     setMarqueeRect(null)
     justFinishedMarqueeWithSelectionRef.current = false
@@ -1095,7 +1181,10 @@ if (import.meta.env.DEV) {
 
   return useMemo(() => ({
   canvasRef,
-  components: safeComponents,
+  // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001) : componentsForRender (aperçu
+  // de drag superposé à safeComponents) — jamais safeComponents seul,
+  // sinon le rendu ne refléterait pas l'aperçu de drag en cours.
+  components: componentsForRender,
   wires: safeWires,
   wirePaths,
   connectedPins,
@@ -1169,7 +1258,7 @@ if (import.meta.env.DEV) {
   getUndoCount,
 }), [
   canvasRef,
-  safeComponents,
+  componentsForRender,
   safeWires,
   wirePaths,
   connectedPins,

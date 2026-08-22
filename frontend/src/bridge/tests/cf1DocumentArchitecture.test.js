@@ -158,7 +158,7 @@ describe("MB-CF1-001 — CF1-003-E / GATE 3 [AMENDÉ par CSA-CF3-001-A pour MB-C
   })
 })
 
-describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD-WIRE-001, puis CSA RULING — AUTORISATION DE REPRISE MB-VIS-005 (2026-08-21)] : branchement CommandBus ↔ UI activé, borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS", () => {
+describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD-WIRE-001, puis CSA RULING — AUTORISATION DE REPRISE MB-VIS-005 (2026-08-21), puis CSA RULING CSA-CF3-003-MOVE-001 (2026-08-22)] : branchement CommandBus ↔ UI activé, borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT", () => {
   it("[CSA-CF3-001-A] useCircuitState.js importe désormais CommandBus.js et HistoryService.js (activation du canal — c'était l'objet de CF3)", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     expect(source).toMatch(/from\s+["'].*core\/command\/CommandBus\.js["']/)
@@ -170,16 +170,29 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
   // commande supplémentaire, UPDATE_WIRE_WAYPOINTS (mutation atomique unique
   // du tableau waypoints d'un wire existant), et rien d'autre : aucune
   // migration opportuniste d'autre mutation legacy, aucune commande
-  // granulaire (addWireWaypoint/removeWireWaypoint/moveWireWaypoint). Le
-  // verrou reste actif : il borne désormais le canal à exactement ces trois
-  // commandes, ni plus, ni moins.
-  it("[CSA RULING MB-VIS-005 du 2026-08-21] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS : AddWireHandler et UpdateWireWaypointsHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js", () => {
+  // granulaire (addWireWaypoint/removeWireWaypoint/moveWireWaypoint).
+  //
+  // [CSA RULING CSA-CF3-003-MOVE-001, 2026-08-22 — ruling traçable dans
+  // docs/pmo/tickets/MB-CF3-003.md §R] Ce ruling étend, explicitement et
+  // uniquement, le canal à MOVE_COMPONENT (déplacement d'un ou plusieurs
+  // composants, contrat canonique { moves: [{componentId, fromPosition,
+  // toPosition}] }, toujours une seule commande conceptuelle — voir
+  // MoveComponentHandler.js). Conformément à l'ordre requis par le ruling
+  // ("ruling traçable → amendement du verrou → enregistrement
+  // MOVE_COMPONENT"), cet amendement du verrou est déposé APRÈS
+  // l'inscription du ruling dans le ticket (§R) et AVANT l'enregistrement
+  // effectif de MOVE_COMPONENT dans useCircuitState.js (Phase 6). Le verrou
+  // reste actif : il borne désormais le canal à exactement ces quatre
+  // commandes, ni plus, ni moins. REMOVE_COMPONENT et UPDATE_COMPONENT
+  // restent explicitement hors périmètre.
+  it("[CSA RULING MB-CF3-003 du 2026-08-22] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT : AddWireHandler, UpdateWireWaypointsHandler et MoveComponentHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js, et le canal legacy MoveCommand n'est plus instancié par le drag de production", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     const registerCalls = source.match(/\.register\(\s*["'][A-Z_]+["']/g) || []
     expect(registerCalls).toEqual([
       '.register("ADD_COMPONENT"',
       '.register("ADD_WIRE"',
       '.register("UPDATE_WIRE_WAYPOINTS"',
+      '.register("MOVE_COMPONENT"',
     ])
 
     const wireHandlerPath = path.join(dir, "..", "..", "core", "handlers", "wire", "AddWireHandler.js")
@@ -190,6 +203,19 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
       fs.existsSync(waypointsHandlerPath),
       "UpdateWireWaypointsHandler doit exister (MB-VIS-005, ruling CSA du 2026-08-21)"
     ).toBe(true)
+
+    const moveComponentHandlerPath = path.join(dir, "..", "..", "core", "handlers", "component", "MoveComponentHandler.js")
+    expect(
+      fs.existsSync(moveComponentHandlerPath),
+      "MoveComponentHandler doit exister (MB-CF3-003, ruling CSA-CF3-003-MOVE-001 du 2026-08-22)"
+    ).toBe(true)
+
+    // [CSA RULING MB-CF3-003] Le drag de production ne doit plus utiliser le
+    // chemin legacy MoveCommand (double chemin de mutation interdit — ticket
+    // §9 / invariant I-M-noDoublePath). MoveCommand.js reste présent et
+    // testé séparément (MoveCommand.test.js), mais n'est plus instancié
+    // depuis useCircuitState.js.
+    expect(source).not.toMatch(/new MoveCommand\(/)
   })
 
   it("[AMENDÉ par CSA-CF4-001-A] CommandBus.js utilise désormais this._validators dans dispatch() : le canal ADR-010 est activé sans nouvelle architecture parallèle", () => {
