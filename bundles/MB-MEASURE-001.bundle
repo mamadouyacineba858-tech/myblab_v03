@@ -1,0 +1,1494 @@
+MB-MEASURE-001 — FINAL ACCEPTED BUNDLE
+
+CSA STATUS:
+ACCEPTED / CLOSED
+
+Implementation:
+COMPLETED
+
+Validation:
+Qwen closure audit — PASS
+CSA final ruling — ACCEPTED / CLOSED
+
+Tests:
+Measurement: 22/22 PASS
+UI/jsdom: 4/4 PASS
+Full suite: 806/806 PASS
+Build: PASS
+
+Files included:
+  frontend/src/measurement/measurementContract.js
+  frontend/src/measurement/MeasurementPanel.jsx
+  frontend/src/measurement/__tests__/measurementContract.test.js
+  frontend/src/measurement/__tests__/measurementArchitecture.test.js
+  frontend/src/measurement/__tests__/MeasurementPanel.test.jsx
+  docs/pmo/tickets/MB-MEASURE-001.md
+  docs/pmo/blueprints/MB-MEASURE-001-reference-measurement-instrument-blueprint.md
+  docs/pmo/delivery-reports/MB-MEASURE-001-delivery-report.md
+
+Source state:
+Local implementation clone
+
+Commit:
+None
+
+Push:
+None
+
+================================================================================
+
+===== FILE: frontend/src/measurement/measurementContract.js =====
+
+import { observe, ObservationStatus, ObservationQuantity } from "../observation/observationContract.js"
+
+/**
+ * MB-MEASURE-001 — Reference Measurement Instrument.
+ *
+ * Adaptateur mince entre un instrument de mesure utilisateur et le contrat
+ * `MB-OBS-001` déjà en production :
+ *
+ *   Presentation / Instrument
+ *        ↓
+ *   Measurement           ← ce module
+ *        ↓
+ *   Observation Contract  (observe(), observationContract.js)
+ *        ↓
+ *   Simulation
+ *
+ * Conformément au Ticket (`docs/pmo/tickets/MB-MEASURE-001.md`, §A/§B/§L) et
+ * à son Blueprint (`docs/pmo/blueprints/MB-MEASURE-001-reference-measurement-instrument-blueprint.md`,
+ * §H) :
+ *
+ * - ce module n'importe QUE les exports publics d'`observationContract.js`
+ *   (`observe`, `ObservationStatus`, `ObservationQuantity`) — jamais
+ *   `resolveSignals()`, `dcAnalysis`, `pinSignals`, `dcContributionRegistry`
+ *   ou `canonicalRegistry` directement ;
+ * - il ne possède AUCUNE logique physique propre : il ne recalcule jamais
+ *   une tension ou un courant, ne dérive jamais l'un de l'autre, et ne
+ *   modifie ni la convention de signe du courant ni la référence de tension
+ *   déjà établies par `MB-OBS-001` ;
+ * - il n'introduit aucune seconde horloge (`time` est un champ de la
+ *   requête, jamais généré ici) ;
+ * - il ne mute jamais le Document : `measure()` est une fonction pure qui
+ *   lit `(components, wires)` sans les modifier et ne persiste rien.
+ *
+ * La seule responsabilité propre à Measurement (non déléguée à Observation)
+ * est la restriction de la surface V1 aux deux modes utilisateur autorisés
+ * par le Ticket §C : `VOLTAGE` et `CURRENT`. `LOGICAL_STATE`, bien que
+ * supporté par `MB-OBS-001`, n'est pas un mode de mesure V1 et est rejeté
+ * en `INVALID` par ce module, exactement comme tout autre mode inconnu —
+ * aucune nouvelle catégorie de statut n'est créée (§8 de la mission
+ * d'implémentation, §I du Ticket).
+ *
+ * Toute autre validation (target malformé/inconnu, target kind non
+ * supporté, quantité indisponible) est déléguée intégralement à
+ * `observe()` : Measurement ne duplique aucune de ces règles (AC-13).
+ */
+
+/** Modes de mesure supportés en V1 (Ticket §C, Blueprint §D). */
+export const MeasurementMode = Object.freeze({
+  VOLTAGE: ObservationQuantity.VOLTAGE,
+  CURRENT: ObservationQuantity.CURRENT,
+})
+
+/** Statuts de résultat — réutilisation exacte de MB-OBS-001, aucune nouvelle
+ * catégorie (Ticket §I : « Measurement reuses the status vocabulary already
+ * established by MB-OBS-001, without redefining it »). */
+export const MeasurementStatus = ObservationStatus
+
+function isSupportedMode(mode) {
+  return mode === MeasurementMode.VOLTAGE || mode === MeasurementMode.CURRENT
+}
+
+/**
+ * Point d'entrée public unique de Measurement (miroir de `observe()`).
+ *
+ * @param {{ instrument?: string, mode: "VOLTAGE"|"CURRENT", target: { kind: "PIN"|"NET", componentUid: string, pinId: string }, time: number }} request
+ * @param {Array<object>} components
+ * @param {Array<object>} wires
+ * @returns {{ target: object, quantity: string, value: *, unit: string|null, time: number|null, status: "VALID"|"UNAVAILABLE"|"INVALID", reason?: string }}
+ */
+export function measure(request, components, wires) {
+  const mode = request && typeof request === "object" ? request.mode : undefined
+
+  if (!isSupportedMode(mode)) {
+    return {
+      target: request && typeof request === "object" ? request.target ?? null : null,
+      quantity: mode ?? null,
+      value: null,
+      unit: null,
+      time: request && typeof request === "object" && typeof request.time === "number" ? request.time : null,
+      status: MeasurementStatus.INVALID,
+      reason: `unsupported measurement mode "${String(mode)}": MB-MEASURE-001 V1 supports only VOLTAGE and CURRENT`,
+    }
+  }
+
+  // Traduction MeasurementRequest -> ObservationRequest : mode devient
+  // quantity, target/time sont transmis tels quels. Aucune interprétation
+  // supplémentaire — c'est observe() qui valide target/time et calcule.
+  const observationRequest = {
+    target: request.target,
+    quantity: mode,
+    time: request.time,
+  }
+
+  return observe(observationRequest, components, wires)
+}
+
+===== END FILE =====
+
+===== FILE: frontend/src/measurement/MeasurementPanel.jsx =====
+
+import React, { useState } from "react"
+import { measure, MeasurementMode, MeasurementStatus } from "./measurementContract.js"
+
+/**
+ * MB-MEASURE-001 — Minimal user-facing demonstration instrument.
+ *
+ * Proves the Ticket's "Minimal UI Demonstration Scope" (section H) and the
+ * Blueprint's §C subsection of the same name: exactly the four required
+ * interactions, nothing more.
+ *
+ *   1. select VOLTAGE or CURRENT;
+ *   2. select a target among those the caller supplies as V1-supported;
+ *   3. trigger/read the measurement;
+ *   4. display value + unit + status/reason.
+ *
+ * This component is NOT wired into the live application (App.jsx,
+ * Sidebar.jsx, useCircuitState.js are untouched by this ticket — see the
+ * architecture test's "sens de dépendance" describe block). It receives
+ * `components`/`wires`/`targets` as props from its caller rather than
+ * discovering them itself, so that Measurement never grows circuit
+ * introspection logic that belongs to a future integration ticket.
+ *
+ * Deliberately out of scope, per the Ticket §P / Blueprint §C: visual
+ * polish, complex layout, a generic instrumentation panel, an oscilloscope,
+ * measurement history, waveform display, 3D presentation.
+ */
+export function MeasurementPanel({ instrument = "measurement-panel-1", components, wires, time = 0, targets = [] }) {
+  const [mode, setMode] = useState(MeasurementMode.VOLTAGE)
+  const [targetIndex, setTargetIndex] = useState(0)
+  const [result, setResult] = useState(null)
+
+  const selectedTarget = targets[targetIndex] ?? null
+
+  function handleMeasure() {
+    if (!selectedTarget) return
+    const request = {
+      instrument,
+      mode,
+      target: { kind: selectedTarget.kind ?? "PIN", componentUid: selectedTarget.componentUid, pinId: selectedTarget.pinId },
+      time,
+    }
+    setResult(measure(request, components, wires))
+  }
+
+  return (
+    <div>
+      <label>
+        Mode
+        <select aria-label="measurement-mode" value={mode} onChange={(event) => setMode(event.target.value)}>
+          <option value={MeasurementMode.VOLTAGE}>VOLTAGE</option>
+          <option value={MeasurementMode.CURRENT}>CURRENT</option>
+        </select>
+      </label>
+
+      <label>
+        Target
+        <select
+          aria-label="measurement-target"
+          value={targetIndex}
+          onChange={(event) => setTargetIndex(Number(event.target.value))}
+        >
+          {targets.map((target, index) => (
+            <option key={`${target.componentUid}:${target.pinId}`} value={index}>
+              {target.label ?? `${target.componentUid}:${target.pinId}`}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <button type="button" onClick={handleMeasure} disabled={!selectedTarget}>
+        Measure
+      </button>
+
+      {result && (
+        <dl aria-label="measurement-result">
+          <dt>Target</dt>
+          <dd>{result.target ? `${result.target.componentUid}:${result.target.pinId}` : "—"}</dd>
+          <dt>Value</dt>
+          <dd>{result.value ?? "—"}</dd>
+          <dt>Unit</dt>
+          <dd>{result.unit ?? "—"}</dd>
+          <dt>Status</dt>
+          <dd>{result.status}</dd>
+          {result.status !== MeasurementStatus.VALID && result.reason && (
+            <>
+              <dt>Reason</dt>
+              <dd>{result.reason}</dd>
+            </>
+          )}
+        </dl>
+      )}
+    </div>
+  )
+}
+
+===== END FILE =====
+
+===== FILE: frontend/src/measurement/__tests__/measurementContract.test.js =====
+
+import { describe, it, expect } from "vitest"
+import { measure, MeasurementMode, MeasurementStatus } from "../measurementContract.js"
+import { getSimulationDefaultParameters } from "../../simulator/simulationRegistry.js"
+
+/**
+ * MB-MEASURE-001 — Tests comportementaux de Measurement.
+ *
+ * Couvre les cinq scénarios E2E exigés par le Ticket (§Q "Acceptance
+ * Criteria" / §N "Required Evidence") et le Blueprint (§Q "Tests" / §R
+ * "End-to-End Scenario") :
+ *
+ *   MEASURE-E2E-001 — VOLTAGE VALID          -> AC-03, AC-06
+ *   MEASURE-E2E-002 — CURRENT VALID          -> AC-04, AC-06
+ *   MEASURE-E2E-003 — UNAVAILABLE            -> AC-07
+ *   MEASURE-E2E-004 — INVALID                -> AC-08
+ *   MEASURE-E2E-005 — RE-EVALUATION/REGRESSION -> AC-12
+ *
+ * plus déterminisme (AC-11) et non-duplication de la physique (AC-13,
+ * démontrée en comparant chaque valeur à la valeur canonique déjà
+ * calculée par le modèle, jamais à une formule réécrite ici).
+ *
+ * Fixtures reprises à l'identique de `observationContract.test.js` (même
+ * circuits, même composants) — aucune nouvelle sémantique de circuit n'est
+ * inventée pour ce ticket.
+ */
+
+function poweredResistorCircuit() {
+  const power = { uid: "power1", type: "POWER", x: 0, y: 0 }
+  const resistor = { uid: "r1", type: "RESISTOR", x: 10, y: 0 }
+  const components = [power, resistor]
+  const wires = [
+    { fromUid: "power1", fromPin: "5V", toUid: "r1", toPin: "A" },
+    { fromUid: "r1", fromPin: "B", toUid: "power1", toPin: "GND" },
+  ]
+  return { components, wires, power, resistor }
+}
+
+function poweredTransistorCircuit() {
+  const power = { uid: "power1", type: "POWER", x: 0, y: 0 }
+  const transistor = { uid: "t1", type: "NPN_TRANSISTOR", x: 10, y: 0 }
+  const components = [power, transistor]
+  const wires = [
+    { fromUid: "power1", fromPin: "5V", toUid: "t1", toPin: "collector" },
+    { fromUid: "t1", fromPin: "emitter", toUid: "power1", toPin: "GND" },
+    { fromUid: "power1", fromPin: "5V", toUid: "t1", toPin: "base" },
+  ]
+  return { components, wires, power, transistor }
+}
+
+describe("MB-MEASURE-001 — MEASURE-E2E-001 : VOLTAGE VALID (AC-03, AC-06)", () => {
+  it("mesure VOLTAGE sur une RESISTOR alimentée -> VALID, unit V, valeur = tension POWER, passage par Observation", () => {
+    const { components, wires } = poweredResistorCircuit()
+    const result = measure(
+      { instrument: "multimeter-1", mode: MeasurementMode.VOLTAGE, target: { kind: "PIN", componentUid: "r1", pinId: "A" }, time: 0 },
+      components,
+      wires
+    )
+    expect(result.status).toBe(MeasurementStatus.VALID)
+    expect(result.quantity).toBe("VOLTAGE")
+    expect(result.value).toBe(getSimulationDefaultParameters("POWER").voltage)
+    expect(result.unit).toBe("V")
+    expect(result.target).toEqual({ kind: "PIN", componentUid: "r1", pinId: "A" })
+    expect(result.time).toBe(0)
+  })
+})
+
+describe("MB-MEASURE-001 — MEASURE-E2E-002 : CURRENT VALID (AC-04, AC-06)", () => {
+  it("mesure CURRENT sur une RESISTOR alimentée -> VALID, unit A, valeur = I = U/R (canonique, non recalculée), convention de signe préservée", () => {
+    const { components, wires } = poweredResistorCircuit()
+    const result = measure(
+      { instrument: "multimeter-1", mode: MeasurementMode.CURRENT, target: { kind: "PIN", componentUid: "r1", pinId: "B" }, time: 0 },
+      components,
+      wires
+    )
+    const expectedCurrent =
+      getSimulationDefaultParameters("POWER").voltage / getSimulationDefaultParameters("RESISTOR").resistance
+    expect(result.status).toBe(MeasurementStatus.VALID)
+    expect(result.quantity).toBe("CURRENT")
+    expect(result.value).toBeCloseTo(expectedCurrent, 10)
+    expect(result.value).toBeGreaterThanOrEqual(0)
+    expect(result.unit).toBe("A")
+  })
+})
+
+describe("MB-MEASURE-001 — MEASURE-E2E-003 : UNAVAILABLE (AC-07)", () => {
+  it("mesure CURRENT sur un composant 3 bornes (NPN_TRANSISTOR) sans courant canonique par-pin -> UNAVAILABLE, reason explicite, jamais VALID ni INVALID", () => {
+    const { components, wires } = poweredTransistorCircuit()
+    const result = measure(
+      { instrument: "multimeter-1", mode: MeasurementMode.CURRENT, target: { kind: "PIN", componentUid: "t1", pinId: "collector" }, time: 0 },
+      components,
+      wires
+    )
+    expect(result.status).toBe(MeasurementStatus.UNAVAILABLE)
+    expect(result.value).toBeNull()
+    expect(typeof result.reason).toBe("string")
+    expect(result.reason.length).toBeGreaterThan(0)
+  })
+})
+
+describe("MB-MEASURE-001 — MEASURE-E2E-004 : INVALID (AC-08)", () => {
+  it("target inconnu (composant inexistant) -> INVALID, distinct de UNAVAILABLE", () => {
+    const { components, wires } = poweredResistorCircuit()
+    const result = measure(
+      { instrument: "multimeter-1", mode: MeasurementMode.VOLTAGE, target: { kind: "PIN", componentUid: "ghost", pinId: "A" }, time: 0 },
+      components,
+      wires
+    )
+    expect(result.status).toBe(MeasurementStatus.INVALID)
+    expect(result.status).not.toBe(MeasurementStatus.UNAVAILABLE)
+  })
+
+  it("target malformé (pin inexistant sur un composant réel) -> INVALID avec reason explicite", () => {
+    const { components, wires } = poweredResistorCircuit()
+    const result = measure(
+      { instrument: "multimeter-1", mode: MeasurementMode.VOLTAGE, target: { kind: "PIN", componentUid: "r1", pinId: "Z" }, time: 0 },
+      components,
+      wires
+    )
+    expect(result.status).toBe(MeasurementStatus.INVALID)
+    expect(typeof result.reason).toBe("string")
+  })
+
+  it("target kind explicitement non supporté (COMPONENT) -> INVALID avec reason explicite", () => {
+    const { components, wires } = poweredResistorCircuit()
+    const result = measure(
+      { instrument: "multimeter-1", mode: MeasurementMode.VOLTAGE, target: { kind: "COMPONENT", componentUid: "r1", pinId: "A" }, time: 0 },
+      components,
+      wires
+    )
+    expect(result.status).toBe(MeasurementStatus.INVALID)
+    expect(result.reason).toMatch(/unsupported target kind/)
+  })
+
+  it("mode de mesure non supporté (LOGICAL_STATE, supporté par Observation mais hors périmètre Measurement V1) -> INVALID, aucune nouvelle catégorie de statut", () => {
+    const { components, wires } = poweredResistorCircuit()
+    const result = measure(
+      { instrument: "multimeter-1", mode: "LOGICAL_STATE", target: { kind: "PIN", componentUid: "power1", pinId: "5V" }, time: 0 },
+      components,
+      wires
+    )
+    expect(result.status).toBe(MeasurementStatus.INVALID)
+    expect(result.reason).toMatch(/unsupported measurement mode/)
+  })
+
+  it("requête totalement absente (null) -> INVALID sans lever d'exception", () => {
+    const { components, wires } = poweredResistorCircuit()
+    const result = measure(null, components, wires)
+    expect(result.status).toBe(MeasurementStatus.INVALID)
+  })
+})
+
+describe("MB-MEASURE-001 — MEASURE-E2E-005 : RE-EVALUATION / REGRESSION (AC-12)", () => {
+  it("mesure A sur un circuit alimenté (VALID), modification de la topologie (déconnexion), mesure B sur le même target -> B reflète le nouvel état (UNAVAILABLE), jamais la valeur A mise en cache", () => {
+    // Le modèle DC actuel (dcContributionRegistry.js) ne lit pas de
+    // paramètre par-instance (resolution.js appelle toujours
+    // getSimulationDefaultParameters(comp.type)) : faire varier une valeur
+    // numérique par-composant n'est donc pas un levier de réévaluation
+    // représentatif de l'état réel du dépôt. La topologie du circuit, elle,
+    // est bien réévaluée à chaque appel — c'est le levier utilisé ici,
+    // conformément au principe de vérifiabilité (aucune capacité inventée).
+    const { components, wires } = poweredResistorCircuit()
+    const request = { instrument: "multimeter-1", mode: MeasurementMode.CURRENT, target: { kind: "PIN", componentUid: "r1", pinId: "B" }, time: 0 }
+
+    const resultA = measure(request, components, wires)
+
+    // Modification du circuit : la broche B est déconnectée de GND (fil
+    // retiré). resistiveTwoTerminalDc() exige une boucle alimentée
+    // (HIGH/LOW) ; la broche B flottante casse cette condition -> plus de
+    // contribution DC pour r1 -> UNAVAILABLE. Aucun état n'est conservé par
+    // Measurement lui-même : seule la nouvelle résolution change le résultat.
+    const modifiedWires = wires.filter((w) => !(w.fromUid === "r1" && w.toUid === "power1"))
+
+    const resultB = measure(request, components, modifiedWires)
+
+    expect(resultA.status).toBe(MeasurementStatus.VALID)
+    expect(resultA.value).toBeGreaterThan(0)
+    expect(resultB.status).toBe(MeasurementStatus.UNAVAILABLE)
+    expect(resultB.value).toBeNull()
+    expect(resultB.status).not.toBe(resultA.status)
+  })
+})
+
+describe("MB-MEASURE-001 — Déterminisme (AC-11, hérité de MB-OBS-001)", () => {
+  it("même état, même requête, même temps simulé -> résultats sémantiquement identiques", () => {
+    const { components, wires } = poweredResistorCircuit()
+    const request = { instrument: "multimeter-1", mode: MeasurementMode.VOLTAGE, target: { kind: "PIN", componentUid: "r1", pinId: "A" }, time: 5 }
+
+    const resultA = measure(request, components, wires)
+    const resultB = measure(request, components, wires)
+
+    expect(resultA).toEqual(resultB)
+  })
+})
+
+describe("MB-MEASURE-001 — AC-10 : le Document (components/wires) n'est jamais muté par une mesure", () => {
+  it("measure() ne modifie pas les tableaux components/wires passés en entrée", () => {
+    const { components, wires } = poweredResistorCircuit()
+    const componentsSnapshot = JSON.parse(JSON.stringify(components))
+    const wiresSnapshot = JSON.parse(JSON.stringify(wires))
+
+    measure(
+      { instrument: "multimeter-1", mode: MeasurementMode.CURRENT, target: { kind: "PIN", componentUid: "r1", pinId: "B" }, time: 0 },
+      components,
+      wires
+    )
+
+    expect(components).toEqual(componentsSnapshot)
+    expect(wires).toEqual(wiresSnapshot)
+  })
+})
+
+===== END FILE =====
+
+===== FILE: frontend/src/measurement/__tests__/measurementArchitecture.test.js =====
+
+import { describe, it, expect } from "vitest"
+import fs from "node:fs"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+
+/**
+ * MB-MEASURE-001 — Tests architecturaux de la frontière Measurement /
+ * Observation (même motif que `observationArchitecture.test.js`,
+ * `resolutionArchitecture.test.js`, `runtimeArchitecture.test.js` : preuve
+ * par inspection statique du source, pas d'introspection du graphe de
+ * modules réel).
+ *
+ * Preuves exigées par le Ticket (§N "Required Evidence — Architecture") et
+ * le Blueprint (§V "Evidence Requirements — P1") et par la mission
+ * d'implémentation (§3 "Contrat architectural non négociable", §21
+ * "Test 7 — Architecture") :
+ *
+ *   1. Measurement consomme exclusivement le contrat Observation.
+ *   2. Measurement n'accède jamais directement aux internes de Simulation
+ *      (resolveSignals, dcAnalysis, pinSignals, dcContributionRegistry,
+ *      canonicalRegistry) ni au solveur/runtime (engine.js, clock.js,
+ *      scheduler.js, runtimeOrchestrator.js, simulationRuntimeIntegration.js).
+ *   3. Measurement n'introduit aucune seconde horloge.
+ *   4. Measurement ne mute jamais le Document (aucun import de core/,
+ *      HistoryManager, HistoryService).
+ *   5. Le sens de dépendance n'est jamais inversé : ni Observation, ni
+ *      Simulation, ni le Runtime n'importent measurementContract.js.
+ *
+ * Le sens de dépendance attendu (Blueprint §M "Architecture Boundaries") est :
+ *
+ *   measurementContract.js  -->  observationContract.js
+ *
+ * et rien d'autre.
+ */
+
+const dir = path.dirname(fileURLToPath(import.meta.url))
+const measurementContractPath = path.join(dir, "..", "measurementContract.js")
+const observationContractPath = path.join(dir, "..", "..", "observation", "observationContract.js")
+const preparationPath = path.join(dir, "..", "..", "simulator", "preparation.js")
+const resolutionPath = path.join(dir, "..", "..", "simulator", "resolution.js")
+const enginePath = path.join(dir, "..", "..", "simulator", "engine.js")
+const canonicalRegistryPath = path.join(dir, "..", "..", "simulator", "canonicalRegistry.js")
+const dcContributionRegistryPath = path.join(dir, "..", "..", "simulator", "dcContributionRegistry.js")
+const clockPath = path.join(dir, "..", "..", "simulator", "clock.js")
+const schedulerPath = path.join(dir, "..", "..", "simulator", "scheduler.js")
+const runtimeOrchestratorPath = path.join(dir, "..", "..", "simulator", "runtimeOrchestrator.js")
+const integrationPath = path.join(dir, "..", "..", "simulator", "simulationRuntimeIntegration.js")
+const useCircuitStatePath = path.join(dir, "..", "..", "hooks", "useCircuitState.js")
+
+function readSourceWithoutComments(sourcePath) {
+  const raw = fs.readFileSync(sourcePath, "utf-8")
+  return raw.replace(/\/\*[\s\S]*?\*\//g, "")
+}
+
+describe("MB-MEASURE-001 — AC-01 : Measurement consomme exclusivement le contrat Observation", () => {
+  it("measurementContract.js importe observe/ObservationStatus/ObservationQuantity depuis observationContract.js, et rien d'autre du dépôt", () => {
+    const source = readSourceWithoutComments(measurementContractPath)
+    expect(source).toMatch(/from\s+["']\.\.\/observation\/observationContract\.js["']/)
+    expect(source).toMatch(/observe/)
+    expect(source).toMatch(/ObservationStatus/)
+    expect(source).toMatch(/ObservationQuantity/)
+
+    const importLines = source.match(/^import .*$/gm) ?? []
+    for (const line of importLines) {
+      expect(line, `import inattendu dans measurementContract.js : ${line}`).toMatch(
+        /from\s+["']\.\.\/observation\/observationContract\.js["']/
+      )
+    }
+  })
+})
+
+describe("MB-MEASURE-001 — AC-02 : aucun accès direct aux internes de Simulation ni au solveur/runtime", () => {
+  it("n'importe ni preparation.js, ni resolution.js, ni canonicalRegistry.js, ni dcContributionRegistry.js, ni engine.js", () => {
+    const source = readSourceWithoutComments(measurementContractPath)
+    expect(source).not.toMatch(/from\s+["'][^"']*\/simulator\/preparation\.js["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*\/simulator\/resolution\.js["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*\/simulator\/canonicalRegistry\.js["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*\/simulator\/dcContributionRegistry\.js["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*\/simulator\/engine\.js["']/)
+    expect(source).not.toMatch(/resolveSignals/)
+    expect(source).not.toMatch(/dcAnalysis/)
+    expect(source).not.toMatch(/pinSignals/)
+  })
+
+  it("n'importe ni clock.js, ni scheduler.js, ni runtimeOrchestrator.js, ni simulationRuntimeIntegration.js, et ne source jamais le temps lui-même (aucune seconde horloge)", () => {
+    const source = readSourceWithoutComments(measurementContractPath)
+    expect(source).not.toMatch(/from\s+["'][^"']*clock\.js["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*scheduler\.js["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*runtimeOrchestrator[^"']*["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*simulationRuntimeIntegration[^"']*["']/)
+    expect(source).not.toMatch(/Date\.now\(\)/)
+    expect(source).not.toMatch(/performance\.now\(\)/)
+    expect(source).not.toMatch(/new Date\(/)
+    expect(source).not.toMatch(/setTimeout/)
+    expect(source).not.toMatch(/setInterval/)
+  })
+
+  it("n'importe rien de core/ (CommandBus, HistoryService, HistoryManager, Document) : aucune mutation possible (AC-10)", () => {
+    const source = readSourceWithoutComments(measurementContractPath)
+    expect(source).not.toMatch(/from\s+["'][^"']*\/core\/[^"']*["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*CommandBus[^"']*["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*HistoryManager[^"']*["']/)
+    expect(source).not.toMatch(/from\s+["'][^"']*HistoryService[^"']*["']/)
+  })
+
+  it("n'importe pas useCircuitState.js ni React directement (measurementContract.js est un module logique pur, pas un composant)", () => {
+    const source = readSourceWithoutComments(measurementContractPath)
+    expect(source).not.toMatch(/from\s+["'][^"']*useCircuitState[^"']*["']/)
+    expect(source).not.toMatch(/from\s+["']react["']/)
+  })
+})
+
+describe("MB-MEASURE-001 — sens de dépendance unique, jamais inversé", () => {
+  it("observationContract.js n'importe pas measurementContract.js (Observation reste ignorant de Measurement)", () => {
+    const source = readSourceWithoutComments(observationContractPath)
+    expect(source).not.toMatch(/measurementContract/)
+  })
+
+  it("preparation.js, resolution.js, canonicalRegistry.js, dcContributionRegistry.js et engine.js n'importent pas measurementContract.js", () => {
+    for (const sourcePath of [preparationPath, resolutionPath, canonicalRegistryPath, dcContributionRegistryPath, enginePath]) {
+      const source = readSourceWithoutComments(sourcePath)
+      expect(source, `${path.basename(sourcePath)} ne devrait pas référencer measurementContract`).not.toMatch(
+        /measurementContract/
+      )
+    }
+  })
+
+  it("clock.js, scheduler.js, runtimeOrchestrator.js et simulationRuntimeIntegration.js n'importent pas measurementContract.js", () => {
+    for (const sourcePath of [clockPath, schedulerPath, runtimeOrchestratorPath, integrationPath]) {
+      const source = readSourceWithoutComments(sourcePath)
+      expect(source, `${path.basename(sourcePath)} ne devrait pas référencer measurementContract`).not.toMatch(
+        /measurementContract/
+      )
+    }
+  })
+
+  it("useCircuitState.js (chemin UI live) n'importe pas measurementContract.js : MB-MEASURE-001 n'est câblé nulle part dans l'application live", () => {
+    const source = readSourceWithoutComments(useCircuitStatePath)
+    expect(source).not.toMatch(/measurementContract/)
+  })
+})
+
+describe("MB-MEASURE-001 — AC-01/AC-13 : un unique point d'entrée public, aucune physique dupliquée", () => {
+  it("measurementContract.js expose un unique point d'entrée public measure(), et exactement les deux modes VOLTAGE/CURRENT (jamais LOGICAL_STATE)", () => {
+    const source = readSourceWithoutComments(measurementContractPath)
+    const exportedFunctionMatches = source.match(/^export function \w+/gm) ?? []
+    expect(exportedFunctionMatches).toEqual(["export function measure"])
+    expect(source).not.toMatch(/LOGICAL_STATE:/)
+  })
+
+  it("measurementContract.js ne définit aucune fonction de calcul propre : mis à part le point d'entrée measure() et le garde isSupportedMode(), toute résolution de valeur passe par observe()", () => {
+    const source = readSourceWithoutComments(measurementContractPath)
+    const functionNames = [...source.matchAll(/function\s+(\w+)\s*\(/g)].map((m) => m[1])
+    expect(functionNames.sort()).toEqual(["isSupportedMode", "measure"])
+  })
+})
+
+===== END FILE =====
+
+===== FILE: frontend/src/measurement/__tests__/MeasurementPanel.test.jsx =====
+
+import React from "react"
+import { describe, it, expect, afterEach } from "vitest"
+import { render, screen, fireEvent, cleanup } from "@testing-library/react"
+import { MeasurementPanel } from "../MeasurementPanel.jsx"
+import { getSimulationDefaultParameters } from "../../simulator/simulationRegistry.js"
+
+// `frontend/vitest.config.js` n'active pas `test.globals`, donc le nettoyage
+// automatique de @testing-library/react (qui s'appuie sur un `afterEach`
+// global) n'est pas garanti — nettoyage explicite entre chaque test pour
+// éviter qu'un composant monté par un test précédent ne fausse les
+// requêtes `screen.getByRole()` du test suivant.
+afterEach(() => {
+  cleanup()
+})
+
+/**
+ * MB-MEASURE-001 — Test UI / Intégration (mission d'implémentation §22).
+ *
+ * Démontre le scénario utilisateur minimal (Ticket §C, Blueprint §C) de
+ * bout en bout à travers un vrai composant React monté avec
+ * @testing-library/react :
+ *
+ *   sélection mode -> sélection target -> déclenchement -> affichage
+ *   value/unit/status/reason
+ *
+ * sans que le test (et donc l'utilisateur) n'ait besoin de connaître
+ * resolveSignals(), dcAnalysis, pinSignals ou dcContributionRegistry — seul
+ * MeasurementPanel et measurementContract.js sont utilisés.
+ *
+ * Ce fichier utilise l'environnement jsdom (`frontend/vitest.config.js`),
+ * comme les autres tests de composants du dépôt (RealisticRenderers.test.jsx,
+ * WiresLayer.test.jsx) — il n'est pas exécuté par le script `test`/`test:ci`
+ * de `frontend/package.json` (limité à `src/**\/*.test.{js,ts}`, environnement
+ * node), exactement comme ces fichiers préexistants. Voir le Delivery
+ * Report pour la commande exacte utilisée et son résultat.
+ */
+
+function poweredResistorCircuit() {
+  const power = { uid: "power1", type: "POWER", x: 0, y: 0 }
+  const resistor = { uid: "r1", type: "RESISTOR", x: 10, y: 0 }
+  const components = [power, resistor]
+  const wires = [
+    { fromUid: "power1", fromPin: "5V", toUid: "r1", toPin: "A" },
+    { fromUid: "r1", fromPin: "B", toUid: "power1", toPin: "GND" },
+  ]
+  const targets = [
+    { kind: "PIN", componentUid: "r1", pinId: "A", label: "R1 · pin A" },
+    { kind: "PIN", componentUid: "r1", pinId: "B", label: "R1 · pin B" },
+  ]
+  return { components, wires, targets }
+}
+
+describe("MB-MEASURE-001 — MeasurementPanel : démonstration utilisateur minimale de bout en bout", () => {
+  it("VOLTAGE VALID : sélection mode -> sélection target -> déclenchement -> affichage value/unit/status (MEASURE-E2E-001)", () => {
+    const { components, wires, targets } = poweredResistorCircuit()
+    render(<MeasurementPanel components={components} wires={wires} targets={targets} time={0} />)
+
+    fireEvent.change(screen.getByLabelText("measurement-mode"), { target: { value: "VOLTAGE" } })
+    fireEvent.change(screen.getByLabelText("measurement-target"), { target: { value: "0" } })
+    fireEvent.click(screen.getByRole("button", { name: "Measure" }))
+
+    const result = screen.getByLabelText("measurement-result")
+    expect(result.textContent).toContain("VALID")
+    expect(result.textContent).toContain("V")
+    expect(result.textContent).toContain(String(getSimulationDefaultParameters("POWER").voltage))
+  })
+
+  it("CURRENT VALID : mode CURRENT sur le pin B -> VALID, unit A (MEASURE-E2E-002)", () => {
+    const { components, wires, targets } = poweredResistorCircuit()
+    render(<MeasurementPanel components={components} wires={wires} targets={targets} time={0} />)
+
+    fireEvent.change(screen.getByLabelText("measurement-mode"), { target: { value: "CURRENT" } })
+    fireEvent.change(screen.getByLabelText("measurement-target"), { target: { value: "1" } })
+    fireEvent.click(screen.getByRole("button", { name: "Measure" }))
+
+    const result = screen.getByLabelText("measurement-result")
+    expect(result.textContent).toContain("VALID")
+    expect(result.textContent).toContain("A")
+  })
+
+  it("UNAVAILABLE : cible sans courant canonique -> statut affiché avec un reason explicite, jamais une valeur inventée (MEASURE-E2E-003)", () => {
+    const power = { uid: "power1", type: "POWER", x: 0, y: 0 }
+    const transistor = { uid: "t1", type: "NPN_TRANSISTOR", x: 10, y: 0 }
+    const components = [power, transistor]
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "t1", toPin: "collector" },
+      { fromUid: "t1", fromPin: "emitter", toUid: "power1", toPin: "GND" },
+      { fromUid: "power1", fromPin: "5V", toUid: "t1", toPin: "base" },
+    ]
+    const targets = [{ kind: "PIN", componentUid: "t1", pinId: "collector", label: "T1 · collector" }]
+
+    render(<MeasurementPanel components={components} wires={wires} targets={targets} time={0} />)
+
+    fireEvent.change(screen.getByLabelText("measurement-mode"), { target: { value: "CURRENT" } })
+    fireEvent.click(screen.getByRole("button", { name: "Measure" }))
+
+    const result = screen.getByLabelText("measurement-result")
+    expect(result.textContent).toContain("UNAVAILABLE")
+    expect(result.textContent).toContain("Reason")
+  })
+
+  it("aucune sélection de target disponible -> le bouton Measure est désactivé, jamais de mesure déclenchée à l'aveugle", () => {
+    render(<MeasurementPanel components={[]} wires={[]} targets={[]} time={0} />)
+    expect(screen.getByRole("button", { name: "Measure" }).disabled).toBe(true)
+  })
+})
+
+===== END FILE =====
+
+===== FILE: docs/pmo/tickets/MB-MEASURE-001.md =====
+
+# MB-MEASURE-001 — Reference Measurement Instrument
+
+**PMO Status:** CADRAGE ARCHITECTURAL — IMPLEMENTATION NOT AUTHORIZED
+**Phase:** 2 — Instrumentation & Observability (Level 1, Capacity L1-E — Measurement)
+**Blueprint:** `docs/pmo/blueprints/MB-MEASURE-001-reference-measurement-instrument-blueprint.md`
+**Prerequisite:** `MB-OBS-001` — Canonical Observation Contract (DONE)
+**Next:** `MB-OBS-002` — Temporal Observation Extension
+**Implementation scope:** Not yet authorized. This ticket is a framing (cadrage) artifact only.
+
+## A. Objective
+
+Introduce the first user-facing measurement capability of MYBlab: an instrument able to present `VOLTAGE` and `CURRENT` values already qualified by the `MB-OBS-001` Observation contract, without accessing Simulation internals directly.
+
+MB-MEASURE-001 does not extend the solver, does not introduce new physics, and does not redefine an existing electrical convention. It exploits the boundary `MB-OBS-001` already established.
+
+## B. Architectural Contract
+
+```text
+Simulation
+    ↓
+Observation Contract
+    ↓
+Instrument (Measurement)
+    ↓
+Presentation
+```
+
+This ticket inherits, and does not renegotiate, the boundary rule already ruled by `MB-OBS-001`: Presentation-facing code MUST NOT bypass Observation to reach `resolveSignals()`, `dcAnalysis`, `pinSignals`, or solver registries directly.
+
+## C. V1 Supported Surface
+
+### Targets
+
+- `PIN` is the primary V1 target.
+- `NET` is usable only where Observation already exposes an unambiguous net-level value.
+- `COMPONENT` and `BRANCH` are out of scope for this ticket.
+
+### Modes
+
+V1 is limited to two measurement modes:
+
+- `VOLTAGE`;
+- `CURRENT`.
+
+No other physical quantity may be introduced by this ticket.
+
+## D. Voltage Semantics — inherited, not extended
+
+A voltage measurement means the potential of the target relative to the simulation's canonical reference, exactly as defined by `MB-OBS-001`:
+
+```text
+Vmesure(target) = V(target) − V(reference canonique)
+```
+
+Differential voltage between two independently selected targets (`V(A) − V(B)`) is **out of scope**. This is not a V1 gap to fill; it is an explicit exclusion already recorded in `MB-OBS-001`.
+
+MB-MEASURE-001 MUST NOT introduce a second-target selection mechanism to compute a differential value.
+
+## E. Current Semantics — inherited, not extended
+
+MB-MEASURE-001 does not redefine current. It requests `CURRENT` from the Observation contract for a `target`/`time` pair and accepts only the canonical current already produced by Simulation, exactly as scoped by `MB-OBS-001`.
+
+If Observation reports no canonical current for the target, the result is `UNAVAILABLE` — never approximated or recomputed by Measurement.
+
+## F. Polarity / Direction
+
+- **Voltage:** referenced to the simulation's canonical reference; no new differential polarity is introduced.
+- **Current:** the instrument displays the sign/direction convention Simulation already establishes; it does not transform, invert, or reinterpret it.
+
+**Rule:** Measurement presents an existing semantic; Measurement does not create new physics.
+
+## G. Target Granularity
+
+```text
+             MB-MEASURE-001
+                   │
+                   ▼
+              Observation
+          ┌────────┴────────┐
+          │                 │
+         PIN               NET
+          │                 │
+       allowed        only if Observation
+                       reports it unambiguous
+```
+
+No new `BRANCH` abstraction may be introduced by this ticket.
+
+## H. Functional Contract
+
+### Request (conceptual shape)
+
+```text
+MeasurementRequest
+  instrument
+  mode        (VOLTAGE | CURRENT)
+  target
+  time
+```
+
+### Result (conceptual shape)
+
+```text
+MeasurementResult
+  target
+  quantity
+  value
+  unit
+  time
+  status
+  reason?
+```
+
+The result MUST stay compatible with `ObservationResult` as defined by `MB-OBS-001`. This ticket MUST NOT create a second, parallel result protocol.
+
+### Minimal UI Demonstration Scope
+
+MB-MEASURE-001 requires exactly one minimal user-facing demonstration of the instrument — no more:
+
+- selecting `VOLTAGE` or `CURRENT`;
+- selecting a target among those V1 supports (section C);
+- triggering/reading the measurement;
+- displaying `value` + `unit` + `status`/`reason`.
+
+This is the entire authorized UI surface. It is not an entry point for a general UX initiative: visual polish, complex layout, generic instrumentation panels, an oscilloscope, a measurement history, waveform display, or 3D presentation are explicitly out of scope (see section P), regardless of how small they may seem during implementation.
+
+## I. Status Semantics
+
+Measurement reuses the status vocabulary already established by `MB-OBS-001`, without redefining it:
+
+- `VALID` — the requested measurement was resolved through Observation.
+- `UNAVAILABLE` — the request is well-formed, but Simulation/Observation cannot currently provide the quantity (e.g. no canonical current for the target).
+- `INVALID` — the request itself cannot be interpreted as a valid measurement request: an unknown/malformed target identifier, or an explicitly unsupported target kind. This is exactly the `INVALID` semantic already defined by `MB-OBS-001` (section H) — MB-MEASURE-001 introduces no new failure category.
+
+`INVALID` MUST be demonstrable as a distinct, explicit case — separate from `UNAVAILABLE` and separate from re-evaluation after a circuit change (see section N).
+
+No value may ever be invented to satisfy a test or a missing case.
+
+## J. Temporal Scope
+
+MB-MEASURE-001 is **instantaneous only**. It receives `time` from the caller/Observation and never creates its own clock.
+
+Forbidden inside this ticket's scope:
+
+```text
+Date.now()
+performance.now()
+setTimeout()
+setInterval()
+```
+
+Waveform sampling, temporal series, and oscilloscope rendering belong to `MB-OBS-002` and are explicitly excluded here.
+
+## K. Determinism
+
+For identical document state, identical simulation configuration, identical simulated time, and an identical request:
+
+```text
+MeasurementResult₁ === MeasurementResult₂  (semantically)
+```
+
+This is inherited directly from the determinism guarantee already imposed by `MB-OBS-001`; Measurement MUST NOT introduce a second clock or any non-deterministic input.
+
+## L. Responsibilities
+
+### Simulation
+Owns physical/logical resolution, solver internals, simulation time, and the physical conventions already established.
+
+### Observation (`MB-OBS-001`, unchanged by this ticket)
+Owns request/result semantics, normalization, explicit quantity/unit/status, and the stable Simulation/Presentation boundary.
+
+### Measurement (this ticket)
+Owns translation of a user-facing measurement intent (`instrument`, `mode`, `target`) into an `ObservationRequest`, and presentation of the returned `ObservationResult` as a `MeasurementResult`. Measurement owns no physics and no solver access.
+
+### Presentation
+Owns instrument UI, interaction, display, and formatting. Presentation MUST NOT access Simulation internals directly, even through Measurement.
+
+## M. Document Boundary
+
+Performing a measurement MUST NOT mutate the circuit Document. No persistent measurement state may be introduced into the Document by this ticket.
+
+## N. Required Evidence
+
+### Architecture
+1. Instrument code reaches Simulation only through the Observation contract.
+2. No new physical equation or solver access exists anywhere in the changed code.
+3. Existing voltage/current conventions are unchanged.
+
+### Behaviour
+Tests MUST cover at least:
+1. valid `VOLTAGE` measurement on a supported PIN (`MEASURE-E2E-001`);
+2. valid `CURRENT` measurement where Observation supplies a canonical current (`MEASURE-E2E-002`);
+3. `CURRENT` requested where no canonical current exists → `UNAVAILABLE` with explicit reason (`MEASURE-E2E-003`);
+4. malformed/unknown target, or an explicitly unsupported target kind → `INVALID` with explicit reason, demonstrably distinct from `UNAVAILABLE` (`MEASURE-E2E-004`);
+5. measurement re-evaluated correctly after the circuit is modified — no stale cached value presented as current (`MEASURE-E2E-005`);
+6. deterministic repeated measurement at an unchanged simulation time and state.
+
+### Integration
+A Measurement instrument MUST be demonstrable end-to-end (create circuit → simulate → measure → read `VOLTAGE`/`CURRENT`/`UNAVAILABLE`) without the user ever needing to know `resolveSignals()`, `dcAnalysis`, `pinSignals`, or `dcContributionRegistry` exist.
+
+### Traceability
+The eventual Delivery Report must identify exact files changed, tests executed, and the integration commit — per `SPEC-PMO-004`.
+
+## O. Allowed Files / Scope Rule (for the future implementation ticket)
+
+Once authorized, the implementation is limited to:
+
+- a minimal Measurement module consuming the Observation contract exclusively;
+- focused unit/integration tests for that module;
+- architecture tests protecting the Observation/Measurement/Presentation boundary;
+- narrowly scoped PMO/technical documentation required by this contract.
+
+Any file outside this list requires explicit CSA approval before modification. This ticket itself authorizes no code change.
+
+## P. Explicit Non-Goals
+
+Beyond the Minimal UI Demonstration Scope defined in section H, MB-MEASURE-001 MUST NOT:
+
+- introduce differential voltage measurement between two independently selected targets;
+- let the user freely select two arbitrary references;
+- introduce a new branch-current concept;
+- introduce a new current sign convention;
+- build an oscilloscope;
+- implement waveform rendering or sampling;
+- keep a measurement history;
+- touch breadboard or 3D presentation concerns;
+- touch the Arduino E2E surface;
+- introduce a second clock;
+- refactor Simulation;
+- refactor Core;
+- modify HistoryManager, HistoryService, Document persistence, or CF3.
+
+## Q. Acceptance Criteria
+
+| ID | Criterion | Verdict expected |
+|---|---|---|
+| AC-01 | Instrument consumes Observation only | mandatory |
+| AC-02 | No direct access to the solver | mandatory |
+| AC-03 | `VOLTAGE` measurement functional on a supported target | mandatory |
+| AC-04 | `CURRENT` measurement functional when available | mandatory |
+| AC-05 | Explicit `V` / `A` units | mandatory |
+| AC-06 | `VALID` correctly presented | mandatory |
+| AC-07 | `UNAVAILABLE` correctly presented | mandatory |
+| AC-08 | `INVALID` correctly presented | mandatory |
+| AC-09 | Simulated time preserved (no wall-clock) | mandatory |
+| AC-10 | No Document state mutated by a measurement | mandatory |
+| AC-11 | Determinism demonstrated | mandatory |
+| AC-12 | Re-evaluation after circuit change demonstrated | mandatory |
+| AC-13 | No physics duplicated inside Measurement | mandatory |
+| AC-14 | End-to-end user scenario demonstrated | mandatory |
+| AC-15 | Unit, architecture, and integration tests present | mandatory |
+| AC-16 | Delivery Report complete per `SPEC-PMO-004` | mandatory |
+| AC-17 | No out-of-scope file modified | mandatory |
+
+Traceability to the end-to-end scenarios in the Blueprint (§R): AC-03/AC-06 ↔ `MEASURE-E2E-001`; AC-04/AC-06 ↔ `MEASURE-E2E-002`; AC-07 ↔ `MEASURE-E2E-003`; AC-08 ↔ `MEASURE-E2E-004`; AC-12 ↔ `MEASURE-E2E-005`.
+
+## R. Dependencies
+
+- `MB-OBS-001` (canonical Observation contract) — direct, mandatory dependency.
+- Existing Simulation results (`pinSignals`, supported DC analysis outputs), reached only through Observation.
+- Existing deterministic simulation time mechanism, read-only.
+
+No new dependency on a UI framework, external measurement library, or wall-clock service is permitted.
+
+## S. Risks
+
+| ID | Risk | Severity | Mitigation |
+|---|---|---|---|
+| R1 | Instrument conflated with the engine | CRITICAL | Enforce `Instrument → Observation → Simulation`; never `Instrument → Simulation internals`. |
+| R2 | Current re-invented at the Measurement layer | CRITICAL | Measurement consumes only the canonical current Observation already returns. |
+| R3 | V1 voltage silently turned into differential voltage | CRITICAL | Differential voltage stays explicitly out of scope, per `MB-OBS-001`. |
+| R4 | Solver modified to make the instrument "more realistic" | CRITICAL | STOP → new CSA ruling → new ticket if justified. |
+| R5 | UI built before the contract is proven | HIGH | Contract and integration tests land before visual polish. |
+
+## T. Execution Protocol (once authorized)
+
+1. Produce a file-impact inventory before editing anything.
+2. Verify each proposed target/mode against what Observation actually returns today.
+3. Implement only the minimal Measurement module.
+4. Add focused tests before any end-to-end integration claim.
+5. Run required tests.
+6. Produce a Delivery Report per `SPEC-PMO-004`.
+7. Stop immediately and request a new CSA ruling on any of the conditions listed in the Blueprint's STOP Conditions section.
+
+## U. CSA Ruling
+
+**NO-GO — IMPLEMENTATION NOT AUTHORIZED.**
+
+This ticket and its Blueprint are authorized to exist as framing artifacts only. Authorized next steps are: (1) read-only audit of Ticket + Blueprint, (2) audit report returned to CSA, (3) a subsequent, explicit CSA GO/NO-GO ruling on implementation.
+
+This ruling does **not** authorize any code change, any new file under `frontend/src/measurement/`, or any modification to `MB-OBS-001`'s already-ruled semantics.
+
+## V. Amendment Log
+
+| Date | Reason | Change |
+|---|---|---|
+| 2026-08-23 | Qwen read-only audit — VALIDÉ SOUS RÉSERVES MINEURES | Reserve 1: made `INVALID` explicitly distinct and testable, separate from `UNAVAILABLE` and from re-evaluation/regression (sections H, I, N, Q). Reserve 2: added the Minimal UI Demonstration Scope (section H) and reinforced it is not a general UX authorization (section P). |
+
+This amendment is documentation-only. The CSA Ruling (section U) is unchanged: **NO-GO — IMPLEMENTATION NOT AUTHORIZED.**
+
+===== END FILE =====
+
+===== FILE: docs/pmo/blueprints/MB-MEASURE-001-reference-measurement-instrument-blueprint.md =====
+
+# MB-MEASURE-001 — Reference Measurement Instrument Blueprint
+
+**Blueprint-ID:** `MB-MEASURE-001-blueprint`
+**Ticket-ID:** `MB-MEASURE-001` (`docs/pmo/tickets/MB-MEASURE-001.md`)
+**Phase:** 2 — Instrumentation & Observability (Level 1, Capacity L1-E — Measurement)
+**Prerequisite:** `MB-OBS-001` — Canonical Observation Contract (DONE)
+**Status:** CSA REVIEW READY — **NO IMPLEMENTATION GO**
+**Date:** 2026-08-23
+**Scope:** Observation → Measurement boundary only
+
+Verifiability convention used below, per `SPEC-PMO-003`: `[FAIT]` = directly verified against the local repository state at `docs/pmo/blueprints` review time; `[ANALYSE]` = reasoned judgment; `[QUESTION OUVERTE]` = requires arbitration before this Blueprint can move to implementation-ready.
+
+## §A. Identity & Status
+
+| Field | Value |
+|---|---|
+| Blueprint-ID | `MB-MEASURE-001-blueprint` |
+| Ticket-ID | `MB-MEASURE-001` |
+| Status | `CSA REVIEW READY — NO IMPLEMENTATION GO` |
+| Author | Claude — Repository Analyst |
+| Depends on | `MB-OBS-001` (status: DONE) |
+| Followed by | `MB-OBS-002` |
+
+## §B. Level 1 Product Gap
+
+`MB-OBS-001` [FAIT] already exists in the repository at `frontend/src/observation/observationContract.js`, and gives Presentation a canonical way to read already-produced Simulation results without touching solver internals. What is still missing is a *user-facing* instrument: nothing in the repository today lets a user express "measure `VOLTAGE`/`CURRENT` on this target" and get back a qualified value. [ANALYSE] The gap is therefore not a missing physical capability — Observation already exposes `VOLTAGE`/`CURRENT`/`LOGICAL_STATE` — it is the absence of a thin, Observation-only consumer that a user can actually operate.
+
+## §C. User Scenario
+
+```text
+Create circuit
+    ↓
+POWER → supported component → GND
+    ↓
+Run simulation
+    ↓
+Create / activate instrument
+    ↓
+Select VOLTAGE or CURRENT
+    ↓
+Select target PIN
+    ↓
+Measurement
+    ↓
+Observation
+    ↓
+Simulation
+    ↓
+ObservationResult
+    ↓
+Instrument
+    ↓
+Value + unit + status shown to the user
+```
+
+The user must be able to read, for example:
+
+```text
+VOLTAGE
+Target: <pin>
+Value: <x>
+Unit: V
+Status: VALID
+```
+
+without ever needing to know that `resolveSignals()`, `dcAnalysis`, `pinSignals`, or `dcContributionRegistry` exist.
+
+### Minimal UI demonstration scope (required, not more)
+
+The user scenario above requires exactly four interactions, no more:
+
+1. select `VOLTAGE` or `CURRENT`;
+2. select a target among those V1 supports (§G);
+3. trigger/read the measurement;
+4. see `value` + `unit` + `status`/`reason` displayed.
+
+[ANALYSE] This is the full authorized UI surface for MB-MEASURE-001. It is not an opening for a general UX/instrumentation initiative. Explicitly out of scope regardless of implementation convenience: visual polish, complex layout, a generic instrumentation panel, an oscilloscope, a measurement history, waveform display, or 3D presentation. This matches, and does not extend, the Ticket's Explicit Non-Goals (`docs/pmo/tickets/MB-MEASURE-001.md`, section P).
+
+## §D. Functional Contract
+
+### Request (conceptual shape)
+
+```text
+MeasurementRequest
+  instrument
+  mode        (VOLTAGE | CURRENT)
+  target
+  time
+```
+
+### Result (conceptual shape)
+
+```text
+MeasurementResult
+  target
+  quantity
+  value
+  unit
+  time
+  status
+  reason?
+```
+
+[ANALYSE] This mirrors `ObservationRequest`/`ObservationResult` from `MB-OBS-001` closely enough that Measurement should be a thin adapter, not a parallel protocol. The Result MUST stay compatible with `ObservationResult`.
+
+## §E. Voltage Semantics
+
+Inherited without extension from `MB-OBS-001` [FAIT — `docs/pmo/tickets/MB-OBS-001.md`, section D]:
+
+```text
+Vmesure(target) = V(target) − V(reference canonique)
+```
+
+Differential voltage between two independently selected targets is out of scope for V1. This was already ruled by `MB-OBS-001` and is not reopened here.
+
+## §F. Current Semantics
+
+Inherited without extension from `MB-OBS-001` [FAIT — `docs/pmo/tickets/MB-OBS-001.md`, section E]: Measurement requests `CURRENT` for a target/time pair and accepts only the canonical current the simulation model already produces, with the existing sign/direction convention preserved. No canonical current → `UNAVAILABLE`, never approximated.
+
+## §G. Target Granularity
+
+- `PIN` — primary V1 target, allowed.
+- `NET` — allowed only where Observation already reports an unambiguous value.
+- `COMPONENT`, `BRANCH` — out of scope for this ticket.
+
+[FAIT] This matches the target surface `MB-OBS-001` already implements (`observationContract.js` supports `PIN`/`NET` targets; `COMPONENT`/`BRANCH` are not implemented).
+
+## §H. Observation Integration
+
+```text
+Simulation
+  ├─ pinSignals
+  └─ dcAnalysis / existing simulation results
+        ↓
+  Observation Contract        (frontend/src/observation/observationContract.js) [FAIT]
+        ↓
+  Measurement (this ticket)   — new module, not yet created
+        ↓
+  Presentation
+```
+
+[FAIT] `frontend/src/observation/observationContract.js` (12.7 KB) and its tests `frontend/src/observation/__tests__/observationContract.test.js` and `observationArchitecture.test.js` already exist and were last modified 2026-08-23, consistent with `MB-OBS-001`'s `DONE` status. Measurement's only integration point is this file's public contract — Measurement MUST NOT import `frontend/src/simulator/resolution.js`, `dcContributionRegistry.js`, or `canonicalRegistry.js` directly.
+
+## §I. Measurement Result
+
+The `MeasurementResult` shape (§D) must carry `target`, `quantity`, `value`, `unit`, `time`, `status`, and an optional `reason`, staying a direct pass-through/normalization of `ObservationResult` — not a second protocol.
+
+## §J. Invalid / Unavailable
+
+Status vocabulary reused as-is from `MB-OBS-001` — no new failure category is introduced:
+
+- `VALID` — resolved successfully through Observation.
+- `UNAVAILABLE` — well-formed request, but Simulation/Observation cannot currently supply the quantity (e.g. no canonical current for that target).
+- `INVALID` — the request itself cannot be interpreted as a valid measurement request: an unknown/malformed target identifier, or an explicitly unsupported target kind (exactly `MB-OBS-001`, section H).
+
+Two distinct required negative cases:
+
+- **UNAVAILABLE:** requesting `CURRENT` on a target for which the model has no canonical current → `status = UNAVAILABLE` with an explicit reason (`MEASURE-E2E-003`).
+- **INVALID:** requesting a measurement with a malformed/unknown target identifier, or a target kind explicitly not supported (e.g. `COMPONENT`/`BRANCH`) → `status = INVALID` with an explicit reason (`MEASURE-E2E-004`).
+
+`INVALID` and `UNAVAILABLE` MUST remain observably distinct outcomes — a test asserting one MUST NOT also satisfy the other. No value may ever be invented to pass a test.
+
+## §K. Simulation Time
+
+Measurement is instantaneous only. It receives `time`, never generates it. Forbidden: `Date.now()`, `performance.now()`, `setTimeout()`, `setInterval()`, or any second clock. [FAIT] The repository already has a dedicated deterministic-time surface (`frontend/src/simulator/clock.js`, `scheduler.js`, and `frontend/src/simulator/__tests__/timeArchitecture.test.js`) that Measurement must not duplicate or bypass. Waveform/temporal sampling belongs to `MB-OBS-002`.
+
+## §L. Determinism
+
+For identical document state, identical simulation configuration, identical simulated time, and an identical request, two measurements must be semantically equal. This is inherited directly from the determinism guarantee `MB-OBS-001` already imposes on Observation; Measurement adds no new source of non-determinism.
+
+## §M. Architecture Boundaries
+
+### Simulation owns
+Physical/logical resolution, solver internals, signal evaluation, simulation time, and the physical conventions already established.
+
+### Observation owns (unchanged by this ticket)
+Canonical request/result semantics, normalization, explicit quantity/unit/status, the stable Simulation/Presentation boundary.
+
+### Measurement owns (this ticket)
+Translating a user-facing measurement intent into an `ObservationRequest` and translating the returned `ObservationResult` into a `MeasurementResult`. No physics, no solver access.
+
+### Presentation owns
+Instrument UI, interaction, display, formatting. MUST NOT reach Simulation internals, even through Measurement.
+
+## §N. File Impact Inventory
+
+[FAIT] Confirmed present in the repository today (`frontend/src/`):
+
+| File | Role | Status |
+|---|---|---|
+| `observation/observationContract.js` | Observation contract Measurement must consume | existing, read-only dependency |
+| `observation/__tests__/observationContract.test.js` | Existing Observation behaviour tests | existing, read-only reference |
+| `observation/__tests__/observationArchitecture.test.js` | Existing Observation boundary tests | existing, read-only reference |
+| `simulator/preparation.js` | Upstream of Observation; not a direct Measurement dependency | existing, read-only |
+| `simulator/resolution.js` | Upstream of Observation; forbidden direct dependency | existing, read-only, modification forbidden by default |
+| `simulator/dcContributionRegistry.js` | Upstream of Observation; forbidden direct dependency | existing, read-only, modification forbidden by default |
+| `simulator/canonicalRegistry.js` | Upstream of Observation; forbidden direct dependency | existing, read-only, modification forbidden by default |
+| `simulator/clock.js`, `simulator/scheduler.js` | Authoritative simulation time; read/transmit only | existing, read-only |
+
+[QUESTION OUVERTE] The exact file(s) to create under `frontend/src/measurement/` (module name, test file names) are **not decided by this Blueprint**. They are deferred to a dedicated implementation blueprint produced only after this cadrage Blueprint receives a CSA GO. Assuming a specific file layout now would pre-empt an arbitration this Blueprint is not authorized to make.
+
+## §O. Allowed Files
+
+Once (and only if) implementation is authorized:
+
+- a minimal Measurement module consuming `observationContract.js` exclusively;
+- focused unit/integration tests for that module, under a `measurement/__tests__/` path mirroring the `observation/__tests__/` convention already in use;
+- architecture tests protecting the Observation/Measurement/Presentation boundary;
+- narrowly scoped documentation required by this contract.
+
+## §P. Forbidden Files
+
+Modification forbidden by default, per inheritance from `MB-OBS-001`'s own forbidden list:
+
+```text
+frontend/src/simulator/resolution.js
+frontend/src/simulator/dcContributionRegistry.js
+frontend/src/simulator/canonicalRegistry.js
+frontend/src/core/**
+frontend/src/history/** (HistoryManager, HistoryService)
+Document persistence / CF3 mutation architecture
+```
+
+If implementation discovers one of these must change, execution MUST stop and request a new CSA ruling rather than proceeding.
+
+## §Q. Tests
+
+Required coverage (behavioural, to be written only once implementation is authorized):
+
+1. valid `VOLTAGE` measurement on a supported PIN (`MEASURE-E2E-001`);
+2. valid `CURRENT` measurement where Observation supplies a canonical current (`MEASURE-E2E-002`);
+3. `CURRENT` requested with no canonical current available → `UNAVAILABLE` with reason (`MEASURE-E2E-003`);
+4. malformed/unknown target, or an explicitly unsupported target kind → `INVALID` with reason, observably distinct from case 3 (`MEASURE-E2E-004`);
+5. re-evaluation after circuit modification — no stale value presented as current (`MEASURE-E2E-005`);
+6. deterministic repeat at unchanged simulation time/state;
+7. architecture test asserting Measurement imports only `observationContract.js` from the Simulation/Observation layer (mirroring `observation/__tests__/observationArchitecture.test.js`'s existing pattern [FAIT]).
+
+## §R. End-to-End Scenario
+
+Five scenarios are required, each proving a distinct status/behaviour and each mapped to a Ticket acceptance criterion (`docs/pmo/tickets/MB-MEASURE-001.md`, section Q).
+
+**MEASURE-E2E-001 — VOLTAGE VALID:** create circuit → POWER → supported component → GND → run simulation → activate instrument → select `VOLTAGE` → select a supported target PIN → Measurement → Observation → Simulation → `ObservationResult` → Instrument → user reads `value`/`unit`/`status = VALID`. Proves AC-03, AC-06.
+
+**MEASURE-E2E-002 — CURRENT VALID:** same flow with `CURRENT` on a target for which Simulation provides a canonical current → user reads `value`/`unit`/`status = VALID`. Proves AC-04, AC-06.
+
+**MEASURE-E2E-003 — UNAVAILABLE:** request `CURRENT` on a target with no canonical current → Observation returns `UNAVAILABLE` with an explicit reason → the instrument shows "measurement unavailable", never an invented value. Proves AC-07.
+
+**MEASURE-E2E-004 — INVALID:** request a measurement with a malformed/unknown target identifier, or an explicitly unsupported target kind (e.g. `COMPONENT`/`BRANCH`) → `status = INVALID` with an explicit reason. This scenario MUST be exercised independently from MEASURE-E2E-003 and MEASURE-E2E-005 — it proves the request itself is rejected, not that a value is momentarily unavailable or stale. Reuses the `INVALID` semantic already defined by `MB-OBS-001` (section H); no new failure category is introduced. Proves AC-08.
+
+**MEASURE-E2E-005 — RE-EVALUATION / REGRESSION:** measure A on a target → modify the circuit → trigger a new resolution → measure B on the same target; B must reflect the new state, not a value cached from A. Proves AC-12.
+
+## §S. Acceptance Criteria
+
+See `docs/pmo/tickets/MB-MEASURE-001.md`, section Q (AC-01 through AC-17). This Blueprint does not restate them to avoid two sources of truth; any change to acceptance criteria must be made in the Ticket.
+
+## §T. Risks
+
+See `docs/pmo/tickets/MB-MEASURE-001.md`, section S (R1–R5): instrument/engine conflation, current re-invention, differential-voltage creep, solver modification for "realism", and UI-before-contract sequencing. All five are CRITICAL or HIGH and are the primary reason this Blueprint carries no implementation GO yet.
+
+## §U. STOP Conditions
+
+Implementation, once authorized, must stop immediately and request a new CSA ruling if:
+
+1. a new physical equation appears necessary;
+2. a new current convention appears necessary;
+3. differential voltage becomes necessary;
+4. direct solver access appears necessary;
+5. a change to `resolution.js` appears necessary;
+6. a change to the Document appears necessary;
+7. a new clock appears necessary;
+8. a file outside §O appears indispensable;
+9. the Observation contract proves insufficient for a V1 need;
+10. a result would need to be approximated to make a test pass.
+
+In every case: STOP → factual report → CSA → decision. No autonomous scope expansion.
+
+## §V. Evidence Requirements
+
+| Proof | What must be demonstrated |
+|---|---|
+| P1 — Architecture | `Instrument → Observation → Simulation`, verified by an architecture test |
+| P2 — Behaviour | `VALID` / `UNAVAILABLE` / `INVALID` states all exercised |
+| P3 — User | A user can actually perform a measurement end-to-end |
+| P4 — Integration | Simulation ↔ Observation ↔ Measurement ↔ Presentation demonstrated together |
+| P5 — Traceability | Ticket → Blueprint → code → tests → Delivery Report → roadmap, all cross-referenced |
+
+## §W. PMO Traceability
+
+```text
+P2-1
+ └─ MB-OBS-001 ✅ DONE
+     └─ MB-MEASURE-001
+         ├─ Ticket:      docs/pmo/tickets/MB-MEASURE-001.md
+         ├─ Blueprint:   docs/pmo/blueprints/MB-MEASURE-001-reference-measurement-instrument-blueprint.md  (this file)
+         ├─ next:        read-only audit (Qwen), audit report to CSA
+         ├─ then:        explicit CSA GO / NO-GO on implementation
+         └─ followed by: MB-OBS-002
+```
+
+## §X. CSA Ruling
+
+**CSA REVIEW READY — NO IMPLEMENTATION GO.**
+
+Before any implementation GO, CSA must explicitly validate: (1) V1 target granularity, (2) V1 mode set (`VOLTAGE`/`CURRENT` only), (3) voltage reference semantics (inherited, not reopened), (4) current sign semantics (inherited, not reopened), (5) status/validity semantics, (6) simulation-time semantics, (7) the Measurement/Observation/Presentation boundary, (8) exact implementation scope including the still-open file layout under `frontend/src/measurement/` (§N), (9) required evidence (§V), and (10) the corresponding PMO ticket.
+
+This Blueprint authorizes documentation and read-only audit activity only. It does not authorize any code change.
+
+## Amendment Log
+
+| Date | Reason | Change |
+|---|---|---|
+| 2026-08-23 | Qwen read-only audit — VALIDÉ SOUS RÉSERVES MINEURES | Reserve 1: §R rebuilt as five explicitly distinct scenarios (`MEASURE-E2E-001` VOLTAGE VALID, `-002` CURRENT VALID, `-003` UNAVAILABLE, `-004` INVALID, `-005` RE-EVALUATION/REGRESSION), each mapped to a Ticket AC; `INVALID` added to §Q Tests and clarified in §J as distinct from `UNAVAILABLE`. Reserve 2: added "Minimal UI demonstration scope" to §C, cross-referenced from the Ticket's Explicit Non-Goals. |
+
+This amendment is documentation-only. §A/§X status is unchanged: **CSA REVIEW READY — NO IMPLEMENTATION GO.**
+
+===== END FILE =====
+
+===== FILE: docs/pmo/delivery-reports/MB-MEASURE-001-delivery-report.md =====
+
+# MB-MEASURE-001 — Delivery Report
+
+**Report-ID:** `MB-MEASURE-001-report`
+**Ticket-ID:** `MB-MEASURE-001` (`docs/pmo/tickets/MB-MEASURE-001.md`)
+**Blueprint-ID:** `MB-MEASURE-001-blueprint` (`docs/pmo/blueprints/MB-MEASURE-001-reference-measurement-instrument-blueprint.md`)
+**Commit(s):** none — no commit was created (per implementation-mission rules 5–6). All new files exist, uncommitted, in the working tree.
+**Branch:** none created; work done on the current local working tree.
+**Date d'exécution:** 2026-08-23
+
+## A. Résultat
+
+**MB-MEASURE-001 — IMPLEMENTED**
+
+## B. Fichiers
+
+### Créés
+
+- `frontend/src/measurement/measurementContract.js` (95 lignes) — point d'entrée public `measure()`.
+- `frontend/src/measurement/MeasurementPanel.jsx` (94 lignes) — démonstration utilisateur minimale (non câblée dans l'application live).
+- `frontend/src/measurement/__tests__/measurementContract.test.js` (210 lignes) — tests comportementaux, 5 scénarios E2E + déterminisme + non-mutation du Document.
+- `frontend/src/measurement/__tests__/measurementArchitecture.test.js` (156 lignes) — tests architecturaux (frontière Measurement ↔ Observation).
+- `frontend/src/measurement/__tests__/MeasurementPanel.test.jsx` (106 lignes) — test UI/intégration (jsdom).
+
+### Modifiés
+
+Aucun.
+
+### Supprimés
+
+Aucun.
+
+Total : 5 fichiers créés, 661 lignes, tous sous `frontend/src/measurement/`. Aucun fichier hors de ce répertoire n'a été touché (AC-17).
+
+## C. Architecture
+
+```text
+Presentation (MeasurementPanel.jsx, non câblé)
+      ↓
+Measurement (measurementContract.js — measure())
+      ↓
+Observation Contract (observe(), observationContract.js — inchangé)
+      ↓
+Simulation (resolution.js, dcContributionRegistry.js, canonicalRegistry.js — inchangés)
+```
+
+`measurementContract.js` n'importe que les trois exports publics d'`observationContract.js` (`observe`, `ObservationStatus`, `ObservationQuantity`) — aucune ligne d'import ne référence `resolution.js`, `dcContributionRegistry.js`, `canonicalRegistry.js`, `preparation.js`, `engine.js`, `clock.js`, `scheduler.js`, `runtimeOrchestrator.js` ou `simulationRuntimeIntegration.js`. Le sens de dépendance inverse est également vérifié : aucun de ces fichiers, ni `observationContract.js`, ni `useCircuitState.js` (chemin UI live) n'importe `measurementContract.js`. `measure()` ne fait aucun calcul physique propre : mis à part son unique fonction de garde `isSupportedMode()`, toute résolution de valeur passe par `observe()` — vérifié par un test qui énumère exhaustivement les fonctions déclarées dans le fichier.
+
+Aucun bypass n'est possible : c'est le contrat que `measurementArchitecture.test.js` démontre par inspection statique du source (même méthode que `observationArchitecture.test.js`), pas par une affirmation non vérifiée.
+
+## D. Tests
+
+| Scénario | Résultat |
+|---|---|
+| MEASURE-E2E-001 (VOLTAGE VALID) | **PASS** |
+| MEASURE-E2E-002 (CURRENT VALID) | **PASS** |
+| MEASURE-E2E-003 (UNAVAILABLE) | **PASS** |
+| MEASURE-E2E-004 (INVALID — 4 cas : target inconnu, target malformé, target kind non supporté, mode non supporté, requête null) | **PASS** |
+| MEASURE-E2E-005 (RE-EVALUATION/REGRESSION) | **PASS** |
+| Determinism | **PASS** |
+| Architecture | **PASS** (9 assertions) |
+| UI / Integration | **PASS** (4 scénarios) |
+| Document non-mutation (AC-10) | **PASS** |
+
+Commande exacte et résultat brut :
+
+```text
+$ npx vitest --config src/simulator/vitest.config.ts --run --reporter=verbose src/measurement
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+```
+
+Le test UI (`MeasurementPanel.test.jsx`, `.jsx`, environnement jsdom) n'est **pas** couvert par `src/simulator/vitest.config.ts` (limité à `src/**/*.test.{js,ts}`, environnement `node`) — exactement comme les fichiers `.test.jsx` préexistants du dépôt (`RealisticRenderers.test.jsx`, `WiresLayer.test.jsx`, `latchingButton.test.jsx`). Il a été exécuté manuellement avec la configuration jsdom déjà présente dans le dépôt :
+
+```text
+$ npx vitest --config vitest.config.js --run --reporter=verbose src/measurement/__tests__/MeasurementPanel.test.jsx
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+```
+
+## E. Acceptance Criteria
+
+| AC | Critère | Verdict |
+|---|---|---|
+| AC-01 | Instrument consumes Observation only | **PASS** — `measurementArchitecture.test.js`, "AC-01" |
+| AC-02 | No direct access to the solver | **PASS** — `measurementArchitecture.test.js`, "AC-02" (2 tests) |
+| AC-03 | VOLTAGE functional | **PASS** — MEASURE-E2E-001 |
+| AC-04 | CURRENT functional | **PASS** — MEASURE-E2E-002 |
+| AC-05 | V / A units | **PASS** — `result.unit` vérifié `"V"`/`"A"` dans E2E-001/002 |
+| AC-06 | VALID | **PASS** — E2E-001, E2E-002 |
+| AC-07 | UNAVAILABLE | **PASS** — E2E-003 |
+| AC-08 | INVALID | **PASS** — E2E-004 (4 sous-cas), distinct de UNAVAILABLE (assertion explicite) |
+| AC-09 | Simulated time preserved | **PASS** — `result.time` vérifié = `request.time` dans E2E-001 ; aucun `Date.now()`/`performance.now()`/timer dans le module (architecture test) |
+| AC-10 | Document not mutated | **PASS** — test dédié comparant `components`/`wires` avant/après `measure()` |
+| AC-11 | Determinism | **PASS** — test dédié, deux appels identiques -> `toEqual` |
+| AC-12 | Re-evaluation | **PASS** — E2E-005 |
+| AC-13 | No physics duplicated | **PASS** — architecture test énumérant les fonctions du module |
+| AC-14 | End-to-end user scenario | **PASS** — `MeasurementPanel.test.jsx`, 4 scénarios via un vrai composant monté |
+| AC-15 | Unit / architecture / integration tests | **PASS** — 3 fichiers de test, 26 tests au total |
+| AC-16 | Delivery Report | **PASS** — ce document |
+| AC-17 | No out-of-scope file modified | **PASS** — voir §F |
+
+## F. Scope audit
+
+- Aucun accès direct au solveur : confirmé par `measurementArchitecture.test.js` (inspection statique des imports).
+- Aucune physique dupliquée : `measurementContract.js` ne déclare que `isSupportedMode()` et `measure()` ; toute valeur vient de `observe()`.
+- Aucun changement de convention (tension, signe du courant) : `observationContract.js` n'a été ni modifié ni contourné ; les tests E2E-001/002 vérifient les mêmes valeurs canoniques que `observationContract.test.js`.
+- Aucune mutation du Document : test dédié (§D, §E AC-10).
+- Aucune deuxième horloge : aucune des chaînes `Date.now()`, `performance.now()`, `new Date(`, `setTimeout`, `setInterval` n'apparaît dans `measurementContract.js` (vérifié par le test d'architecture) ; `MeasurementPanel.jsx` ne les utilise pas non plus (revue manuelle).
+- Aucune modification interdite : `git status --short` en fin de mission ne montre que les 5 fichiers créés sous `frontend/src/measurement/` plus les deux documents PMO déjà livrés au tour précédent (`docs/pmo/tickets/MB-MEASURE-001.md`, `docs/pmo/blueprints/MB-MEASURE-001-reference-measurement-instrument-blueprint.md`) — aucun fichier de `simulator/`, `core/`, `history/`, `observation/` n'apparaît dans le diff.
+
+## G. Régressions
+
+Suite complète officielle (`npm test` / `vitest --config src/simulator/vitest.config.ts --run`) : **806/806 tests passés, 76/76 fichiers de test passés, 0 échec** — incluant les 774 tests préexistants (aucune régression) et les 22 nouveaux tests Measurement (node env).
+
+`npm run build` (`tsc -b && vite build`) : **succès**, 143 modules transformés, aucune erreur. `MeasurementPanel.jsx`/`measurementContract.js` n'étant importés par aucun fichier atteignable depuis `main.jsx`, ils n'apparaissent pas dans le bundle de production — cohérent avec le fait que MB-MEASURE-001 n'est pas câblé dans l'application live (identique à la posture de `MB-OBS-001`).
+
+`npm run lint` : 39 erreurs — **toutes préexistantes ou de la même classe déjà présente ailleurs dans le dépôt** (`'React' is defined but never used`, config ESLint ne reconnaissant pas le nouveau runtime JSX automatique). Les deux occurrences dans `MeasurementPanel.jsx`/`MeasurementPanel.test.jsx` suivent exactement la même convention que les fichiers préexistants `LedPart.jsx`, `ResistorPart.jsx`, `CircuitContext.jsx`, `WiresLayer.jsx`. Le workflow CI (`.github/workflows/copilot-review.yml`) traite déjà le lint comme *advisory* (`continue-on-error: true`) — aucune nouvelle catégorie d'erreur n'a été introduite.
+
+## H. Anomalies / Écarts documentés
+
+1. **UI non câblée dans l'application live** — `MeasurementPanel.jsx` n'est importé ni par `App.jsx`, ni `Sidebar.jsx`, ni aucun autre fichier de `components/`. Ce n'est pas une omission : le Blueprint (§O "Allowed Files") n'autorise que le module Measurement, ses tests et une documentation étroitement liée — pas de modification d'`App.jsx`/`Sidebar.jsx`/`useCircuitState.js`. `MB-OBS-001` avait déjà adopté exactement cette posture ("n'est câblé nulle part dans l'UI"). La preuve utilisateur exigée (§14 de la mission) est donc apportée par un composant réel, monté et exercé par `@testing-library/react` dans `MeasurementPanel.test.jsx`, plutôt que par une intégration dans la navigation existante. Un futur ticket d'intégration UI reste nécessaire pour rendre l'instrument accessible depuis l'application.
+2. **`instrument` non validé** — le champ `instrument` de `MeasurementRequest` est accepté mais jamais vérifié (ni requis, ni contraint). Ticket/Blueprint ne définissent aucune règle de validation pour ce champ ni aucun cas `INVALID` associé ; l'inventer aurait constitué une nouvelle catégorie de statut non autorisée. Sujet à trancher explicitement si un futur ticket en a besoin.
+3. **Levier de "réévaluation" (MEASURE-E2E-005) : topologie plutôt que paramètre** — le modèle DC actuel (`resolution.js:209`, `getSimulationDefaultParameters(comp.type)`) ne lit aucun paramètre par-instance : faire varier `resistance` sur une instance de composant n'a aucun effet sur `dcAnalysis`. Le test de réévaluation modifie donc la topologie (déconnexion d'un fil) plutôt qu'un paramètre, ce qui reste une preuve valide et même plus stricte (changement de statut VALID → UNAVAILABLE, pas seulement de valeur) — documenté dans le test lui-même avec la justification complète. Ceci est une limitation préexistante du modèle DC, hors périmètre de ce ticket.
+4. **`package-lock.json` non modifié malgré `npm install`** — l'installation des dépendances dans l'environnement d'exécution cloud a temporairement modifié `frontend/package-lock.json` (suppression du champ `libc` sur des dépendances optionnelles, artefact de version npm locale). Ce changement a été explicitement annulé (`git checkout --`) avant toute livraison et n'a jamais été transmis au poste local — confirmé par `git status --short` final.
+
+## I. Traçabilité des livrables
+
+- Ticket source : `docs/pmo/tickets/MB-MEASURE-001.md`
+- Blueprint utilisé : `docs/pmo/blueprints/MB-MEASURE-001-reference-measurement-instrument-blueprint.md`
+- Code : `frontend/src/measurement/measurementContract.js`, `frontend/src/measurement/MeasurementPanel.jsx`
+- Tests : `frontend/src/measurement/__tests__/measurementContract.test.js`, `frontend/src/measurement/__tests__/measurementArchitecture.test.js`, `frontend/src/measurement/__tests__/MeasurementPanel.test.jsx`
+- Commit(s) : aucun (non créé, conformément aux règles de la mission)
+- Pull Request : aucune
+- Ce document : `docs/pmo/delivery-reports/MB-MEASURE-001-delivery-report.md`
+
+## Confirmations explicites (règles 1–4 de la mission)
+
+- `git status --short` final (hors les deux fichiers PMO déjà livrés au tour précédent) : uniquement `frontend/src/measurement/**`, 5 fichiers, tous nouveaux.
+- `git diff --check` : aucun problème d'espaces blancs.
+- Aucun fichier de `MB-OBS-001`, `simulator/`, `core/`, `history/` n'a été modifié.
+- Aucun commit n'a été créé ; aucun push n'a été effectué.
+
+===== END FILE =====
+
