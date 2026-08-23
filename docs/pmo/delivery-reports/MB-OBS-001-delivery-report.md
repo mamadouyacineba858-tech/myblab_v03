@@ -7,10 +7,21 @@
 | `Report-ID` | `MB-OBS-001-report` |
 | `Ticket-ID` | `docs/pmo/tickets/MB-OBS-001.md` |
 | `Blueprint-ID` | `docs/pmo/blueprints/MB-OBS-001-observation-contract-blueprint.md` |
-| `Commit(s) produit(s)` | `081387e` — `feat(observation): MB-OBS-001 - contrat d'Observation canonique (V1)` |
-| `Branche` | `main` (commit local, non poussé sur GitHub) |
+| `Commit(s) produit(s)` | Deux commits constitutifs distincts — voir tableau ci-dessous |
+| `Branche` | `main` (commits locaux, aucun push GitHub) |
 | `Date d'exécution` | 2026-08-23 |
 | `Autorisation` | CSA GO — MB-OBS-001 (message explicite « CSA GO — MB-OBS-001 »), faisant suite au ruling §R du ticket : « GO — MB-OBS-001 IMPLEMENTATION AUTHORIZED » |
+
+### Chaîne des commits constitutifs
+
+| # | SHA (complet) | SHA (court) | Rôle | Contenu |
+|---|---|---|---|---|
+| 1 | `081387e21fdc63e70e62f5e9f03a8634e1964b0c` | `081387e` | Commit d'implémentation | `feat(observation): MB-OBS-001 - contrat d'Observation canonique (V1)` — `observationContract.js` + 2 fichiers de test (856 insertions, 3 fichiers) |
+| 2 | `e8da7c100796b7fdcb63e45c7b89d9837b431128` | `e8da7c1` | Commit documentaire / Delivery Report | `docs(pmo): MB-OBS-001 delivery report` — ajoute la version initiale du présent rapport (120 insertions, 1 fichier) |
+
+Ces deux SHA ont été revérifiés par `git log --oneline` et `git show --stat <sha> --format='%H%n%s'` au moment de la présente correction (2026-08-23, suite à CSA REVIEW — MB-OBS-001) : les deux correspondent exactement au commit qu'ils prétendent identifier, sans ambiguïté.
+
+**Note de traçabilité :** la version initiale de ce rapport (introduite par le commit #2) ne listait que le commit #1 en §A, alors que le rapport lui-même n'existait pas encore à ce moment-là — il n'a été ajouté qu'ensuite, par le commit #2. C'est exactement l'incohérence relevée par CSA REVIEW — MB-OBS-001. Le présent contenu corrige ce point en listant explicitement les deux commits constitutifs et leur rôle respectif, sans toucher à aucun fichier de code, de test, ni à l'implémentation elle-même (voir §F).
 
 ---
 
@@ -84,6 +95,7 @@ Aucun de ces trois points n'a nécessité de solliciter un nouveau ruling CSA : 
 
 - Retrait de deux imports inutilisés (`ObservationTargetKind`, `ObservationQuantity`) dans `observationContract.test.js`, détectés par `npm run lint`, pour obtenir 0 erreur lint sur les fichiers livrés. Correction mécanique, sans impact sur le comportement testé (les tests utilisent des littéraux `"PIN"`/`"NET"`/`"LOGICAL_STATE"` etc., déjà conformes au contrat).
 - Aucun autre conflit Git, import cassé, ou problème de formatage rencontré. Aucune stabilisation n'a été nécessaire sur un fichier préexistant.
+- **Correction documentaire post-livraison (CSA REVIEW — MB-OBS-001) :** §A et §I ont été mis à jour pour lister explicitement les deux commits constitutifs (implémentation `081387e` et Delivery Report `e8da7c1`) avec leur rôle exact, corrigeant une incohérence de traçabilité relevée par le CSA (§A ne citait initialement que le commit d'implémentation, alors que le rapport lui-même n'existait qu'à partir du second commit). Correction strictement documentaire : aucun fichier de code, aucun test, aucune implémentation n'a été modifié.
 
 ---
 
@@ -110,7 +122,11 @@ Aucun de ces trois points n'a nécessité de solliciter un nouveau ruling CSA : 
 
 ## I. Traçabilité des livrables
 
-- **Commit(s) :** `081387e` (implémentation — non poussé sur GitHub, local uniquement) ; ce rapport est ajouté par un commit distinct et postérieur, également local et non poussé
+- **Commit(s) :**
+  - `081387e21fdc63e70e62f5e9f03a8634e1964b0c` (`081387e`) — implémentation (code + tests)
+  - `e8da7c100796b7fdcb63e45c7b89d9837b431128` (`e8da7c1`) — ajout de la version initiale du présent Delivery Report
+  - un troisième commit local, distinct et postérieur, porte uniquement la présente correction de traçabilité (§A/§I), sans aucune modification de code ni de test — voir §F
+  - aucun de ces commits n'a été poussé sur GitHub, conformément à l'autorisation CSA GO
 - **Pull Request :** aucune (aucun push GitHub effectué, conformément à l'autorisation CSA GO)
 - **Documentation créée :** le présent rapport (`docs/pmo/delivery-reports/MB-OBS-001-delivery-report.md`)
 - **Tests ajoutés :**
