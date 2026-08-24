@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-Define the smallest architecture that extends MB-OBS-001 from instantaneous observation to deterministic temporal observation without creating a second clock, duplicating simulation logic, or moving sampling into Measurement or Presentation.
+Define the smallest architecture that extends MB-OBS-001 from instantaneous observation to deterministic temporal observation without creating an alternate time mechanism, duplicating simulation logic, or moving sampling into Measurement or Presentation.
 
 MB-OBS-002 builds the temporal data contract only. It does not build an oscilloscope UI or waveform renderer.
 
@@ -22,14 +22,15 @@ The pre-implementation audit established:
 - `resolveSignals()` already accepts `externalSignals`;
 - Measurement delegates to Observation and has no temporal-series responsibility;
 - no temporal sampling, waveform, or time-series representation currently exists;
-- MB-OBS-002 is a planning candidate and has no prior implementation.
+- MB-OBS-002 is a planning candidate and has no prior implementation;
+- there is currently no production live `Scheduler`/`RuntimeOrchestrator` instance wired into the application flow.
 
 These existing capabilities are dependencies, not evidence that MB-OBS-002 itself is implemented.
 
 ## 3. Architectural Goal
 
 ```text
-                    existing simulation time
+                    existing simulation time mechanism
                     SimulatedClock / Scheduler
                               │
                               ▼
@@ -49,15 +50,15 @@ These existing capabilities are dependencies, not evidence that MB-OBS-002 itsel
                                      Oscilloscope
 ```
 
-The temporal Observation layer is a consumer/composer of existing simulation capabilities. It MUST NOT become a second simulation engine.
+The temporal Observation layer is a consumer/composer of existing simulation capabilities. It MUST NOT become a second simulation engine or introduce an alternate time mechanism.
 
 ## 4. Core Architectural Decisions
 
-### D1 — One authoritative clock
+### D1 — Canonical simulation-time mechanism
 
-`SimulatedClock` remains the only owner of simulation time.
+`SimulatedClock` remains the canonical implementation of simulation time and `Scheduler` remains its existing advancement abstraction.
 
-Temporal Observation MUST consume simulation time through existing scheduler/runtime APIs. It MUST NOT create or own another clock.
+"Single clock" in this ticket means **one canonical time mechanism**, not a prohibition on creating a request-scoped instance of the existing classes. Temporal Observation MUST NOT introduce another clock class, wall-clock source, timer, or competing time algorithm.
 
 ### D2 — Deterministic explicit sampling
 
@@ -66,20 +67,24 @@ Sampling is driven by explicit simulation-time parameters, not elapsed wall-cloc
 Conceptually:
 
 ```text
-initial simulation state
-        ↓
-advance simulation by deterministic Δt
-        ↓
-evaluate runtime signals at current simulation time
-        ↓
-observe target
-        ↓
+validate request
+      ↓
+compute deterministic sample grid
+      ↓
+create request-scoped runtime objects when runtime signals are required
+      ↓
+advance existing Scheduler abstraction to each requested time
+      ↓
+evaluate existing runtime signals
+      ↓
+resolve Observation at that time
+      ↓
 append sample
-        ↓
-repeat until temporal window is complete
+      ↓
+return deterministic series
 ```
 
-The final implementation may choose a different internal composition, but the observable semantics MUST remain equivalent and deterministic.
+The runtime objects used by one request are local/disposable and MUST NOT become ambient application state.
 
 ### D3 — Reuse existing runtime signals
 
@@ -160,7 +165,11 @@ Each sample:
 ObservationSample
   time
   value
+  status
+  reason?
 ```
+
+The global `status` describes request/execution validity. Per-sample `status` describes availability at the exact sample time. Unavailable samples MUST remain represented at their requested time position rather than silently disappearing.
 
 The implementation MAY retain additional fields already defined by MB-OBS-001 when useful, but MUST NOT expose solver-specific structures.
 
@@ -170,11 +179,11 @@ Sample ordering is ascending by simulation time.
 
 Reuse MB-OBS-001's semantic distinction:
 
-- `VALID` — requested temporal observation completed and samples are semantically valid;
+- `VALID` — requested temporal observation completed and the request/execution is valid;
 - `UNAVAILABLE` — request is structurally valid but the requested observation cannot be produced for the circuit/runtime state;
 - `INVALID` — temporal request or relevant contract state is malformed/invalid.
 
-The implementation MUST define behaviour for a valid window containing unavailable individual samples before implementation. The preferred rule is to preserve sample positions with explicit per-sample status rather than silently dropping time points; the exact representation requires CSA confirmation if it differs from the MB-OBS-001 result shape.
+Per-sample availability MUST be represented explicitly. A single unavailable sample MUST NOT erase otherwise valid samples from the series.
 
 ## 8. Runtime Composition
 
@@ -194,9 +203,25 @@ externalSignals
 resolveSignals
 ```
 
-Temporal Observation MUST compose with this path rather than introduce another path.
+There is currently **no production live Scheduler/RuntimeOrchestrator instance** in the application flow. Therefore the temporal engine MUST NOT depend on or mutate an ambient Scheduler.
 
-The implementation MUST explicitly determine where runtime advancement and observation occur so that each sample corresponds to one well-defined simulation time.
+### Request-scoped runtime ownership
+
+When a temporal request requires time-dependent runtime signals, the implementation MAY create a **local, request-scoped, disposable instance of the existing `Scheduler`/`RuntimeOrchestrator` classes**.
+
+This is permitted only because the existing classes are the canonical time mechanism. It does NOT authorize a second clock implementation or competing time source.
+
+The request-scoped runtime MUST:
+
+1. start from an explicitly defined initial simulation time;
+2. use the existing `advance(dt)` semantics;
+3. reuse existing runtime evaluation and `externalSignals` composition;
+4. never be stored in global/singleton/ambient state owned by Observation;
+5. never mutate a live simulation instance;
+6. be discarded after the request unless an approved caller explicitly owns the injected instance;
+7. produce the same semantic result for identical inputs.
+
+For a future live simulation integration, Observation MUST NOT silently take ownership of that live runtime. A separate explicit integration contract would be required.
 
 ### Required invariant
 
@@ -231,7 +256,9 @@ Compatibility requirements:
 5. Document remains read-only;
 6. no solver-specific object leaks through the Observation boundary.
 
-If extending `observationContract.js` is the minimal solution, the implementation MUST document why. A new temporal module is preferable when it preserves the V1 boundary cleanly, but the decision is implementation evidence subject to the CSA-approved file-impact inventory.
+The preferred implementation boundary is a **new dedicated temporal Observation module** under `frontend/src/observation/`, leaving the public `observe()` contract unchanged.
+
+If runtime signal consumption cannot be achieved without touching `observationContract.js`, the only currently approved exception is a **strictly additive internal/exported helper or optional `externalSignals` pathway** that reuses the existing Observation logic without changing the semantics or signature of the existing public `observe()` call. The implementer MUST prove this necessity in the file-impact inventory before editing.
 
 ## 11. Measurement Boundary
 
@@ -252,13 +279,14 @@ A future measurement instrument may consume `TemporalObservationResult` after th
 
 The implementation MUST add or extend tests that fail if:
 
-1. a second clock is instantiated for temporal Observation;
+1. a second clock implementation or alternate time source is introduced;
 2. `Date.now()` or other wall-clock APIs are used for sample timing;
 3. browser timers drive sampling;
 4. Observation imports or exposes raw `PwmSignal` internals;
 5. Measurement becomes the owner of sampling;
 6. Presentation accesses solver/runtime internals directly;
-7. circuit Document state is mutated by sampling.
+7. circuit Document state is mutated by sampling;
+8. Observation retains a persistent ambient Scheduler/RuntimeOrchestrator it owns.
 
 Existing time-architecture and PWM anti-introspection tests MUST remain green.
 
@@ -271,10 +299,11 @@ Existing time-architecture and PWM anti-introspection tests MUST remain green.
 | Endpoint | endTime included only when on grid |
 | Ordering | samples strictly ascending |
 | Determinism | identical run produces identical series |
-| Clock | no second clock / no wall-clock timing |
+| Clock | canonical time mechanism / no wall-clock timing |
 | Runtime | sample timestamp equals evaluated runtime time |
+| Runtime isolation | request-scoped runtime is discarded and does not mutate ambient state |
 | PWM | transition observed at known simulation times |
-| Availability | unavailable semantics explicit |
+| Availability | per-sample unavailable semantics explicit |
 | Document | no persistent circuit mutation |
 | MB-OBS-001 | instantaneous tests remain green |
 | Measurement | no sampling logic introduced there |
@@ -324,20 +353,21 @@ No modification to these files is authorized merely for convenience.
 
 MB-OBS-002 can only be considered complete when:
 
-> An existing time-dependent simulation signal can be observed at multiple deterministic simulation times through the single existing simulation-time authority, producing a documented and reproducible temporal series, while preserving MB-OBS-001 semantics and without moving temporal ownership into Measurement or Presentation.
+> An existing time-dependent simulation signal can be observed at multiple deterministic simulation times through the canonical existing simulation-time mechanism, using request-scoped runtime composition where required without persistent ambient ownership, producing a documented and reproducible temporal series, while preserving MB-OBS-001 semantics and without moving temporal ownership into Measurement or Presentation.
 
-## 17. CSA Review Questions
+## 17. CSA Ruling Addendum
 
-Before implementation, CSA MUST explicitly approve:
+The following decisions are now incorporated into the pre-implementation perimeter:
 
-1. temporal request/result schema;
-2. endpoint/sample-grid semantics;
-3. handling of unavailable individual samples;
-4. location of runtime composition;
-5. whether `observationContract.js` is extended or a temporal module is introduced;
-6. exact protected files;
-7. required architecture locks;
-8. PWM reference scenario;
-9. required test commands and evidence.
+1. **Per-sample status — APPROVED.** Each sample carries `{time, value, status, reason?}`. The global status does not erase per-sample availability information.
+2. **Dedicated temporal module — APPROVED.** The preferred boundary is a new temporal Observation module; the existing public `observe()` contract remains unchanged.
+3. **Request-scoped runtime — APPROVED WITH CONSTRAINTS.** Because no live Scheduler/RuntimeOrchestrator is currently wired into production, a local disposable instance of the existing Scheduler/RuntimeOrchestrator may be used for a temporal request requiring runtime signals. This is not a second time mechanism. It MUST be request-scoped, non-ambient, deterministic, and discarded after the request. No alternate clock class/source is permitted.
+4. **Observation/runtime bridge — APPROVED WITH CONSTRAINTS.** If the existing Observation internals cannot consume `externalSignals` without duplication, a strictly additive helper/path may be added to the MB-OBS-001 observation module. The public `observe()` signature and instantaneous semantics MUST remain unchanged. Necessity MUST be proven in the file-impact inventory before editing.
+
+These decisions replace the previously open questions on sample status, temporal module boundary, and runtime ownership.
+
+## 18. CSA Review Gate
 
 **Current decision: CSA REVIEW READY — NO IMPLEMENTATION GO.**
+
+The perimeter is now sufficiently explicit for a Qwen read-only implementation-planning audit. No production implementation is authorized until that audit and the subsequent implementation-agent scope are reviewed.
