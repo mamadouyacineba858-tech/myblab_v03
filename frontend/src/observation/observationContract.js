@@ -44,6 +44,20 @@ import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
  * instantaneous observation ») — Observation ne source ni n'interprète
  * jamais elle-même le temps, elle se contente de le restituer tel quel
  * dans le résultat.
+ *
+ * [MB-OBS-002 — extension additive, ruling CSA traçable dans
+ * docs/pmo/tickets/MB-OBS-002.md §H et le Blueprint associé §10] `observe()`
+ * accepte désormais un 4ᵉ paramètre optionnel `externalSignals` (`null` par
+ * défaut), simplement transmis à `resolveSignals()` (dont la signature
+ * l'acceptait déjà depuis MB-SIM-012, sans changement ici). Aucun import
+ * nouveau dans ce fichier (toujours ni clock.js, ni scheduler.js, ni
+ * runtimeOrchestrator.js, ni simulationRuntimeIntegration.js) : ce module
+ * reste ignorant de la façon dont `externalSignals` est produit — c'est
+ * `frontend/src/observation/temporalObservationContract.js` (MB-OBS-002)
+ * qui compose `RuntimeOrchestrator`/le temps simulé et appelle `observe()`
+ * une fois par instant échantillonné, réutilisant tel quel tout le dispatch
+ * par target/quantité ci-dessous. Tout appel existant à 3 arguments
+ * (MB-OBS-001, MB-MEASURE-001) est strictement inchangé.
  */
 
 /** Statuts de résultat (§H du ticket). */
@@ -216,9 +230,23 @@ function observeNetLogicalState(request, pinKey, prepared, pinSignals) {
  *   n'a pas d'identité stable exposée ailleurs dans le dépôt).
  * @param {Array<{ uid: string, type: string, x: number, y: number, pins?: object }>} components
  * @param {Array<{ fromUid: string, fromPin: string, toUid: string, toPin: string }>} wires
+ * @param {Map<string, string>|null} [externalSignals] MB-OBS-002 (extension additive,
+ *   traçable dans docs/pmo/tickets/MB-OBS-002.md §H et
+ *   docs/pmo/blueprints/MB-OBS-002-temporal-observation-blueprint.md §10) :
+ *   paramètre optionnel, `null` par défaut. Transmis tel quel à
+ *   `resolveSignals()` (dont la signature accepte déjà ce 3ᵉ argument
+ *   depuis MB-SIM-012 — non modifiée ici). Permet à
+ *   `temporalObservationContract.js` de réutiliser exactement cette même
+ *   fonction `observe()`, instant par instant, pour un signal produit par
+ *   le Runtime (PWM), sans dupliquer la logique de dispatch par
+ *   target/quantity ci-dessous (observePinLogicalState/
+ *   observePinElectrical/observeNetLogicalState, inchangées). Tout appel
+ *   existant à 3 arguments (MB-OBS-001, MB-MEASURE-001) est strictement
+ *   inchangé : `externalSignals` vaut `null`, `resolveSignals()` retombe
+ *   sur son comportement historique (voir resolution.js).
  * @returns {{ target: object, quantity: string, value: *, unit: string|null, time: number|null, status: "VALID"|"UNAVAILABLE"|"INVALID", reason?: string }}
  */
-export function observe(request, components, wires) {
+export function observe(request, components, wires, externalSignals = null) {
   if (!isWellFormedRequest(request)) {
     return buildResult({
       request: request && typeof request === "object" ? request : {},
@@ -269,7 +297,7 @@ export function observe(request, components, wires) {
     })
   }
 
-  const { pinSignals, dcAnalysis } = resolveSignals(components, prepared)
+  const { pinSignals, dcAnalysis } = resolveSignals(components, prepared, externalSignals)
 
   if (target.kind === ObservationTargetKind.NET) {
     if (quantity !== ObservationQuantity.LOGICAL_STATE) {
