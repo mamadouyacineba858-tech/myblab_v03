@@ -225,6 +225,48 @@ describe("MB-OBS-003 — TemporalObservationPanel : démonstration utilisateur m
     expect(byTime["5"]).toBe("LOW")
     expect(byTime["9"]).toBe("LOW")
     expect(byTime["10"]).toBe("HIGH")
+
+    // Réserve CSA "waveform" : la liste textuelle affichait déjà HIGH/LOW
+    // correctement (vérifié ci-dessus) mais la représentation graphique ne
+    // traçait auparavant que les valeurs numériques (VOLTAGE/CURRENT),
+    // excluant silencieusement tout LOGICAL_STATE. On vérifie ici que la
+    // waveform elle-même (pas seulement la liste) représente chacun des 11
+    // échantillons, avec le niveau visuel correspondant exactement à
+    // sample.value (HIGH/LOW), sans qu'aucun sample ne soit tracé à un
+    // temps ou avec une valeur qui ne provienne pas de result.samples.
+    const waveform = screen.getByLabelText("temporal-observation-waveform")
+    const points = [...waveform.querySelectorAll('[data-testid="temporal-observation-waveform-point"]')]
+    expect(points.length).toBe(11) // un point par sample VALID, aucun sample manquant, aucun inventé
+
+    const levelByTime = Object.fromEntries(points.map((p) => [p.getAttribute("data-time"), p.getAttribute("data-level")]))
+    expect(levelByTime["0"]).toBe("HIGH")
+    expect(levelByTime["4"]).toBe("HIGH")
+    expect(levelByTime["5"]).toBe("LOW")
+    expect(levelByTime["9"]).toBe("LOW")
+    expect(levelByTime["10"]).toBe("HIGH")
+
+    // Transitions visuelles : un point HIGH doit être positionné strictement
+    // au-dessus (cy plus petit, repère SVG) d'un point LOW — preuve que la
+    // waveform distingue réellement les deux niveaux plutôt que de tout
+    // aplatir à une seule hauteur (ce qui se produirait si HIGH/LOW étaient
+    // silencieusement ignorés ou confondus).
+    const cyByTime = Object.fromEntries(points.map((p) => [p.getAttribute("data-time"), Number(p.getAttribute("cy"))]))
+    expect(cyByTime["0"]).toBeLessThan(cyByTime["5"])
+    expect(cyByTime["4"]).toBeLessThan(cyByTime["5"])
+    expect(cyByTime["10"]).toBeLessThan(cyByTime["9"])
+    // Les points de même niveau logique partagent exactement la même hauteur
+    // (deux niveaux fixes, pas un dégradé inventé entre les échantillons).
+    expect(cyByTime["0"]).toBe(cyByTime["4"])
+    expect(cyByTime["0"]).toBe(cyByTime["10"])
+    expect(cyByTime["5"]).toBe(cyByTime["9"])
+
+    // x provient exclusivement de sample.time (aucune horloge, aucune
+    // grille recalculée localement) : les points sont dans l'ordre croissant
+    // de temps et strictement monotones en x.
+    const xByTime = points.map((p) => Number(p.getAttribute("cx")))
+    for (let i = 1; i < xByTime.length; i++) {
+      expect(xByTime[i]).toBeGreaterThan(xByTime[i - 1])
+    }
   })
 
   it("déterminisme du rendu (AC-12) : deux instances indépendantes du même scénario PWM (même entrée, runtime/Scheduler local à chacune) produisent une représentation identique", () => {

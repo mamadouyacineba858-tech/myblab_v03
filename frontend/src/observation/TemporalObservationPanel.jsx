@@ -59,7 +59,30 @@ import { observeTemporal, TemporalObservationStatus, TemporalObservationQuantity
  * primitive visuelle minimale (mise à l'échelle linéaire fixe sur l'étendue
  * des échantillons reçus, relier deux points réels par un segment) — elle
  * ne constitue jamais une mesure intermédiaire (Blueprint §5).
+ *
+ * [Correction CSA — réserve "waveform"] `toPlotLevel()` ci-dessous est une
+ * transformation de PRÉSENTATION pure, appliquée uniquement à la
+ * représentation graphique : elle ne modifie ni ne recalcule jamais
+ * `sample.value` lui-même (`sample.value` reste affiché tel quel dans la
+ * liste `temporal-observation-samples`, inchangé). Pour `LOGICAL_STATE`,
+ * les deux seules valeurs déjà possibles dans le contrat MB-OBS-001/002
+ * (`"HIGH"`/`"LOW"`, voir `observationContract.js`) sont associées à deux
+ * niveaux visuels fixes (haut/bas) — aucune troisième valeur n'est
+ * inventée, aucune valeur intermédiaire n'est calculée entre deux samples
+ * réels (toujours pas d'interpolation), et un sample dont la valeur n'est
+ * ni un nombre fini ni `"HIGH"`/`"LOW"` (typiquement `UNAVAILABLE`/`INVALID`,
+ * `value: null`) reste exclu du tracé, exactement comme avant cette
+ * correction.
  */
+function toPlotLevel(quantity, value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value
+  if (quantity === TemporalObservationQuantity.LOGICAL_STATE) {
+    if (value === "HIGH") return 1
+    if (value === "LOW") return 0
+  }
+  return null
+}
+
 export function TemporalObservationPanel({
   instrument = "temporal-observation-panel-1",
   components,
@@ -90,7 +113,9 @@ export function TemporalObservationPanel({
   }
 
   const plottable = result && Array.isArray(result.samples)
-    ? result.samples.filter((sample) => typeof sample.value === "number" && Number.isFinite(sample.value))
+    ? result.samples
+        .map((sample) => ({ sample, level: toPlotLevel(result.quantity, sample.value) }))
+        .filter((entry) => entry.level !== null)
     : []
 
   return (
@@ -169,21 +194,42 @@ export function TemporalObservationPanel({
             preserveAspectRatio="none"
           >
             {plottable.length > 0 && (() => {
-              const times = plottable.map((s) => s.time)
-              const values = plottable.map((s) => s.value)
+              const times = plottable.map((entry) => entry.sample.time)
+              const levels = plottable.map((entry) => entry.level)
               const minTime = Math.min(...times)
               const maxTime = Math.max(...times)
-              const minValue = Math.min(...values)
-              const maxValue = Math.max(...values)
+              const minLevel = Math.min(...levels)
+              const maxLevel = Math.max(...levels)
               const timeSpan = maxTime - minTime || 1
-              const valueSpan = maxValue - minValue || 1
-              const points = plottable.map((s) => {
-                const x = ((s.time - minTime) / timeSpan) * 200
-                // y inversé : la valeur la plus haute doit apparaître en haut du SVG.
-                const y = 60 - ((s.value - minValue) / valueSpan) * 60
-                return `${x},${y}`
+              const levelSpan = maxLevel - minLevel || 1
+              const positioned = plottable.map((entry) => {
+                const x = ((entry.sample.time - minTime) / timeSpan) * 200
+                // y inversé : le niveau le plus haut (valeur numérique, ou HIGH pour
+                // LOGICAL_STATE) doit apparaître en haut du SVG.
+                const y = 60 - ((entry.level - minLevel) / levelSpan) * 60
+                return { ...entry, x, y }
               })
-              return <polyline points={points.join(" ")} fill="none" stroke="currentColor" strokeWidth="1" />
+              return (
+                <>
+                  <polyline
+                    points={positioned.map((p) => `${p.x},${p.y}`).join(" ")}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                  />
+                  {positioned.map((p) => (
+                    <circle
+                      key={`temporal-observation-waveform-point-${p.sample.time}`}
+                      data-testid="temporal-observation-waveform-point"
+                      data-time={p.sample.time}
+                      data-level={p.sample.value}
+                      cx={p.x}
+                      cy={p.y}
+                      r="1.5"
+                    />
+                  ))}
+                </>
+              )
             })()}
           </svg>
 
