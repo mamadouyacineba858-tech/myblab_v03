@@ -1,9 +1,17 @@
 # ADR-010 — Architecture du moteur de validation métier (Validation Engine) 
 
-**Statut :** PROPOSED  
+**Statut :** ACCEPTED *(régularisé le 2026-08-25 — voir note ci-dessous ; PROPOSED du 2026-08-04 au 2026-08-25)*  
 **Date :** 2026-08-04  
 **Auteur :** Équipe Architecture MYBlab  
 **Statut de validation :** Validé par le Chief Software Architect
+
+---
+
+## Note de régularisation (2026-08-25)
+
+Cet ADR est resté au statut **PROPOSED** alors que `ValidationEngine` (`frontend/src/core/validation/ValidationEngine.js`) est effectivement câblé en production et consommé par `useCircuitState.js`, `core/index.js` et `frontend/src/observation/observationContract.js` — incohérence relevée lors d'une revue de gouvernance (cf. `docs/roadmaps/amendments/2026-08-22-P2-0-reconciliation.md` §3, ligne « ADR-010 »).
+
+Le présent statut passe donc à **ACCEPTED**, par régularisation documentaire rétroactive : cette mise à jour constate un fait déjà établi par le code et les tests existants (`frontend/src/core/validation/__tests__/`), elle ne rouvre ni ne modifie le contenu architectural de l'ADR ci-dessous.
 
 ---
 
