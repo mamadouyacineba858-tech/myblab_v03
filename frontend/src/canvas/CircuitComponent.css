@@ -81,31 +81,56 @@
   fill: #3f3f46;
 }
 
-.part-arduino__board {
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — ARDUINO
+   ========================================================= */
+
+.part-arduino {
   width: 100%;
   height: 100%;
-  background: linear-gradient(145deg, #0d9488 0%, #065f46 100%);
-  border-radius: 4px;
-  padding: 8px;
-  box-sizing: border-box;
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.part-arduino__title {
-  font-size: 10px;
-  font-weight: 700;
-  color: #ecfdf5;
-  letter-spacing: 0.05em;
+.part-arduino__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+}
+
+.part-arduino__board {
+  fill: #0d9488;
+  stroke: #065f46;
+  stroke-width: 1.5;
+}
+
+.part-arduino__usb {
+  fill: #cbd5e1;
+  stroke: #64748b;
+  stroke-width: 1;
 }
 
 .part-arduino__chip {
-  display: block;
-  width: 36px;
-  height: 20px;
-  margin-top: 12px;
-  background: #111;
-  border-radius: 2px;
+  fill: #111827;
+  stroke: #000;
+  stroke-width: 1;
 }
+
+.part-arduino__title {
+  font-size: 11px;
+  font-weight: 700;
+  fill: #ecfdf5;
+  letter-spacing: 0.04em;
+  text-anchor: end;
+}
+
+.part-arduino__pin-marker {
+  fill: #d1d5db;
+}
+
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — BUTTON (bouton-poussoir)
+   ========================================================= */
 
 .part-button {
   width: 100%;
@@ -116,31 +141,82 @@
   cursor: pointer;
 }
 
-.part-button__cap {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #555, #222);
-  border: 2px solid #444;
-  margin: auto;
+.part-button__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
 }
+
+.part-button__base {
+  fill: #1e293b;
+  stroke: #475569;
+  stroke-width: 1.5;
+}
+
+.part-button__cap {
+  fill: #4b5563;
+  stroke: #1f2937;
+  stroke-width: 1.5;
+  transition: fill 0.1s ease, transform 0.1s ease;
+  transform-origin: 30px 30px;
+}
+
+.part-button__cap-highlight {
+  fill: #6b7280;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — POWER (alimentation)
+   ========================================================= */
 
 .part-power {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
+  width: 100%;
   height: 100%;
-  padding: 8px;
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.part-power__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+}
+
+.part-power__lead--plus {
+  stroke: #ef4444;
+}
+
+.part-power__body {
+  fill: #1f2937;
+  stroke: #374151;
+  stroke-width: 1.5;
+}
+
+.part-power__cell {
+  stroke: #e5e7eb;
+}
+
+.part-power__cell--long {
+  stroke-width: 2.5;
+}
+
+.part-power__cell--short {
+  stroke-width: 4.5;
+}
+
+.part-power__label {
+  font-size: 10px;
   font-weight: 600;
+  text-anchor: middle;
 }
 
-.part-power__plus {
-  color: #ef4444;
+.part-power__label--plus {
+  fill: #ef4444;
 }
 
-.part-power__gnd {
-  color: #64748b;
+.part-power__label--gnd {
+  fill: #94a3b8;
 }
 
 .part-capacitor {
@@ -169,60 +245,208 @@
   opacity: 0.4;
 }
 
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — BUZZER
+   ========================================================= */
+
 .part-buzzer {
   width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.part-buzzer__body {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #0f172a;
-  border: 2px solid #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.part-buzzer__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+  fill: none;
 }
 
-.part-buzzer__symbol {
-  font-size: 9px;
-  color: #cbd5e1;
+.part-buzzer__case {
+  fill: #0f172a;
+  stroke: #64748b;
+  stroke-width: 2;
+}
+
+.part-buzzer__membrane {
+  fill: #1e293b;
+  stroke: #475569;
+  stroke-width: 1;
+}
+
+.part-buzzer__hole {
+  fill: #000;
+}
+
+.part-buzzer__mark {
+  font-size: 10px;
   font-weight: 700;
+  fill: #cbd5e1;
 }
+
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — POTENTIOMETER
+   ========================================================= */
 
 .part-potentiometer {
   width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
 }
 
-.part-potentiometer__track {
-  width: 52px;
-  height: 6px;
-  border-radius: 999px;
-  background: #64748b;
+.part-potentiometer__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+  fill: none;
 }
 
-.part-potentiometer__knob {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 10px;
-  height: 16px;
-  border-radius: 4px;
-  background: #f59e0b;
+.part-potentiometer__lead--wiper {
+  stroke: #f59e0b;
 }
 
-.part-generic {
-  font-size: 11px;
+.part-potentiometer__body {
+  fill: #1d4ed8;
+  stroke: #1e3a8a;
+  stroke-width: 1.5;
+}
+
+.part-potentiometer__dial {
+  fill: #93c5fd;
+  stroke: #1e3a8a;
+  stroke-width: 1;
+}
+
+.part-potentiometer__slot {
+  stroke: #1e3a8a;
+  stroke-width: 2;
+}
+
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — LDR (photorésistance)
+   ========================================================= */
+
+.part-ldr {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.part-ldr__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+}
+
+.part-ldr__disc {
+  fill: #d4e157;
+  stroke: #9e9d24;
+  stroke-width: 1.5;
+}
+
+.part-ldr__track {
+  fill: none;
+  stroke: #556b1f;
+  stroke-width: 1.5;
+}
+
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — THERMISTOR
+   ========================================================= */
+
+.part-thermistor {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.part-thermistor__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+}
+
+.part-thermistor__bead {
+  fill: #1e3a8a;
+  stroke: #1e40af;
+  stroke-width: 1.5;
+}
+
+.part-thermistor__bead-highlight {
+  fill: #60a5fa;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — NPN_TRANSISTOR
+   ========================================================= */
+
+.part-npn-transistor {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.part-npn-transistor__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+}
+
+.part-npn-transistor__body {
+  fill: #18181b;
+  stroke: #3f3f46;
+  stroke-width: 1.5;
+}
+
+.part-npn-transistor__flat {
+  stroke: #52525b;
+  stroke-width: 2;
+}
+
+.part-npn-transistor__mark {
+  font-size: 8px;
   font-weight: 700;
-  color: #cbd5e1;
-  letter-spacing: 0.03em;
+  fill: #a1a1aa;
+}
+
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — DC_MOTOR
+   ========================================================= */
+
+.part-dc-motor {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.part-dc-motor__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+}
+
+.part-dc-motor__body {
+  fill: #64748b;
+  stroke: #334155;
+  stroke-width: 1.5;
+}
+
+.part-dc-motor__shaft {
+  fill: #cbd5e1;
+  stroke: #475569;
+  stroke-width: 1;
+}
+
+.part-dc-motor__band {
+  stroke: #334155;
+  stroke-width: 2;
 }
 
 .part-diode {
@@ -248,52 +472,111 @@
   fill: #e5e7eb;
 }
 
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — RGB_LED
+   ========================================================= */
+
 .part-rgb-led {
+  width: 100%;
+  height: 100%;
   display: flex;
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
 }
 
-.part-rgb-led__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.part-rgb-led__leg {
+  stroke: #9ca3af;
+  stroke-width: 2;
 }
 
-.part-rgb-led__dot--r {
-  background: #ef4444;
+.part-rgb-led__flange {
+  fill: #1f2937;
 }
 
-.part-rgb-led__dot--g {
-  background: #22c55e;
+.part-rgb-led__dome {
+  fill: #4b5563;
+  stroke: #94a3b8;
+  stroke-width: 1.5;
 }
 
-.part-rgb-led__dot--b {
-  background: #3b82f6;
+.part-rgb-led__chip {
+  transition: fill 0.15s ease, filter 0.15s ease;
 }
+
+.part-rgb-led__chip--r {
+  fill: #4b1515;
+}
+
+.part-rgb-led__chip--g {
+  fill: #0f3d1f;
+}
+
+.part-rgb-led__chip--b {
+  fill: #142547;
+}
+
+.part-rgb-led__chip--r.part-rgb-led__chip--on {
+  fill: #ef4444;
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.9));
+}
+
+.part-rgb-led__chip--g.part-rgb-led__chip--on {
+  fill: #22c55e;
+  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.9));
+}
+
+.part-rgb-led__chip--b.part-rgb-led__chip--on {
+  fill: #3b82f6;
+  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.9));
+}
+
+/* =========================================================
+   MB-COMPONENT-LIBRARY-002 — SERVO
+   ========================================================= */
 
 .part-servo {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  background: #1e40af;
-  border: 2px solid #60a5fa;
-  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.part-servo__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
+}
+
+.part-servo__lead--signal {
+  stroke: #fbbf24;
+}
+
+.part-servo__lead--vcc {
+  stroke: #ef4444;
+}
+
+.part-servo__lead--gnd {
+  stroke: #1f2937;
+}
+
+.part-servo__case {
+  fill: #1e40af;
+  stroke: #60a5fa;
+  stroke-width: 1.5;
+}
+
+.part-servo__hub {
+  fill: #0f172a;
+  stroke: #60a5fa;
+  stroke-width: 1;
 }
 
 .part-servo__horn {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 24px;
-  height: 4px;
-  transform: translate(-50%, -50%);
-  background: #e2e8f0;
-  border-radius: 999px;
+  stroke: #e2e8f0;
+  stroke-width: 3;
+  stroke-linecap: round;
 }
 
-.part-unknown {
-  color: #94a3b8;
-}
 .circuit-component {
   position: absolute;
   cursor: grab;
@@ -302,16 +585,22 @@
   pointer-events: auto;
 }
 .part-button--pressed .part-button__cap {
-  transform: translateY(3px) scale(0.94);
-  background: radial-gradient(circle at 35% 35%, #777, #111);
-  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5);
+  fill: #374151;
+  transform: translateY(2px) scale(0.94);
 }
+
+.part-button--pressed .part-button__cap-highlight {
+  opacity: 0.3;
+}
+
 /* =========================================================
-   A2 � BUTTON_LATCHING
-   �tat visuel OFF / ON
+   MB-COMPONENT-LIBRARY-002 — BUTTON_LATCHING
+   État visuel OFF / ON
    ========================================================= */
 
 .part-latching-button {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,17 +608,26 @@
   user-select: none;
 }
 
-.part-latching-button__cap {
-  width: 32px;
-  height: 18px;
-  border-radius: 4px;
-  background: #9ca3af;
-  border: 2px solid #6b7280;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+.part-latching-button__lead {
+  stroke: #9ca3af;
+  stroke-width: 2.5;
 }
 
-.part-latching-button.is-on .part-latching-button__cap {
-  background: #22c55e;
-  border-color: #15803d;
+.part-latching-button__housing {
+  fill: #1e293b;
+  stroke: #475569;
+  stroke-width: 1.5;
+}
+
+.part-latching-button__lever {
+  fill: #9ca3af;
+  stroke: #6b7280;
+  stroke-width: 1;
+  transition: fill 0.15s ease, x 0.15s ease;
+}
+
+.part-latching-button.is-on .part-latching-button__lever {
+  fill: #22c55e;
+  stroke: #15803d;
 }
 

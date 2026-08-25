@@ -1,4 +1,8 @@
-import { useState } from "react"
+// MB-COMPONENT-LIBRARY-002 (correction disclosed, même raison que
+// CircuitComponent.jsx) : import React explicite requis par la config
+// vitest secondaire pour tout .jsx rendu sous cette config. Aucun
+// changement de comportement.
+import React, { useState } from "react"
 import "./Pin.css"
 
 /**

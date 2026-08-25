@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo } from "react"
+// MB-COMPONENT-LIBRARY-002 (correction disclosed, hors périmètre strict des
+// Part renderers mais nécessaire) : import React explicite requis par la
+// config vitest secondaire (frontend/src/simulator/vitest.config.ts, sans
+// @vitejs/plugin-react) pour tout .jsx rendu sous cette config — même
+// convention déjà appliquée à chaque Part renderer. Ce fichier n'avait
+// jamais été rendu directement sous cette config avant les tests
+// d'intégration CircuitComponent -> PartRenderer ajoutés par ce ticket
+// (RealisticRenderers.test.jsx). Aucun changement de comportement : ajout
+// d'import pur, aucune ligne de logique modifiée.
+import React, { useCallback, useEffect, useMemo } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { Pin } from "./Pin.jsx"
