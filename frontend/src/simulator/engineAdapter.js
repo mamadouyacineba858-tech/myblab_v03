@@ -6,9 +6,20 @@
  * fromUid/fromPin/toUid/toPin (wires). Composants et wires incomplets sont
  * silencieusement ignorés.
  *
- * @param {{ components: Array<object>, wires: Array<object> }} coreDocument
+ * MB-BREADBOARD-002 (Blueprint MB-BREADBOARD-001 §5) : point d'appel unique
+ * par lequel runSimulationWithRuntime() (via useCircuitState.js) reçoit ses
+ * wires. Les arêtes virtuelles dérivées d'un éventuel breadboard
+ * (deriveBreadboardVirtualWiresBridge) sont ajoutées ici, en plus des wires
+ * explicites — c'est ce branchement, et non buildNets()/prepareCircuit()
+ * eux-mêmes (non modifiés), qui rend le breadboard réellement visible à la
+ * simulation (AC-13). Sans breadboard, le comportement est strictement
+ * inchangé (TB-14/TB-15) : deriveBreadboardVirtualWiresBridge() retourne []
+ * en l'absence de coreDocument.breadboard.
+ *
+ * @param {{ components: Array<object>, wires: Array<object>, breadboard?: object }} coreDocument
  * @returns {{ components: Array<object>, wires: Array<object> }}
  */
+import { deriveBreadboardVirtualWiresBridge } from '../utils/breadboardConnectivity.js'
 
 function clone(value) {
   if (value === undefined) return undefined
@@ -67,6 +78,8 @@ export function toEngineInput(coreDocument) {
 
     result.wires.push({ fromUid, fromPin, toUid, toPin })
   }
+
+  result.wires.push(...deriveBreadboardVirtualWiresBridge(coreDocument))
 
   return result
 }

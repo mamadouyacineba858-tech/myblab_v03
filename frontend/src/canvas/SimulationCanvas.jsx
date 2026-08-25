@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { GridBackground } from "./GridBackground.jsx"
+import { Breadboard } from "./Breadboard.jsx"
 import { CircuitComponent } from "./CircuitComponent.jsx"
 import { WiresLayer } from "../wires/WiresLayer.jsx"
 import { MarqueeOverlay } from "./MarqueeOverlay.jsx"
@@ -10,7 +11,7 @@ import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
 
 export function SimulationCanvas() {
   const {
-    components, wirePaths, isWiringActive, cancelWiring, addComponent,
+    components, breadboard, wirePaths, isWiringActive, cancelWiring, addComponent,
     canvasRef, zoom, showGrid,
     activeItem, clearSelection,
     startMarquee,
@@ -92,6 +93,7 @@ export function SimulationCanvas() {
     >
       <div className="simulation-canvas__zoom-layer" style={{ transform: `scale(${zoom})` }}>
         {showGrid && <GridBackground />}
+        <Breadboard breadboard={breadboard} components={components} />
         <WiresLayer wirePaths={wirePaths} />
         <div className="simulation-canvas__components">
           {components.map((comp) => (

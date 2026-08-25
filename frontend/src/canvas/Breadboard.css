@@ -1,0 +1,27 @@
+.breadboard {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.breadboard__body {
+  fill: rgba(226, 232, 240, 0.06);
+  stroke: #334155;
+  stroke-width: 1;
+}
+
+.breadboard__hole {
+  fill: rgba(15, 23, 42, 0.55);
+  stroke: rgba(148, 163, 184, 0.35);
+  stroke-width: 0.5;
+}
+
+.breadboard__hole--rail {
+  fill: rgba(148, 163, 184, 0.25);
+}
+
+.breadboard__hole--occupied {
+  fill: #22c55e;
+  stroke: #22c55e;
+}

@@ -54,6 +54,7 @@ import { UpdateWireWaypointsHandler } from "../core/handlers/wire/UpdateWireWayp
 // pour le drag de production (MoveCommand.js n'est plus instancié ici, mais
 // reste présent et testé séparément — MoveCommand.test.js).
 import { MoveComponentHandler } from "../core/handlers/component/MoveComponentHandler.js"
+import { AddBreadboardHandler } from "../core/handlers/breadboard/AddBreadboardHandler.js"
 import { HistoryService } from "../core/history/HistoryService.js"
 import { ValidationEngine } from "../core/validation/ValidationEngine.js"
 import { createDefaultValidationRegistry } from "../core/validation/createValidationRegistry.js"
@@ -63,6 +64,15 @@ const EMPTY_MAP = new Map()
 export function useCircuitState(canvasRef, injectedOrchestrators) {
   const [components, setComponents] = useState([])
   const [wires, setWires] = useState([])
+  // MB-BREADBOARD-002 (Blueprint MB-BREADBOARD-001 §3/§8) : état React pour
+  // document.breadboard (null | {id,position,layout}). Sans cet état, la
+  // valeur posée par AddBreadboardHandler via applyDocument() ne survivrait
+  // à aucun re-rendu (getDocument() la lirait, mais aucune source React ne
+  // la conserverait entre deux dispatches) — c'est ce state, et sa lecture
+  // par SimulationCanvas.jsx/Breadboard.jsx, qui rend le breadboard visible
+  // à l'écran (Presentation, LOCK-08 : lecture seule, aucune logique de
+  // connectivité propre).
+  const [breadboard, setBreadboard] = useState(null)
   const [pendingPin, setPendingPin] = useState(null)
 
   const [selection, setSelection] = useState(new Set())
@@ -263,6 +273,13 @@ const adapted = toEngineInput(coreDoc);
     wiresRef.current = safeWires
   }, [safeWires])
 
+  // MB-BREADBOARD-002 : référence synchrone équivalente pour breadboard,
+  // même patron/motivation que componentsRef/wiresRef ci-dessus.
+  const breadboardRef = useRef(breadboard)
+  useEffect(() => {
+    breadboardRef.current = breadboard
+  }, [breadboard])
+
   // =========================================================================
   // FIN MB-004.5
   // =========================================================================
@@ -351,6 +368,11 @@ const adapted = toEngineInput(coreDoc);
     getDocument: () => ReactDocumentMapper.toCore({
       components: componentsRef.current,
       wires: wiresRef.current,
+      // MB-BREADBOARD-002 : breadboardRef.current est soit null (aucun
+      // breadboard), soit {id,position,layout} — ReactDocumentMapper.toCore
+      // recopie cette propriété inconnue telle quelle (_copyUnknownProperties),
+      // aucune extension du mapping déclaratif n'est nécessaire.
+      breadboard: breadboardRef.current,
     }),
     applyDocument: (coreDocument) => {
       const reactDocument = ReactDocumentMapper.toReact(coreDocument)
@@ -360,17 +382,25 @@ const adapted = toEngineInput(coreDoc);
       const nextWires = (reactDocument.wires || [])
         .map(normalizeWire)
         .filter((w) => w !== null)
+      // MB-BREADBOARD-002 : reactDocument.breadboard est absent (clé non
+      // copiée par _copyUnknownProperties) aussi bien quand aucun breadboard
+      // n'a jamais existé que juste après un undo (AddBreadboardHandler
+      // pose alors document.breadboard = null explicitement) — ?? null
+      // normalise les deux cas vers le même état "aucun breadboard".
+      const nextBreadboard = reactDocument.breadboard ?? null
       // Synchronisation immédiate (pas seulement via l'effet MB-004.5) :
       // sans cela, deux dispatches successifs dans le même batch React (avant
       // tout rendu) liraient tous deux le même componentsRef/wiresRef périmé
       // via getDocument(), et le second applyDocument() écraserait le premier
       // (remplacement non fonctionnel de l'état). Vérifié empiriquement via
       // DeleteCommand.integration.test.jsx (deux addComponent() consécutifs
-      // dans le même act()).
+      // dans le même act()). Même raisonnement appliqué à breadboardRef.
       componentsRef.current = nextComponents
       wiresRef.current = nextWires
+      breadboardRef.current = nextBreadboard
       setComponents(nextComponents)
       setWires(nextWires)
+      setBreadboard(nextBreadboard)
     },
   }), [updateComponentPositions])
 
@@ -424,12 +454,23 @@ const adapted = toEngineInput(coreDoc);
       // granulaire de waypoint) n'est autorisée par ce ruling — voir
       // cf1DocumentArchitecture.test.js.
       registry.register("UPDATE_WIRE_WAYPOINTS", new UpdateWireWaypointsHandler({ historyService, documentApi }))
-      // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001 du 2026-08-22) : quatrième et
-      // dernier type actuellement autorisé sur ce canal — déplacement d'un
-      // ou plusieurs composants, contrat canonique { moves: [...] } (voir
+      // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001 du 2026-08-22) : quatrième
+      // type autorisé sur ce canal — déplacement d'un ou plusieurs
+      // composants, contrat canonique { moves: [...] } (voir
       // MoveComponentHandler.js). REMOVE_COMPONENT/UPDATE_COMPONENT restent
       // explicitement hors périmètre — voir cf1DocumentArchitecture.test.js.
       registry.register("MOVE_COMPONENT", new MoveComponentHandler({ historyService, documentApi }))
+      // MB-BREADBOARD-002 (CSA Ruling GO du 2026-08-25) : cinquième et
+      // dernier type actuellement autorisé sur ce canal — pose l'entité
+      // document.breadboard (LOCK-01 : un seul breadboard par Document,
+      // refus explicite d'un second ADD_BREADBOARD). Aucune commande
+      // d'insertion/retrait dédiée n'est ajoutée : l'occupation d'un trou de
+      // breadboard est dérivée de la position des composants existants
+      // (ADD_COMPONENT/MOVE_COMPONENT, déjà gouvernés) — voir
+      // frontend/src/utils/breadboardConnectivity.js et Blueprint
+      // MB-BREADBOARD-001 §6. REMOVE_COMPONENT/UPDATE_COMPONENT restent
+      // explicitement hors périmètre — voir cf1DocumentArchitecture.test.js.
+      registry.register("ADD_BREADBOARD", new AddBreadboardHandler({ historyService, documentApi }))
       const validationEngine = new ValidationEngine(createDefaultValidationRegistry())
       commandBusRef.current = new CommandBus(registry, { validationEngine })
       // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
@@ -493,6 +534,29 @@ const adapted = toEngineInput(coreDoc);
   }, [documentApi])
   // =========================================================================
   // FIN MB-CF3-002 (ADD_WIRE)
+  // =========================================================================
+
+  // =========================================================================
+  // MB-BREADBOARD-002 (CSA Ruling GO du 2026-08-25) : canal de mutation
+  // cible — CommandBus -> AddBreadboardHandler -> HistoryService. Même
+  // patron que addComponent/addWire. LOCK-01 (un seul breadboard) est
+  // appliqué côté Handler (refus explicite) — la garde ci-dessous
+  // (documentApi.getDocument().breadboard) évite en plus un dispatch inutile
+  // depuis l'UI, même précédent que la garde wireAlreadyExists() d'addWire.
+  // =========================================================================
+  const addBreadboard = useCallback((x = 120, y = 180) => {
+    if (!commandBusRef.current) return
+    if (documentApi.getDocument().breadboard) return
+    try {
+      const coreDocument = documentApi.getDocument()
+      const command = new Command("ADD_BREADBOARD", { position: { x, y } })
+      commandBusRef.current.dispatch(command, coreDocument)
+    } catch (error) {
+      console.error("addBreadboard: échec du dispatch via CommandBus", error)
+    }
+  }, [documentApi])
+  // =========================================================================
+  // FIN MB-BREADBOARD-002 (ADD_BREADBOARD)
   // =========================================================================
 
   // =========================================================================
@@ -1248,6 +1312,9 @@ if (import.meta.env.DEV) {
   // sinon le rendu ne refléterait pas l'aperçu de drag en cours.
   components: componentsForRender,
   wires: safeWires,
+  // MB-BREADBOARD-002 (Blueprint §8) : exposé pour Breadboard.jsx (Presentation,
+  // lecture seule) — null tant qu'aucun ADD_BREADBOARD n'a été dispatché.
+  breadboard,
   wirePaths,
   connectedPins,
   pinSignals,
@@ -1265,6 +1332,7 @@ if (import.meta.env.DEV) {
 
   addComponent,
   addWire,
+  addBreadboard,
   clearCircuit,
   onPinClick,
   cancelWiring,
@@ -1322,6 +1390,7 @@ if (import.meta.env.DEV) {
   canvasRef,
   componentsForRender,
   safeWires,
+  breadboard,
   wirePaths,
   connectedPins,
   pinSignals,
@@ -1339,6 +1408,7 @@ if (import.meta.env.DEV) {
 
   addComponent,
   addWire,
+  addBreadboard,
   clearCircuit,
   onPinClick,
   cancelWiring,

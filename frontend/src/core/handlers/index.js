@@ -7,6 +7,12 @@ export { RemoveComponentHandler } from './component/RemoveComponentHandler.js';
 export { UpdateComponentHandler } from './component/UpdateComponentHandler.js';
 export { MoveComponentHandler } from './component/MoveComponentHandler.js';
 
+// Breadboard handlers
+// MB-BREADBOARD-002 (CSA Ruling GO du 2026-08-25) : ADD_BREADBOARD, seule
+// nouvelle commande introduite par ce ticket (voir Blueprint
+// MB-BREADBOARD-001 §6). Enregistrée en production dans useCircuitState.js.
+export { AddBreadboardHandler } from './breadboard/AddBreadboardHandler.js';
+
 // Wire handlers
 // MB-VIS-005 : exporté pour tests/consommation directe, mais NON enregistré
 // dans le CommandRegistry de production (ruling CSA requis, cf.

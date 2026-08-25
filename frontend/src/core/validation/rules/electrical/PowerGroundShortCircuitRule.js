@@ -7,13 +7,21 @@
  * shared/documentHelpers.js#roleMatchesFamily ; aucune liste de rôles
  * codée en dur ici, conformément à CSA-CF4-001-A).
  *
- * Les nets sont construits uniquement à partir des wires du Document
- * (Union-Find, cf. shared/nets.js) — aucun état persistant, aucune
+ * Les nets sont construits à partir des wires explicites du Document
+ * (Union-Find, cf. shared/nets.js), complétés — MB-BREADBOARD-002,
+ * Blueprint MB-BREADBOARD-001 §5 — par les arêtes virtuelles dérivées d'un
+ * éventuel breadboard (deriveBreadboardVirtualWires). Extension purement
+ * additive : buildNets() lui-même n'est pas modifié, seule la liste de
+ * wires qu'il reçoit est complétée. Un rail breadboard shorté directement
+ * à un autre rail (ex. rail + relié à rail - par un wire ou par un
+ * composant à deux broches) est ainsi détecté par cette règle existante,
+ * sans règle dédiée supplémentaire. Toujours aucun état persistant, aucune
  * modification du Document, aucune dépendance à resolution.js.
  */
 import { CATEGORIES, LEVELS } from '../../constants.js'
 import { getEffectiveComponents, getEffectiveWires, resolvePinRole, roleMatchesFamily } from '../shared/documentHelpers.js'
 import { buildNets } from '../shared/nets.js'
+import { deriveBreadboardVirtualWires } from '../../../../utils/breadboardConnectivity.js'
 
 export const PowerGroundShortCircuitRule = {
   id: 'ELE-007',
@@ -22,7 +30,8 @@ export const PowerGroundShortCircuitRule = {
   validate(document, command) {
     const components = getEffectiveComponents(document, command)
     const wires = getEffectiveWires(document)
-    const nets = buildNets(wires)
+    const breadboardWires = deriveBreadboardVirtualWires(document)
+    const nets = buildNets([...wires, ...breadboardWires])
 
     const shortedNets = []
     for (const net of nets) {
