@@ -516,13 +516,47 @@ const adapted = toEngineInput(coreDoc);
     // justification ci-dessus), conservée par robustesse plutôt que par
     // nécessité démontrée.
     if (!commandBusRef.current) return
-    const snappedX = snapToGrid(x)
-    const snappedY = snapToGrid(y)
+
+    // MB-BREADBOARD-003 (correctif ciblé — dépôt initial) : jusqu'ici, seul
+    // MOVE_COMPONENT (handlePointerMove ci-dessous) consultait
+    // computeBreadboardPlacement() ; le dépôt initial depuis la Sidebar
+    // (ADD_COMPONENT) appliquait inconditionnellement snapToGrid(), même
+    // quand un breadboard était présent et le type compatible — un
+    // composant pouvait donc atterrir sur une position incompatible avec
+    // les trous du breadboard. Même mécanisme, mêmes références synchrones
+    // (breadboardRef/componentsRef, MB-BREADBOARD-002/003) que MOVE, pour
+    // éviter toute stale closure — aucun nouvel état React introduit.
+    // computeBreadboardPlacement() reste l'unique arbitre du placement
+    // physique : aucune réimplémentation de holeAt()/tolérance/collision
+    // ici. Le composant en cours d'ajout n'existe pas encore dans
+    // componentsRef.current (il ne sera créé que par le Handler après
+    // dispatch) : aucun filtre d'auto-exclusion n'est donc nécessaire,
+    // contrairement au chemin MOVE.
+    const breadboard = breadboardRef.current
+    const placement = breadboard
+      ? computeBreadboardPlacement(breadboard, type, { x, y }, componentsRef.current)
+      : { breadboardActive: false }
+
+    // Point de régression principal : quand breadboardActive est vrai,
+    // placement.position est DÉJÀ la position physiquement alignée sur la
+    // géométrie du breadboard (BREADBOARD_PITCH), pas GRID_SIZE — un second
+    // snapToGrid() l'écraserait silencieusement (même défaut que celui déjà
+    // corrigé dans normalizeComponent(), circuitModel.js, cf. Delivery
+    // Report MB-BREADBOARD-003 §3.3). Ne jamais repasser placement.position
+    // dans snapToGrid(). La validité (collision de trou) n'est pas
+    // vérifiée ici : elle reste entièrement déléguée à
+    // BreadboardHoleCollisionRule (STR-007) au moment de la validation
+    // CommandBus, exactement comme pour MOVE_COMPONENT — aucune nouvelle
+    // règle métier introduite.
+    const position = placement.breadboardActive
+      ? placement.position
+      : { x: snapToGrid(x), y: snapToGrid(y) }
+
     try {
       const coreDocument = documentApi.getDocument()
       const command = new Command("ADD_COMPONENT", {
         componentType: type,
-        position: { x: snappedX, y: snappedY },
+        position,
       })
       commandBusRef.current.dispatch(command, coreDocument)
     } catch (error) {
