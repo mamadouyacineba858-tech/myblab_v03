@@ -1,9 +1,21 @@
 # MYBLAB-CONSTITUTION.md
 
-**Version :** 1.2  
+**Version :** 1.3  
 **Statut :** OFFICIELLE  
 **Niveau documentaire :** 1 (Document fondateur)  
-**Dernière révision :** 2026-08-20
+**Dernière révision :** 2026-08-25
+
+---
+
+## Note de fusion (2026-08-25)
+
+Le dépôt contenait deux documents distincts se réclamant chacun du niveau 1 : le présent fichier (`MYBLAB-CONSTITUTION.md`, FR) et `docs/governance/CONSTITUTION.md` (EN, v1.0.0). Cette ambiguïté avait été relevée comme gap de gouvernance par `docs/roadmaps/amendments/2026-08-22-P2-0-reconciliation.md` §3.
+
+En pratique, seul le présent fichier était déjà cité comme autorité par le reste du dépôt (`docs/governance/CONVENTIONS.md`, `docs/governance/ARCHITECTURE.md`, `docs/vision/MYBLAB_VISION_2030.md`, `docs/governance/ADR/ADR-011-audit-architecture-docs.md`) ; `CONSTITUTION.md` (EN) n'était référencé nulle part ailleurs dans le dépôt.
+
+**Décision :** le présent fichier reste l'unique Constitution officielle. Son contenu substantiel absent de la version EN est conservé tel quel (Articles 1 à 15 inchangés — leur numérotation est citée par `ADR-011` et `CONVENTIONS.md` et n'est donc pas modifiée). Le contenu substantiel de la version EN qui n'avait pas d'équivalent ici est intégré ci-dessous sous de nouveaux articles (16 à 22) et sous forme d'ajouts ponctuels aux Articles 4 et 7. Là où les deux versions se contredisaient (hiérarchie documentaire de l'Article 14), la présente version — déjà celle suivie en pratique — prévaut explicitement.
+
+`docs/governance/CONSTITUTION.md` (EN, v1.0.0) est conservé comme artefact historique archivé, conformément à l'Article 20 ci-dessous, à `docs/governance/archive/CONSTITUTION.en.v1.0.0-superseded.md`, avec une note de renvoi vers le présent document.
 
 ---
 
@@ -63,6 +75,8 @@ Les critères définissant une décision structurante sont précisés dans **GOV
 
 Toute contribution produite avec l'assistance d'une IA doit être vérifiée, testée et assumée avant son intégration.
 
+*Ajout 2026-08-25 (fusion, ex-Article 7 EN « Agent Governance ») :* Un assistant opère uniquement dans le rôle et le périmètre qui lui sont assignés. Aucun assistant ne peut modifier unilatéralement la gouvernance du projet, l'autorité architecturale, ou le mandat confié à un autre assistant.
+
 ---
 
 # Article 5 — Documentation
@@ -88,6 +102,8 @@ La gouvernance définit les mécanismes de traçabilité applicables (ADR, RFC, 
 Toute évolution ayant un impact sur une interface publique, une architecture ou une règle de gouvernance doit être préparée, documentée et validée avant son adoption.
 
 Les procédures applicables sont définies dans les documents de gouvernance.
+
+*Ajout 2026-08-25 (fusion, ex-Article 6 EN « Change Discipline ») :* Tout changement doit être délimité, revu, testable et rattachable à un élément de roadmap ou à un ticket gouverné. Aucune implémentation ne peut élargir silencieusement le périmètre pour lequel elle a été autorisée.
 
 ---
 
@@ -166,6 +182,8 @@ Ordre de référence :
 
 En cas de contradiction, le document de niveau supérieur prévaut jusqu'à résolution.
 
+*Note 2026-08-25 (fusion) :* la version aujourd'hui archivée `docs/governance/archive/CONSTITUTION.en.v1.0.0-superseded.md` proposait une hiérarchie plus courte (Constitution → ADR → `PLATFORM_ARCHITECTURE.md` → documentation d'implémentation), plaçant les ADR directement au niveau 2. La présente hiérarchie, plus fine et déjà citée par `ADR-011` et `CONVENTIONS.md`, prévaut sans ambiguïté.
+
 ---
 
 # Article 15 — Révision
@@ -175,6 +193,66 @@ La présente Constitution ne peut être modifiée que par une décision explicit
 Toute révision doit demeurer exceptionnelle, motivée et compatible avec les principes fondateurs du projet.
 
 Les évolutions procédurales ou organisationnelles doivent être réalisées dans les documents de niveau inférieur sans modifier la présente Constitution.
+
+---
+
+# Article 16 — Séparation des responsabilités *(ajouté 2026-08-25, fusion)*
+
+Les modèles de domaine (Core), l'exécution/simulation, la présentation et les services de plateforme doivent rester séparés par des contrats explicites.
+
+Une préoccupation visuelle ou d'interface ne doit jamais devenir silencieusement une préoccupation de domaine ou de simulation.
+
+Le détail technique de cette séparation est défini par `docs/architecture/PLATFORM_ARCHITECTURE.md` et les ADR applicables (notamment ADR-002).
+
+---
+
+# Article 17 — Source de vérité du domaine *(ajouté 2026-08-25, fusion)*
+
+Le modèle Document/Core constitue la source de vérité pour la topologie des circuits et l'état de domaine persisté.
+
+Les couches de présentation consomment l'état de domaine et d'exécution à travers des interfaces définies ; elles ne redéfinissent jamais la vérité de domaine.
+
+Cet article est distinct de l'Article 2 : l'Article 2 régit la source de vérité **documentaire** du projet (le dépôt Git) ; le présent article régit la source de vérité **du domaine métier** simulé par MYBlab.
+
+---
+
+# Article 18 — Validation *(ajouté 2026-08-25, fusion)*
+
+Tout travail architectural ou d'implémentation doit être validé au regard de critères d'acceptation explicites et de preuves disponibles.
+
+Un statut de validation ne doit jamais être déduit de la seule intention : il doit reposer sur des preuves vérifiables (tests, audit, Delivery Report ou document équivalent).
+
+---
+
+# Article 19 — Autorité de la Roadmap *(ajouté 2026-08-25, fusion)*
+
+La roadmap constitue la couche de coordination stratégique entre la vision du projet, l'architecture et le travail exécutable.
+
+Tout ticket doit être rattachable à un Programme et à un Épic applicable de la roadmap.
+
+---
+
+# Article 20 — Préservation des artefacts historiques *(ajouté 2026-08-25, fusion)*
+
+Les documents d'architecture historiques et les décisions remplacées doivent être préservés lorsqu'ils fournissent un contexte utile.
+
+Le remplacement d'un document doit être explicite ; un artefact historique ne devient jamais silencieusement une autorité en vigueur.
+
+---
+
+# Article 21 — Absence d'architecture implicite *(ajouté 2026-08-25, fusion)*
+
+Une implémentation de code, un message de commit ou la recommandation d'un assistant ne constitue pas, en soi, une décision architecturale.
+
+L'autorité architecturale provient exclusivement de la documentation gouvernée et du processus de décision applicable (ADR, ruling CSA, ou document équivalent).
+
+---
+
+# Article 22 — Vision produit stratégique *(ajouté 2026-08-25, fusion)*
+
+L'évolution visuelle et produit de MYBlab suit une trajectoire par paliers : atteindre d'abord le seuil de qualité et d'usage représenté par Tinkercad, puis dépasser ce seuil, puis évoluer vers un laboratoire électronique virtuel avancé, réaliste et immersif.
+
+Cette direction stratégique est détaillée dans `docs/roadmaps/ROADMAP_PLATFORM.md` et guide les décisions futures de roadmap et d'architecture ; le présent article n'en fixe que le principe directeur.
 
 ---
 
