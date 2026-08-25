@@ -17,7 +17,13 @@ import {
   pinRefKey,
   wireAlreadyExists,
 } from "../utils/circuitSelectors.js"
-import { runSimulation } from "../simulator/engine.js"
+// MB-ARDUINO-BRIDGE-001 : remplace l'ancien appel direct au moteur nu
+// (engine.js) par runSimulationWithRuntime (simulationRuntimeIntegration.js
+// — seul point de composition Runtime ↔ Simulation, voir
+// runtimeArchitecture.test.js). Ce fichier n'importe ni runtimeOrchestrator.js
+// ni ArduinoSimulator.js : ces instances ne sont créées que lazily, à
+// l'intérieur de simulationRuntimeIntegration.js.
+import { runSimulationWithRuntime } from "../simulator/simulationRuntimeIntegration.js"
 import { getSelectionKey, parseSelectionKey, promoteActiveItem } from "../utils/selection.js"
 import { HistoryManager } from "../history/HistoryManager.js"
 import { DeleteCommand } from "../history/commands/DeleteCommand.js"
@@ -54,7 +60,7 @@ import { createDefaultValidationRegistry } from "../core/validation/createValida
 
 const EMPTY_MAP = new Map()
 
-export function useCircuitState(canvasRef) {
+export function useCircuitState(canvasRef, injectedOrchestrators) {
   const [components, setComponents] = useState([])
   const [wires, setWires] = useState([])
   const [pendingPin, setPendingPin] = useState(null)
@@ -111,6 +117,29 @@ export function useCircuitState(canvasRef) {
   // MB-CF3-001 (GATE 3/4) : assigné plus bas, une fois documentApi prêt (même
   // instance de historyManagerRef.current — cf. commandBusRef ci-dessous).
   const historyServiceRef = useRef(null)
+
+  // =========================================================================
+  // MB-ARDUINO-BRIDGE-001 (Blueprint §3/§4) : container runtime Arduino
+  // =========================================================================
+  // `orchestrators` est un Map<uid, RuntimeOrchestrator>, volatile, jamais
+  // historisé, jamais sérialisé avec le Document (§14 du Blueprint). Sa
+  // possession normale (architecture approuvée) est au niveau application
+  // (App.jsx → CircuitProvider → ici, via `injectedOrchestrators`) — ce hook
+  // ne crée alors qu'une référence, jamais l'objet lui-même. `ownOrchestratorsFallback`
+  // n'est qu'un repli pour les appelants qui n'injectent rien (tests,
+  // compatibilité ascendante avec les nombreux `<CircuitProvider>` existants
+  // sans prop `orchestrators`) : il ne crée qu'un Map vide, jamais un
+  // RuntimeOrchestrator ni un ArduinoSimulator — ces instances ne sont créées
+  // que lazily par simulationRuntimeIntegration.js (AC-02). useState (et non
+  // useRef) : sa valeur est lue pendant le rendu, ce qui est interdit pour un
+  // ref (règle react-hooks/refs — même correction déjà appliquée plus bas
+  // dans ce fichier pour commandBusRef/historyServiceRef) ; l'initialisation
+  // paresseuse garantit que `new Map()` n'est construit qu'une seule fois.
+  const [ownOrchestratorsFallback] = useState(() => new Map())
+  const orchestrators = injectedOrchestrators instanceof Map ? injectedOrchestrators : ownOrchestratorsFallback
+  // =========================================================================
+  // FIN MB-ARDUINO-BRIDGE-001 (container)
+  // =========================================================================
 
   const undo = useCallback(() => {
     // MB-CF3-001 : délègue à HistoryService (et non plus à HistoryManager
@@ -199,15 +228,22 @@ const getUndoCount = useCallback(() => {
 const adapted = toEngineInput(coreDoc);
     
     // 3. Appeler le moteur avec les données adaptées
+    // MB-ARDUINO-BRIDGE-001 : runSimulationWithRuntime délègue intégralement
+    // au chemin historique du moteur nu (GATE 0, non-régression prouvée par
+    // simulationRuntimeIntegration.test.js) tant qu'aucun composant ARDUINO
+    // n'est présent — même résultat, même cadence de recalcul qu'avant ce
+    // ticket. `orchestrators` est passé tel quel (jamais recréé ici) afin
+    // que l'état runtime (pinOutputs, PWM) survive aux recalculs successifs
+    // de ce useMemo (§16 du Blueprint).
 
-    const result = runSimulation(adapted.components, adapted.wires) ?? EMPTY_MAP
+    const result = runSimulationWithRuntime(adapted.components, adapted.wires, { orchestrators }) ?? EMPTY_MAP
 
     return result
   } catch (error) {
     console.error("MYBlab simulation error:", error)
     return EMPTY_MAP
   }
-}, [safeComponents, safeWires, simulationActive])
+}, [safeComponents, safeWires, simulationActive, orchestrators])
 
   const isWiringActive = pendingPin !== null
 
@@ -229,6 +265,26 @@ const adapted = toEngineInput(coreDoc);
 
   // =========================================================================
   // FIN MB-004.5
+  // =========================================================================
+
+  // =========================================================================
+  // MB-ARDUINO-BRIDGE-001 (Blueprint §5/§17) : purge du container runtime.
+  // Tout orchestrator dont l'UID Arduino n'existe plus parmi les composants
+  // ARDUINO du Document courant est éliminé du container — aucun état
+  // runtime d'un composant supprimé ne doit subsister indéfiniment. N'écrit
+  // jamais dans components/wires/Document/HistoryManager : seul le container
+  // runtime (Map, volatile) est affecté.
+  // =========================================================================
+  useEffect(() => {
+    const liveArduinoUids = new Set(
+      safeComponents.filter((c) => c.type === "ARDUINO").map((c) => c.uid)
+    )
+    for (const uid of Array.from(orchestrators.keys())) {
+      if (!liveArduinoUids.has(uid)) orchestrators.delete(uid)
+    }
+  }, [safeComponents, orchestrators])
+  // =========================================================================
+  // FIN MB-ARDUINO-BRIDGE-001 (purge)
   // =========================================================================
 
   // =========================================================================
@@ -1122,7 +1178,10 @@ if (import.meta.env.DEV) {
     setMarqueeRect(null)
     justFinishedMarqueeWithSelectionRef.current = false
     historyManagerRef.current.clear()
-  }, [])
+    // MB-ARDUINO-BRIDGE-001 (§5/§17 du Blueprint) : un nouveau Document (vide)
+    // ne doit jamais hériter de l'état runtime d'un circuit précédent.
+    orchestrators.clear()
+  }, [orchestrators])
 
   const exportCircuit = useCallback(() => ({ version: 1, components: safeComponents, wires: safeWires }), [safeComponents, safeWires])
 
@@ -1139,7 +1198,10 @@ if (import.meta.env.DEV) {
     setMarqueeRect(null)
     justFinishedMarqueeWithSelectionRef.current = false
     historyManagerRef.current.clear()
-  }, [])
+    // MB-ARDUINO-BRIDGE-001 (§5/§17 du Blueprint) : un Document importé ne
+    // doit jamais hériter de l'état runtime du circuit précédemment chargé.
+    orchestrators.clear()
+  }, [orchestrators])
 
   const startSimulation = useCallback(() => setSimulationActive(true), [])
   const stopSimulation = useCallback(() => setSimulationActive(false), [])
