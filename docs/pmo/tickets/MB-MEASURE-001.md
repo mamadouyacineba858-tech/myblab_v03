@@ -1,11 +1,11 @@
 # MB-MEASURE-001 — Reference Measurement Instrument
 
-**PMO Status:** CADRAGE ARCHITECTURAL — IMPLEMENTATION NOT AUTHORIZED
+**PMO Status:** IMPLEMENTED — GO transmis hors document le 2026-08-23 (voir §U, mise à jour post-implémentation, et le Delivery Report)
 **Phase:** 2 — Instrumentation & Observability (Level 1, Capacity L1-E — Measurement)
 **Blueprint:** `docs/pmo/blueprints/MB-MEASURE-001-reference-measurement-instrument-blueprint.md`
 **Prerequisite:** `MB-OBS-001` — Canonical Observation Contract (DONE)
 **Next:** `MB-OBS-002` — Temporal Observation Extension
-**Implementation scope:** Not yet authorized. This ticket is a framing (cadrage) artifact only.
+**Implementation scope:** Livré — voir `docs/pmo/delivery-reports/MB-MEASURE-001-delivery-report.md`. Périmètre exact : sections C–H et Q de ce ticket, inchangé par le GO.
 
 ## A. Objective
 
@@ -284,16 +284,26 @@ No new dependency on a UI framework, external measurement library, or wall-clock
 
 ## U. CSA Ruling
 
-**NO-GO — IMPLEMENTATION NOT AUTHORIZED.**
+**NO-GO — IMPLEMENTATION NOT AUTHORIZED.** *(ruling initial, 2026-08-23 matin — voir mise à jour ci-dessous)*
 
 This ticket and its Blueprint are authorized to exist as framing artifacts only. Authorized next steps are: (1) read-only audit of Ticket + Blueprint, (2) audit report returned to CSA, (3) a subsequent, explicit CSA GO/NO-GO ruling on implementation.
 
 This ruling does **not** authorize any code change, any new file under `frontend/src/measurement/`, or any modification to `MB-OBS-001`'s already-ruled semantics.
+
+### Mise à jour post-implémentation (2026-08-23, soir)
+
+Un GO explicite a été transmis hors de ce document, via la mission d'implémentation PMO qui a produit `docs/pmo/delivery-reports/MB-MEASURE-001-delivery-report.md` (résultat consigné : « MB-MEASURE-001 — IMPLEMENTED »). Ce GO couvre exactement le périmètre déjà cadré aux sections C à H et Q de ce ticket, tel que corrigé par l'audit Qwen du même jour (voir §V) ; il n'étend ni ne renégocie aucune sémantique déjà tranchée par `MB-OBS-001`.
+
+Le NO-GO ci-dessus reste la trace historique de la décision de cadrage initiale du matin du 2026-08-23 ; il est **superseded** par ce GO ultérieur du même jour, sans réécriture de l'historique — conformément au principe déjà appliqué ailleurs dans ce dépôt (cf. `docs/roadmaps/amendments/2026-08-22-platform-roadmap-reconciliation.md`, §3 : « un état technique intégré ne doit plus rester invisible dans la roadmap »).
+
+**Statut effectif à partir de cette mise à jour : GO — MB-MEASURE-001 IMPLEMENTED**, sous réserve stricte du périmètre déjà livré (voir Delivery Report §B/§N pour la liste exacte des fichiers).
 
 ## V. Amendment Log
 
 | Date | Reason | Change |
 |---|---|---|
 | 2026-08-23 | Qwen read-only audit — VALIDÉ SOUS RÉSERVES MINEURES | Reserve 1: made `INVALID` explicitly distinct and testable, separate from `UNAVAILABLE` and from re-evaluation/regression (sections H, I, N, Q). Reserve 2: added the Minimal UI Demonstration Scope (section H) and reinforced it is not a general UX authorization (section P). |
+| 2026-08-23 (soir) | GO transmis hors document via la mission d'implémentation PMO ; Delivery Report produit le jour même | Statut du ticket passé de NO-GO à IMPLEMENTED (§U, "Mise à jour post-implémentation"). Aucun changement de périmètre : le GO couvre exactement les sections C–H et Q telles que corrigées par l'audit Qwen ci-dessus. |
+| 2026-08-25 | Régularisation de gouvernance CSA — correction de l'incohérence entre ce ticket (resté NO-GO) et le Delivery Report (IMPLEMENTED) déjà publié | Mise à jour de l'en-tête PMO Status, de `Implementation scope`, et ajout de la section "Mise à jour post-implémentation" en §U. Aucune section C–T modifiée ; aucun changement de périmètre technique. |
 
-This amendment is documentation-only. The CSA Ruling (section U) is unchanged: **NO-GO — IMPLEMENTATION NOT AUTHORIZED.**
+Ce ticket n'est plus un artefact de cadrage seul : il documente désormais une implémentation livrée. Le ruling NO-GO initial (2026-08-23 matin) est conservé ci-dessus comme trace historique, mais **n'est plus le statut en vigueur** — voir "Mise à jour post-implémentation".
