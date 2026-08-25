@@ -21,6 +21,12 @@ export { ReferenceCoherenceRule } from './structural/ReferenceCoherenceRule.js'
 // cette commande dans un CommandRegistry — indépendant du verrou
 // cf1DocumentArchitecture.test.js (portée : ValidationRegistry uniquement).
 export { WireWaypointsStructureRule } from './structural/WireWaypointsStructureRule.js'
+// MB-BREADBOARD-003 (Blueprint §4, CSA Ruling GO du 2026-08-25) : bloque
+// toute commande ADD_COMPONENT/MOVE_COMPONENT qui ferait coïncider 2+ pins
+// distinctes sur le même trou exact d'un breadboard (LOCK-12). Id STR-007
+// (STR-005 déjà pris par ReferenceCoherenceRule, STR-006 par
+// WireWaypointsStructureRule — voir BreadboardHoleCollisionRule.js).
+export { BreadboardHoleCollisionRule } from './structural/BreadboardHoleCollisionRule.js'
 
 // Électriques
 export { ResistancePositiveRule } from './electrical/ResistancePositiveRule.js'
@@ -39,6 +45,7 @@ import { WirePinsExistRule } from './structural/WirePinsExistRule.js'
 import { SelfLoopRule } from './structural/SelfLoopRule.js'
 import { ReferenceCoherenceRule } from './structural/ReferenceCoherenceRule.js'
 import { WireWaypointsStructureRule } from './structural/WireWaypointsStructureRule.js'
+import { BreadboardHoleCollisionRule } from './structural/BreadboardHoleCollisionRule.js'
 import { ResistancePositiveRule } from './electrical/ResistancePositiveRule.js'
 import { CapacitancePositiveRule } from './electrical/CapacitancePositiveRule.js'
 import { VoltageDefinedRule } from './electrical/VoltageDefinedRule.js'
@@ -54,6 +61,7 @@ export const ALL_VALIDATION_RULES = [
   SelfLoopRule,
   ReferenceCoherenceRule,
   WireWaypointsStructureRule,
+  BreadboardHoleCollisionRule,
   ResistancePositiveRule,
   CapacitancePositiveRule,
   VoltageDefinedRule,

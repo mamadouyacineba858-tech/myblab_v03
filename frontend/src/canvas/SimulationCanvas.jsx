@@ -11,7 +11,7 @@ import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
 
 export function SimulationCanvas() {
   const {
-    components, breadboard, wirePaths, isWiringActive, cancelWiring, addComponent,
+    components, breadboard, breadboardFeedback, wirePaths, isWiringActive, cancelWiring, addComponent,
     canvasRef, zoom, showGrid,
     activeItem, clearSelection,
     startMarquee,
@@ -93,7 +93,7 @@ export function SimulationCanvas() {
     >
       <div className="simulation-canvas__zoom-layer" style={{ transform: `scale(${zoom})` }}>
         {showGrid && <GridBackground />}
-        <Breadboard breadboard={breadboard} components={components} />
+        <Breadboard breadboard={breadboard} components={components} breadboardFeedback={breadboardFeedback} />
         <WiresLayer wirePaths={wirePaths} />
         <div className="simulation-canvas__components">
           {components.map((comp) => (

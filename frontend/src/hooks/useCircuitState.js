@@ -1,6 +1,10 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { snapToGrid } from "../utils/grid.js"
+// MB-BREADBOARD-003 (Blueprint §3) : snapping/validité de placement pendant
+// le drag d'un composant existant. Fonction pure, aucun état — voir
+// breadboardPlacementAdapter.js pour le contrat complet.
+import { computeBreadboardPlacement } from "../utils/breadboardPlacementAdapter.js"
 import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js"
 import { toEngineInput } from "../simulator/engineAdapter.js"
 import {
@@ -120,6 +124,20 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   const [dragPreview, setDragPreview] = useState(null)
 
   // =========================================================================
+  // MB-BREADBOARD-003 (Blueprint §3) : breadboardFeedback, Presentation-only,
+  // même patron que dragPreview ci-dessus. `null` en dehors d'un drag ;
+  // sinon `{ draggedIds: Set<uid>, valid: boolean }` — uid des composants en
+  // cours de drag actuellement "actifs" sur le breadboard (breadboardActive
+  // du placement calculé), et validité globale (false si au moins un des
+  // composants draggés en breadboardActive est invalide — collision ou pin
+  // hors trou). Consommé par Breadboard.jsx (nouveau prop) pour colorer en
+  // vert/rouge les trous candidats du composant en cours de déplacement
+  // (AC-08/AC-09). Nettoyé systématiquement dans handlePointerUp/
+  // handlePointerCancel/handleBlur, même garde I-P10 que dragPreview.
+  // =========================================================================
+  const [breadboardFeedback, setBreadboardFeedback] = useState(null)
+
+  // =========================================================================
   // MB-004.3 : Historique (infrastructure uniquement)
   // =========================================================================
 
@@ -229,9 +247,21 @@ const getUndoCount = useCallback(() => {
   if (!simulationActive) return EMPTY_MAP
   try {
     // 1. Convertir React → Core Document
+    // MB-BREADBOARD-003 [correction disclosed, voir Delivery Report §Déviations] :
+    // `breadboard` était absent de ce coreDoc construit localement (à la
+    // différence de documentApi.getDocument(), qui l'inclut depuis
+    // MB-BREADBOARD-002). Conséquence : toEngineInput() ne recevait jamais
+    // de breadboard ici, donc deriveBreadboardVirtualWiresBridge() ne
+    // produisait jamais aucune arête — la connectivité breadboard était
+    // invisible à la simulation LIVE (pinSignals), bien que
+    // breadboardSimulationIntegration.test.js (MB-BREADBOARD-002) l'ait déjà
+    // prouvée correcte sur un Document construit à la main, hors du hook.
+    // Découvert via BreadboardInsertionMutationChannel.integration.test.jsx
+    // (TEST 1), qui exerce pour la première fois ce chemin de bout en bout.
     const coreDoc = ReactDocumentMapper.toCore({
       components: safeComponents,
-      wires: safeWires
+      wires: safeWires,
+      breadboard,
     });
     
     // 2. Adapter le Document Core vers le format attendu par engine.js
@@ -253,7 +283,7 @@ const adapted = toEngineInput(coreDoc);
     console.error("MYBlab simulation error:", error)
     return EMPTY_MAP
   }
-}, [safeComponents, safeWires, simulationActive, orchestrators])
+}, [safeComponents, safeWires, breadboard, simulationActive, orchestrators])
 
   const isWiringActive = pendingPin !== null
 
@@ -892,7 +922,10 @@ if (import.meta.env.DEV) {
       const comp = componentMap.get(id)
       if (comp) {
         beforePositions.set(id, { x: comp.x, y: comp.y })
-        componentsStart.set(id, { startX: comp.x, startY: comp.y })
+        // MB-BREADBOARD-003 (Blueprint §3) : `type` nécessaire à
+        // computeBreadboardPlacement() dans handlePointerMove (absent avant
+        // ce ticket, seule extension nécessaire côté capture de session).
+        componentsStart.set(id, { startX: comp.x, startY: comp.y, type: comp.type })
       }
     })
 
@@ -1084,18 +1117,48 @@ if (import.meta.env.DEV) {
       // d'historique, AUCUN dispatch tant que le pointeur n'est pas relâché.
       // Le snap-to-grid est appliqué ici (même comportement visuel qu'avant
       // cette extension, auparavant assuré par updateComponentPositions).
+      //
+      // MB-BREADBOARD-003 (Blueprint §3) : si un breadboard est posé et que
+      // le composant déplacé tombe dans son empreinte avec un type
+      // compatible (exactement 2 pins), la position est alignée sur les
+      // trous du breadboard (computeBreadboardPlacement, breadboardRef/
+      // componentsRef — références synchrones existantes, MB-BREADBOARD-002/
+      // Point 1 — évitent toute stale closure sans étendre le tableau de
+      // dépendances de cet effect, inchangé ci-dessous). Sinon, repli
+      // strict sur le snapToGrid GRID_SIZE existant (non-régression
+      // LOCK-13/AC-20).
       const positionsMap = new Map()
+      const breadboard = breadboardRef.current
+      let feedback = null
       session.componentsStart.forEach((startPos, uid) => {
-        positionsMap.set(uid, {
-          x: snapToGrid(startPos.startX + deltaX),
-          y: snapToGrid(startPos.startY + deltaY)
-        })
+        const raw = { x: startPos.startX + deltaX, y: startPos.startY + deltaY }
+        const placement = breadboard
+          ? computeBreadboardPlacement(
+              breadboard,
+              startPos.type,
+              raw,
+              componentsRef.current.filter((c) => c.uid !== uid)
+            )
+          : { breadboardActive: false }
+
+        if (placement.breadboardActive) {
+          positionsMap.set(uid, placement.position)
+          if (!feedback) feedback = { draggedIds: new Set(), valid: true }
+          feedback.draggedIds.add(uid)
+          if (!placement.valid) feedback.valid = false
+        } else {
+          positionsMap.set(uid, {
+            x: snapToGrid(raw.x),
+            y: snapToGrid(raw.y)
+          })
+        }
       })
 
       if (positionsMap.size > 0) {
         session.livePositions = positionsMap
         setDragPreview(positionsMap)
       }
+      setBreadboardFeedback(feedback)
     }
 
     const handlePointerUp = () => {
@@ -1166,9 +1229,11 @@ if (import.meta.env.DEV) {
         }
       }
 
-      // I-P10 : Nettoyage systématique
+      // I-P10 : Nettoyage systématique (MB-BREADBOARD-003 : breadboardFeedback
+      // suit la même garde que dragPreview).
       dragSessionRef.current = null
       setDragPreview(null)
+      setBreadboardFeedback(null)
     }
 
     const handlePointerCancel = () => {
@@ -1185,9 +1250,11 @@ if (import.meta.env.DEV) {
         return
       }
       // I-P10 : Nettoyage sans historique (dragPreview également réinitialisé
-      // — MB-CF3-003, aucun commit sur annulation).
+      // — MB-CF3-003, aucun commit sur annulation ; breadboardFeedback suit
+      // la même garde, MB-BREADBOARD-003).
       dragSessionRef.current = null
       setDragPreview(null)
+      setBreadboardFeedback(null)
     }
 
     const handleBlur = () => {
@@ -1204,9 +1271,11 @@ if (import.meta.env.DEV) {
         return
       }
       // I-P10 : Nettoyage sans historique (dragPreview également réinitialisé
-      // — MB-CF3-003, aucun commit sur perte de focus).
+      // — MB-CF3-003, aucun commit sur perte de focus ; breadboardFeedback
+      // suit la même garde, MB-BREADBOARD-003).
       dragSessionRef.current = null
       setDragPreview(null)
+      setBreadboardFeedback(null)
     }
 
     window.addEventListener("pointermove", handlePointerMove)
@@ -1238,6 +1307,7 @@ if (import.meta.env.DEV) {
     setActiveItem(null)
     dragSessionRef.current = null
     setDragPreview(null)
+    setBreadboardFeedback(null)
     marqueeSessionRef.current = null
     setMarqueeRect(null)
     justFinishedMarqueeWithSelectionRef.current = false
@@ -1247,17 +1317,32 @@ if (import.meta.env.DEV) {
     orchestrators.clear()
   }, [orchestrators])
 
-  const exportCircuit = useCallback(() => ({ version: 1, components: safeComponents, wires: safeWires }), [safeComponents, safeWires])
+  // MB-BREADBOARD-003 (Blueprint §6, AC-23) : `breadboard` était absent de
+  // l'objet exporté et ignoré à l'import (lacune préexistante, explicitement
+  // mise hors scope par MB-BREADBOARD-002 Delivery Report §5.2 faute d'AC
+  // qui l'exigeait alors — AC-23 de ce ticket la rend explicitement in-scope).
+  const exportCircuit = useCallback(
+    () => ({ version: 1, components: safeComponents, wires: safeWires, breadboard }),
+    [safeComponents, safeWires, breadboard]
+  )
 
   const importCircuit = useCallback((data) => {
     if (!data || typeof data !== "object") return
     setComponents(Array.isArray(data.components) ? data.components.map(normalizeComponent).filter((c) => c !== null) : [])
     setWires(Array.isArray(data.wires) ? data.wires.map(normalizeWire).filter((w) => w !== null) : [])
+    // MB-BREADBOARD-003 (AC-23) : restaure document.breadboard tel quel (même
+    // repli ?? null qu'applyDocument, MB-BREADBOARD-002). breadboardRef se
+    // resynchronise via son propre useEffect existant (safeComponents/
+    // safeWires suivent le même patron aujourd'hui pour componentsRef/
+    // wiresRef dans importCircuit — pas de synchronisation manuelle
+    // immédiate nécessaire ici, à la différence d'applyDocument).
+    setBreadboard(data.breadboard ? data.breadboard : null)
     setPendingPin(null)
     setSelection(new Set())
     setActiveItem(null)
     dragSessionRef.current = null
     setDragPreview(null)
+    setBreadboardFeedback(null)
     marqueeSessionRef.current = null
     setMarqueeRect(null)
     justFinishedMarqueeWithSelectionRef.current = false
@@ -1315,6 +1400,10 @@ if (import.meta.env.DEV) {
   // MB-BREADBOARD-002 (Blueprint §8) : exposé pour Breadboard.jsx (Presentation,
   // lecture seule) — null tant qu'aucun ADD_BREADBOARD n'a été dispatché.
   breadboard,
+  // MB-BREADBOARD-003 (Blueprint §3/§5) : exposé pour Breadboard.jsx — null
+  // en dehors d'un drag, sinon { draggedIds, valid } (voir déclaration plus
+  // haut dans ce hook).
+  breadboardFeedback,
   wirePaths,
   connectedPins,
   pinSignals,
@@ -1391,6 +1480,7 @@ if (import.meta.env.DEV) {
   componentsForRender,
   safeWires,
   breadboard,
+  breadboardFeedback,
   wirePaths,
   connectedPins,
   pinSignals,

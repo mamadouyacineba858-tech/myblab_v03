@@ -46,8 +46,14 @@ describe('toEngineInput — breadboard (MB-BREADBOARD-002)', () => {
   const R2 = { id: 'R2', type: 'RESISTOR', position: { x: 60, y: 22 } }
 
   it('ajoute les arêtes virtuelles breadboard aux wires explicites (TB-01)', () => {
+    // MB-BREADBOARD-003 : dx du pin B (84) est désormais un multiple exact de
+    // BREADBOARD_PITCH. R1/R2 partageant leur position, pin A ET pin B
+    // atterrissent chacun sur un trou valide → 2 arêtes virtuelles.
     const result = toEngineInput({ breadboard, components: [R1, R2], wires: [] })
-    expect(result.wires).toEqual([{ fromUid: 'R1', fromPin: 'A', toUid: 'R2', toPin: 'A' }])
+    expect(result.wires).toEqual([
+      { fromUid: 'R1', fromPin: 'A', toUid: 'R2', toPin: 'A' },
+      { fromUid: 'R1', fromPin: 'B', toUid: 'R2', toPin: 'B' },
+    ])
   })
 
   it('combine wire explicite et connexion breadboard (TB-06)', () => {
@@ -55,7 +61,8 @@ describe('toEngineInput — breadboard (MB-BREADBOARD-002)', () => {
     const result = toEngineInput({ breadboard, components: [R1, R2], wires: [explicitWire] })
     expect(result.wires).toContainEqual({ fromUid: 'R1', fromPin: 'B', toUid: 'LED1', toPin: 'anode' })
     expect(result.wires).toContainEqual({ fromUid: 'R1', fromPin: 'A', toUid: 'R2', toPin: 'A' })
-    expect(result.wires).toHaveLength(2)
+    expect(result.wires).toContainEqual({ fromUid: 'R1', fromPin: 'B', toUid: 'R2', toPin: 'B' })
+    expect(result.wires).toHaveLength(3)
   })
 
   it('sans breadboard sur le Document, aucune arête virtuelle ajoutée (TB-15, canevas libre inchangé)', () => {

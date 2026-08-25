@@ -25,3 +25,19 @@
   fill: #22c55e;
   stroke: #22c55e;
 }
+
+/* MB-BREADBOARD-003 (Blueprint §5, AC-08/AC-09) : feedback en direct pendant
+   le drag d'un composant existant — vert si la position atteinte serait
+   valide (insertion possible), rouge sinon (collision ou pin hors trou).
+   Réutilise le vert déjà établi pour "occupé" (#22c55e) ; le rouge
+   (#ef4444) suit le vocabulaire d'erreur déjà en usage ailleurs dans ce
+   dépôt (cf. CircuitComponent.css). */
+.breadboard__hole--feedback-valid {
+  fill: #22c55e;
+  stroke: #22c55e;
+}
+
+.breadboard__hole--feedback-invalid {
+  fill: #ef4444;
+  stroke: #ef4444;
+}

@@ -76,10 +76,13 @@ describe("MB-CF2-005 — Registry/Presentation pin boundary", () => {
   })
 
   it("preserves the public component definition shape", () => {
+    // MB-BREADBOARD-003 : width 84 (corrigé depuis 90, cf. componentDefinitions.js —
+    // multiple de BREADBOARD_PITCH=12 le plus proche, nécessaire pour que les deux
+    // pattes de RESISTOR puissent atterrir simultanément sur des trous valides).
     expect(COMPONENT_TYPES.RESISTOR).toMatchObject({
       id: "RESISTOR",
       label: "Résistance",
-      width: 90,
+      width: 84,
       height: 28,
     })
     expect(COMPONENT_TYPES.RESISTOR.pins).toHaveLength(2)

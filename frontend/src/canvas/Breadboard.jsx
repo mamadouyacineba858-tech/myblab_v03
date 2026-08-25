@@ -41,9 +41,25 @@ const PADDING = BREADBOARD_PITCH
  * non appelé ici) : c'est une simple coïncidence géométrique point-à-point,
  * jamais une dérivation de connectivité.
  *
- * @param {{ breadboard: {id:string,position:{x:number,y:number},layout:string}|null, components: Array<{uid:string,type:string,x:number,y:number}> }} props
+ * MB-BREADBOARD-003 (Blueprint §5) : `components` est déjà
+ * `componentsForRender` côté appelant (aperçu de drag inclus,
+ * SimulationCanvas.jsx) — le trou occupé par le composant en cours de
+ * déplacement apparaît donc déjà à la bonne position sans plomberie
+ * supplémentaire ici. Le nouveau prop `breadboardFeedback`
+ * (`{draggedIds:Set<uid>, valid:boolean}|null`, exposé par
+ * useCircuitState.js) sert uniquement à distinguer, PARMI les trous déjà
+ * occupés, ceux qui appartiennent à un composant EN COURS de drag : verts
+ * si `breadboardFeedback.valid`, rouges sinon (AC-08/AC-09). Un trou occupé
+ * par un composant déjà posé (non draggé) reste visuellement neutre/occupé
+ * (vert, comportement inchangé — MB-BREADBOARD-002).
+ *
+ * @param {{
+ *   breadboard: {id:string,position:{x:number,y:number},layout:string}|null,
+ *   components: Array<{uid:string,type:string,x:number,y:number}>,
+ *   breadboardFeedback: {draggedIds:Set<string>, valid:boolean}|null|undefined,
+ * }} props
  */
-export function Breadboard({ breadboard, components }) {
+export function Breadboard({ breadboard, components, breadboardFeedback }) {
   const holes = useMemo(() => {
     if (!breadboard || !breadboard.position) return []
     const list = []
@@ -58,9 +74,14 @@ export function Breadboard({ breadboard, components }) {
     return list
   }, [breadboard])
 
-  const occupiedKeys = useMemo(() => {
-    const set = new Set()
-    if (!breadboard || !breadboard.position) return set
+  // MB-BREADBOARD-003 (Blueprint §5) : Map<"col:row", Set<uid>> plutôt qu'un
+  // simple Set<"col:row"> (MB-BREADBOARD-002) — nécessaire pour savoir QUELS
+  // composants occupent un trou donné, afin de distinguer un trou occupé par
+  // le composant en cours de drag (feedback vert/rouge) d'un trou occupé par
+  // un composant déjà posé (neutre, inchangé).
+  const occupiedBy = useMemo(() => {
+    const map = new Map()
+    if (!breadboard || !breadboard.position) return map
     for (const component of components || []) {
       const def = getComponentDef(component?.type)
       if (!def || !Array.isArray(def.pins)) continue
@@ -68,10 +89,13 @@ export function Breadboard({ breadboard, components }) {
         const pos = getPinPosition(component, pin)
         if (!pos) continue
         const hole = holeAt(breadboard, pos.x, pos.y)
-        if (hole) set.add(`${hole.column}:${hole.row}`)
+        if (!hole) continue
+        const key = `${hole.column}:${hole.row}`
+        if (!map.has(key)) map.set(key, new Set())
+        map.get(key).add(component?.uid)
       }
     }
-    return set
+    return map
   }, [breadboard, components])
 
   if (!breadboard || !breadboard.position) return null
@@ -90,10 +114,25 @@ export function Breadboard({ breadboard, components }) {
       <rect className="breadboard__body" x={0} y={0} width={width} height={height} rx={6} />
       {holes.map((hole) => {
         const key = `${hole.column}:${hole.row}`
+        const occupants = occupiedBy.get(key)
+        // MB-BREADBOARD-003 (Blueprint §5) : parmi les occupants de ce trou,
+        // au moins un appartient-il au composant en cours de drag
+        // (breadboardFeedback.draggedIds) ? Si oui, le feedback vert/rouge
+        // remplace la mise en évidence "occupé" neutre pour CE trou.
+        const isDraggedHere =
+          !!occupants &&
+          !!breadboardFeedback &&
+          breadboardFeedback.draggedIds instanceof Set &&
+          [...occupants].some((uid) => breadboardFeedback.draggedIds.has(uid))
+        const feedbackClass = isDraggedHere
+          ? breadboardFeedback.valid
+            ? "breadboard__hole--feedback-valid"
+            : "breadboard__hole--feedback-invalid"
+          : null
         const classes = [
           "breadboard__hole",
           `breadboard__hole--${hole.kind.toLowerCase()}`,
-          occupiedKeys.has(key) ? "breadboard__hole--occupied" : null,
+          feedbackClass || (occupants && occupants.size > 0 ? "breadboard__hole--occupied" : null),
         ].filter(Boolean).join(" ")
         return (
           <circle

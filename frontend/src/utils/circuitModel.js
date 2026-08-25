@@ -1,7 +1,35 @@
-import { snapToGrid } from "./grid.js"
-
 /**
  * Normalise un composant pour le rendu (évite undefined / NaN).
+ *
+ * [MB-BREADBOARD-003, correction disclosed — voir Delivery Report
+ * MB-BREADBOARD-003 §Déviations] Avant ce ticket, cette fonction appliquait
+ * inconditionnellement `snapToGrid()` (GRID_SIZE=20) à x/y — redondant mais
+ * invisible jusqu'ici, car TOUT appelant qui construit une position destinée
+ * à être persistée l'aligne déjà explicitement lui-même sur GRID_SIZE avant
+ * d'atteindre ce point (`addComponent()` et le repli de drag "hors
+ * breadboard" dans useCircuitState.js, `documentApi.updateComponentPositions()`
+ * pour le canal legacy MoveCommand.js) — jamais un second alignement
+ * nécessaire. MB-BREADBOARD-003 introduit le PREMIER cas où une position
+ * PERSISTÉE est intentionnellement PAS un multiple de GRID_SIZE (alignée
+ * sur BREADBOARD_PITCH=12 à la place, via computeBreadboardPlacement()) :
+ * ce second snapToGrid, appliqué par `applyDocument()`/`safeComponents`/
+ * `importCircuit()` (les 3 points d'appel de normalizeComponent) sur TOUTE
+ * position quel que soit son origine, écrasait silencieusement l'alignement
+ * breadboard au tour de rendu suivant (ex. x=58 -> 60) — cassant à la fois
+ * l'affichage ET la connectivité électrique dérivée de la position
+ * (holeAt()), et empêchant AC-23 (export/import round-trip) de préserver
+ * une position breadboard exportée. Découvert via
+ * BreadboardInsertionMutationChannel.integration.test.jsx (TEST 1), qui
+ * exerce le cycle complet CommandBus -> applyDocument -> rendu, contrairement
+ * aux tests unitaires de Handler qui n'observent que le Document Core.
+ * Retiré ici : la responsabilité de l'alignement reste entièrement chez
+ * l'appelant qui décide de la position (déjà le cas partout ailleurs) ;
+ * cette fonction ne fait plus que garantir un nombre fini (défaut 0),
+ * jamais un alignement de grille qu'elle n'est pas en position de choisir.
+ * Non-régression vérifiée : aucun appelant existant ne dépendait de ce
+ * second snap (toutes les positions qui l'atteignaient étaient déjà des
+ * multiples de GRID_SIZE par construction — voir Delivery Report).
+ *
  * @param {object | null | undefined} component
  * @returns {object | null}
  */
@@ -11,8 +39,8 @@ export function normalizeComponent(component) {
   return {
     uid: String(component.uid),
     type: String(component.type),
-    x: Number.isFinite(component.x) ? snapToGrid(component.x) : 0,
-    y: Number.isFinite(component.y) ? snapToGrid(component.y) : 0,
+    x: Number.isFinite(component.x) ? component.x : 0,
+    y: Number.isFinite(component.y) ? component.y : 0,
     pins: Array.isArray(component.pins) ? [...component.pins] : [],
     ...(component.type === "BUTTON"
       ? { state: component.state === "pressed" ? "pressed" : "released" }

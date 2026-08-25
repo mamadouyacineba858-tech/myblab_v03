@@ -25,9 +25,11 @@ import { toEngineInput } from '../../simulator/engineAdapter.js'
 import { measure, MeasurementMode } from '../measurementContract.js'
 
 const POWER = { id: 'power1', type: 'POWER', position: { x: -300, y: -100 }, parameters: { voltage: 5 } }
-// RESISTOR.B (dx:90,dy:14) et RESISTOR.A (dx:0,dy:14) placés pour coïncider
-// exactement sur le même trou de breadboard (col 5, rangée 3 - strip haut).
-const R1 = { id: 'r1', type: 'RESISTOR', position: { x: -30, y: 22 }, parameters: { resistance: 220 } }
+// RESISTOR.B (dx:84,dy:14 — MB-BREADBOARD-003, corrigé depuis dx:90 ; x de
+// R1 décalé de +6 en conséquence pour préserver la même coïncidence) et
+// RESISTOR.A (dx:0,dy:14) placés pour coïncider exactement sur le même trou
+// de breadboard (col 5, rangée 3 - strip haut).
+const R1 = { id: 'r1', type: 'RESISTOR', position: { x: -24, y: 22 }, parameters: { resistance: 220 } }
 const R2 = { id: 'r2', type: 'RESISTOR', position: { x: 60, y: 22 }, parameters: { resistance: 220 } }
 
 const powerWires = [

@@ -116,4 +116,69 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
         expect(result.current.breadboard).not.toBe(null)
         expect(result.current.breadboard.position).toEqual({ x: 120, y: 180 })
     })
+
+    // =========================================================================
+    // MB-BREADBOARD-003 (Blueprint §6, AC-23, UI-15) : exportCircuit()/
+    // importCircuit() incluaient/restauraient tout SAUF breadboard (lacune
+    // préexistante, explicitement mise hors scope par MB-BREADBOARD-002
+    // Delivery Report §5.2 faute d'AC qui l'exigeait alors — AC-23 de ce
+    // ticket la rend explicitement in-scope).
+    // =========================================================================
+    it('TEST 6 (AC-23) : exportCircuit() inclut document.breadboard', () => {
+        const { result } = renderHook(() => useCircuit(), { wrapper })
+
+        act(() => {
+            result.current.addBreadboard(120, 180)
+        })
+        const id = result.current.breadboard.id
+
+        const exported = result.current.exportCircuit()
+        expect(exported.breadboard).not.toBe(null)
+        expect(exported.breadboard.id).toBe(id)
+        expect(exported.breadboard.layout).toBe('STANDARD_V1')
+    })
+
+    it('TEST 7 (AC-23) : exportCircuit() sans breadboard posé exporte breadboard: null (non-régression)', () => {
+        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const exported = result.current.exportCircuit()
+        expect(exported.breadboard).toBe(null)
+    })
+
+    it('TEST 8 (AC-23, UI-15) : importCircuit() restaure document.breadboard (round-trip export -> import)', () => {
+        const { result } = renderHook(() => useCircuit(), { wrapper })
+
+        act(() => {
+            result.current.addBreadboard(120, 180)
+            result.current.addComponent('LED', 100, 100)
+        })
+        const exported = result.current.exportCircuit()
+        expect(exported.breadboard).not.toBe(null)
+
+        // Nouvelle session (hook réinitialisé) : plus aucun breadboard.
+        const { result: fresh } = renderHook(() => useCircuit(), { wrapper })
+        expect(fresh.current.breadboard).toBe(null)
+
+        act(() => {
+            fresh.current.importCircuit(exported)
+        })
+
+        expect(fresh.current.breadboard).not.toBe(null)
+        expect(fresh.current.breadboard).toEqual(exported.breadboard)
+        expect(fresh.current.components.length).toBe(1)
+    })
+
+    it("TEST 9 (AC-23) : importCircuit() d'un document sans breadboard réinitialise à null (pas de résidu d'une session précédente)", () => {
+        const { result } = renderHook(() => useCircuit(), { wrapper })
+
+        act(() => {
+            result.current.addBreadboard(120, 180)
+        })
+        expect(result.current.breadboard).not.toBe(null)
+
+        act(() => {
+            result.current.importCircuit({ version: 1, components: [], wires: [] })
+        })
+
+        expect(result.current.breadboard).toBe(null)
+    })
 })

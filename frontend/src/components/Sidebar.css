@@ -108,3 +108,21 @@
   color: #f87171;
   border-color: #f87171;
 }
+
+/* MB-BREADBOARD-003 : bouton "Ajouter un breadboard" (Sidebar, section
+   Assemblage) — style additif, ne modifie aucune règle existante. */
+.myblab-btn--primary {
+  background: #38bdf8;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.myblab-btn--primary:hover:not(:disabled) {
+  background: #7dd3fc;
+}
+
+.myblab-btn--primary:disabled {
+  background: #1e293b;
+  color: #64748b;
+  cursor: default;
+}

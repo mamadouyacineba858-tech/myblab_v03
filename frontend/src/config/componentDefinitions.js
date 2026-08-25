@@ -11,9 +11,16 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "anode", label: "Anode", dx: 0, dy: 20 },
     { id: "cathode", label: "Cathode", dx: 80, dy: 20 },
   ],
+  // MB-BREADBOARD-003 (Blueprint MB-BREADBOARD-003 §1) : dx du second pin
+  // corrigé de 90 → 84 (multiple de BREADBOARD_PITCH=12 le plus proche —
+  // vérifié numériquement : 90 mod 12 = 6, hors tolérance d'insertion (±2)
+  // quelle que soit la position, donc les deux pattes ne pouvaient jamais
+  // atterrir simultanément sur des trous valides). `width` (COMPONENT_TYPES
+  // ci-dessous) suit la même correction pour garder les pins aux bords du
+  // corps rendu.
   RESISTOR: [
     { id: "A", label: "A", dx: 0, dy: 14 },
-    { id: "B", label: "B", dx: 90, dy: 14 },
+    { id: "B", label: "B", dx: 84, dy: 14 },
   ],
   ARDUINO: [
     { id: "D2", label: "D2", dx: 0, dy: 50 },
@@ -46,17 +53,18 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "wiper", label: "W", dx: 45, dy: 0 },
     { id: "right", label: "R", dx: 80, dy: 50 },
   ],
+  // MB-BREADBOARD-003 : même correction dx 90 → 84 qu'au-dessus (RESISTOR).
   LDR: [
     { id: "A", label: "A", dx: 0, dy: 18 },
-    { id: "B", label: "B", dx: 90, dy: 18 },
+    { id: "B", label: "B", dx: 84, dy: 18 },
   ],
   THERMISTOR: [
     { id: "A", label: "A", dx: 0, dy: 18 },
-    { id: "B", label: "B", dx: 90, dy: 18 },
+    { id: "B", label: "B", dx: 84, dy: 18 },
   ],
   DIODE: [
     { id: "anode", label: "A", dx: 0, dy: 15 },
-    { id: "cathode", label: "K", dx: 90, dy: 15 },
+    { id: "cathode", label: "K", dx: 84, dy: 15 },
   ],
   RGB_LED: [
     { id: "R", label: "R", dx: 12, dy: 56 },
@@ -74,9 +82,10 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "vcc", label: "VCC", dx: 90, dy: 35 },
     { id: "gnd", label: "GND", dx: 90, dy: 50 },
   ],
+  // MB-BREADBOARD-003 : même correction dx 90 → 84 qu'au-dessus (RESISTOR).
   DC_MOTOR: [
     { id: "plus", label: "+", dx: 0, dy: 25 },
-    { id: "minus", label: "-", dx: 90, dy: 25 },
+    { id: "minus", label: "-", dx: 84, dy: 25 },
   ],
 }
 
@@ -136,7 +145,8 @@ export const COMPONENT_TYPES = {
     id: "RESISTOR",
     label: "Résistance",
     icon: "〰️",
-    width: 90,
+    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin B ci-dessus.
+    width: 84,
     height: 28,
     pins: buildPins("RESISTOR"),
   },
@@ -200,7 +210,8 @@ export const COMPONENT_TYPES = {
     id: "LDR",
     label: "Photoresistance (LDR)",
     icon: "☀️",
-    width: 90,
+    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin B ci-dessus.
+    width: 84,
     height: 36,
     pins: buildPins("LDR"),
   },
@@ -208,7 +219,8 @@ export const COMPONENT_TYPES = {
     id: "THERMISTOR",
     label: "Thermistance",
     icon: "🌡",
-    width: 90,
+    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin B ci-dessus.
+    width: 84,
     height: 36,
     pins: buildPins("THERMISTOR"),
   },
@@ -216,7 +228,8 @@ export const COMPONENT_TYPES = {
     id: "DIODE",
     label: "Diode",
     icon: "↦|",
-    width: 90,
+    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin cathode ci-dessus.
+    width: 84,
     height: 30,
     pins: buildPins("DIODE"),
   },
@@ -248,7 +261,8 @@ export const COMPONENT_TYPES = {
     id: "DC_MOTOR",
     label: "Moteur DC",
     icon: "🌀",
-    width: 90,
+    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin minus ci-dessus.
+    width: 84,
     height: 50,
     pins: buildPins("DC_MOTOR"),
   },

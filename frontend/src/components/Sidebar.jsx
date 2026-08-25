@@ -7,11 +7,25 @@ import "./Sidebar.css"
  * Barre latérale : palette de composants + actions.
  */
 export function Sidebar() {
-  const { addComponent, clearCircuit, isWiringActive } = useCircuit()
+  const { addComponent, addBreadboard, breadboard, clearCircuit, isWiringActive } = useCircuit()
 
   const handlePaletteClick = useCallback((type) => {
     if (type) addComponent(type, 200, 180)
   }, [addComponent])
+
+  // MB-BREADBOARD-003 (limite disclosed héritée de MB-BREADBOARD-002 §5.2,
+  // ajout demandé par l'utilisateur en aval du ticket) : addBreadboard()
+  // existait déjà dans useCircuitState.js mais n'était accessible que via
+  // la console DevTools, faute d'affordance UI. Bouton strictement additif :
+  // n'appelle rien d'autre que la commande CommandBus déjà validée et
+  // testée (AddBreadboardHandler, LOCK-01). Désactivé/relabellisé quand un
+  // breadboard est déjà posé, en cohérence avec LOCK-01 (un seul breadboard
+  // par Document, un second addBreadboard() est de toute façon rejeté par
+  // le Handler — ce désactivage n'est qu'un confort visuel, pas une
+  // nouvelle règle).
+  const handleAddBreadboard = useCallback(() => {
+    if (!breadboard) addBreadboard()
+  }, [addBreadboard, breadboard])
 
   const handleDragStart = useCallback((e, type) => {
     if (!type) return
@@ -25,6 +39,18 @@ export function Sidebar() {
         <h1 className="myblab-sidebar__logo">MYBlab</h1>
         <p className="myblab-sidebar__tagline">Simulateur électronique</p>
       </header>
+
+      <section className="myblab-sidebar__section">
+        <h2 className="myblab-sidebar__title">Assemblage</h2>
+        <button
+          type="button"
+          className="myblab-btn myblab-btn--primary"
+          onClick={handleAddBreadboard}
+          disabled={!!breadboard}
+        >
+          {breadboard ? "Breadboard posé" : "Ajouter un breadboard"}
+        </button>
+      </section>
 
       <section className="myblab-sidebar__section">
         <h2 className="myblab-sidebar__title">Composants</h2>

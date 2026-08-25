@@ -39,12 +39,17 @@ describe('deriveBreadboardVirtualWires', () => {
   })
 
   it('connecte deux pins occupant le même groupe de cinq (TB-01)', () => {
+    // MB-BREADBOARD-003 : dx du pin B (84) est désormais un multiple exact de
+    // BREADBOARD_PITCH (12). R1 et R2 partageant la même position, leur pin A
+    // ET leur pin B atterrissent chacun sur un trou valide (deux groupes
+    // distincts, col5 et col12) — c'est le comportement correct attendu
+    // post-correction géométrique (avant, pin B tombait toujours hors trou).
     const wires = deriveBreadboardVirtualWires({ breadboard, components: [R1, R2] })
-    expect(wires).toHaveLength(1)
-    expect(wires[0]).toEqual({
-      pinA: { componentId: 'R1', pinId: 'A' },
-      pinB: { componentId: 'R2', pinId: 'A' },
-    })
+    expect(wires).toHaveLength(2)
+    expect(wires).toEqual([
+      { pinA: { componentId: 'R1', pinId: 'A' }, pinB: { componentId: 'R2', pinId: 'A' } },
+      { pinA: { componentId: 'R1', pinId: 'B' }, pinB: { componentId: 'R2', pinId: 'B' } },
+    ])
   })
 
   it('ne connecte pas deux pins de groupes voisins (TB-02)', () => {
@@ -53,20 +58,24 @@ describe('deriveBreadboardVirtualWires', () => {
   })
 
   it('retrait : un composant retiré de la liste ne laisse aucune connexion résiduelle (TB-07)', () => {
+    // MB-BREADBOARD-003 : voir TB-01 ci-dessus — R1/R2 partagent leurs deux
+    // pins (A et B) désormais, donc 2 arêtes tant que les deux sont présents.
     const withBoth = deriveBreadboardVirtualWires({ breadboard, components: [R1, R2] })
-    expect(withBoth).toHaveLength(1)
+    expect(withBoth).toHaveLength(2)
     const afterRemoval = deriveBreadboardVirtualWires({ breadboard, components: [R1] })
     expect(afterRemoval).toEqual([])
   })
 
   it('déplacement : ancien groupe libéré, nouveau groupe utilisé (TB-08)', () => {
+    // MB-BREADBOARD-003 : movedR2 rejoint la position de R3, donc leurs pins
+    // A ET B coïncident désormais (dx=84 exact multiple de PITCH) — 2 arêtes.
     const movedR2 = { ...R2, position: { x: 72, y: 22 } } // rejoint le groupe de R3
     const wires = deriveBreadboardVirtualWires({ breadboard, components: [R1, movedR2, R3] })
-    expect(wires).toHaveLength(1)
-    expect(wires[0]).toEqual({
-      pinA: { componentId: 'R2', pinId: 'A' },
-      pinB: { componentId: 'R3', pinId: 'A' },
-    })
+    expect(wires).toHaveLength(2)
+    expect(wires).toEqual([
+      { pinA: { componentId: 'R2', pinId: 'A' }, pinB: { componentId: 'R3', pinId: 'A' } },
+      { pinA: { componentId: 'R2', pinId: 'B' }, pinB: { componentId: 'R3', pinId: 'B' } },
+    ])
   })
 
   it('un pin hors grille (insertion invalide) ne produit aucune arête (TB-09)', () => {
@@ -90,7 +99,11 @@ describe('toBridgeWire / deriveBreadboardVirtualWiresBridge', () => {
   })
 
   it('dérive directement en forme bridge (TB-01, consommable par prepareCircuit)', () => {
+    // MB-BREADBOARD-003 : voir TB-01 ci-dessus — 2 arêtes (pin A et pin B).
     const wires = deriveBreadboardVirtualWiresBridge({ breadboard, components: [R1, R2] })
-    expect(wires).toEqual([{ fromUid: 'R1', fromPin: 'A', toUid: 'R2', toPin: 'A' }])
+    expect(wires).toEqual([
+      { fromUid: 'R1', fromPin: 'A', toUid: 'R2', toPin: 'A' },
+      { fromUid: 'R1', fromPin: 'B', toUid: 'R2', toPin: 'B' },
+    ])
   })
 })
