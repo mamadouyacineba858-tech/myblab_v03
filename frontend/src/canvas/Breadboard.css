@@ -9,133 +9,94 @@
      conservent donc la priorité de hit-test là où ils se superposent. */
   pointer-events: auto;
   overflow: visible;
+  /* MB-BREADBOARD-009 : le breadboard était trop petit à zoom=1 pour être
+     utilisé visuellement. Agrandissement PRESENTATION uniquement : aucune
+     coordonnée de trou, aucun pas électrique et aucun calcul de placement
+     n'est modifié. Le transform ne change pas le modèle géométrique. */
+  transform: scale(1.25);
+  transform-origin: top left;
 }
 
-/* MB-BREADBOARD-006 (CSA Ruling — Option B, §5) : même vocabulaire visuel
-   que la sélection d'un composant (CircuitComponent.jsx : outline 2px solid
-   #22c55e, outline-offset 2px). */
 .breadboard--selected {
   outline: 2px solid #22c55e;
   outline-offset: 2px;
 }
 
-/* MB-BREADBOARD-003 (Ticket "Assembly & Interaction V1", AC-01) : corps
-   nettement plus opaque/contrasté que la version MB-BREADBOARD-002
-   (translucide à 0.06) — but explicite du ticket : "L'utilisateur doit
-   immédiatement comprendre : Ceci est une vraie plaque d'essai." Palette
-   alignée sur les tons neutres déjà en usage dans ce dépôt pour les corps
-   de composants réalistes (cf. CircuitComponent.css #1f2937/#111827). */
 .breadboard__body {
   fill: #1e293b;
-  fill-opacity: 0.92;
-  stroke: #475569;
-  stroke-width: 1.5;
+  fill-opacity: 0.96;
+  stroke: #64748b;
+  stroke-width: 2;
 }
 
-/* MB-BREADBOARD-007-CORRECTION : le trou "libre" (état par défaut, sans
-   classe d'occupation) portait un remplissage quasi identique en teinte à
-   .breadboard__body (rgba(15,23,42,...) sur fond #1e293b) avec un trait à
-   0.35 d'opacité — constat utilisateur confirmé visuellement en Chromium
-   (trous de STRIP, l'immense majorité de la grille, quasi invisibles ; seuls
-   les trous de RAIL restaient lisibles grâce à leur couleur +/- dédiée
-   ci-dessous, inchangée). Remplacé par un remplissage clair à contraste net
-   contre le corps sombre — même famille chromatique neutre que le reste du
-   dépôt (slate clair), aucune nouvelle teinte introduite. N'affecte QUE
-   l'état "libre" : --occupied (vert), --bus-active (ambre), --rail-plus/
-   minus (rouge/bleu) et --feedback-valid/invalid restent des règles
-   séparées, non modifiées, et priment toujours par ordre de classe unique
-   (occupancyClass reste une valeur exclusive, Breadboard.jsx). */
+/* MB-BREADBOARD-009 : contraste volontairement fort pour que les trous
+   restent lisibles après l'agrandissement et à zoom normal. */
 .breadboard__hole {
-  fill: rgba(203, 213, 225, 0.55);
-  stroke: rgba(226, 232, 240, 0.85);
-  stroke-width: 0.6;
+  fill: rgba(226, 232, 240, 0.72);
+  stroke: rgba(248, 250, 252, 0.95);
+  stroke-width: 0.9;
 }
 
 .breadboard__hole--rail {
-  fill: rgba(148, 163, 184, 0.25);
+  fill: rgba(148, 163, 184, 0.3);
 }
 
-/* AC-05 : rails + et - clairement identifiables par couleur, même
-   vocabulaire chromatique que le reste du dépôt (rouge = positif/actif,
-   cf. CircuitComponent.css #ef4444 ; bleu = distinct/neutre, cf. #3b82f6). */
 .breadboard__hole--rail-plus {
-  fill: rgba(239, 68, 68, 0.3);
-  stroke: rgba(239, 68, 68, 0.55);
+  fill: rgba(239, 68, 68, 0.38);
+  stroke: rgba(248, 113, 113, 0.85);
 }
 
 .breadboard__hole--rail-minus {
-  fill: rgba(59, 130, 246, 0.3);
-  stroke: rgba(59, 130, 246, 0.55);
+  fill: rgba(59, 130, 246, 0.38);
+  stroke: rgba(96, 165, 250, 0.85);
 }
 
-/* Ligne de bus courant sous les trous de chaque rail — purement
-   décorative, renforce la lecture "ceci est un rail continu". */
 .breadboard__rail-line {
-  stroke-width: 1;
+  stroke-width: 1.5;
 }
 
 .breadboard__rail-line--plus {
   stroke: #ef4444;
-  opacity: 0.55;
+  opacity: 0.7;
 }
 
 .breadboard__rail-line--minus {
   stroke: #3b82f6;
-  opacity: 0.55;
+  opacity: 0.7;
 }
 
-/* AC-04 : rainure centrale, rendue comme une fente plus sombre que le
-   corps — jamais utilisée pour un calcul de placement (LOCK-09 reste porté
-   uniquement par holeAt(), qui ne rend aucun trou sur ce rang). */
+/* Rainure centrale clairement identifiable comme séparation physique. */
 .breadboard__groove {
-  fill: rgba(2, 6, 23, 0.55);
+  fill: rgba(2, 6, 23, 0.82);
+  stroke: rgba(100, 116, 139, 0.45);
+  stroke-width: 1;
 }
 
-/* AC-03 : séparateurs discrets de groupes de 5 colonnes — opacité faible,
-   ne doivent jamais dominer visuellement la grille de trous. */
 .breadboard__group-divider {
-  stroke: rgba(148, 163, 184, 0.18);
-  stroke-width: 0.5;
+  stroke: rgba(203, 213, 225, 0.28);
+  stroke-width: 0.75;
 }
 
 .breadboard__hole--occupied {
   fill: #22c55e;
-  stroke: #22c55e;
-}
-
-/* MB-BREADBOARD-007 (Ticket "Vérité visuelle du bus Breadboard", §4/§8) :
-   un trou occupé PAR AU MOINS DEUX pins partageant le même groupKey
-   électrique (rail entier ou colonne de strip — Breadboard.jsx,
-   activeGroupKeys) est distingué du simple vert "occupé" (--occupied,
-   une seule pin, aucun bus formé). Ambre — vocabulaire chromatique
-   distinct du vert "occupé neutre", du rouge "power/erreur" et du bleu
-   "ground" déjà en usage dans ce fichier, pour ne créer aucune ambiguïté
-   avec ces trois familles existantes. Aucune animation (hors périmètre du
-   Ticket, même discipline que WiresLayer.css/MB-VIS-004). --occupied et
-   --bus-active sont mutuellement exclusifs par construction
-   (Breadboard.jsx : occupancyClass est une valeur unique) — l'ordre de ces
-   deux règles dans ce fichier n'a donc pas d'incidence de cascade, mais
-   --bus-active reste néanmoins déclarée après --rail-plus/--rail-minus
-   pour primer sur la couleur de rail statique, comme --occupied déjà
-   au-dessus. */
-.breadboard__hole--bus-active {
-  fill: #f59e0b;
-  stroke: #fbbf24;
+  stroke: #bbf7d0;
   stroke-width: 1;
 }
 
-/* MB-BREADBOARD-003 (Blueprint §5, AC-08/AC-09) : feedback en direct pendant
-   le drag d'un composant existant — vert si la position atteinte serait
-   valide (insertion possible), rouge sinon (collision ou pin hors trou).
-   Réutilise le vert déjà établi pour "occupé" (#22c55e) ; le rouge
-   (#ef4444) suit le vocabulaire d'erreur déjà en usage ailleurs dans ce
-   dépôt (cf. CircuitComponent.css). */
+.breadboard__hole--bus-active {
+  fill: #f59e0b;
+  stroke: #fde68a;
+  stroke-width: 1.2;
+}
+
 .breadboard__hole--feedback-valid {
   fill: #22c55e;
-  stroke: #22c55e;
+  stroke: #bbf7d0;
+  stroke-width: 1;
 }
 
 .breadboard__hole--feedback-invalid {
   fill: #ef4444;
-  stroke: #ef4444;
+  stroke: #fecaca;
+  stroke-width: 1;
 }
