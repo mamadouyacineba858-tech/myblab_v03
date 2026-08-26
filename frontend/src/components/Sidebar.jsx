@@ -7,7 +7,12 @@ import "./Sidebar.css"
  * Barre latérale : palette de composants + actions.
  */
 export function Sidebar() {
-  const { addComponent, addBreadboard, breadboard, clearCircuit, isWiringActive } = useCircuit()
+  const {
+    addComponent, addBreadboard, breadboard, clearCircuit, isWiringActive,
+    // MB-BREADBOARD-008 (O1/O6) : signale le début/la fin d'un drag HTML5
+    // natif depuis la Sidebar — voir useCircuitState.js pour le détail.
+    startSidebarComponentDrag, endSidebarComponentDrag,
+  } = useCircuit()
 
   const handlePaletteClick = useCallback((type) => {
     if (type) addComponent(type, 200, 180)
@@ -31,7 +36,18 @@ export function Sidebar() {
     if (!type) return
     e.dataTransfer.setData("application/myblab-component", type)
     e.dataTransfer.effectAllowed = "copy"
-  }, [])
+    // MB-BREADBOARD-008 (O1) : type poussé explicitement dans useCircuitState.js
+    // (ref synchrone) — jamais relu depuis e.dataTransfer.getData() pendant
+    // les dragover ultérieurs (restriction navigateur, voir useCircuitState.js).
+    startSidebarComponentDrag(type)
+  }, [startSidebarComponentDrag])
+
+  // MB-BREADBOARD-008 (O6, I-P10) : nettoyage de fin de drag, quelle qu'en
+  // soit l'issue (drop réussi, annulation Echap, relâché hors cible valide)
+  // — dragend se déclenche systématiquement sur l'élément source.
+  const handleDragEnd = useCallback(() => {
+    endSidebarComponentDrag()
+  }, [endSidebarComponentDrag])
 
   return (
     <aside className="myblab-sidebar">
@@ -62,6 +78,7 @@ export function Sidebar() {
                 className="myblab-palette__item"
                 draggable
                 onDragStart={(e) => handleDragStart(e, item.id)}
+                onDragEnd={handleDragEnd}
                 onClick={() => handlePaletteClick(item.id)}
               >
                 <span className="myblab-palette__icon">{item.icon}</span>

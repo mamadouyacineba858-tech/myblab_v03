@@ -197,10 +197,24 @@ export function computeBreadboardPlacement(breadboard, componentType, candidateP
       : { x: 0, y: 0 }
 
   const def = getComponentDef(componentType)
-  // "compatible" est un diagnostic purement dérivé du type (jamais codé en
-  // dur — cf. Blueprint §2) : indépendant de la présence d'un breadboard ou
-  // de l'empreinte, pour rester utilisable comme signal isolé.
-  const compatible = !!def && Array.isArray(def.pins) && def.pins.length === 2
+  // MB-BREADBOARD-008 (Blueprint §1.7/§4 O8, CSA R6 — "L'algorithme doit
+  // être générique sur componentDefinitions[].pins... INTERDIT : pins.length
+  // === 2 comme restriction architecturale") : la restriction stricte à 2
+  // pins est retirée. Aucun autre changement algorithmique n'était
+  // nécessaire — resolveAllHoles()/findNearestFullyResolvedPosition()/
+  // resolveOccupiedHoleKeys()/bestEffortPinZeroSnap() ci-dessus itèrent déjà
+  // `for (const pin of pins)` sans jamais supposer un nombre de pins précis
+  // (aucune de ces fonctions n'a été modifiée par ce ticket). "compatible"
+  // reste un diagnostic purement dérivé du type (jamais codé en dur) :
+  // indépendant de la présence d'un breadboard ou de l'empreinte.
+  // Un composant N-pins dont la géométrie (dx/dy) n'aligne pas ses pins sur
+  // le pas du breadboard ne "crashe" jamais : resolveAllHoles() retourne
+  // simplement `null` pour toute position candidate (aucune pin ne résout
+  // via holeAt()), donc `found` reste `null`, `allResolved` reste `false`,
+  // et `valid` reste `false` — repli par construction, jamais une exception
+  // (Blueprint §1.7 : "Si un composant N-pins ne possède pas encore une
+  // géométrie compatible : valid = false sans crash ni corruption").
+  const compatible = !!def && Array.isArray(def.pins) && def.pins.length > 0
 
   const hasBreadboard = !!breadboard && !!breadboard.position
   const withinFootprint = hasBreadboard && isWithinFootprint(breadboard, candidatePosition)

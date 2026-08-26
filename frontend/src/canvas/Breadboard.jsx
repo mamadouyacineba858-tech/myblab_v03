@@ -97,13 +97,25 @@ const PADDING = BREADBOARD_PITCH
  * simulation (engine.js/preparation.js/resolution.js) reste totalement
  * inchangé et hors scope.
  *
+ * MB-BREADBOARD-008 (CSA GO — "Native Breadboard Component Insertion", O5) :
+ * nouveau prop `breadboardInsertPreview` — { holes: Array<{column,row}>,
+ * valid: boolean } | null — publié par useCircuitState.js pendant un drag
+ * HTML5 natif depuis la Sidebar (composant qui n'existe pas encore dans
+ * `components`, donc aucun uid à faire correspondre via `occupiedBy` :
+ * contrairement à `breadboardFeedback` ci-dessus, qui identifie les trous
+ * concernés INDIRECTEMENT via occupiedBy+draggedIds, ce nouveau prop porte
+ * la liste des trous DIRECTEMENT). Strictement additif : `breadboardFeedback`
+ * et son mécanisme (occupiedBy/draggedIds) restent inchangés pour le
+ * déplacement d'un composant déjà posé (MB-BREADBOARD-003).
+ *
  * @param {{
  *   breadboard: {id:string,position:{x:number,y:number},layout:string}|null,
  *   components: Array<{uid:string,type:string,x:number,y:number}>,
  *   breadboardFeedback: {draggedIds:Set<string>, valid:boolean}|null|undefined,
+ *   breadboardInsertPreview: {holes:Array<{column:number,row:number}>, valid:boolean}|null|undefined,
  * }} props
  */
-export function Breadboard({ breadboard, components, breadboardFeedback }) {
+export function Breadboard({ breadboard, components, breadboardFeedback, breadboardInsertPreview }) {
   // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : sélection + drag du
   // breadboard lui-même, réutilisant strictement le mécanisme existant
   // (selectOnly/isSelected : selection.js générique, inchangé ; startBreadboardDrag :
@@ -237,6 +249,18 @@ export function Breadboard({ breadboard, components, breadboardFeedback }) {
     return active
   }, [holes, occupiedBy])
 
+  // MB-BREADBOARD-008 (O5) : Set<"col:row"> des trous concernés par un
+  // aperçu de drop Sidebar en cours — `null` (pas juste vide) quand aucun
+  // aperçu n'est actif, pour distinguer "aucun aperçu" de "aperçu avec zéro
+  // trou concerné" (ce dernier cas ne devrait jamais survenir en pratique,
+  // computeBreadboardPlacement() ne publiant un aperçu breadboardActive que
+  // si au moins une pin a été examinée, mais la distinction reste correcte
+  // par construction).
+  const insertPreviewHoleKeys = useMemo(() => {
+    if (!breadboardInsertPreview || !Array.isArray(breadboardInsertPreview.holes)) return null
+    return new Set(breadboardInsertPreview.holes.map((h) => `${h.column}:${h.row}`))
+  }, [breadboardInsertPreview])
+
   if (!breadboard || !breadboard.position) return null
 
   const width = (STANDARD_V1_LAYOUT.columns - 1) * BREADBOARD_PITCH + PADDING * 2
@@ -344,13 +368,30 @@ export function Breadboard({ breadboard, components, breadboardFeedback }) {
         // possible même sur un rail partiellement actif ailleurs).
         const isOccupied = !!occupants && occupants.size > 0
         const isActiveGroup = isOccupied && activeGroupKeys.has(hole.groupKey)
+        // MB-BREADBOARD-008 (O5) : aperçu de drop Sidebar — même vocabulaire
+        // vert/rouge que feedbackClass ci-dessus (--feedback-valid/invalid,
+        // règles CSS MB-BREADBOARD-003, non dupliquées), mais indépendant de
+        // `isOccupied` : le trou visé par un composant PAS ENCORE posé n'est
+        // par définition pas dans `occupiedBy` (aucun uid). Priorité : un
+        // drag de composant EXISTANT (feedbackClass) prime s'il devait
+        // coexister (ne survient jamais en pratique : les deux systèmes de
+        // drag — pointer vs HTML5 natif — sont mutuellement exclusifs), puis
+        // l'aperçu Sidebar, puis les états d'occupation "au repos".
+        const isInsertPreviewHere = !!insertPreviewHoleKeys && insertPreviewHoleKeys.has(key)
+        const insertPreviewClass = isInsertPreviewHere
+          ? breadboardInsertPreview.valid
+            ? "breadboard__hole--feedback-valid"
+            : "breadboard__hole--feedback-invalid"
+          : null
         const occupancyClass = feedbackClass
           ? feedbackClass
-          : isActiveGroup
-            ? "breadboard__hole--bus-active"
-            : isOccupied
-              ? "breadboard__hole--occupied"
-              : null
+          : insertPreviewClass
+            ? insertPreviewClass
+            : isActiveGroup
+              ? "breadboard__hole--bus-active"
+              : isOccupied
+                ? "breadboard__hole--occupied"
+                : null
         const classes = [
           "breadboard__hole",
           `breadboard__hole--${hole.kind.toLowerCase()}`,

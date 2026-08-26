@@ -269,7 +269,18 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
     expect(resistorStillThere.y).toBe(21)
   })
 
-  it('TEST 5 (non-régression, LOCK-13/AC-20) : un composant de type incompatible (>2 pins) traversant l\'empreinte du breadboard garde le snap-to-grid habituel', () => {
+  // MB-BREADBOARD-008 (O8/R6, CSA — "La limitation actuelle à deux pins ne
+  // doit pas être reproduite") : ce test couvrait auparavant "ARDUINO (>2
+  // pins) = incompatible, repli snap-to-grid inconditionnel". La
+  // restriction pins.length === 2 est précisément ce que ce ticket
+  // supprime (breadboardPlacementAdapter.js) — ARDUINO (4 pins) est
+  // désormais "compatible" et engage la logique de placement breadboard
+  // (feedback vert/rouge inclus) au lieu du repli GRID_SIZE immédiat.
+  // Aucune garantie que `valid` devienne true (la géométrie dx/dy d'ARDUINO
+  // n'a pas été retouchée par ce ticket, hors scope, Blueprint §1.7) : seul
+  // l'ENGAGEMENT du mécanisme (breadboardActive, feedback non-null) est
+  // prouvé ici, et l'absence de crash/corruption au relâchement.
+  it('TEST 5 (MB-BREADBOARD-008, remplace l\'ancien "type incompatible") : un composant >2 pins (ARDUINO) engage désormais le placement breadboard au lieu du repli snap-to-grid inconditionnel', () => {
     const { result } = renderWithCanvas()
     _result = result
     act(() => {
@@ -280,13 +291,18 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
 
     // Cible à l'intérieur de l'empreinte du breadboard.
     drag(arduino, { dx: 60 - arduino.x, dy: 22 - arduino.y })
+
+    expect(result.current.breadboardFeedback).not.toBe(null)
+    expect(result.current.breadboardFeedback.draggedIds.has(arduino.uid)).toBe(true)
+
     pointerUp()
 
+    // Aucun crash, aucune corruption au relâchement — le composant reste
+    // un objet cohérent, quelle que soit la validité finale du placement.
     const after = result.current.components.find((c) => c.uid === arduino.uid)
-    // Comportement GRID_SIZE inchangé : aucune tentative d'alignement
-    // breadboard pour un type incompatible (Blueprint §2 étape 1).
-    expect(after.x % 20).toBe(0)
-    expect(after.y % 20).toBe(0)
+    expect(after).toBeDefined()
+    expect(Number.isFinite(after.x)).toBe(true)
+    expect(Number.isFinite(after.y)).toBe(true)
   })
 
   it("TEST 6 (BB-TEST-11, LOCK-05/06/07) : pointermove au-dessus d'un trou valide ne mute PAS le Document réel — seul pointerup persiste", () => {
@@ -381,5 +397,123 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
       result.current.startSimulation()
     })
     expect(isLedOn(result, newLed.uid)).toBe(true)
+  })
+})
+
+/**
+ * MB-BREADBOARD-008 (CSA GO — "Native Breadboard Component Insertion",
+ * O1/O2/O5/O6/O7/O9) : aperçu de placement en direct pendant un drag HTML5
+ * natif depuis la Sidebar (startSidebarComponentDrag/
+ * updateSidebarComponentDragPosition/endSidebarComponentDrag —
+ * useCircuitState.js), consommé via le hook réel (vrai CommandRegistry, vrai
+ * ValidationEngine). jsdom ne simule pas fidèlement les événements HTML5
+ * drag-and-drop natifs (dragover/drop) : ces fonctions sont donc appelées
+ * directement, exactement comme startDrag/window.dispatchEvent(pointermove)
+ * le sont pour le MOVE ailleurs dans ce fichier — même discipline
+ * (CircuitProvider réel, aucun mock du Document/CommandBus).
+ *
+ * canvasRef ici n'a aucune position CSS (getBoundingClientRect -> 0 sous
+ * jsdom, même remarque que pointerDown/pointerMove ci-dessus), et zoom vaut
+ * 1 par défaut : updateSidebarComponentDragPosition(clientX, clientY)
+ * applique exactement la même conversion que handleDrop() (SimulationCanvas.jsx,
+ * non dupliquée) — x = clientX - GRID_SIZE*2 (40), y = clientY - GRID_SIZE
+ * (20). Pour cibler la position RESISTOR (58,21) déjà prouvée valide par
+ * breadboardPlacementAdapter.test.js (holes col5/row3 + col12/row3),
+ * clientX=98, clientY=41.
+ */
+describe('MB-BREADBOARD-008 — aperçu de drop Sidebar (breadboardInsertPreview, O1/O2/O5/O6/O7/O9)', () => {
+  it('startSidebarComponentDrag + updateSidebarComponentDragPosition publient un aperçu vert (valid:true) sur une position candidate valide', () => {
+    const { result } = renderWithCanvas()
+    _result = result
+    act(() => {
+      result.current.addBreadboard(0, 0)
+    })
+    act(() => {
+      result.current.startSidebarComponentDrag('RESISTOR')
+    })
+    act(() => {
+      result.current.updateSidebarComponentDragPosition(98, 41)
+    })
+
+    expect(result.current.breadboardInsertPreview).not.toBe(null)
+    expect(result.current.breadboardInsertPreview.valid).toBe(true)
+    expect(result.current.breadboardInsertPreview.holes).toEqual([
+      { column: 5, row: 3 },
+      { column: 12, row: 3 },
+    ])
+
+    // O3 (aucune mutation persistante pendant l'aperçu, même garde que
+    // MOVE — TEST 6 ci-dessus) : le Document réel n'a subi aucun ajout.
+    expect(result.current.components.length).toBe(0)
+  })
+
+  it("endSidebarComponentDrag nettoie l'aperçu (O6, I-P10 : aucun état fantôme)", () => {
+    const { result } = renderWithCanvas()
+    _result = result
+    act(() => { result.current.addBreadboard(0, 0) })
+    act(() => { result.current.startSidebarComponentDrag('RESISTOR') })
+    act(() => { result.current.updateSidebarComponentDragPosition(98, 41) })
+    expect(result.current.breadboardInsertPreview).not.toBe(null)
+
+    act(() => { result.current.endSidebarComponentDrag() })
+    expect(result.current.breadboardInsertPreview).toBe(null)
+  })
+
+  it('sans breadboard posé, updateSidebarComponentDragPosition ne publie aucun aperçu (repli existant inchangé)', () => {
+    const { result } = renderWithCanvas()
+    _result = result
+    act(() => { result.current.startSidebarComponentDrag('RESISTOR') })
+    act(() => { result.current.updateSidebarComponentDragPosition(98, 41) })
+    expect(result.current.breadboardInsertPreview).toBe(null)
+  })
+
+  it('O9 — collision : l’aperçu passe rouge (valid:false) quand la position candidate coïncide avec un composant DÉJÀ posé, sans crash', () => {
+    const { result } = renderWithCanvas()
+    _result = result
+    act(() => {
+      result.current.addBreadboard(0, 0)
+      // Occupe exactement col5/row3 + col12/row3 (position fixe de la
+      // fonction de snapping, cf. breadboardPlacementAdapter.test.js).
+      result.current.addComponent('RESISTOR', 58, 21)
+    })
+    act(() => { result.current.startSidebarComponentDrag('RESISTOR') })
+    act(() => { result.current.updateSidebarComponentDragPosition(98, 41) })
+
+    expect(result.current.breadboardInsertPreview).not.toBe(null)
+    expect(result.current.breadboardInsertPreview.valid).toBe(false)
+  })
+
+  it("O7 — scénario Sidebar complet : aperçu en direct puis dépôt réel via addComponent() pose le composant exactement à la position breadboard prévisualisée", () => {
+    const { result } = renderWithCanvas()
+    _result = result
+    act(() => { result.current.addBreadboard(0, 0) })
+    act(() => { result.current.startSidebarComponentDrag('RESISTOR') })
+    act(() => { result.current.updateSidebarComponentDragPosition(98, 41) })
+    expect(result.current.breadboardInsertPreview.valid).toBe(true)
+
+    // Le drop réel (SimulationCanvas.jsx handleDrop) appelle addComponent()
+    // avec la même conversion client->document, puis endSidebarComponentDrag()
+    // — reproduit ici sans DOM drop natif (non simulable fidèlement sous
+    // jsdom, cf. en-tête de ce describe).
+    act(() => {
+      result.current.addComponent('RESISTOR', 58, 21)
+      result.current.endSidebarComponentDrag()
+    })
+
+    expect(result.current.components.length).toBe(1)
+    expect(result.current.components[0].x).toBe(58)
+    expect(result.current.components[0].y).toBe(21)
+    expect(result.current.breadboardInsertPreview).toBe(null)
+  })
+
+  it("un type inconnu ne publie jamais d'aperçu et ne crashe pas (garde défensive symétrique à addComponent)", () => {
+    const { result } = renderWithCanvas()
+    _result = result
+    act(() => { result.current.addBreadboard(0, 0) })
+    expect(() => {
+      act(() => { result.current.startSidebarComponentDrag('DOES_NOT_EXIST') })
+    }).not.toThrow()
+    act(() => { result.current.updateSidebarComponentDragPosition(98, 41) })
+    expect(result.current.breadboardInsertPreview).toBe(null)
   })
 })

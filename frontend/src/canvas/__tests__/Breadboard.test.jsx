@@ -134,6 +134,71 @@ describe('MB-BREADBOARD-003 — feedback vert/rouge pendant le drag (Blueprint �
 })
 
 /**
+ * MB-BREADBOARD-008 (CSA GO — "Native Breadboard Component Insertion", O5) :
+ * `breadboardInsertPreview` — vert/rouge pour un composant qui N'EXISTE PAS
+ * ENCORE dans `components` (drag HTML5 natif depuis la Sidebar, aucun uid).
+ * Strictement additif : ces tests ne recouvrent aucune assertion du describe
+ * précédent (breadboardFeedback, occupiedBy/draggedIds, inchangé).
+ */
+describe('MB-BREADBOARD-008 — aperçu de drop Sidebar (breadboardInsertPreview, O5)', () => {
+  it('colore en vert (feedback-valid) les trous listés quand breadboardInsertPreview.valid est true, sans aucun composant présent', () => {
+    const breadboardInsertPreview = { holes: [{ column: 5, row: 3 }, { column: 12, row: 3 }], valid: true }
+    const { container } = render(
+      <Breadboard breadboard={BREADBOARD} components={[]} breadboardInsertPreview={breadboardInsertPreview} />
+    )
+    expect(container.querySelectorAll('.breadboard__hole--feedback-valid').length).toBe(2)
+    expect(container.querySelectorAll('.breadboard__hole--feedback-invalid').length).toBe(0)
+    // Aucun composant réel n'existe : ces trous ne sont pas dans occupiedBy,
+    // donc jamais --occupied non plus (une seule classe de mise en évidence).
+    expect(container.querySelectorAll('.breadboard__hole--occupied').length).toBe(0)
+  })
+
+  it('colore en rouge (feedback-invalid) les trous listés quand breadboardInsertPreview.valid est false', () => {
+    const breadboardInsertPreview = { holes: [{ column: 5, row: 3 }], valid: false }
+    const { container } = render(
+      <Breadboard breadboard={BREADBOARD} components={[]} breadboardInsertPreview={breadboardInsertPreview} />
+    )
+    expect(container.querySelectorAll('.breadboard__hole--feedback-invalid').length).toBe(1)
+    expect(container.querySelectorAll('.breadboard__hole--feedback-valid').length).toBe(0)
+  })
+
+  it('breadboardInsertPreview absent (undefined/null) — aucun trou mis en évidence (non-régression)', () => {
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[]} />)
+    expect(container.querySelectorAll('.breadboard__hole--feedback-valid').length).toBe(0)
+    expect(container.querySelectorAll('.breadboard__hole--feedback-invalid').length).toBe(0)
+  })
+
+  it("breadboardFeedback (composant existant en cours de MOVE) et breadboardInsertPreview (drop Sidebar) sont strictement indépendants : l'un n'affecte jamais le rendu de l'autre", () => {
+    const r1 = { uid: 'r1', type: 'RESISTOR', x: -24, y: 22 } // pin B -> col5,row3
+    const breadboardFeedback = { draggedIds: new Set(['r1']), valid: true }
+    const breadboardInsertPreview = { holes: [{ column: 19, row: 4 }], valid: false }
+    const { container } = render(
+      <Breadboard
+        breadboard={BREADBOARD}
+        components={[r1]}
+        breadboardFeedback={breadboardFeedback}
+        breadboardInsertPreview={breadboardInsertPreview}
+      />
+    )
+    // r1 (via breadboardFeedback) reste vert ; le trou 19:4 (via
+    // breadboardInsertPreview) est rouge — les deux mécanismes coexistent
+    // sans interférence, chacun sur ses propres trous.
+    expect(container.querySelectorAll('.breadboard__hole--feedback-valid').length).toBe(1)
+    expect(container.querySelectorAll('.breadboard__hole--feedback-invalid').length).toBe(1)
+  })
+
+  it('un trou déjà occupé par un composant existant et également listé par breadboardInsertPreview affiche le feedback de drop (occupancyClass reste une valeur unique)', () => {
+    const r1 = { uid: 'r1', type: 'RESISTOR', x: -24, y: 22 } // pin B -> col5,row3
+    const breadboardInsertPreview = { holes: [{ column: 5, row: 3 }], valid: false }
+    const { container } = render(
+      <Breadboard breadboard={BREADBOARD} components={[r1]} breadboardInsertPreview={breadboardInsertPreview} />
+    )
+    expect(container.querySelectorAll('.breadboard__hole--feedback-invalid').length).toBe(1)
+    expect(container.querySelectorAll('.breadboard__hole--occupied').length).toBe(0)
+  })
+})
+
+/**
  * MB-BREADBOARD-003 (Ticket "Assembly & Interaction V1", BB-TEST-03/04/05,
  * AC-01/AC-03/AC-04/AC-05) — enrichissements purement visuels : polarité
  * des rails, rainure centrale, séparateurs de groupes de 5. Aucune de ces

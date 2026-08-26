@@ -11,11 +11,15 @@ import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
 
 export function SimulationCanvas() {
   const {
-    components, breadboard, breadboardFeedback, wirePaths, isWiringActive, cancelWiring, addComponent,
+    components, breadboard, breadboardFeedback, breadboardInsertPreview, wirePaths, isWiringActive, cancelWiring, addComponent,
     canvasRef, zoom, showGrid,
     activeItem, clearSelection,
     startMarquee,
     marqueeRect,
+    // MB-BREADBOARD-008 (O2/O5/O6) : aperçu de placement en direct pendant
+    // un drag HTML5 natif depuis la Sidebar.
+    updateSidebarComponentDragPosition,
+    endSidebarComponentDrag,
   } = useCircuit()
 
   // Référence pour savoir si le marquee est actif
@@ -76,18 +80,37 @@ export function SimulationCanvas() {
   const handleDrop = useCallback((e) => {
     e.preventDefault()
     const type = e.dataTransfer.getData("application/myblab-component")
+    // MB-BREADBOARD-008 (O6) : nettoyage systématique de l'aperçu Sidebar au
+    // drop réel, que `type` soit vide ou non (I-P10, aucun état fantôme).
+    endSidebarComponentDrag()
     if (!type) return
     const rect = canvasRef?.current?.getBoundingClientRect()
     if (!rect) return
     const x = (e.clientX - rect.left) / zoom - GRID_SIZE * 2
     const y = (e.clientY - rect.top) / zoom - GRID_SIZE
     addComponent(type, x, y)
-  }, [canvasRef, addComponent, zoom])
+  }, [canvasRef, addComponent, zoom, endSidebarComponentDrag])
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = "copy"
-  }, [])
+    // MB-BREADBOARD-008 (O2/O5) : aperçu de placement en direct — voir
+    // updateSidebarComponentDragPosition (useCircuitState.js) pour le détail
+    // de la résolution (holeAt() via computeBreadboardPlacement(), unique
+    // oracle, non dupliqué ici).
+    updateSidebarComponentDragPosition(e.clientX, e.clientY)
+  }, [updateSidebarComponentDragPosition])
+
+  // MB-BREADBOARD-008 (O6, I-P10) : sortie du canvas pendant un drag Sidebar
+  // en cours — nettoyer l'aperçu pour éviter un feedback fantôme figé sur
+  // les derniers trous survolés. `e.currentTarget.contains(e.relatedTarget)`
+  // ignore les dragleave "internes" (survol d'un enfant du canvas, ex. un
+  // composant déjà posé) : seule une VRAIE sortie du canvas déclenche le
+  // nettoyage.
+  const handleDragLeave = useCallback((e) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return
+    endSidebarComponentDrag()
+  }, [endSidebarComponentDrag])
 
   const hasComponents = components.length > 0
 
@@ -97,12 +120,18 @@ export function SimulationCanvas() {
       className="simulation-canvas" 
       onPointerDown={handleCanvasPointerDown}
       onClick={handleCanvasClick}
-      onDrop={handleDrop} 
+      onDrop={handleDrop}
       onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
     >
       <div className="simulation-canvas__zoom-layer" style={{ transform: `scale(${zoom})` }}>
         {showGrid && <GridBackground />}
-        <Breadboard breadboard={breadboard} components={components} breadboardFeedback={breadboardFeedback} />
+        <Breadboard
+          breadboard={breadboard}
+          components={components}
+          breadboardFeedback={breadboardFeedback}
+          breadboardInsertPreview={breadboardInsertPreview}
+        />
         <WiresLayer wirePaths={wirePaths} />
         <div className="simulation-canvas__components">
           {components.map((comp) => (

@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
-import { snapToGrid } from "../utils/grid.js"
+import { snapToGrid, GRID_SIZE } from "../utils/grid.js"
 // MB-BREADBOARD-003 (Blueprint §3) : snapping/validité de placement pendant
 // le drag d'un composant existant. Fonction pure, aucun état — voir
 // breadboardPlacementAdapter.js pour le contrat complet.
@@ -153,6 +153,96 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   // handlePointerCancel/handleBlur, même garde I-P10 que dragPreview.
   // =========================================================================
   const [breadboardFeedback, setBreadboardFeedback] = useState(null)
+
+  // =========================================================================
+  // MB-BREADBOARD-008 (CSA GO — "Native Breadboard Component Insertion",
+  // O1-O7) : aperçu de placement EN DIRECT pendant un drag HTML5 natif
+  // depuis la Sidebar (dragstart/dragover/drop — Sidebar.jsx/
+  // SimulationCanvas.jsx), pour un composant qui N'EXISTE PAS ENCORE dans le
+  // Document (aucun uid). Volontairement séparé de dragSessionRef/
+  // dragPreview/breadboardFeedback ci-dessus (réservés au déplacement d'un
+  // composant DÉJÀ présent, MB-BREADBOARD-003/MB-CF3-003, non modifiés par
+  // ce ticket — deux systèmes d'événements distincts : pointerdown/move/up
+  // pour le premier, dragstart/dragover/drop natif du navigateur pour
+  // celui-ci, qui ne se déclenchent jamais simultanément).
+  //
+  // sidebarDragRef (ref, pas de state — inutile de re-rendre à chaque
+  // frame) ne mémorise QUE le type en cours de drag. Il n'est JAMAIS lu via
+  // event.dataTransfer.getData() pendant un dragover : la spécification
+  // HTML5 Drag and Drop restreint la lecture de getData() aux événements
+  // dragstart/drop (protection anti-fingerprinting) — un getData() pendant
+  // dragover renvoie une chaîne vide dans la plupart des navigateurs.
+  // Sidebar.jsx pousse donc le type explicitement au dragstart
+  // (startSidebarComponentDrag), lu ici en synchrone à chaque dragover.
+  const sidebarDragRef = useRef(null)
+
+  // { holes: Array<{column:number,row:number}>, valid: boolean } | null.
+  // Contrairement à breadboardFeedback (qui identifie les trous concernés
+  // INDIRECTEMENT via occupiedBy + draggedIds, puisque le composant déplacé
+  // existe déjà dans components[]/componentsForRender), ce nouvel état
+  // porte DIRECTEMENT la liste des trous à mettre en évidence — seule
+  // représentation possible ici, puisqu'aucun composant/uid n'existe encore
+  // pour ce drag. Consommé par un nouveau prop dédié de Breadboard.jsx
+  // (breadboardInsertPreview), strictement additif au rendu existant :
+  // aucune modification de la logique de breadboardFeedback/occupiedBy.
+  const [breadboardInsertPreview, setBreadboardInsertPreview] = useState(null)
+
+  // MB-BREADBOARD-008 (O1) : détection d'entrée en mode "drag Sidebar" —
+  // appelé depuis Sidebar.jsx au dragstart. Garde défensive symétrique à
+  // addComponent (type inconnu -> no-op).
+  const startSidebarComponentDrag = useCallback((type) => {
+    if (!getComponentDef(type)) return
+    sidebarDragRef.current = { type }
+    setBreadboardInsertPreview(null)
+  }, [])
+
+  // MB-BREADBOARD-008 (O2/O3/O5) : appelé depuis SimulationCanvas.jsx à
+  // chaque dragover. Résout la position candidate via computeBreadboardPlacement()
+  // — même unique oracle (holeAt(), via breadboardPlacementAdapter.js,
+  // aucune réimplémentation de géométrie ici, R1/R7 du CSA) — et publie
+  // uniquement les trous concernés + la validité globale, pour un rendu
+  // vert/rouge par Breadboard.jsx (O5). `clientX`/`clientY` sont convertis
+  // en coordonnées Document avec EXACTEMENT la même formule que handleDrop()
+  // (SimulationCanvas.jsx, non dupliquée différemment) : l'aperçu affiché
+  // doit correspondre à la position où le composant atterrira réellement au
+  // relâchement, sous peine d'un feedback trompeur.
+  const updateSidebarComponentDragPosition = useCallback((clientX, clientY) => {
+    const session = sidebarDragRef.current
+    if (!session || !canvasRef?.current) {
+      setBreadboardInsertPreview(null)
+      return
+    }
+    const currentBreadboard = breadboardRef.current
+    if (!currentBreadboard) {
+      setBreadboardInsertPreview(null)
+      return
+    }
+    const rect = canvasRef.current.getBoundingClientRect()
+    const x = (clientX - rect.left) / zoom - GRID_SIZE * 2
+    const y = (clientY - rect.top) / zoom - GRID_SIZE
+    const placement = computeBreadboardPlacement(currentBreadboard, session.type, { x, y }, componentsRef.current)
+    if (!placement.breadboardActive) {
+      setBreadboardInsertPreview(null)
+      return
+    }
+    const holes = placement.holes
+      .filter((h) => h.column !== null && h.row !== null)
+      .map((h) => ({ column: h.column, row: h.row }))
+    setBreadboardInsertPreview({ holes, valid: placement.valid })
+  }, [canvasRef, zoom])
+
+  // MB-BREADBOARD-008 (I-P10, même garde que dragPreview/breadboardFeedback
+  // existants) : nettoyage systématique — appelé au drop réel
+  // (SimulationCanvas.jsx handleDrop), à la sortie du canvas (dragleave) et
+  // à la fin du drag quelle qu'en soit l'issue (Sidebar.jsx dragend), pour
+  // n'y laisser JAMAIS d'état fantôme (O6).
+  const endSidebarComponentDrag = useCallback(() => {
+    sidebarDragRef.current = null
+    setBreadboardInsertPreview(null)
+  }, [])
+  // =========================================================================
+  // FIN MB-BREADBOARD-008 (aperçu de drag Sidebar)
+  // =========================================================================
 
   // =========================================================================
   // MB-004.3 : Historique (infrastructure uniquement)
@@ -1673,6 +1763,9 @@ if (import.meta.env.DEV) {
   // en dehors d'un drag, sinon { draggedIds, valid } (voir déclaration plus
   // haut dans ce hook).
   breadboardFeedback,
+  // MB-BREADBOARD-008 (O5) : aperçu de drop Sidebar — voir déclaration plus
+  // haut dans ce hook. `null` en dehors d'un drag Sidebar actif.
+  breadboardInsertPreview,
   wirePaths,
   connectedPins,
   pinSignals,
@@ -1696,6 +1789,13 @@ if (import.meta.env.DEV) {
   cancelWiring,
   isPinPending,
   isPinConnected,
+
+  // MB-BREADBOARD-008 (O1/O2/O5/O6) : cycle de vie de l'aperçu de drop
+  // Sidebar — consommés par Sidebar.jsx (dragstart/dragend) et
+  // SimulationCanvas.jsx (dragover/dragleave/drop).
+  startSidebarComponentDrag,
+  updateSidebarComponentDragPosition,
+  endSidebarComponentDrag,
 
   // MB-VIS-005 (ruling CSA du 2026-08-21, Phase E) : mutation atomique
   // unique (création/déplacement/suppression de waypoints composent toutes
@@ -1753,6 +1853,7 @@ if (import.meta.env.DEV) {
   safeWires,
   breadboardForRender,
   breadboardFeedback,
+  breadboardInsertPreview,
   wirePaths,
   connectedPins,
   pinSignals,
@@ -1776,6 +1877,10 @@ if (import.meta.env.DEV) {
   cancelWiring,
   isPinPending,
   isPinConnected,
+
+  startSidebarComponentDrag,
+  updateSidebarComponentDragPosition,
+  endSidebarComponentDrag,
 
   updateWireWaypoints,
   startWaypointDrag,

@@ -83,22 +83,39 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
     expect(r.y).toBe(201)
   })
 
-  it('TEST 4 : avec breadboard + composant incompatible (>2 pins), fallback vers snapToGrid (non-régression LOCK-13)', () => {
+  // MB-BREADBOARD-008 (O8/R6, CSA — "La limitation actuelle à deux pins ne
+  // doit pas être reproduite") : ce test couvrait auparavant "ARDUINO (>2
+  // pins) = incompatible, repli snap-to-grid inconditionnel". La
+  // restriction pins.length === 2 est précisément ce que ce ticket supprime
+  // (breadboardPlacementAdapter.js) — ARDUINO (4 pins) est désormais
+  // "compatible" et engage la MÊME logique de placement breadboard que
+  // RESISTOR ci-dessus (TEST 2/3).
+  it('TEST 4 (MB-BREADBOARD-008, remplace l\'ancien "type incompatible") : avec breadboard + composant >2 pins (ARDUINO), ADD_COMPONENT engage désormais computeBreadboardPlacement() au lieu du repli snap-to-grid', () => {
     const { result } = renderHook(() => useCircuit(), { wrapper })
 
     act(() => {
       result.current.addBreadboard(120, 180)
     })
     act(() => {
-      // Même candidat brut que TEST 2/3, type incompatible : le breadboard
-      // ne doit avoir strictement aucun effet sur ARDUINO.
+      // Même candidat brut que TEST 2/3. Position obtenue en exécutant le
+      // véritable computeBreadboardPlacement() via un script Node jetable
+      // (supprimé après usage) — même discipline que TEST 2/3 : les 4 pins
+      // d'ARDUINO (D2/D3/GND en dx:0, 5V en dx:120 — un multiple exact de
+      // BREADBOARD_PITCH=12) résolvent en fait TOUTES un trou valide à
+      // cette position (y compris via la tolérance d'insertion ±2 de
+      // holeAt() pour les rangées), preuve incidente que la géométrie
+      // ARDUINO existante n'avait pas besoin d'être retouchée pour ce
+      // ticket (aucun fichier componentDefinitions.js modifié).
       result.current.addComponent('ARDUINO', 178, 201)
     })
 
     expect(result.current.components.length).toBe(1)
     const arduino = result.current.components[0]
-    expect(arduino.x).toBe(180)
-    expect(arduino.y).toBe(200)
+    expect(arduino.x).toBe(178)
+    expect(arduino.y).toBe(191)
+    // Non-régression du point de régression principal (TEST 3) : la
+    // position breadboard n'est pas repassée dans snapToGrid (GRID_SIZE=20).
+    expect(arduino.y % 20).not.toBe(0)
   })
 
   it("TEST 5 : un composant déjà présent occupant le trou cible est bien pris en compte comme collision (STR-007), sans que le nouveau composant ne se compte lui-même", () => {
