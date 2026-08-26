@@ -1,30 +1,15 @@
 .breadboard {
   position: absolute;
   z-index: 1;
-  /* MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : "auto" (au lieu de
-     "none") pour que le breadboard participe désormais à la sélection/au
-     drag — clic sur son corps -> sélection (Breadboard.jsx, handleMouseDown).
-     Aucune régression sur les composants/wires : ils restent visuellement
-     AU-DESSUS du breadboard (z-index composants 5, z-index wires 3 > 1) et
-     conservent donc la priorité de hit-test là où ils se superposent. */
   pointer-events: auto;
   overflow: visible;
 }
 
-/* MB-BREADBOARD-006 (CSA Ruling — Option B, §5) : même vocabulaire visuel
-   que la sélection d'un composant (CircuitComponent.jsx : outline 2px solid
-   #22c55e, outline-offset 2px). */
 .breadboard--selected {
   outline: 2px solid #22c55e;
   outline-offset: 2px;
 }
 
-/* MB-BREADBOARD-003 (Ticket "Assembly & Interaction V1", AC-01) : corps
-   nettement plus opaque/contrasté que la version MB-BREADBOARD-002
-   (translucide à 0.06) — but explicite du ticket : "L'utilisateur doit
-   immédiatement comprendre : Ceci est une vraie plaque d'essai." Palette
-   alignée sur les tons neutres déjà en usage dans ce dépôt pour les corps
-   de composants réalistes (cf. CircuitComponent.css #1f2937/#111827). */
 .breadboard__body {
   fill: #1e293b;
   fill-opacity: 0.92;
@@ -32,31 +17,32 @@
   stroke-width: 1.5;
 }
 
+/* MB-BREADBOARD-006 correction: holes must remain clearly visible against
+   the opaque breadboard body. The previous low-opacity dark fill made the
+   3.2px holes effectively disappear at normal canvas zoom. */
 .breadboard__hole {
-  fill: rgba(15, 23, 42, 0.55);
-  stroke: rgba(148, 163, 184, 0.35);
-  stroke-width: 0.5;
+  fill: #0b1220;
+  stroke: #94a3b8;
+  stroke-width: 0.9;
+  opacity: 1;
 }
 
 .breadboard__hole--rail {
-  fill: rgba(148, 163, 184, 0.25);
+  fill: #111827;
 }
 
-/* AC-05 : rails + et - clairement identifiables par couleur, même
-   vocabulaire chromatique que le reste du dépôt (rouge = positif/actif,
-   cf. CircuitComponent.css #ef4444 ; bleu = distinct/neutre, cf. #3b82f6). */
 .breadboard__hole--rail-plus {
-  fill: rgba(239, 68, 68, 0.3);
-  stroke: rgba(239, 68, 68, 0.55);
+  fill: #3f1518;
+  stroke: #ef4444;
+  stroke-width: 1;
 }
 
 .breadboard__hole--rail-minus {
-  fill: rgba(59, 130, 246, 0.3);
-  stroke: rgba(59, 130, 246, 0.55);
+  fill: #111f3d;
+  stroke: #3b82f6;
+  stroke-width: 1;
 }
 
-/* Ligne de bus courant sous les trous de chaque rail — purement
-   décorative, renforce la lecture "ceci est un rail continu". */
 .breadboard__rail-line {
   stroke-width: 1;
 }
@@ -71,37 +57,29 @@
   opacity: 0.55;
 }
 
-/* AC-04 : rainure centrale, rendue comme une fente plus sombre que le
-   corps — jamais utilisée pour un calcul de placement (LOCK-09 reste porté
-   uniquement par holeAt(), qui ne rend aucun trou sur ce rang). */
 .breadboard__groove {
   fill: rgba(2, 6, 23, 0.55);
 }
 
-/* AC-03 : séparateurs discrets de groupes de 5 colonnes — opacité faible,
-   ne doivent jamais dominer visuellement la grille de trous. */
 .breadboard__group-divider {
-  stroke: rgba(148, 163, 184, 0.18);
-  stroke-width: 0.5;
+  stroke: rgba(148, 163, 184, 0.28);
+  stroke-width: 0.7;
 }
 
 .breadboard__hole--occupied {
   fill: #22c55e;
   stroke: #22c55e;
+  stroke-width: 1;
 }
 
-/* MB-BREADBOARD-003 (Blueprint §5, AC-08/AC-09) : feedback en direct pendant
-   le drag d'un composant existant — vert si la position atteinte serait
-   valide (insertion possible), rouge sinon (collision ou pin hors trou).
-   Réutilise le vert déjà établi pour "occupé" (#22c55e) ; le rouge
-   (#ef4444) suit le vocabulaire d'erreur déjà en usage ailleurs dans ce
-   dépôt (cf. CircuitComponent.css). */
 .breadboard__hole--feedback-valid {
   fill: #22c55e;
-  stroke: #22c55e;
+  stroke: #bbf7d0;
+  stroke-width: 1;
 }
 
 .breadboard__hole--feedback-invalid {
   fill: #ef4444;
-  stroke: #ef4444;
+  stroke: #fecaca;
+  stroke-width: 1;
 }
