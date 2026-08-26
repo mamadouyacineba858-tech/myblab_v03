@@ -32,10 +32,23 @@
   stroke-width: 1.5;
 }
 
+/* MB-BREADBOARD-007-CORRECTION : le trou "libre" (état par défaut, sans
+   classe d'occupation) portait un remplissage quasi identique en teinte à
+   .breadboard__body (rgba(15,23,42,...) sur fond #1e293b) avec un trait à
+   0.35 d'opacité — constat utilisateur confirmé visuellement en Chromium
+   (trous de STRIP, l'immense majorité de la grille, quasi invisibles ; seuls
+   les trous de RAIL restaient lisibles grâce à leur couleur +/- dédiée
+   ci-dessous, inchangée). Remplacé par un remplissage clair à contraste net
+   contre le corps sombre — même famille chromatique neutre que le reste du
+   dépôt (slate clair), aucune nouvelle teinte introduite. N'affecte QUE
+   l'état "libre" : --occupied (vert), --bus-active (ambre), --rail-plus/
+   minus (rouge/bleu) et --feedback-valid/invalid restent des règles
+   séparées, non modifiées, et priment toujours par ordre de classe unique
+   (occupancyClass reste une valeur exclusive, Breadboard.jsx). */
 .breadboard__hole {
-  fill: rgba(15, 23, 42, 0.55);
-  stroke: rgba(148, 163, 184, 0.35);
-  stroke-width: 0.5;
+  fill: rgba(203, 213, 225, 0.55);
+  stroke: rgba(226, 232, 240, 0.85);
+  stroke-width: 0.6;
 }
 
 .breadboard__hole--rail {
