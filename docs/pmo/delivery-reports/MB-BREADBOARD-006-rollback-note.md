@@ -1,0 +1,1 @@
+Connector write sequence interrupted; repository must be validated locally before any further implementation.
