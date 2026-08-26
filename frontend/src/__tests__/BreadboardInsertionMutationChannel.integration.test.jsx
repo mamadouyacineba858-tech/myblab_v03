@@ -288,4 +288,98 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
     expect(after.x % 20).toBe(0)
     expect(after.y % 20).toBe(0)
   })
+
+  it("TEST 6 (BB-TEST-11, LOCK-05/06/07) : pointermove au-dessus d'un trou valide ne mute PAS le Document réel — seul pointerup persiste", () => {
+    const { result } = renderWithCanvas()
+    _result = result
+    const { resistor } = setupBaseCircuit(result)
+    const undoCountBefore = result.current.getUndoCount()
+
+    pointerDown(resistor)
+    pointerMove(resistor, { dx: 58 - resistor.x, dy: 21 - resistor.y })
+
+    // Toujours en cours de drag (pointerup non déclenché) : le Document RÉEL
+    // (exportCircuit -> safeComponents — même patron que MoveComponentMutation
+    // Channel.integration.test.jsx TEST 8, JAMAIS componentsForRender/preview)
+    // est STRICTEMENT inchangé, malgré un feedback breadboard actif (preuve
+    // que le placement calculé n'est qu'un aperçu local).
+    const realDuring = result.current.exportCircuit().components.find((c) => c.uid === resistor.uid)
+    expect(realDuring.x).toBe(resistor.x)
+    expect(realDuring.y).toBe(resistor.y)
+    expect(result.current.getUndoCount()).toBe(undoCountBefore)
+    expect(result.current.breadboardFeedback).not.toBe(null)
+    expect(result.current.breadboardFeedback.draggedIds.has(resistor.uid)).toBe(true)
+
+    // L'aperçu affiché (components -> componentsForRender), lui, a bien
+    // bougé — sinon le feedback visuel n'aurait aucun sens.
+    const previewDuring = result.current.components.find((c) => c.uid === resistor.uid)
+    expect(previewDuring.x).toBe(58)
+    expect(previewDuring.y).toBe(21)
+
+    pointerUp()
+
+    // Seul le relâchement persiste effectivement la position calculée dans
+    // le Document réel.
+    const realAfter = result.current.exportCircuit().components.find((c) => c.uid === resistor.uid)
+    expect(realAfter.x).toBe(58)
+    expect(realAfter.y).toBe(21)
+    expect(result.current.getUndoCount()).toBe(undoCountBefore + 1)
+  })
+
+  it('TEST 7 (BB-TEST-13, AC-17/AC-18) : supprimer un composant posé sur breadboard (pas un simple déplacement) libère son trou pour une insertion suivante', () => {
+    const { result } = renderWithCanvas()
+    _result = result
+    const { power, resistor, led } = setupBaseCircuit(result)
+
+    drag(resistor, { dx: 58 - resistor.x, dy: 21 - resistor.y })
+    pointerUp()
+    drag(led, { dx: 144 - led.x, dy: 28 - led.y })
+    pointerUp()
+
+    act(() => {
+      result.current.startSimulation()
+    })
+    expect(isLedOn(result, led.uid)).toBe(true)
+
+    // Suppression réelle (pas un déplacement hors empreinte) — canal
+    // deleteComponent(), distinct de la voie "retrait par drag" déjà
+    // couverte par TEST 2.
+    act(() => {
+      result.current.deleteComponent(led.uid)
+    })
+    expect(result.current.components.some((c) => c.uid === led.uid)).toBe(false)
+    // Aucun wire résiduel ne référence le composant supprimé.
+    expect(
+      result.current.wires.some((w) => w.fromUid === led.uid || w.toUid === led.uid)
+    ).toBe(false)
+
+    // Le trou (col12/row4, absolu (146,28)) est maintenant libre : un
+    // nouveau composant 2-pins peut s'y insérer sans collision (AC-17).
+    act(() => {
+      result.current.addComponent('LED', 700, 700)
+    })
+    const newLed = result.current.components.find((c) => c.type === 'LED')
+    drag(newLed, { dx: 144 - newLed.x, dy: 28 - newLed.y })
+    pointerUp()
+
+    const newLedAfter = result.current.components.find((c) => c.uid === newLed.uid)
+    // Même position déterministe que l'insertion originale de la LED
+    // supprimée (TEST 1/3) — preuve directe que le trou n'est plus occupé.
+    expect(newLedAfter.x).toBe(146)
+    expect(newLedAfter.y).toBe(28)
+
+    // Reconnexion explicite cathode->GND (setupBaseCircuit ne câblait que la
+    // LED d'origine, maintenant supprimée) — la jonction anode<->RESISTOR.B
+    // reste, elle, entièrement portée par le breadboard (LOCK-01 de ce test).
+    act(() => {
+      result.current.addWire(newLed.uid, 'cathode', power.uid, 'GND')
+    })
+
+    // La simulation reste cohérente (aucun état électrique fantôme) : la
+    // nouvelle LED, reconnectée au même bus breadboard, s'allume à son tour.
+    act(() => {
+      result.current.startSimulation()
+    })
+    expect(isLedOn(result, newLed.uid)).toBe(true)
+  })
 })

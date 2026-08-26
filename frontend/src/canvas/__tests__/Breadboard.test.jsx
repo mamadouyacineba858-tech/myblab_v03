@@ -116,3 +116,57 @@ describe('MB-BREADBOARD-003 — feedback vert/rouge pendant le drag (Blueprint �
     expect(container.querySelectorAll('.breadboard__hole--feedback-invalid').length).toBe(0)
   })
 })
+
+/**
+ * MB-BREADBOARD-003 (Ticket "Assembly & Interaction V1", BB-TEST-03/04/05,
+ * AC-01/AC-03/AC-04/AC-05) — enrichissements purement visuels : polarité
+ * des rails, rainure centrale, séparateurs de groupes de 5. Aucune de ces
+ * assertions ne porte sur holeAt()/breadboardGeometry.js (déjà couvert par
+ * breadboardGeometry.test.js) : uniquement sur ce que Breadboard.jsx en
+ * dérive pour la Presentation.
+ */
+describe('MB-BREADBOARD-003 — enrichissements visuels (AC-01/AC-03/AC-04/AC-05)', () => {
+  it('BB-TEST-04 : les rails + et - portent des classes de polarité distinctes (30 trous chacune, haut + bas)', () => {
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[]} />)
+    // 2 rangées "+" (haut + bas) x 30 colonnes, idem pour "-" (AC-05).
+    expect(container.querySelectorAll('.breadboard__hole--rail-plus').length).toBe(2 * 30)
+    expect(container.querySelectorAll('.breadboard__hole--rail-minus').length).toBe(2 * 30)
+    // Chaque trou rail reste par ailleurs classé --rail (non-régression).
+    expect(container.querySelectorAll('.breadboard__hole--rail').length).toBe(4 * 30)
+  })
+
+  it('BB-TEST-04 : une ligne de bus colorée est rendue pour chacune des 4 rangées de rail (2 "+", 2 "-")', () => {
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[]} />)
+    expect(container.querySelectorAll('.breadboard__rail-line--plus').length).toBe(2)
+    expect(container.querySelectorAll('.breadboard__rail-line--minus').length).toBe(2)
+  })
+
+  it('BB-TEST-05 : la rainure centrale est rendue comme un élément visuel unique et distinct des trous', () => {
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[]} />)
+    const groove = container.querySelectorAll('.breadboard__groove')
+    expect(groove.length).toBe(1)
+    // La rainure ne doit jamais recouvrir la position d'un trou rendu
+    // (LOCK-09) : aucun <circle class="breadboard__hole"> ne tombe dans la
+    // bande [y, y+height] occupée par la rainure.
+    const grooveY = Number(groove[0].getAttribute('y'))
+    const grooveHeight = Number(groove[0].getAttribute('height'))
+    const holeYs = [...container.querySelectorAll('.breadboard__hole')].map((el) =>
+      Number(el.getAttribute('cy'))
+    )
+    expect(holeYs.every((y) => y <= grooveY || y >= grooveY + grooveHeight)).toBe(true)
+  })
+
+  it("BB-TEST-03 : des séparateurs de groupes de 5 sont rendus dans les deux blocs de strip (haut et bas), aucun dans les rails", () => {
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[]} />)
+    // 30 colonnes -> séparateurs après les colonnes 4,9,14,19,24 (5 par bloc).
+    const dividers = container.querySelectorAll('.breadboard__group-divider')
+    expect(dividers.length).toBe(5 * 2)
+  })
+
+  it('sans breadboard, aucun élément visuel enrichi (rainure/rails colorés/séparateurs) ne fuit dans le DOM', () => {
+    const { container } = render(<Breadboard breadboard={null} components={[]} />)
+    expect(container.querySelectorAll('.breadboard__groove').length).toBe(0)
+    expect(container.querySelectorAll('.breadboard__rail-line').length).toBe(0)
+    expect(container.querySelectorAll('.breadboard__group-divider').length).toBe(0)
+  })
+})

@@ -5,10 +5,17 @@
   overflow: visible;
 }
 
+/* MB-BREADBOARD-003 (Ticket "Assembly & Interaction V1", AC-01) : corps
+   nettement plus opaque/contrasté que la version MB-BREADBOARD-002
+   (translucide à 0.06) — but explicite du ticket : "L'utilisateur doit
+   immédiatement comprendre : Ceci est une vraie plaque d'essai." Palette
+   alignée sur les tons neutres déjà en usage dans ce dépôt pour les corps
+   de composants réalistes (cf. CircuitComponent.css #1f2937/#111827). */
 .breadboard__body {
-  fill: rgba(226, 232, 240, 0.06);
-  stroke: #334155;
-  stroke-width: 1;
+  fill: #1e293b;
+  fill-opacity: 0.92;
+  stroke: #475569;
+  stroke-width: 1.5;
 }
 
 .breadboard__hole {
@@ -19,6 +26,49 @@
 
 .breadboard__hole--rail {
   fill: rgba(148, 163, 184, 0.25);
+}
+
+/* AC-05 : rails + et - clairement identifiables par couleur, même
+   vocabulaire chromatique que le reste du dépôt (rouge = positif/actif,
+   cf. CircuitComponent.css #ef4444 ; bleu = distinct/neutre, cf. #3b82f6). */
+.breadboard__hole--rail-plus {
+  fill: rgba(239, 68, 68, 0.3);
+  stroke: rgba(239, 68, 68, 0.55);
+}
+
+.breadboard__hole--rail-minus {
+  fill: rgba(59, 130, 246, 0.3);
+  stroke: rgba(59, 130, 246, 0.55);
+}
+
+/* Ligne de bus courant sous les trous de chaque rail — purement
+   décorative, renforce la lecture "ceci est un rail continu". */
+.breadboard__rail-line {
+  stroke-width: 1;
+}
+
+.breadboard__rail-line--plus {
+  stroke: #ef4444;
+  opacity: 0.55;
+}
+
+.breadboard__rail-line--minus {
+  stroke: #3b82f6;
+  opacity: 0.55;
+}
+
+/* AC-04 : rainure centrale, rendue comme une fente plus sombre que le
+   corps — jamais utilisée pour un calcul de placement (LOCK-09 reste porté
+   uniquement par holeAt(), qui ne rend aucun trou sur ce rang). */
+.breadboard__groove {
+  fill: rgba(2, 6, 23, 0.55);
+}
+
+/* AC-03 : séparateurs discrets de groupes de 5 colonnes — opacité faible,
+   ne doivent jamais dominer visuellement la grille de trous. */
+.breadboard__group-divider {
+  stroke: rgba(148, 163, 184, 0.18);
+  stroke-width: 0.5;
 }
 
 .breadboard__hole--occupied {
