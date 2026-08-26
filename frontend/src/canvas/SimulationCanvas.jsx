@@ -39,7 +39,16 @@ export function SimulationCanvas() {
     
     // Ne pas démarrer de marquee si on clique sur un composant
     if (e.target?.closest?.('.circuit-component')) return
-    
+
+    // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : ne pas démarrer de
+    // marquee si on clique sur le breadboard — même garde que pour un
+    // composant ci-dessus. Breadboard.jsx gère sa propre sélection/son
+    // propre drag (handleMouseDown -> selectOnly + startBreadboardDrag) ;
+    // sans cette garde, handleCanvasPointerDown démarrerait un marquee EN
+    // PLUS (deux interactions pointer concurrentes), violant la garde I-M1
+    // déjà appliquée côté useCircuitState.js.
+    if (e.target?.closest?.('.breadboard')) return
+
     // Ne pas démarrer de marquee si le câblage est actif
     if (isWiringActive) return
     

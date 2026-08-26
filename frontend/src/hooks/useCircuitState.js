@@ -59,6 +59,18 @@ import { UpdateWireWaypointsHandler } from "../core/handlers/wire/UpdateWireWayp
 // reste présent et testé séparément — MoveCommand.test.js).
 import { MoveComponentHandler } from "../core/handlers/component/MoveComponentHandler.js"
 import { AddBreadboardHandler } from "../core/handlers/breadboard/AddBreadboardHandler.js"
+// MB-BREADBOARD-006 (CSA Ruling — Option B, §1/§7/§8, traçable dans
+// docs/pmo/tickets/MB-BREADBOARD-006.md) : cinquième et sixième types
+// autorisés sur ce canal — déplacement solidaire du breadboard (avec les
+// composants insérés sur ses trous) et suppression du breadboard. Handlers
+// dédiés (pas de réutilisation de MoveComponentHandler/RemoveComponentHandler,
+// interdite par le Ruling §8). resolveSolidaryComponentIds() est la seule
+// source de vérité pour la solidarité, consommée ici (aperçu de drag) ET par
+// MoveBreadboardHandler (mutation réelle) — jamais recalculée différemment.
+import { MoveBreadboardHandler } from "../core/handlers/breadboard/MoveBreadboardHandler.js"
+import { DeleteBreadboardHandler } from "../core/handlers/breadboard/DeleteBreadboardHandler.js"
+import { resolveSolidaryComponentIds } from "../core/handlers/breadboard/breadboardSolidarity.js"
+import { snapToBreadboardPitch } from "../utils/breadboardGeometry.js"
 import { HistoryService } from "../core/history/HistoryService.js"
 import { ValidationEngine } from "../core/validation/ValidationEngine.js"
 import { createDefaultValidationRegistry } from "../core/validation/createValidationRegistry.js"
@@ -233,6 +245,23 @@ const getUndoCount = useCallback(() => {
       return preview ? { ...c, x: preview.x, y: preview.y } : c
     })
   }, [safeComponents, dragPreview])
+
+  // MB-BREADBOARD-006 (CSA Ruling — Option B, §6/§11) : même patron que
+  // componentsForRender ci-dessus, pour le breadboard lui-même — le MÊME
+  // dragPreview (Map<uid|breadboardId,{x,y}>) est réutilisé sans aucune
+  // seconde structure d'aperçu (§6 du Ruling : « réutiliser le dragPreview
+  // existant »). Pendant un drag de breadboard, startBreadboardDrag() insère
+  // à la fois l'entrée du breadboard (clé breadboard.id) ET celles de ses
+  // composants solidaires (clé uid) dans ce même Map — componentsForRender
+  // ci-dessus reflète donc déjà, sans aucune modification, l'aperçu des
+  // composants solidaires. `breadboard` (état réel, non l'aperçu) reste
+  // inchangé pendant tout pointermove — seul breadboardForRender en tient
+  // compte, exactement comme pour componentsForRender/safeComponents.
+  const breadboardForRender = useMemo(() => {
+    if (!breadboard || !dragPreview) return breadboard
+    const preview = dragPreview.get(breadboard.id)
+    return preview ? { ...breadboard, position: { x: preview.x, y: preview.y } } : breadboard
+  }, [breadboard, dragPreview])
 
   // MB-VIS-004 : buildWirePaths ne prend plus selectedWireId (géométrie pure,
   // cf. circuitSelectors.js) — la sélection est désormais lue directement par
@@ -501,6 +530,16 @@ const adapted = toEngineInput(coreDoc);
       // MB-BREADBOARD-001 §6. REMOVE_COMPONENT/UPDATE_COMPONENT restent
       // explicitement hors périmètre — voir cf1DocumentArchitecture.test.js.
       registry.register("ADD_BREADBOARD", new AddBreadboardHandler({ historyService, documentApi }))
+      // MB-BREADBOARD-006 (CSA Ruling — Option B, §1/§2/§8, traçable dans
+      // docs/pmo/tickets/MB-BREADBOARD-006.md) : sixième et septième types
+      // autorisés sur ce canal — déplacement solidaire du breadboard (avec
+      // les composants insérés sur ses trous, une seule mutation/une seule
+      // entrée d'historique) et suppression du breadboard (minimale, ne
+      // touche ni components ni wires — voir DeleteBreadboardHandler.js).
+      // REMOVE_COMPONENT/UPDATE_COMPONENT restent explicitement hors
+      // périmètre — voir cf1DocumentArchitecture.test.js.
+      registry.register("MOVE_BREADBOARD", new MoveBreadboardHandler({ historyService, documentApi }))
+      registry.register("DELETE_BREADBOARD", new DeleteBreadboardHandler({ historyService, documentApi }))
       const validationEngine = new ValidationEngine(createDefaultValidationRegistry())
       commandBusRef.current = new CommandBus(registry, { validationEngine })
       // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
@@ -845,6 +884,30 @@ if (import.meta.env.DEV) {
     const keysToDelete = Array.from(selection)
     if (keysToDelete.length === 0) return
 
+    // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§7/§8) : sélection
+    // breadboard EXCLUSIVE (jamais mélangée à des composants/wires, §5 du
+    // Ruling — garanti par selectOnly()) — si la sélection est exactement
+    // {breadboard}, dispatcher DELETE_BREADBOARD via CommandBus, JAMAIS via
+    // le canal legacy DeleteCommand/historyManagerRef.current.execute()
+    // (réservé aux composants/wires, inchangé ci-dessous).
+    if (keysToDelete.length === 1) {
+      const parsed = parseSelectionKey(keysToDelete[0])
+      if (parsed.type === 'breadboard') {
+        if (commandBusRef.current) {
+          try {
+            const coreDocument = documentApi.getDocument()
+            const command = new Command("DELETE_BREADBOARD", { breadboardId: parsed.id })
+            commandBusRef.current.dispatch(command, coreDocument)
+          } catch (error) {
+            console.error("deleteBreadboard: échec du dispatch via CommandBus", error)
+          }
+        }
+        setSelection(new Set())
+        setActiveItem(null)
+        return
+      }
+    }
+
     const componentsToDelete = new Set()
     const initialWiresToDelete = new Set()
 
@@ -976,6 +1039,55 @@ if (import.meta.env.DEV) {
 
     event.preventDefault()
   }, [canvasRef, getSelectedComponentIds, components, pendingPin])
+
+  // =========================================================================
+  // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : drag du breadboard.
+  // Même forme de session que startDrag (pointerStart/componentsStart/
+  // livePositions), étendue par un discriminant isBreadboardDrag — AUCUNE
+  // nouvelle machine à états : le même effect pointermove/pointerup/
+  // pointercancel/blur (ci-dessous) est simplement branché. La solidarité
+  // (quels composants suivent le breadboard) est déterminée UNE SEULE FOIS,
+  // au pointerdown, via resolveSolidaryComponentIds() — seule source de
+  // vérité, la même que celle utilisée par MoveBreadboardHandler côté Core
+  // (INV-06). Sélection exclusive (§5 du Ruling) : aucune gestion Ctrl+clic
+  // ici, toujours selectOnly() côté appelant (Breadboard.jsx).
+  // =========================================================================
+  const startBreadboardDrag = useCallback((event) => {
+    if (!canvasRef?.current) return
+    const currentBreadboard = breadboardRef.current
+    if (!currentBreadboard) return
+
+    // Garde I-M1 : aucune autre interaction active.
+    if (marqueeSessionRef.current !== null) return
+    if (pendingPin !== null) return
+
+    event.stopPropagation()
+
+    const rect = canvasRef.current.getBoundingClientRect()
+    const pointer = clientToCanvas(event, rect)
+
+    const solidaryIds = resolveSolidaryComponentIds(currentBreadboard, componentsRef.current)
+    const componentsStart = new Map()
+    componentsRef.current.forEach((c) => {
+      if (solidaryIds.has(c.uid)) {
+        componentsStart.set(c.uid, { startX: c.x, startY: c.y })
+      }
+    })
+
+    dragSessionRef.current = {
+      pointerStart: { x: pointer.x, y: pointer.y },
+      isBreadboardDrag: true,
+      breadboardId: currentBreadboard.id,
+      breadboardStart: { x: currentBreadboard.position.x, y: currentBreadboard.position.y },
+      componentsStart,
+      livePositions: null,
+    }
+
+    event.preventDefault()
+  }, [canvasRef, pendingPin])
+  // =========================================================================
+  // FIN MB-BREADBOARD-006 (startBreadboardDrag)
+  // =========================================================================
 
   // =========================================================================
   // POINTER INTERACTION SYSTEM Marquee (MB-003.4)
@@ -1146,6 +1258,41 @@ if (import.meta.env.DEV) {
       const deltaX = pointer.x - session.pointerStart.x
       const deltaY = pointer.y - session.pointerStart.y
 
+      // MB-BREADBOARD-006 (CSA Ruling — Option B, §6) : aperçu du drag de
+      // breadboard — translation pure par delta (jamais computeBreadboardPlacement,
+      // qui snappe un composant SUR les trous du breadboard : ici c'est le
+      // breadboard lui-même qui bouge). Le breadboard est arrondi au pas
+      // BREADBOARD_PITCH (snapToBreadboardPitch, même fonction qu'à sa
+      // création — AddBreadboardHandler), puis le delta RÉEL (post-arrondi)
+      // est appliqué identiquement à chaque composant solidaire, pour que
+      // leur position relative au breadboard reste EXACTEMENT inchangée
+      // (holeAt() redonnera donc les mêmes column/row relatifs — AC-06).
+      // Même Map dragPreview que le drag de composant (aucune seconde
+      // structure d'aperçu, §6/§11 du Ruling) : componentsForRender lira
+      // directement les entrées des composants solidaires sans aucune
+      // modification de son propre code.
+      if (session.isBreadboardDrag) {
+        const newBreadboardPos = snapToBreadboardPitch({
+          x: session.breadboardStart.x + deltaX,
+          y: session.breadboardStart.y + deltaY,
+        })
+        const actualDeltaX = newBreadboardPos.x - session.breadboardStart.x
+        const actualDeltaY = newBreadboardPos.y - session.breadboardStart.y
+
+        const positionsMap = new Map()
+        positionsMap.set(session.breadboardId, newBreadboardPos)
+        session.componentsStart.forEach((startPos, uid) => {
+          positionsMap.set(uid, {
+            x: startPos.startX + actualDeltaX,
+            y: startPos.startY + actualDeltaY,
+          })
+        })
+
+        session.livePositions = positionsMap
+        setDragPreview(positionsMap)
+        return
+      }
+
       // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001) : aperçu local uniquement
       // (setDragPreview) — AUCUNE mutation persistante, AUCUNE entrée
       // d'historique, AUCUN dispatch tant que le pointeur n'est pas relâché.
@@ -1229,6 +1376,47 @@ if (import.meta.env.DEV) {
       // — celui-ci n'a subi aucune mutation pendant pointermove. Le canal
       // legacy MoveCommand/HistoryManager n'est plus utilisé pour ce drag.
       const session = dragSessionRef.current
+
+      // MB-BREADBOARD-006 (CSA Ruling — Option B, §6) : commit du drag de
+      // breadboard — UNE SEULE commande MOVE_BREADBOARD via CommandBus, qui
+      // mute breadboard ET composants solidaires en une seule mutation/une
+      // seule entrée d'historique (§2 du Ruling). Le payload ne transporte
+      // QUE la position du breadboard (fromPosition/toPosition) — jamais les
+      // composants solidaires : c'est MoveBreadboardHandler, côté Core, qui
+      // les redétermine via resolveSolidaryComponentIds() (§4 du Ruling,
+      // déviation disclosed au contrat CSA-CF3-003-MOVE-001 — voir
+      // MoveBreadboardHandler.js). `toPosition` est lu depuis
+      // session.livePositions (Presentation), jamais depuis
+      // breadboardRef.current/le Document réel — celui-ci n'a subi aucune
+      // mutation pendant pointermove.
+      if (session && session.isBreadboardDrag) {
+        const preview = session.livePositions
+        const previewBreadboardPos = preview && preview.get(session.breadboardId)
+        const fromPosition = { ...session.breadboardStart }
+        const toPosition = previewBreadboardPos
+          ? { x: previewBreadboardPos.x, y: previewBreadboardPos.y }
+          : { ...fromPosition }
+
+        if ((toPosition.x !== fromPosition.x || toPosition.y !== fromPosition.y) && commandBusRef.current) {
+          try {
+            const coreDocument = documentApi.getDocument()
+            const command = new Command("MOVE_BREADBOARD", {
+              breadboardId: session.breadboardId,
+              fromPosition,
+              toPosition,
+            })
+            commandBusRef.current.dispatch(command, coreDocument)
+          } catch (error) {
+            console.error("moveBreadboard: échec du dispatch via CommandBus", error)
+          }
+        }
+
+        dragSessionRef.current = null
+        setDragPreview(null)
+        setBreadboardFeedback(null)
+        return
+      }
+
       if (session) {
         const before = session.beforePositions
         if (before && before.size > 0) {
@@ -1433,7 +1621,10 @@ if (import.meta.env.DEV) {
   wires: safeWires,
   // MB-BREADBOARD-002 (Blueprint §8) : exposé pour Breadboard.jsx (Presentation,
   // lecture seule) — null tant qu'aucun ADD_BREADBOARD n'a été dispatché.
-  breadboard,
+  // MB-BREADBOARD-006 (CSA Ruling — Option B, §6) : breadboardForRender (et
+  // non plus l'état brut) — même patron que components/componentsForRender
+  // ci-dessus, reflète l'aperçu de drag pendant un déplacement du breadboard.
+  breadboard: breadboardForRender,
   // MB-BREADBOARD-003 (Blueprint §3/§5) : exposé pour Breadboard.jsx — null
   // en dehors d'un drag, sinon { draggedIds, valid } (voir déclaration plus
   // haut dans ce hook).
@@ -1470,6 +1661,9 @@ if (import.meta.env.DEV) {
   startWaypointDrag,
 
   startDrag,
+  // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : déclenchement du drag
+  // du breadboard — même patron d'exposition que startDrag/startWaypointDrag.
+  startBreadboardDrag,
   startSimulation,
   stopSimulation,
   zoomIn,
@@ -1513,7 +1707,7 @@ if (import.meta.env.DEV) {
   canvasRef,
   componentsForRender,
   safeWires,
-  breadboard,
+  breadboardForRender,
   breadboardFeedback,
   wirePaths,
   connectedPins,
@@ -1543,6 +1737,7 @@ if (import.meta.env.DEV) {
   startWaypointDrag,
 
   startDrag,
+  startBreadboardDrag,
   startSimulation,
   stopSimulation,
   zoomIn,

@@ -5,7 +5,7 @@
 // components/parts/*.jsx) : Breadboard.test.jsx est le premier test à rendre
 // directement un composant de frontend/src/canvas/, ce qui a révélé le
 // besoin (React.createElement implicite sinon indisponible sous esbuild).
-import React, { useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { getPinPosition } from "../utils/geometry.js"
 import {
@@ -14,6 +14,12 @@ import {
   STANDARD_V1_TOTAL_ROWS,
   holeAt,
 } from "../utils/breadboardGeometry.js"
+// MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : Breadboard.jsx consulte
+// désormais directement useCircuit() pour la sélection/le drag, même
+// convention que CircuitComponent.jsx (qui n'est pas non plus 100%
+// props-driven pour l'interaction) — aucun nouveau prop n'est requis côté
+// SimulationCanvas.jsx pour ces deux fonctionnalités.
+import { useCircuit } from "../context/useCircuit.js"
 import "./Breadboard.css"
 
 const HOLE_RADIUS = 1.6
@@ -66,6 +72,17 @@ const PADDING = BREADBOARD_PITCH
  * — un rang qui, par construction, ne produit jamais de trou (holeAt()
  * retourne null dessus), donc absent de `holes`.
  *
+ * MB-BREADBOARD-006 (CSA Ruling — Option B) : le breadboard devient un objet
+ * Canvas de premier ordre — sélectionnable (clic, `selectOnly`) et
+ * déplaçable (`startBreadboardDrag`), tous deux consultés via `useCircuit()`
+ * (même convention que CircuitComponent.jsx). Le rendu géométrique
+ * (`holes`/`railRows`/`stripExtents`/...) reste une Presentation PURE,
+ * inchangée par ce ticket : `breadboard`/`components` sont déjà, côté
+ * appelant, les vues "aperçu de drag inclus" (`breadboardForRender`/
+ * `componentsForRender`, useCircuitState.js) — ce composant n'a donc besoin
+ * d'aucune logique supplémentaire pour que le breadboard ET ses composants
+ * solidaires suivent visuellement le pointeur pendant un drag.
+ *
  * @param {{
  *   breadboard: {id:string,position:{x:number,y:number},layout:string}|null,
  *   components: Array<{uid:string,type:string,x:number,y:number}>,
@@ -73,6 +90,30 @@ const PADDING = BREADBOARD_PITCH
  * }} props
  */
 export function Breadboard({ breadboard, components, breadboardFeedback }) {
+  // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : sélection + drag du
+  // breadboard lui-même, réutilisant strictement le mécanisme existant
+  // (selectOnly/isSelected : selection.js générique, inchangé ; startBreadboardDrag :
+  // useCircuitState.js, même session pointer que le drag de composant).
+  const { selectOnly, isSelected, startBreadboardDrag } = useCircuit()
+  const selected = isSelected({ type: "breadboard", id: breadboard?.id })
+
+  const handleMouseDown = useCallback(
+    (e) => {
+      if (e.button !== 0 || !breadboard?.id) return
+      // Même prise de contrôle totale de l'interaction souris que
+      // CircuitComponent.jsx (handleBodyMouseDown) : évite tout conflit avec
+      // le marquee/la sélection de canevas (SimulationCanvas.jsx).
+      e.preventDefault()
+      e.stopPropagation()
+      // §5 du Ruling : sélection exclusive — toujours selectOnly(), jamais de
+      // gestion Ctrl+clic ici (mélange breadboard+composants hors scope de
+      // ce ticket).
+      selectOnly({ type: "breadboard", id: breadboard.id })
+      startBreadboardDrag(e)
+    },
+    [breadboard?.id, selectOnly, startBreadboardDrag]
+  )
+
   const holes = useMemo(() => {
     if (!breadboard || !breadboard.position) return []
     const list = []
@@ -167,11 +208,13 @@ export function Breadboard({ breadboard, components, breadboardFeedback }) {
 
   return (
     <svg
-      className="breadboard"
+      className={`breadboard${selected ? " breadboard--selected" : ""}`}
       style={{ left: breadboard.position.x - PADDING, top: breadboard.position.y - PADDING }}
       width={width}
       height={height}
       aria-hidden="true"
+      onMouseDown={handleMouseDown}
+      onClick={(e) => e.stopPropagation()}
     >
       <rect className="breadboard__body" x={0} y={0} width={width} height={height} rx={6} />
 

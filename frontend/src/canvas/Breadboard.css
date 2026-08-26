@@ -1,8 +1,22 @@
 .breadboard {
   position: absolute;
   z-index: 1;
-  pointer-events: none;
+  /* MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : "auto" (au lieu de
+     "none") pour que le breadboard participe désormais à la sélection/au
+     drag — clic sur son corps -> sélection (Breadboard.jsx, handleMouseDown).
+     Aucune régression sur les composants/wires : ils restent visuellement
+     AU-DESSUS du breadboard (z-index composants 5, z-index wires 3 > 1) et
+     conservent donc la priorité de hit-test là où ils se superposent. */
+  pointer-events: auto;
   overflow: visible;
+}
+
+/* MB-BREADBOARD-006 (CSA Ruling — Option B, §5) : même vocabulaire visuel
+   que la sélection d'un composant (CircuitComponent.jsx : outline 2px solid
+   #22c55e, outline-offset 2px). */
+.breadboard--selected {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
 }
 
 /* MB-BREADBOARD-003 (Ticket "Assembly & Interaction V1", AC-01) : corps

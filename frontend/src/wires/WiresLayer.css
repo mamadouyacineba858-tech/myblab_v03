@@ -4,10 +4,27 @@
   width: 100%;
   height: 100%;
 
-  /* Remplace cette ligne */
-  /* pointer-events: none; */
-
-  pointer-events: auto;
+  /* MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6, défaut découvert PENDANT
+     la preuve Chromium obligatoire, corrigé avant livraison — voir le
+     rapport de livraison) : remis à "none" (au lieu de "auto"). Avec "auto",
+     le <svg class="wires-layer"> — plein canvas (inset:0), z-index:3 —
+     interceptait TOUT clic tombant dans son empreinte, y compris sur ses
+     zones vides (aucun tracé de fil à ce point), du seul fait de son
+     pointer-events hérité par défaut sur l'élément <svg> racine. Cela
+     empêchait tout clic d'atteindre le breadboard (z-index:1, sous
+     wires-layer) là où aucun fil n'était réellement dessiné — bloquant sa
+     sélection/son drag (MB-BREADBOARD-006). Passer wires-layer en "none" ne
+     régresse PAS le clic/le survol d'un fil : chaque élément qui doit
+     réellement capter la souris déclare déjà (ou déclare désormais) son
+     propre pointer-events explicite, qui prime sur l'héritage du conteneur
+     (comportement SVG standard) — voir wires-layer__hitzone
+     (pointerEvents:'stroke', déjà inline dans WiresLayer.jsx, inchangé) et
+     wires-layer__waypoint-handle (pointer-events:auto ajouté ci-dessous,
+     seul élément qui reposait implicitement sur l'héritage "auto" du
+     conteneur). Même patron déjà en usage ailleurs dans ce dépôt pour
+     exactement cette raison : .simulation-canvas__components (conteneur
+     pointer-events:none, enfants .circuit-component auto). */
+  pointer-events: none;
 
   z-index: 3;
   overflow: visible;
@@ -42,6 +59,11 @@
  * règle de survol ici, pas de dépendance à l'arbitrage CSA Q1.
  */
 .wires-layer__waypoint-handle {
+  /* MB-BREADBOARD-006 : pointer-events explicite (voir commentaire sur
+     .wires-layer ci-dessus) — cet élément reposait implicitement sur
+     l'héritage "auto" du conteneur ; il déclare désormais lui-même sa
+     participation au hit-test, indépendamment du conteneur. */
+  pointer-events: auto;
   fill: #22c55e;
   stroke: #0f172a;
   stroke-width: 1.5;

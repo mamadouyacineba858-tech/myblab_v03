@@ -1,26 +1,42 @@
 /**
  * Breadboard.test.jsx — MB-BREADBOARD-002 (Blueprint §8, AC-18), étendu par
- * MB-BREADBOARD-003 (Blueprint §5, AC-08/AC-09, UI-01).
+ * MB-BREADBOARD-003 (Blueprint §5, AC-08/AC-09, UI-01), puis par
+ * MB-BREADBOARD-006 (CSA Ruling — Option B).
  *
- * Rendu isolé : Breadboard.jsx ne consomme aucun contexte (props pures
- * `breadboard`/`components`/`breadboardFeedback`), même précédent de style
- * que WiresLayer.test.jsx pour l'import React explicite (jsdom secondaire).
- *
- * Couvre : absence de rendu sans breadboard (TB-14/TB-15, non-régression
- * visuelle), présence de la grille de trous dérivée de holeAt() (AC-02/AC-03,
- * pas de logique de bande dupliquée), distinction rail/strip, la mise en
- * évidence "occupé" purement géométrique (une pin de composant coïncidant
- * avec un trou) — AC-18 : aucune seconde source de vérité électrique, donc
- * aucune assertion ici ne dépend de deriveBreadboardVirtualWires() — et,
- * depuis MB-BREADBOARD-003, le feedback vert/rouge du composant en cours de
- * drag (`breadboardFeedback`, prop nouvelle).
+ * Rendu géométrique isolé : la Presentation pure (grille de trous, feedback,
+ * enrichissements visuels — `breadboard`/`components`/`breadboardFeedback`,
+ * props) reste testée exactement comme avant ce ticket. SEULE différence
+ * MB-BREADBOARD-006 : Breadboard.jsx consulte désormais useCircuit() pour la
+ * sélection/le drag (selectOnly/isSelected/startBreadboardDrag) — même
+ * convention que CircuitComponent.jsx, qui n'est pas non plus un composant
+ * 100% props-driven pour l'interaction (cf. RealisticRenderers.test.jsx, qui
+ * fournit déjà un CircuitProvider réel pour cette raison). Ici, un contexte
+ * MINIMAL (CircuitContext.Provider avec de simples fakes, PAS un
+ * CircuitProvider complet) suffit : ces tests ne portent que sur le rendu
+ * géométrique, jamais sur la sélection/le drag eux-mêmes (couverts par
+ * BreadboardMovementDeletion.integration.test.jsx, via le vrai
+ * CircuitProvider/CommandBus).
  */
 import React from 'react'
-import { describe, it, expect } from 'vitest'
-import { render } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render as renderRTL } from '@testing-library/react'
 import { Breadboard } from '../Breadboard.jsx'
+import { CircuitContext } from '../../context/CircuitContext.js'
 
 const BREADBOARD = { id: 'bb1', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' }
+
+// MB-BREADBOARD-006 : fakes minimaux — ces tests ne vérifient ni la
+// sélection ni le drag (isSelected() renvoie toujours false : aucune
+// assertion de ce fichier ne dépend de la classe --selected).
+const minimalCircuitContext = {
+  selectOnly: vi.fn(),
+  isSelected: () => false,
+  startBreadboardDrag: vi.fn(),
+}
+
+function render(ui) {
+  return renderRTL(<CircuitContext.Provider value={minimalCircuitContext}>{ui}</CircuitContext.Provider>)
+}
 
 describe('MB-BREADBOARD-002 — Breadboard.jsx (Presentation, AC-18/LOCK-08)', () => {
   it("ne rend rien si document.breadboard est null (TB-14/TB-15)", () => {

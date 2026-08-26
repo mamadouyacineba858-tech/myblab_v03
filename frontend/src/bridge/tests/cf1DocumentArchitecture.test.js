@@ -158,7 +158,7 @@ describe("MB-CF1-001 — CF1-003-E / GATE 3 [AMENDÉ par CSA-CF3-001-A pour MB-C
   })
 })
 
-describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD-WIRE-001, puis CSA RULING — AUTORISATION DE REPRISE MB-VIS-005 (2026-08-21), puis CSA RULING CSA-CF3-003-MOVE-001 (2026-08-22), puis CSA RULING MB-BREADBOARD-002 (2026-08-25)] : branchement CommandBus ↔ UI activé, borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD", () => {
+describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD-WIRE-001, puis CSA RULING — AUTORISATION DE REPRISE MB-VIS-005 (2026-08-21), puis CSA RULING CSA-CF3-003-MOVE-001 (2026-08-22), puis CSA RULING MB-BREADBOARD-002 (2026-08-25), puis CSA RULING MB-BREADBOARD-006 — Option B (2026-08-26)] : branchement CommandBus ↔ UI activé, borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD + MOVE_BREADBOARD + DELETE_BREADBOARD", () => {
   it("[CSA-CF3-001-A] useCircuitState.js importe désormais CommandBus.js et HistoryService.js (activation du canal — c'était l'objet de CF3)", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     expect(source).toMatch(/from\s+["'].*core\/command\/CommandBus\.js["']/)
@@ -198,7 +198,20 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
   // borne désormais le canal à exactement ces cinq commandes, ni plus, ni
   // moins. REMOVE_COMPONENT et UPDATE_COMPONENT restent explicitement hors
   // périmètre.
-  it("[CSA RULING MB-BREADBOARD-002 du 2026-08-25] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD : AddWireHandler, UpdateWireWaypointsHandler, MoveComponentHandler et AddBreadboardHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js, et le canal legacy MoveCommand n'est plus instancié par le drag de production", () => {
+  //
+  // [CSA RULING MB-BREADBOARD-006 — Option B, 2026-08-26 — ruling traçable
+  // dans docs/pmo/tickets/MB-BREADBOARD-006.md] Ce ruling étend,
+  // explicitement et uniquement, le canal à MOVE_BREADBOARD (déplacement
+  // solidaire du breadboard ET des composants insérés sur ses trous, en une
+  // seule mutation/une seule entrée d'historique — voir
+  // MoveBreadboardHandler.js) et DELETE_BREADBOARD (suppression minimale du
+  // breadboard, ne touche ni components ni wires — voir
+  // DeleteBreadboardHandler.js). Ni l'un ni l'autre ne réutilise
+  // MoveComponentHandler/RemoveComponentHandler (Ruling §8). Le verrou borne
+  // désormais le canal à exactement ces sept commandes, ni plus, ni moins.
+  // REMOVE_COMPONENT et UPDATE_COMPONENT restent explicitement hors
+  // périmètre.
+  it("[CSA RULING MB-BREADBOARD-006 — Option B, du 2026-08-26] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD + MOVE_BREADBOARD + DELETE_BREADBOARD : AddWireHandler, UpdateWireWaypointsHandler, MoveComponentHandler, AddBreadboardHandler, MoveBreadboardHandler et DeleteBreadboardHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js, et le canal legacy MoveCommand n'est plus instancié par le drag de production", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     const registerCalls = source.match(/\.register\(\s*["'][A-Z_]+["']/g) || []
     expect(registerCalls).toEqual([
@@ -207,6 +220,8 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
       '.register("UPDATE_WIRE_WAYPOINTS"',
       '.register("MOVE_COMPONENT"',
       '.register("ADD_BREADBOARD"',
+      '.register("MOVE_BREADBOARD"',
+      '.register("DELETE_BREADBOARD"',
     ])
 
     const wireHandlerPath = path.join(dir, "..", "..", "core", "handlers", "wire", "AddWireHandler.js")
@@ -228,6 +243,18 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
     expect(
       fs.existsSync(addBreadboardHandlerPath),
       "AddBreadboardHandler doit exister (MB-BREADBOARD-002, CSA Ruling du 2026-08-25)"
+    ).toBe(true)
+
+    const moveBreadboardHandlerPath = path.join(dir, "..", "..", "core", "handlers", "breadboard", "MoveBreadboardHandler.js")
+    expect(
+      fs.existsSync(moveBreadboardHandlerPath),
+      "MoveBreadboardHandler doit exister (MB-BREADBOARD-006, CSA Ruling — Option B, du 2026-08-26)"
+    ).toBe(true)
+
+    const deleteBreadboardHandlerPath = path.join(dir, "..", "..", "core", "handlers", "breadboard", "DeleteBreadboardHandler.js")
+    expect(
+      fs.existsSync(deleteBreadboardHandlerPath),
+      "DeleteBreadboardHandler doit exister (MB-BREADBOARD-006, CSA Ruling — Option B, du 2026-08-26)"
     ).toBe(true)
 
     // [CSA RULING MB-CF3-003] Le drag de production ne doit plus utiliser le
