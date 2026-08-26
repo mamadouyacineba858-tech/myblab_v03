@@ -22,7 +22,7 @@ import {
 import { useCircuit } from "../context/useCircuit.js"
 import "./Breadboard.css"
 
-const HOLE_RADIUS = 1.6
+const HOLE_RADIUS = 2.2
 // Marge visuelle autour de la grille de trous (même unité que BREADBOARD_PITCH,
 // purement esthétique — ne participe à aucun calcul de connectivité).
 const PADDING = BREADBOARD_PITCH

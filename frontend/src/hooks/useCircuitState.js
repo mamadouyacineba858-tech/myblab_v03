@@ -70,7 +70,12 @@ import { AddBreadboardHandler } from "../core/handlers/breadboard/AddBreadboardH
 import { MoveBreadboardHandler } from "../core/handlers/breadboard/MoveBreadboardHandler.js"
 import { DeleteBreadboardHandler } from "../core/handlers/breadboard/DeleteBreadboardHandler.js"
 import { resolveSolidaryComponentIds } from "../core/handlers/breadboard/breadboardSolidarity.js"
-import { snapToBreadboardPitch } from "../utils/breadboardGeometry.js"
+import {
+  snapToBreadboardPitch,
+  BREADBOARD_PITCH,
+  STANDARD_V1_LAYOUT,
+  STANDARD_V1_TOTAL_ROWS,
+} from "../utils/breadboardGeometry.js"
 import { HistoryService } from "../core/history/HistoryService.js"
 import { ValidationEngine } from "../core/validation/ValidationEngine.js"
 import { createDefaultValidationRegistry } from "../core/validation/createValidationRegistry.js"
@@ -811,8 +816,13 @@ if (import.meta.env.DEV) {
   // SELECTION SYSTEM Marquee (MB-003.4)
   // =========================================================================
 
-  const selectMarquee = useCallback((componentIds, wireIds, keepExisting = false) => {
-    const totalItems = (componentIds?.size || 0) + (wireIds?.size || 0)
+  // TEST-08 : `breadboardIds` ajouté en 4e paramètre (après `keepExisting`,
+  // jamais inséré entre les paramètres existants) pour que tout appel
+  // existant à 3 arguments positionnels (componentIds, wireIds, ctrlKey)
+  // reste valide sans modification — breadboardIds vaut alors `undefined`,
+  // traité ci-dessous exactement comme `wireIds`/`componentIds` absents.
+  const selectMarquee = useCallback((componentIds, wireIds, keepExisting = false, breadboardIds) => {
+    const totalItems = (componentIds?.size || 0) + (wireIds?.size || 0) + (breadboardIds?.size || 0)
     if (totalItems === 0) {
       if (!keepExisting) {
         setSelection(new Set())
@@ -837,6 +847,15 @@ if (import.meta.env.DEV) {
       if (wireIds) {
         wireIds.forEach(id => {
           next.add(getSelectionKey('wire', id))
+        })
+      }
+
+      // TEST-08 : même clé que la sélection par clic (Breadboard.jsx,
+      // MB-BREADBOARD-006) — getSelectionKey('breadboard', id) — aucune
+      // nouvelle convention de clé introduite.
+      if (breadboardIds) {
+        breadboardIds.forEach(id => {
+          next.add(getSelectionKey('breadboard', id))
         })
       }
 
@@ -1188,9 +1207,34 @@ if (import.meta.env.DEV) {
       }
     })
 
-    const hadSelection = componentIds.size > 0 || wireIds.size > 0
+    // TEST-08 : sélection du Breadboard par rectangle. Géométrie IDENTIQUE
+    // à celle réellement rendue par Breadboard.jsx (mêmes constantes
+    // breadboardGeometry.js, même formule PADDING/width/height — aucune
+    // duplication de logique de placement, aucun recalcul via holeAt()).
+    // breadboardRef (déjà utilisé ailleurs dans ce fichier pour la même
+    // raison — cf. computeBreadboardPlacement) donne un accès synchrone au
+    // breadboard courant sans élargir le tableau de dépendances de ce
+    // useCallback.
+    const breadboardIds = new Set()
+    const currentBreadboard = breadboardRef.current
+    if (currentBreadboard && currentBreadboard.position) {
+      const bbPadding = BREADBOARD_PITCH
+      const bbWidth = (STANDARD_V1_LAYOUT.columns - 1) * BREADBOARD_PITCH + bbPadding * 2
+      const bbHeight = (STANDARD_V1_TOTAL_ROWS - 1) * BREADBOARD_PITCH + bbPadding * 2
+      const bbX = currentBreadboard.position.x - bbPadding
+      const bbY = currentBreadboard.position.y - bbPadding
+      if (rectsOverlap(
+        rect.x, rect.y, rect.width, rect.height,
+        bbX, bbY, bbWidth, bbHeight,
+        0.5
+      )) {
+        breadboardIds.add(currentBreadboard.id)
+      }
+    }
+
+    const hadSelection = componentIds.size > 0 || wireIds.size > 0 || breadboardIds.size > 0
     if (hadSelection) {
-      selectMarquee(componentIds, wireIds, ctrlKey)
+      selectMarquee(componentIds, wireIds, ctrlKey, breadboardIds)
     } else {
       if (!ctrlKey) {
         clearSelection()
