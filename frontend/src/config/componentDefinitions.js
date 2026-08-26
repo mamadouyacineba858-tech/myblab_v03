@@ -37,8 +37,8 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "pin2", label: "2", dx: 60, dy: 30 },
   ],
   POWER: [
-    { id: "5V", label: "+5V", dx: 70, dy: 25 },
-    { id: "GND", label: "GND", dx: 70, dy: 65 },
+    { id: "5V", label: "+5V", dx: 70, dy: 37 },
+    { id: "GND", label: "GND", dx: 58, dy: 25 },
   ],
   CAPACITOR: [
     { id: "pinA", label: "A", dx: 0, dy: 20 },
