@@ -22,7 +22,7 @@ import {
 import { useCircuit } from "../context/useCircuit.js"
 import "./Breadboard.css"
 
-const HOLE_RADIUS = 2.2
+const HOLE_RADIUS = 1.6
 // Marge visuelle autour de la grille de trous (même unité que BREADBOARD_PITCH,
 // purement esthétique — ne participe à aucun calcul de connectivité).
 const PADDING = BREADBOARD_PITCH
@@ -82,6 +82,20 @@ const PADDING = BREADBOARD_PITCH
  * `componentsForRender`, useCircuitState.js) — ce composant n'a donc besoin
  * d'aucune logique supplémentaire pour que le breadboard ET ses composants
  * solidaires suivent visuellement le pointeur pendant un drag.
+ *
+ * MB-BREADBOARD-007 (CSA GO — "Vérité visuelle du bus Breadboard") : un
+ * trou occupé par AU MOINS DEUX pins partageant le même `groupKey` (rail
+ * entier ou colonne de strip — même `groupKey` que celui produit par
+ * `holeAt()` et consommé par `deriveBreadboardVirtualWires()`,
+ * breadboardConnectivity.js, NON modifié, NON appelé ici) est distingué
+ * visuellement d'un trou occupé mais encore isolé (`--occupied`, une seule
+ * pin, aucun bus formé) — voir `activeGroupKeys` ci-dessous. Ce calcul ne
+ * dérive AUCUNE arête, AUCUNE règle électrique nouvelle : c'est une simple
+ * observation, à des fins de rendu uniquement, du même `groupKey` que celui
+ * déjà retourné par `holeAt()` pour `occupiedBy`/`holes` — jamais une
+ * topologie indépendante (Blueprint MB-BREADBOARD-007 §2/§3). Le moteur de
+ * simulation (engine.js/preparation.js/resolution.js) reste totalement
+ * inchangé et hors scope.
  *
  * @param {{
  *   breadboard: {id:string,position:{x:number,y:number},layout:string}|null,
@@ -201,6 +215,28 @@ export function Breadboard({ breadboard, components, breadboardFeedback }) {
     return map
   }, [breadboard, components])
 
+  // MB-BREADBOARD-007 (Blueprint §4/§8) : ensemble des `groupKey` occupés
+  // par AU MOINS DEUX pins — dérivé exclusivement de `holes` (groupKey déjà
+  // calculé par holeAt(), inchangé) et `occupiedBy` (occupation physique
+  // déjà calculée ci-dessus, inchangée) : aucun nouvel appel à holeAt(),
+  // aucune re-résolution de pin, aucune structure de données indépendante.
+  // Un `groupKey` de rail peut compter des trous occupés à des colonnes
+  // différentes (holeAt() n'indexe pas les rails par colonne) — c'est
+  // exactement le cas "rail multi-colonnes" du Ticket (§6, TEST A1).
+  const activeGroupKeys = useMemo(() => {
+    const counts = new Map()
+    for (const hole of holes) {
+      const key = `${hole.column}:${hole.row}`
+      if (!occupiedBy.has(key)) continue
+      counts.set(hole.groupKey, (counts.get(hole.groupKey) || 0) + 1)
+    }
+    const active = new Set()
+    for (const [groupKey, count] of counts.entries()) {
+      if (count >= 2) active.add(groupKey)
+    }
+    return active
+  }, [holes, occupiedBy])
+
   if (!breadboard || !breadboard.position) return null
 
   const width = (STANDARD_V1_LAYOUT.columns - 1) * BREADBOARD_PITCH + PADDING * 2
@@ -298,11 +334,28 @@ export function Breadboard({ breadboard, components, breadboardFeedback }) {
                 ? "breadboard__hole--rail-minus"
                 : null
             : null
+        // MB-BREADBOARD-007 : trois états mutuellement exclusifs — libre
+        // (aucune classe d'occupation), occupé mais isolé (--occupied,
+        // comportement MB-BREADBOARD-002 inchangé), occupé ET membre d'un
+        // groupe électrique actif (--bus-active, nouveau). Un trou dont le
+        // groupKey est actif mais qui n'est PAS lui-même occupé (ex. un
+        // autre trou libre du même rail) reste "libre" — `isOccupied` garde
+        // cette distinction (§4 du Ticket : "trou libre" reste un état
+        // possible même sur un rail partiellement actif ailleurs).
+        const isOccupied = !!occupants && occupants.size > 0
+        const isActiveGroup = isOccupied && activeGroupKeys.has(hole.groupKey)
+        const occupancyClass = feedbackClass
+          ? feedbackClass
+          : isActiveGroup
+            ? "breadboard__hole--bus-active"
+            : isOccupied
+              ? "breadboard__hole--occupied"
+              : null
         const classes = [
           "breadboard__hole",
           `breadboard__hole--${hole.kind.toLowerCase()}`,
           polarityClass,
-          feedbackClass || (occupants && occupants.size > 0 ? "breadboard__hole--occupied" : null),
+          occupancyClass,
         ].filter(Boolean).join(" ")
         return (
           <circle

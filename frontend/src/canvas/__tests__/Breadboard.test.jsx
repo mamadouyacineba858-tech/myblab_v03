@@ -186,3 +186,70 @@ describe('MB-BREADBOARD-003 — enrichissements visuels (AC-01/AC-03/AC-04/AC-05
     expect(container.querySelectorAll('.breadboard__group-divider').length).toBe(0)
   })
 })
+
+/**
+ * MB-BREADBOARD-007 — "Vérité visuelle du bus Breadboard" (Ticket §4/§8/§9).
+ * Distingue trois états mutuellement exclusifs : libre (aucune classe),
+ * occupé mais isolé (--occupied, comportement MB-BREADBOARD-002 inchangé),
+ * occupé ET membre d'un groupe électrique actif — ≥2 pins partageant le
+ * même groupKey (--bus-active, nouveau). Dérivé exclusivement de holeAt()/
+ * groupKey (breadboardGeometry.js, non modifié) — jamais une topologie
+ * indépendante ; aucun appel à deriveBreadboardVirtualWires()
+ * (breadboardConnectivity.js, non modifié, non appelé par Breadboard.jsx).
+ */
+describe('MB-BREADBOARD-007 — retour visuel du bus (groupKey actif, AC Ticket)', () => {
+  // ra/rb : deux RESISTOR DISTINCTS dont les pins A (col5, rangées 3 et 4)
+  // ET les pins B (col12, rangées 3 et 4) partagent chacun un groupKey de
+  // strip (groupKey dépend uniquement de la colonne, pas de la rangée
+  // exacte parmi les 5 d'un bloc — breadboardGeometry.js holeAt()) : 4 trous
+  // occupés DISTINCTS, 2 groupes électriques actifs.
+  const ra = { uid: 'ra', type: 'RESISTOR', x: 60, y: 22 } // A->col5/row3, B->col12/row3
+  const rb = { uid: 'rb', type: 'RESISTOR', x: 60, y: 34 } // A->col5/row4, B->col12/row4 (mêmes groupKey que ra)
+  // rc : RESISTOR isolé, ses deux groupes (col19, col26) n'ont qu'un seul
+  // occupant chacun — doit rester --occupied, jamais --bus-active.
+  const rc = { uid: 'rc', type: 'RESISTOR', x: 228, y: 22 } // A->col19/row3, B->col26/row3
+
+  it('deux composants distincts partageant un groupKey de strip (colonnes identiques, rangées différentes) : les 4 trous occupés sont --bus-active', () => {
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[ra, rb]} />)
+    expect(container.querySelectorAll('.breadboard__hole--bus-active').length).toBe(4)
+    expect(container.querySelectorAll('.breadboard__hole--occupied').length).toBe(0)
+  })
+
+  it('un composant isolé (aucun partenaire dans son groupKey) reste --occupied, jamais --bus-active', () => {
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[rc]} />)
+    expect(container.querySelectorAll('.breadboard__hole--occupied').length).toBe(2)
+    expect(container.querySelectorAll('.breadboard__hole--bus-active').length).toBe(0)
+  })
+
+  it('coexistence : groupes actifs et composant isolé conservent chacun leur classe propre, sans interférence', () => {
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[ra, rb, rc]} />)
+    expect(container.querySelectorAll('.breadboard__hole--bus-active').length).toBe(4)
+    expect(container.querySelectorAll('.breadboard__hole--occupied').length).toBe(2)
+  })
+
+  it("cas RAIL multi-colonnes (Ticket TEST A1/A4) : deux composants sur la MÊME rangée de rail, colonnes différentes, forment un groupe actif — le groupKey de rail ignore la colonne (holeAt())", () => {
+    // ra2/rb2 : pin A sur la rangée de rail haut+ (row0) à des colonnes
+    // différentes (2 et 10) ; pin B (dx84) retombe aussi sur row0 (même
+    // rangée, RESISTOR ayant un dy identique pour ses deux pattes) à des
+    // colonnes encore différentes (9 et 17) — les 4 pins partagent donc le
+    // même groupKey de rail (row0), 4 trous distincts, tous --bus-active.
+    const ra2 = { uid: 'ra2', type: 'RESISTOR', x: 24, y: -14 } // A->col2/row0, B->col9/row0
+    const rb2 = { uid: 'rb2', type: 'RESISTOR', x: 120, y: -14 } // A->col10/row0, B->col17/row0
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[ra2, rb2]} />)
+    expect(container.querySelectorAll('.breadboard__hole--bus-active').length).toBe(4)
+    expect(container.querySelectorAll('.breadboard__hole--occupied').length).toBe(0)
+  })
+
+  it('feedback de drag (MB-BREADBOARD-003) reste prioritaire sur --bus-active : un trou en cours de drag affiche le feedback, jamais le bus', () => {
+    const breadboardFeedback = { draggedIds: new Set(['ra']), valid: true }
+    const { container } = render(
+      <Breadboard breadboard={BREADBOARD} components={[ra, rb]} breadboardFeedback={breadboardFeedback} />
+    )
+    // Les 2 trous de ra (col5/row3 et col12/row3) affichent le feedback vert
+    // (et non --bus-active, bien que leur groupKey soit actif) ; les 2 trous
+    // de rb (col5/row4, col12/row4) restent --bus-active (rb n'est pas
+    // draggé).
+    expect(container.querySelectorAll('.breadboard__hole--feedback-valid').length).toBe(2)
+    expect(container.querySelectorAll('.breadboard__hole--bus-active').length).toBe(2)
+  })
+})

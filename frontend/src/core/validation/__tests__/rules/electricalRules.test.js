@@ -133,4 +133,42 @@ describe('ELE-007 PowerGroundShortCircuitRule', () => {
     const problem = PowerGroundShortCircuitRule.validate(document, null)
     expect(problem).not.toBeNull()
   })
+
+  /**
+   * MB-BREADBOARD-007 — TEST A3 (Ticket §6) : court-circuit qui transite
+   * PAR le breadboard, jamais couvert avant ce ticket (audit
+   * MB-BREADBOARD-AUDIT-CONNECTIVITE §7 — le code (import
+   * deriveBreadboardVirtualWires en tête de PowerGroundShortCircuitRule.js)
+   * existait déjà, aucun test ne l'exerçait).
+   *
+   * Mécanisme réel : deriveBreadboardVirtualWires() n'unit JAMAIS deux
+   * groupKey différents (un trou de rail+ et un trou de rail- restent deux
+   * groupes électriques distincts par construction, cf. holeAt()) — un
+   * court-circuit via breadboard ne peut donc survenir que si deux pins de
+   * RÔLES OPPOSÉS (power/ground) se retrouvent, par erreur de placement,
+   * sur le MÊME groupKey. Ici : V1.5V -> col6/row16 (rail bas +) et
+   * V2.GND -> col15/row16 (MÊME rangée rail+, colonne différente) — la
+   * jonction n'est portée par AUCUN wire explicite, uniquement par le bus
+   * du rail.
+   */
+  it('détecte un court-circuit dont la seule jonction transite par le rail du breadboard (aucun wire explicite)', () => {
+    const V1 = { id: 'V1', type: 'POWER', position: { x: 2, y: 155 } } // 5V -> col6/row16 (rail+)
+    // dx GND=58,dy=25 ; pour atterrir sur col15/row16 : x+58=15*12=180 -> x=122 ; y+25=16*12=192 -> y=167.
+    const V2 = { id: 'V2', type: 'POWER', position: { x: 122, y: 167 } } // GND -> col15/row16 (rail+, MÊME groupKey que V1.5V)
+    const document = {
+      breadboard: { id: 'bb1', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' },
+      components: [V1, V2],
+      wires: [], // aucune liaison explicite : uniquement le rail
+    }
+    const problem = PowerGroundShortCircuitRule.validate(document, null)
+    expect(problem).not.toBeNull()
+    expect(problem.level ?? PowerGroundShortCircuitRule.level).toBe('ERROR')
+  })
+
+  it('non-régression : le même document SANS breadboard ne signale aucun court-circuit (les pins ne sont plus reliées par rien)', () => {
+    const V1 = { id: 'V1', type: 'POWER', position: { x: 2, y: 155 } }
+    const V2 = { id: 'V2', type: 'POWER', position: { x: 122, y: 167 } }
+    const document = { breadboard: null, components: [V1, V2], wires: [] }
+    expect(PowerGroundShortCircuitRule.validate(document, null)).toBeNull()
+  })
 })

@@ -83,3 +83,64 @@ describe('MB-BREADBOARD-002 — preuve end-to-end (LED/résistance)', () => {
     expect(on).toBe(false)
   })
 })
+
+/**
+ * MB-BREADBOARD-007 — TEST A2 (Ticket §6) : preuve électrique réelle du cas
+ * "rail multi-colonnes" (audit MB-BREADBOARD-AUDIT-CONNECTIVITE §7 — ce cas
+ * n'avait jusqu'ici jamais été simulé, seul le groupKey/l'arête virtuelle
+ * était couvert, cf. TEST A1 dans breadboardConnectivity.test.js).
+ *
+ * Topologie : POWER.5V -> col6/row16 (rail bas +) ; R_TAP (RESISTOR).A ->
+ * col24/row16 — MÊME rangée de rail, colonne DIFFÉRENTE, AUCUN wire entre
+ * les deux (la seule liaison POWER<->R_TAP transite par le rail). R_TAP.B
+ * (hors grille, col31) -> LED.anode par wire explicite ; LED.cathode ->
+ * POWER.GND par wire explicite. Ne se limite pas à vérifier le groupKey
+ * (déjà fait, TEST A1) : ici, la LED doit RÉELLEMENT s'allumer, et le
+ * résultat doit être identique à la même topologie entièrement câblée.
+ */
+describe('MB-BREADBOARD-007 — TEST A2 : preuve simulation rail multi-colonnes', () => {
+  const POWER_RAIL = { id: 'power1', type: 'POWER', position: { x: 2, y: 155 }, parameters: { voltage: 5 } }
+  const R_TAP = { id: 'rtap', type: 'RESISTOR', position: { x: 288, y: 178 }, parameters: { resistance: 220 } }
+  // Position hors grille (aucun rôle dans la connectivité) : led1 n'est
+  // relié que par les deux wires explicites ci-dessous.
+  const LED_TAP = { id: 'led1', type: 'LED', position: { x: -1000, y: -1000 } }
+
+  const tailWires = [
+    { id: 'w-tap-led', pinA: { componentId: 'rtap', pinId: 'B' }, pinB: { componentId: 'led1', pinId: 'anode' } },
+    { id: 'w-ground', pinA: { componentId: 'power1', pinId: 'GND' }, pinB: { componentId: 'led1', pinId: 'cathode' } },
+  ]
+
+  const railDocument = {
+    breadboard: { id: 'bb1', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' },
+    components: [POWER_RAIL, R_TAP, LED_TAP],
+    wires: [...tailWires], // POWER.5V <-> R_TAP.A : uniquement via le rail (col6 <-> col24, bb1:rail:bottom:+)
+  }
+
+  const wiredDocument = {
+    breadboard: null,
+    components: [POWER_RAIL, R_TAP, LED_TAP],
+    wires: [
+      ...tailWires,
+      { id: 'w-power', pinA: { componentId: 'power1', pinId: '5V' }, pinB: { componentId: 'rtap', pinId: 'A' } },
+    ],
+  }
+
+  it('le rail multi-colonnes referme réellement le circuit : la LED est allumée', () => {
+    const pinSignals = simulate(railDocument)
+    const { on } = getLedState('led1', pinSignals)
+    expect(on).toBe(true)
+  })
+
+  it('résultat strictement identique à la variante entièrement câblée', () => {
+    const railSignals = toSortedEntries(simulate(railDocument))
+    const wiredSignals = toSortedEntries(simulate(wiredDocument))
+    expect(railSignals).toEqual(wiredSignals)
+  })
+
+  it('retrait : sans le rail (breadboard null, sans wire POWER<->R_TAP), la LED reste éteinte', () => {
+    const disconnectedDocument = { breadboard: null, components: [POWER_RAIL, R_TAP, LED_TAP], wires: [...tailWires] }
+    const pinSignals = simulate(disconnectedDocument)
+    const { on } = getLedState('led1', pinSignals)
+    expect(on).toBe(false)
+  })
+})

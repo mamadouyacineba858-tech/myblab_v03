@@ -15,6 +15,7 @@ import {
   deriveBreadboardVirtualWiresBridge,
   toBridgeWire,
 } from '../breadboardConnectivity.js'
+import { holeAt } from '../breadboardGeometry.js'
 
 const breadboard = { id: 'bb1', position: { x: 0, y: 0 } }
 
@@ -89,6 +90,42 @@ describe('deriveBreadboardVirtualWires', () => {
     expect(() =>
       deriveBreadboardVirtualWires({ breadboard, components: [R1, unknown] })
     ).not.toThrow()
+  })
+})
+
+describe('MB-BREADBOARD-007 — TEST A1 : rail multi-colonnes (audit MB-BREADBOARD-AUDIT-CONNECTIVITE §7)', () => {
+  // holeAt() indexe un trou de RAIL par RANGÉE uniquement (groupKey sans
+  // colonne, breadboardGeometry.js) : deux composants DISTINCTS occupant la
+  // même rangée de rail à des colonnes DIFFÉRENTES doivent donc partager le
+  // même groupKey et être unis par une arête virtuelle — exactement le même
+  // mécanisme que pour une colonne de strip (TB-01 ci-dessus), jamais testé
+  // isolément pour un rail avant ce ticket.
+  //
+  // POWER (dx/dy établis par MB-BREADBOARD-005, cf. componentDefinitions.js)
+  // à {x:2,y:155} : 5V -> col6/row16 (rail bas +). R_TAP (RESISTOR) à
+  // {x:288,y:178} : pin A -> col24/row16 (MÊME rangée rail+, colonne
+  // DIFFÉRENTE) ; pin B (dx84) -> col31, hors grille (>=30 colonnes,
+  // volontairement flottant).
+  const POWER_RAIL = { id: 'power1', type: 'POWER', position: { x: 2, y: 155 } }
+  const R_TAP = { id: 'rtap', type: 'RESISTOR', position: { x: 288, y: 178 } }
+  const breadboard = { id: 'bb1', position: { x: 0, y: 0 } }
+
+  it("POWER.5V (col6) et RESISTOR.A (col24) sur la MÊME rangée de rail : une arête virtuelle les unit", () => {
+    const wires = deriveBreadboardVirtualWires({ breadboard, components: [POWER_RAIL, R_TAP] })
+    expect(wires).toEqual([
+      { pinA: { componentId: 'power1', pinId: '5V' }, pinB: { componentId: 'rtap', pinId: 'A' } },
+    ])
+  })
+
+  it("verrou du fixture : RESISTOR.B tombe bien hors grille (col31 >= 30 colonnes), seule A occupe le rail", () => {
+    // Non-régression du fixture lui-même (si ce verrou échouait, la preuve
+    // A1 ci-dessus ne porterait plus sur "une seule pin par composant sur
+    // le rail" mais sur un cas différent, 2 pins du même RESISTOR sur la
+    // même rangée).
+    const pinA = { x: R_TAP.position.x + 0, y: R_TAP.position.y + 14 }
+    const pinB = { x: R_TAP.position.x + 84, y: R_TAP.position.y + 14 }
+    expect(holeAt(breadboard, pinA.x, pinA.y)).toEqual({ kind: 'RAIL', groupKey: 'bb1:rail:bottom:+', column: 24, row: 16 })
+    expect(holeAt(breadboard, pinB.x, pinB.y)).toBeNull()
   })
 })
 
