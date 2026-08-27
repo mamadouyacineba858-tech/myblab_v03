@@ -3,19 +3,17 @@ import React from 'react'
 /**
  * Rendu visuel réaliste d'une LED traversante.
  * Contrat fonctionnel inchangé : isOn pilote uniquement l'état lumineux.
- * La boîte logique 80×40 et les coordonnées de pins restent inchangées.
+ * Les coordonnées électriques horizontales des pins restent inchangées ;
+ * seules les pattes physiques du rendu sont verticales.
  */
 export function LedPart({ isOn }) {
   return (
     <div
       className={`part-led ${isOn ? 'part-led--on' : ''}`}
       aria-label={isOn ? 'LED allumée' : 'LED éteinte'}
-      style={{
-        background: 'transparent',
-        boxShadow: 'none',
-      }}
+      style={{ background: 'transparent', boxShadow: 'none' }}
     >
-      <svg viewBox="0 0 80 40" width="80" height="40" role="img" aria-hidden="true" style={{ overflow: 'visible' }}>
+      <svg viewBox="0 0 80 56" width="80" height="56" role="img" aria-hidden="true" style={{ overflow: 'visible' }}>
         <defs>
           <linearGradient id="ledDome" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stopColor={isOn ? '#ff8f8f' : '#b7353d'} />
@@ -45,34 +43,23 @@ export function LedPart({ isOn }) {
           </filter>
         </defs>
 
-        {isOn && <ellipse cx="40" cy="18" rx="28" ry="20" fill="url(#ledGlow)" />}
+        {isOn && <ellipse cx="40" cy="20" rx="28" ry="22" fill="url(#ledGlow)" />}
 
-        {/* Pattes traversantes verticales, volontairement épaisses comme les fils de la résistance. */}
-        <line x1="31" y1="30" x2="31" y2="45" stroke="url(#ledMetal)" strokeWidth="4" strokeLinecap="round" />
-        <line x1="49" y1="30" x2="49" y2="45" stroke="url(#ledMetal)" strokeWidth="4" strokeLinecap="round" />
+        {/* Pattes physiques verticales : elles sont volontairement indépendantes
+            des deux ancres électriques horizontales du canvas. */}
+        <line x1="31" y1="38" x2="31" y2="54" stroke="url(#ledMetal)" strokeWidth="4" strokeLinecap="round" />
+        <line x1="49" y1="38" x2="49" y2="54" stroke="url(#ledMetal)" strokeWidth="4" strokeLinecap="round" />
 
-        {/* Flasque métallique : bord mince et volume, sans enveloppe noire. */}
-        <path d="M18 28.5 H62 V34 H18 Z" fill="url(#ledFlange)" filter="url(#ledShadow)" />
-        <path d="M20 28.5 V18 A20 17.5 0 0 1 60 18 V28.5 Z" fill="url(#ledDome)" filter="url(#ledShadow)" />
+        {/* Flasque métallique. */}
+        <path d="M18 30 H62 V36 H18 Z" fill="url(#ledFlange)" filter="url(#ledShadow)" />
 
-        {/* Reflet du plastique bombé. */}
-        <path
-          d="M24 26.5 V18 A16 14 0 0 1 35.5 8"
-          fill="none"
-          stroke="#fff"
-          strokeOpacity=".25"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M56 20 A16 13 0 0 1 54 25"
-          fill="none"
-          stroke="#300408"
-          strokeOpacity=".28"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-        <path d="M20 28.5 H60" stroke="#25282a" strokeOpacity=".45" strokeWidth="1" />
+        {/* Dôme rouge vertical. */}
+        <path d="M20 30 V20 A20 18 0 0 1 60 20 V30 Z" fill="url(#ledDome)" filter="url(#ledShadow)" />
+
+        {/* Reflets du plastique bombé. */}
+        <path d="M24 28 V20 A16 14 0 0 1 35.5 10" fill="none" stroke="#fff" strokeOpacity=".25" strokeWidth="2" strokeLinecap="round" />
+        <path d="M56 22 A16 13 0 0 1 54 27" fill="none" stroke="#300408" strokeOpacity=".28" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M20 30 H60" stroke="#25282a" strokeOpacity=".45" strokeWidth="1" />
       </svg>
     </div>
   )
