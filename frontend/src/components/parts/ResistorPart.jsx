@@ -41,8 +41,10 @@ export function ResistorPart() {
           </filter>
         </defs>
 
-        <line x1="0" y1="14" x2="18" y2="14" stroke="url(#resistorMetal)" strokeWidth="1.8" />
-        <line x1="72" y1="14" x2="84" y2="14" stroke="url(#resistorMetal)" strokeWidth="1.8" />
+        <line x1="0" y1="14" x2="18" y2="14" stroke="url(#resistorMetal)" strokeWidth="3.2" strokeLinecap="round" />
+        <line x1="72" y1="14" x2="84" y2="14" stroke="url(#resistorMetal)" strokeWidth="3.2" strokeLinecap="round" />
+        <line x1="1" y1="13.35" x2="17" y2="13.35" stroke="#fff" strokeOpacity=".32" strokeWidth="0.7" strokeLinecap="round" />
+        <line x1="73" y1="13.35" x2="83" y2="13.35" stroke="#fff" strokeOpacity=".32" strokeWidth="0.7" strokeLinecap="round" />
 
         <rect x="18" y="6" width="54" height="16" rx="7" fill="url(#resistorBody)" filter="url(#resistorShadow)" />
         <rect x="31" y="6.2" width="4.5" height="15.6" rx="0.8" fill="url(#resistorBand)" />
