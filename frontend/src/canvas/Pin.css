@@ -23,7 +23,8 @@
  * events and click handling are intentionally preserved.
  */
 .circuit-component:has(.part-resistor) .myblab-pin,
-.circuit-component:has(.part-led) .myblab-pin {
+.circuit-component:has(.part-led) .myblab-pin,
+.circuit-component:has(.part-capacitor) .myblab-pin {
   opacity: 0;
   border: 0;
   background: transparent;
@@ -33,7 +34,9 @@
 .circuit-component:has(.part-resistor) .myblab-pin:hover,
 .circuit-component:has(.part-resistor) .myblab-pin--hover,
 .circuit-component:has(.part-led) .myblab-pin:hover,
-.circuit-component:has(.part-led) .myblab-pin--hover {
+.circuit-component:has(.part-led) .myblab-pin--hover,
+.circuit-component:has(.part-capacitor) .myblab-pin:hover,
+.circuit-component:has(.part-capacitor) .myblab-pin--hover {
   opacity: 0;
   transform: none;
   box-shadow: none;
