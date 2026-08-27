@@ -1,0 +1,16 @@
+.circuit-component:has(.part-resistor) .circuit-component__body {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.part-resistor {
+  overflow: visible;
+  background: transparent;
+}
+
+.part-resistor svg {
+  overflow: visible;
+  display: block;
+}
