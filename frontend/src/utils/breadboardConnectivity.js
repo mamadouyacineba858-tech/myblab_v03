@@ -1,26 +1,16 @@
 /**
- * Dérivation de la connectivité électrique introduite par un breadboard
- * (MB-BREADBOARD-001/002, Blueprint §5).
+ * Dérivation de la connectivité électrique introduite par un breadboard.
  *
- * Fonction pure : ne lit que document.breadboard + document.components (et
- * componentDefinitions.js pour les décalages géométriques de pins déjà
- * utilisés par le canevas libre). N'écrit rien, ne persiste rien — la
- * connectivité est reconstruite à chaque appel (LOCK-07, AC-17), exactement
- * comme buildNets()/prepareCircuit() le font déjà pour les wires explicites
- * (contrat CF4 — ELE-007).
- *
- * Ce module ne modifie ni nets.js ni preparation.js : il produit des arêtes
- * virtuelles consommées en ADDITION des wires explicites par les deux points
- * d'appel existants (voir §5 de la Blueprint pour le détail du double
- * branchement).
+ * MB-BREADBOARD-012 étend la source de vérité existante pour prendre en
+ * compte les wires dont une ou deux extrémités sont des trous physiques.
+ * `holeAt()` reste l'unique oracle géométrique ; aucune topologie n'est
+ * stockée dans le breadboard.
  */
 import { getComponentDef } from '../config/componentDefinitions.js'
 import { holeAt } from './breadboardGeometry.js'
+import { BREADBOARD_PITCH } from './breadboardGeometry.js'
+import { parseBreadboardHoleEndpoint } from './breadboardWireEndpoint.js'
 
-/**
- * @param {{ id: string, type: string, position: {x,y} }} document.components[i] (forme Core)
- * @returns {Array<{ groupKey: string, componentId: string, pinId: string }>}
- */
 function resolveOccupiedHoles(breadboard, components) {
   const occupied = []
   for (const component of components || []) {
@@ -39,36 +29,95 @@ function resolveOccupiedHoles(breadboard, components) {
   return occupied
 }
 
+function resolveWireHole(breadboard, uid, pinId) {
+  const parsed = parseBreadboardHoleEndpoint(uid, pinId)
+  if (!parsed || !breadboard || parsed.breadboardId !== breadboard.id) return null
+  const x = breadboard.position.x + parsed.column * BREADBOARD_PITCH
+  const y = breadboard.position.y + parsed.row * BREADBOARD_PITCH
+  const hole = holeAt(breadboard, x, y)
+  return hole ? { ...parsed, groupKey: hole.groupKey } : null
+}
+
 /**
- * Dérive les arêtes virtuelles introduites par le breadboard, en forme Core
- * (identique à document.wires) : { pinA: {componentId,pinId}, pinB: {...} }.
- *
- * Sans breadboard, ou sans au moins deux pins occupant le même groupe
- * électrique, retourne un tableau vide — comportement neutre garantissant
- * TB-14/TB-15 (Document/canevas libre sans breadboard strictement inchangé).
- *
- * @param {object} document - Document Core (breadboard, components)
- * @returns {Array<{ pinA: {componentId,pinId}, pinB: {componentId,pinId} }>}
+ * Dérive les arêtes Core nécessaires pour que les pins connectés au même
+ * breadboard group restent électriquement continus, y compris lorsqu'un
+ * groupe est rejoint par un wire explicite terminé sur un trou.
  */
 export function deriveBreadboardVirtualWires(document) {
   const breadboard = document && document.breadboard
   if (!breadboard) return []
 
   const occupied = resolveOccupiedHoles(breadboard, document.components)
-
   const byGroup = new Map()
+
+  const addMember = (groupKey, componentId, pinId) => {
+    if (!groupKey || !componentId || !pinId) return
+    if (!byGroup.has(groupKey)) byGroup.set(groupKey, [])
+    const entries = byGroup.get(groupKey)
+    if (!entries.some((entry) => entry.componentId === componentId && entry.pinId === pinId)) {
+      entries.push({ groupKey, componentId, pinId })
+    }
+  }
+
   for (const entry of occupied) {
-    if (!byGroup.has(entry.groupKey)) byGroup.set(entry.groupKey, [])
-    byGroup.get(entry.groupKey).push(entry)
+    addMember(entry.groupKey, entry.componentId, entry.pinId)
+  }
+
+  // Hole-to-hole wires merge their two electrical groups. A pin-to-hole wire
+  // adds the pin to the hole's group. Pin-to-pin wires remain explicit and
+  // are therefore intentionally ignored here.
+  const parent = new Map()
+  const find = (key) => {
+    if (!parent.has(key)) parent.set(key, key)
+    const current = parent.get(key)
+    if (current !== key) parent.set(key, find(current))
+    return parent.get(key)
+  }
+  const union = (a, b) => {
+    if (!a || !b) return
+    const ra = find(a)
+    const rb = find(b)
+    if (ra !== rb) parent.set(ra, rb)
+  }
+
+  for (const wire of document.wires || []) {
+    const holeA = resolveWireHole(breadboard, wire?.pinA?.componentId, wire?.pinA?.pinId)
+    const holeB = resolveWireHole(breadboard, wire?.pinB?.componentId, wire?.pinB?.pinId)
+
+    if (holeA) find(holeA.groupKey)
+    if (holeB) find(holeB.groupKey)
+
+    if (holeA && holeB) {
+      union(holeA.groupKey, holeB.groupKey)
+      continue
+    }
+
+    if (holeA && wire?.pinB?.componentId && wire?.pinB?.pinId) {
+      addMember(holeA.groupKey, wire.pinB.componentId, wire.pinB.pinId)
+    }
+    if (holeB && wire?.pinA?.componentId && wire?.pinA?.pinId) {
+      addMember(holeB.groupKey, wire.pinA.componentId, wire.pinA.pinId)
+    }
+  }
+
+  // Collapse merged groups before emitting the star topology.
+  const merged = new Map()
+  for (const [groupKey, entries] of byGroup.entries()) {
+    const root = find(groupKey)
+    if (!merged.has(root)) merged.set(root, [])
+    for (const entry of entries) {
+      if (!merged.get(root).some((e) => e.componentId === entry.componentId && e.pinId === entry.pinId)) {
+        merged.get(root).push(entry)
+      }
+    }
   }
 
   const virtualWires = []
-  for (const entries of byGroup.values()) {
+  for (const entries of merged.values()) {
     if (entries.length < 2) continue
-    // Topologie en étoile vers le premier pin du groupe : n-1 arêtes
-    // suffisent à l'Union-Find pour connecter tout le groupe (pas de O(n²)).
     const [reference, ...rest] = entries
     for (const entry of rest) {
+      if (reference.componentId === entry.componentId && reference.pinId === entry.pinId) continue
       virtualWires.push({
         pinA: { componentId: reference.componentId, pinId: reference.pinId },
         pinB: { componentId: entry.componentId, pinId: entry.pinId },
@@ -78,15 +127,6 @@ export function deriveBreadboardVirtualWires(document) {
   return virtualWires
 }
 
-/**
- * Convertit une arête virtuelle en forme Core vers la forme bridge attendue
- * par prepareCircuit() (simulator/preparation.js) : { fromUid, fromPin,
- * toUid, toPin }. Aucune duplication de logique : réutilisée aux deux
- * points d'appel (validation ET simulation, Blueprint §5/§1).
- *
- * @param {{ pinA: {componentId,pinId}, pinB: {componentId,pinId} }} coreWire
- * @returns {{ fromUid: string, fromPin: string, toUid: string, toPin: string }}
- */
 export function toBridgeWire(coreWire) {
   return {
     fromUid: coreWire.pinA.componentId,
@@ -96,14 +136,6 @@ export function toBridgeWire(coreWire) {
   }
 }
 
-/**
- * Dérive directement les arêtes virtuelles en forme bridge, pour les points
- * d'appel simulateur qui ne manipulent que cette forme (engine.js,
- * simulationRuntimeIntegration.js).
- *
- * @param {object} document - Document Core (breadboard, components)
- * @returns {Array<{ fromUid, fromPin, toUid, toPin }>}
- */
 export function deriveBreadboardVirtualWiresBridge(document) {
   return deriveBreadboardVirtualWires(document).map(toBridgeWire)
 }
