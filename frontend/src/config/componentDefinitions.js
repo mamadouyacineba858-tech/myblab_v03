@@ -8,7 +8,6 @@ import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
  */
 const PIN_PRESENTATION_BY_TYPE = {
   LED: [
-    // Ancres sur les extrémités réelles des pattes physiques.
     { id: "anode", label: "Anode", dx: 31, dy: 62 },
     { id: "cathode", label: "Cathode", dx: 54, dy: 62 },
   ],
@@ -35,9 +34,12 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "GND", label: "GND", dx: 58, dy: 25 },
   ],
   CAPACITOR: [
-    // Ancres sur les extrémités réelles des deux pattes verticales.
     { id: "pinA", label: "A", dx: 24, dy: 62 },
     { id: "pinB", label: "B", dx: 46, dy: 62 },
+  ],
+  CAPACITOR_POLARIZED: [
+    { id: "positive", label: "+", dx: 25, dy: 75 },
+    { id: "negative", label: "−", dx: 45, dy: 75 },
   ],
   BUZZER: [
     { id: "plus", label: "+", dx: 10, dy: 50 },
@@ -125,6 +127,7 @@ export const COMPONENT_TYPES = {
   BUTTON_LATCHING: { id: "BUTTON_LATCHING", label: "Interrupteur", icon: "🔲", width: 60, height: 60, pins: buildPins("BUTTON_LATCHING") },
   POWER: { id: "POWER", label: "Alimentation", icon: "⚡", width: 70, height: 90, pins: buildPins("POWER") },
   CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 64, pins: buildPins("CAPACITOR") },
+  CAPACITOR_POLARIZED: { id: "CAPACITOR_POLARIZED", label: "Condensateur polarisé", icon: "◉", width: 70, height: 78, pins: buildPins("CAPACITOR_POLARIZED") },
   BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 70, height: 50, pins: buildPins("BUZZER") },
   POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 90, height: 50, pins: buildPins("POTENTIOMETER") },
   LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 36, pins: buildPins("LDR") },
@@ -136,7 +139,7 @@ export const COMPONENT_TYPES = {
   DC_MOTOR: { id: "DC_MOTOR", label: "Moteur DC", icon: "🌀", width: 84, height: 50, pins: buildPins("DC_MOTOR") },
 }
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.CAPACITOR_POLARIZED, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 
