@@ -8,8 +8,10 @@ import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
  */
 const PIN_PRESENTATION_BY_TYPE = {
   LED: [
-    { id: "anode", label: "Anode", dx: 0, dy: 20 },
-    { id: "cathode", label: "Cathode", dx: 80, dy: 20 },
+    // Les ancres électriques suivent désormais les extrémités des pattes
+    // physiques verticales du renderer LED (x=31/49, y=54).
+    { id: "anode", label: "Anode", dx: 31, dy: 54 },
+    { id: "cathode", label: "Cathode", dx: 49, dy: 54 },
   ],
   RESISTOR: [
     { id: "A", label: "A", dx: 0, dy: 14 },
