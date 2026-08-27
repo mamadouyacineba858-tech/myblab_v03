@@ -6,6 +6,7 @@ const DECLARED_TYPES_PINS = {
   BUTTON_LATCHING:[{id:'pin1',role:'switch'},{id:'pin2',role:'switch'}],
   POWER:[{id:'5V',role:'power_out'},{id:'GND',role:'ground_out'}],
   CAPACITOR:[{id:'pinA',role:'passive'},{id:'pinB',role:'passive'}],
+  CAPACITOR_POLARIZED:[{id:'positive',role:'passive'},{id:'negative',role:'passive'}],
   BUZZER:[{id:'plus',role:'input'},{id:'minus',role:'input'}],
   POTENTIOMETER:[{id:'left',role:'passive'},{id:'wiper',role:'output'},{id:'right',role:'passive'}],
   LDR:[{id:'A',role:'sensor'},{id:'B',role:'sensor'}],
@@ -17,7 +18,7 @@ const DECLARED_TYPES_PINS = {
   DC_MOTOR:[{id:'plus',role:'input'},{id:'minus',role:'input'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','CAPACITOR','CAPACITOR_POLARIZED','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR']
 
 const DECLARED_PARAMETER_SCHEMA = {
   POWER:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:0.001,maximum:1000,defaultValue:5,description:'Tension de sortie de la source en Volts'}],
@@ -30,6 +31,7 @@ const DECLARED_PARAMETER_SCHEMA = {
   ],
   DC_MOTOR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:20,description:'Résistance électrique équivalente du bobinage (modèle électrique DC simplifié, MB-SIM-008 v2) : vitesse, couple, inertie et force contre-électromotrice dynamique sont hors périmètre.'}],
   CAPACITOR:[{key:'capacitance',parameterType:'capacitance',unit:'F',minimum:1e-12,maximum:1,defaultValue:0.0001,description:'Capacité (modèle DC établi, MB-SIM-008 v2) : le condensateur est traité comme un circuit ouvert en régime permanent (I=0) ; cette valeur n\'intervient pas dans l\'analyse DC et n\'est significative que pour un futur modèle Transitoire, hors périmètre de MB-SIM-008.'}],
+  CAPACITOR_POLARIZED:[{key:'capacitance',parameterType:'capacitance',unit:'F',minimum:1e-12,maximum:1,defaultValue:0.0001,description:'Capacité d\'un condensateur électrolytique polarisé (modèle DC établi, MB-SIM-008 v2) : circuit ouvert en régime permanent (I=0). La polarité est une propriété physique du composant et son comportement transitoire est hors périmètre.'}],
   POTENTIOMETER:[
     {key:'resistance',parameterType:'resistance',unit:'Ω',minimum:1,maximum:1e7,defaultValue:10000,description:'Résistance totale de la piste résistive, extrémité LEFT à extrémité RIGHT (modèle DC simplifié, MB-SIM-008 v2).'},
     {key:'position',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0.5,description:'Position du curseur (0 = extrémité LEFT, 1 = extrémité RIGHT) : détermine les deux résistances équivalentes LEFT↔WIPER et WIPER↔RIGHT (modèle DC simplifié, MB-SIM-008 v2).'},
@@ -45,6 +47,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   DIODE:{forwardVoltage:0.7,onResistance:10},
   DC_MOTOR:{resistance:20},
   CAPACITOR:{capacitance:0.0001},
+  CAPACITOR_POLARIZED:{capacitance:0.0001},
   POTENTIOMETER:{resistance:10000,position:0.5},
   NPN_TRANSISTOR:{onResistance:1},
 }
@@ -57,6 +60,7 @@ const DECLARED_CAPABILITIES = {
   DIODE:['digital','dc'],
   DC_MOTOR:['digital','dc'],
   CAPACITOR:['digital','dc'],
+  CAPACITOR_POLARIZED:['digital','dc'],
   POTENTIOMETER:['digital','dc'],
   NPN_TRANSISTOR:['digital','dc'],
 }
@@ -69,6 +73,7 @@ const DECLARED_MODEL_AVAILABLE = {
   DIODE:true,
   DC_MOTOR:true,
   CAPACITOR:true,
+  CAPACITOR_POLARIZED:true,
   POTENTIOMETER:true,
   NPN_TRANSISTOR:true,
 }
