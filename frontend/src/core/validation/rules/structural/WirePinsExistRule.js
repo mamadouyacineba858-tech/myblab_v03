@@ -1,14 +1,29 @@
 /**
  * STR-003 — WirePinsExistRule (ERROR)
- * Chaque extrémité de wire doit référencer un composant existant et un pin
- * existant pour ce composant, résolu via canonicalRegistry.
+ *
+ * A wire endpoint may reference either a canonical component pin or a real
+ * breadboard hole (MB-BREADBOARD-012). Hole endpoints are validated against
+ * the existing breadboard geometry oracle; no synthetic component is added
+ * to the Document.
  */
 import { CATEGORIES, LEVELS } from '../../constants.js'
 import { getCanonicalEntry } from '../../../../simulator/canonicalRegistry.js'
 import { getEffectiveComponents, getEffectiveWires, findComponent } from '../shared/documentHelpers.js'
+import { BREADBOARD_PITCH, holeAt } from '../../../../utils/breadboardGeometry.js'
+import { parseBreadboardHoleEndpoint } from '../../../../utils/breadboardWireEndpoint.js'
 
-function checkEndpoint(components, endpoint) {
+function checkEndpoint(document, components, endpoint) {
   if (!endpoint || !endpoint.componentId) return 'missing_component_id'
+
+  const hole = parseBreadboardHoleEndpoint(endpoint.componentId, endpoint.pinId)
+  if (hole) {
+    const breadboard = document?.breadboard
+    if (!breadboard || breadboard.id !== hole.breadboardId) return 'breadboard_not_found'
+    const x = breadboard.position.x + hole.column * BREADBOARD_PITCH
+    const y = breadboard.position.y + hole.row * BREADBOARD_PITCH
+    return holeAt(breadboard, x, y) ? null : 'breadboard_hole_not_found'
+  }
+
   const component = findComponent(components, endpoint.componentId)
   if (!component) return 'component_not_found'
   const entry = getCanonicalEntry(component.type)
@@ -28,7 +43,7 @@ export const WirePinsExistRule = {
 
     for (const wire of wires) {
       for (const [side, endpoint] of [['pinA', wire.pinA], ['pinB', wire.pinB]]) {
-        const reason = checkEndpoint(components, endpoint)
+        const reason = checkEndpoint(document, components, endpoint)
         if (reason) {
           invalidEndpoints.push({
             wireId: wire.id,
@@ -47,11 +62,11 @@ export const WirePinsExistRule = {
       id: 'STR-003',
       message:
         invalidEndpoints.length === 1
-          ? `Le wire "${invalidEndpoints[0].wireId}" référence un pin ou un composant introuvable.`
-          : `${invalidEndpoints.length} extrémités de wire référencent un pin ou un composant introuvable.`,
+          ? `Le wire "${invalidEndpoints[0].wireId}" référence un pin, un composant ou un trou Breadboard introuvable.`
+          : `${invalidEndpoints.length} extrémités de wire référencent un pin, un composant ou un trou Breadboard introuvable.`,
       explanation:
-        'Chaque extrémité de wire doit référencer un composant existant et un pin déclaré dans sa définition canonique.',
-      suggestion: 'Supprimez ou corrigez les wires référençant des pins/composants invalides.',
+        'Chaque extrémité de wire doit référencer soit un pin déclaré d’un composant canonique, soit un trou réel du breadboard courant.',
+      suggestion: 'Supprimez ou corrigez les wires référençant des endpoints invalides.',
       context: { invalidEndpoints },
     }
   },
