@@ -1,4 +1,5 @@
 import React from 'react'
+import './ResistorPart.css'
 
 /**
  * Rendu visuel réaliste d'une résistance traversante.
