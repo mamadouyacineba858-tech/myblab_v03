@@ -15,7 +15,7 @@ export function LedPart({ isOn }) {
         boxShadow: 'none',
       }}
     >
-      <svg viewBox="0 0 80 40" width="80" height="40" role="img" aria-hidden="true">
+      <svg viewBox="0 0 80 40" width="80" height="40" role="img" aria-hidden="true" style={{ overflow: 'visible' }}>
         <defs>
           <linearGradient id="ledDome" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stopColor={isOn ? '#ff8f8f' : '#b7353d'} />
@@ -47,9 +47,9 @@ export function LedPart({ isOn }) {
 
         {isOn && <ellipse cx="40" cy="18" rx="28" ry="20" fill="url(#ledGlow)" />}
 
-        {/* Les deux pattes restent de vrais éléments métalliques du composant. */}
-        <line x1="30" y1="32.5" x2="30" y2="40" stroke="url(#ledMetal)" strokeWidth="3.2" strokeLinecap="round" />
-        <line x1="50" y1="32.5" x2="50" y2="40" stroke="url(#ledMetal)" strokeWidth="3.2" strokeLinecap="round" />
+        {/* Pattes traversantes verticales, volontairement épaisses comme les fils de la résistance. */}
+        <line x1="31" y1="30" x2="31" y2="45" stroke="url(#ledMetal)" strokeWidth="4" strokeLinecap="round" />
+        <line x1="49" y1="30" x2="49" y2="45" stroke="url(#ledMetal)" strokeWidth="4" strokeLinecap="round" />
 
         {/* Flasque métallique : bord mince et volume, sans enveloppe noire. */}
         <path d="M18 28.5 H62 V34 H18 Z" fill="url(#ledFlange)" filter="url(#ledShadow)" />
