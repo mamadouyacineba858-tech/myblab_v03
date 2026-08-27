@@ -11,25 +11,46 @@ export function ResistorPart() {
       <svg viewBox="0 0 84 28" width="84" height="28" role="img" aria-hidden="true">
         <defs>
           <linearGradient id="resistorBody" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#f7e7c8" />
-            <stop offset="0.48" stopColor="#d8bd91" />
-            <stop offset="1" stopColor="#9d815c" />
+            <stop offset="0" stopColor="#fff1d5" />
+            <stop offset="0.34" stopColor="#e5ca9e" />
+            <stop offset="0.72" stopColor="#c6a878" />
+            <stop offset="1" stopColor="#9b7b55" />
           </linearGradient>
           <linearGradient id="resistorMetal" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#f5f7fa" />
-            <stop offset="0.45" stopColor="#aeb7c2" />
-            <stop offset="1" stopColor="#59636f" />
+            <stop offset="0" stopColor="#f7f9fb" />
+            <stop offset="0.42" stopColor="#bcc5ce" />
+            <stop offset="1" stopColor="#626c77" />
           </linearGradient>
-          <filter id="resistorShadow" x="-20%" y="-40%" width="140%" height="180%">
-            <feDropShadow dx="0" dy="1.2" stdDeviation="0.8" floodOpacity="0.38" />
+          <linearGradient id="resistorBand" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#6f2f1e" />
+            <stop offset="0.5" stopColor="#a94d32" />
+            <stop offset="1" stopColor="#612618" />
+          </linearGradient>
+          <linearGradient id="resistorBand2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#4d347b" />
+            <stop offset="0.5" stopColor="#7251a8" />
+            <stop offset="1" stopColor="#3f286b" />
+          </linearGradient>
+          <linearGradient id="resistorBand3" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#b56b18" />
+            <stop offset="0.5" stopColor="#e0a03a" />
+            <stop offset="1" stopColor="#965314" />
+          </linearGradient>
+          <filter id="resistorShadow" x="-20%" y="-50%" width="140%" height="200%">
+            <feDropShadow dx="0" dy="1" stdDeviation="0.65" floodOpacity="0.28" />
           </filter>
         </defs>
-        <line x1="0" y1="14" x2="18" y2="14" stroke="url(#resistorMetal)" strokeWidth="2" />
-        <line x1="72" y1="14" x2="84" y2="14" stroke="url(#resistorMetal)" strokeWidth="2" />
-        <rect x="18" y="4" width="54" height="20" rx="9" fill="url(#resistorBody)" filter="url(#resistorShadow)" />
-        <rect x="32" y="4.5" width="5" height="19" rx="1" fill="#8b3f25" />
-        <rect x="44" y="4.5" width="5" height="19" rx="1" fill="#5a3a8a" />
-        <path d="M21 7.2h48" stroke="#fff" strokeOpacity=".32" strokeWidth="1.1" strokeLinecap="round" />
+
+        <line x1="0" y1="14" x2="18" y2="14" stroke="url(#resistorMetal)" strokeWidth="1.8" />
+        <line x1="72" y1="14" x2="84" y2="14" stroke="url(#resistorMetal)" strokeWidth="1.8" />
+
+        <rect x="18" y="6" width="54" height="16" rx="7" fill="url(#resistorBody)" filter="url(#resistorShadow)" />
+        <rect x="31" y="6.2" width="4.5" height="15.6" rx="0.8" fill="url(#resistorBand)" />
+        <rect x="42" y="6.2" width="4.5" height="15.6" rx="0.8" fill="url(#resistorBand2)" />
+        <rect x="53" y="6.2" width="4.5" height="15.6" rx="0.8" fill="url(#resistorBand3)" />
+
+        <path d="M22 8.1h46" stroke="#fff" strokeOpacity=".38" strokeWidth="1" strokeLinecap="round" />
+        <path d="M23 20.7h44" stroke="#684f35" strokeOpacity=".24" strokeWidth=".8" strokeLinecap="round" />
       </svg>
     </div>
   )
