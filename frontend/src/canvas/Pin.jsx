@@ -1,47 +1,23 @@
-// MB-COMPONENT-LIBRARY-002 (correction disclosed, même raison que
-// CircuitComponent.jsx) : import React explicite requis par la config
-// vitest secondaire pour tout .jsx rendu sous cette config. Aucun
-// changement de comportement.
 import React, { useState } from "react"
 import "./Pin.css"
 
 /**
  * Pin cliquable avec hover — ne déclenche pas le drag du composant parent.
+ * `visualHidden` masque uniquement le marqueur graphique ; la zone cliquable
+ * reste active afin de préserver la connectivité du canvas.
  */
-export function Pin({
-  pinId,
-  label,
-  left,
-  top,
-  isPending,
-  isConnected,
-  onPinClick,
-}) {
+export function Pin({ pinId, label, left, top, isPending, isConnected, onPinClick, visualHidden = false }) {
   const [hover, setHover] = useState(false)
-
-  const handleMouseDown = (e) => {
-    e.stopPropagation()
-  }
-
-  const handleClick = (e) => {
-    e.stopPropagation()
-    onPinClick(pinId)
-  }
-
+  const handleMouseDown = (e) => { e.stopPropagation() }
+  const handleClick = (e) => { e.stopPropagation(); onPinClick(pinId) }
   return (
     <button
       type="button"
-      className={[
-        "myblab-pin",
-        hover && "myblab-pin--hover",
-        isPending && "myblab-pin--pending",
-        isConnected && "myblab-pin--connected",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      className={["myblab-pin", hover && "myblab-pin--hover", isPending && "myblab-pin--pending", isConnected && "myblab-pin--connected"].filter(Boolean).join(" ")}
       style={{
         left: Number.isFinite(left) ? left : 0,
         top: Number.isFinite(top) ? top : 0,
+        ...(visualHidden ? { opacity: 0, border: 0, background: "transparent", boxShadow: "none" } : {}),
       }}
       title={label ?? pinId}
       onMouseDown={handleMouseDown}
