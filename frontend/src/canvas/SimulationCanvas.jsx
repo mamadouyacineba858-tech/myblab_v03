@@ -5,6 +5,7 @@ import { Breadboard } from "./Breadboard.jsx"
 import { BreadboardWireEndpoints } from "./BreadboardWireEndpoints.jsx"
 import { CircuitComponent } from "./CircuitComponent.jsx"
 import { WiresLayer } from "../wires/WiresLayer.jsx"
+import { BreadboardWiresLayer } from "../wires/BreadboardWiresLayer.jsx"
 import { MarqueeOverlay } from "./MarqueeOverlay.jsx"
 import { GRID_SIZE } from "../utils/grid.js"
 import "./SimulationCanvas.css"
@@ -17,8 +18,6 @@ export function SimulationCanvas() {
     activeItem, clearSelection,
     startMarquee,
     marqueeRect,
-    // MB-BREADBOARD-008 (O2/O5/O6) : aperçu de placement en direct pendant
-    // un drag HTML5 natif depuis la Sidebar.
     updateSidebarComponentDragPosition,
     endSidebarComponentDrag,
   } = useCircuit()
@@ -107,6 +106,7 @@ export function SimulationCanvas() {
           breadboardInsertPreview={breadboardInsertPreview}
         />
         <WiresLayer wirePaths={wirePaths} />
+        <BreadboardWiresLayer />
         <BreadboardWireEndpoints breadboard={breadboard} />
         <div className="simulation-canvas__components">
           {components.map((comp) => (
