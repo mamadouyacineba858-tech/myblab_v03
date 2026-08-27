@@ -9,12 +9,14 @@
      conservent donc la priorité de hit-test là où ils se superposent. */
   pointer-events: auto;
   overflow: visible;
-  /* MB-BREADBOARD-009 : le breadboard était trop petit à zoom=1 pour être
-     utilisé visuellement. Agrandissement PRESENTATION uniquement : aucune
-     coordonnée de trou, aucun pas électrique et aucun calcul de placement
-     n'est modifié. Le transform ne change pas le modèle géométrique. */
-  transform: scale(1.25);
-  transform-origin: top left;
+  /* MB-BREADBOARD-010 : NE PAS appliquer de transform local au breadboard.
+     Les coordonnées des trous et des pins sont exprimées dans le même
+     repère canvas (BREADBOARD_PITCH / holeAt()). Un scale CSS local décale
+     visuellement les trous par rapport aux pins et rend le breadboard
+     inutilisable malgré une connectivité logique correcte. L'agrandissement
+     doit être réalisé par le zoom commun du canvas, jamais par un transform
+     local de ce composant. */
+  transform: none;
 }
 
 .breadboard--selected {
@@ -30,7 +32,7 @@
 }
 
 /* MB-BREADBOARD-009 : contraste volontairement fort pour que les trous
-   restent lisibles après l'agrandissement et à zoom normal. */
+   restent lisibles à zoom normal. */
 .breadboard__hole {
   fill: rgba(226, 232, 240, 0.72);
   stroke: rgba(248, 250, 252, 0.95);
