@@ -12,13 +12,9 @@ const PADDING = BREADBOARD_PITCH
 const HIT_RADIUS = 5
 
 /**
- * MB-BREADBOARD-012
- *
- * Interaction layer dedicated to physical breadboard holes.
- * Presentation remains separate from Breadboard.jsx: this transparent SVG
- * sits above the rendered holes and below CircuitComponent, so an empty hole
- * can become a first-class wire endpoint without stealing component-pin
- * clicks or changing Breadboard drag semantics elsewhere.
+ * MB-BREADBOARD-012 — interaction layer dedicated to physical breadboard holes.
+ * It sits above the breadboard artwork and below CircuitComponent, so empty
+ * holes can become wire endpoints without stealing component-pin clicks.
  */
 export function BreadboardWireEndpoints({ breadboard }) {
   const { pendingPin, onPinClick } = useCircuit()
@@ -45,15 +41,14 @@ export function BreadboardWireEndpoints({ breadboard }) {
   return (
     <svg
       className="breadboard-wire-endpoints"
-      style={{ left: breadboard.position.x - PADDING, top: breadboard.position.y - PADDING }}
-      width={width}
-      height={height}
-      aria-hidden="true"
       style={{
         left: breadboard.position.x - PADDING,
         top: breadboard.position.y - PADDING,
         pointerEvents: "none",
       }}
+      width={width}
+      height={height}
+      aria-hidden="true"
     >
       {holes.map((hole) => {
         const endpoint = makeBreadboardHoleEndpoint(breadboard.id, hole.column, hole.row)
@@ -65,7 +60,7 @@ export function BreadboardWireEndpoints({ breadboard }) {
             key={`${hole.column}:${hole.row}`}
             cx={hole.x - breadboard.position.x + PADDING}
             cy={hole.y - breadboard.position.y + PADDING}
-            r={isPending ? HIT_RADIUS : HIT_RADIUS}
+            r={HIT_RADIUS}
             fill={isPending ? "rgba(34,197,94,0.35)" : "transparent"}
             stroke={isPending ? "#22c55e" : "transparent"}
             strokeWidth={isPending ? 2 : 0}
