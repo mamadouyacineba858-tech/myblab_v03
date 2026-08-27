@@ -131,6 +131,10 @@ export function CircuitComponent({ component }) {
   const bodyClassName = type === "RESISTOR" || type === "LED" || type === "CAPACITOR"
     ? `circuit-component__body circuit-component__body--${type.toLowerCase()}`
     : "circuit-component__body"
+  const isTransparentPart = type === "RESISTOR" || type === "LED" || type === "CAPACITOR"
+  const bodyStyle = isTransparentPart
+    ? { background: "transparent", border: 0, borderRadius: 0, boxShadow: "none" }
+    : undefined
 
   return (
     <div
@@ -146,7 +150,7 @@ export function CircuitComponent({ component }) {
       onMouseDown={handleBodyMouseDown}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className={bodyClassName}>
+      <div className={bodyClassName} style={bodyStyle}>
         <PartRenderer
           type={type}
           uid={uid}
