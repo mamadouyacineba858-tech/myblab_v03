@@ -8,10 +8,9 @@ import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
  */
 const PIN_PRESENTATION_BY_TYPE = {
   LED: [
-    // Les ancres électriques suivent désormais les extrémités des pattes
-    // physiques verticales du renderer LED (x=31/49, y=54).
-    { id: "anode", label: "Anode", dx: 31, dy: 54 },
-    { id: "cathode", label: "Cathode", dx: 49, dy: 54 },
+    // Ancres sur les extrémités réelles des pattes physiques.
+    { id: "anode", label: "Anode", dx: 31, dy: 60 },
+    { id: "cathode", label: "Cathode", dx: 54, dy: 60 },
   ],
   RESISTOR: [
     { id: "A", label: "A", dx: 0, dy: 14 },
@@ -117,189 +116,34 @@ function buildPins(type) {
   })
 }
 
-/**
- * Définitions des composants électroniques MYBlab.
- * Chaque type expose : dimensions, pins (offsets relatifs), métadonnées simulation.
- *
- * Modèle instance sur le canvas :
- * { uid, type, x, y, pins: [] }  — pins[] réservé pour état futur (ex. bouton pressé)
- */
-
 export const COMPONENT_TYPES = {
-  LED: {
-    id: "LED",
-    label: "LED",
-    icon: "💡",
-    // Hauteur alignée sur le renderer physique : le SVG 80×56 doit pouvoir
-    // afficher les deux pattes verticales sans être rogné par le wrapper.
-    width: 80,
-    height: 56,
-    pins: buildPins("LED"),
-  },
-  RESISTOR: {
-    id: "RESISTOR",
-    label: "Résistance",
-    icon: "〰️",
-    width: 84,
-    height: 28,
-    pins: buildPins("RESISTOR"),
-  },
-  ARDUINO: {
-    id: "ARDUINO",
-    label: "Arduino UNO",
-    icon: "🤖",
-    width: 120,
-    height: 140,
-    pins: buildPins("ARDUINO"),
-  },
-  BUTTON: {
-    id: "BUTTON",
-    label: "Bouton",
-    icon: "🔘",
-    width: 60,
-    height: 60,
-    pins: buildPins("BUTTON"),
-  },
-  BUTTON_LATCHING: {
-    id: "BUTTON_LATCHING",
-    label: "Interrupteur",
-    icon: "🔲",
-    width: 60,
-    height: 60,
-    pins: buildPins("BUTTON_LATCHING"),
-  },
-  POWER: {
-    id: "POWER",
-    label: "Alimentation",
-    icon: "⚡",
-    width: 70,
-    height: 90,
-    pins: buildPins("POWER"),
-  },
-  CAPACITOR: {
-    id: "CAPACITOR",
-    label: "Condensateur",
-    icon: "║║",
-    width: 70,
-    height: 40,
-    pins: buildPins("CAPACITOR"),
-  },
-  BUZZER: {
-    id: "BUZZER",
-    label: "Buzzer",
-    icon: "🔊",
-    width: 70,
-    height: 50,
-    pins: buildPins("BUZZER"),
-  },
-  POTENTIOMETER: {
-    id: "POTENTIOMETER",
-    label: "Potentiomètre",
-    icon: "🎚",
-    width: 90,
-    height: 50,
-    pins: buildPins("POTENTIOMETER"),
-  },
-  LDR: {
-    id: "LDR",
-    label: "Photoresistance (LDR)",
-    icon: "☀️",
-    width: 84,
-    height: 36,
-    pins: buildPins("LDR"),
-  },
-  THERMISTOR: {
-    id: "THERMISTOR",
-    label: "Thermistance",
-    icon: "🌡",
-    width: 84,
-    height: 36,
-    pins: buildPins("THERMISTOR"),
-  },
-  DIODE: {
-    id: "DIODE",
-    label: "Diode",
-    icon: "↦|",
-    width: 84,
-    height: 30,
-    pins: buildPins("DIODE"),
-  },
-  RGB_LED: {
-    id: "RGB_LED",
-    label: "LED RGB",
-    icon: "🌈",
-    width: 90,
-    height: 56,
-    pins: buildPins("RGB_LED"),
-  },
-  NPN_TRANSISTOR: {
-    id: "NPN_TRANSISTOR",
-    label: "Transistor NPN",
-    icon: "NPN",
-    width: 90,
-    height: 60,
-    pins: buildPins("NPN_TRANSISTOR"),
-  },
-  SERVO: {
-    id: "SERVO",
-    label: "Micro Servo",
-    icon: "⚙️",
-    width: 90,
-    height: 70,
-    pins: buildPins("SERVO"),
-  },
-  DC_MOTOR: {
-    id: "DC_MOTOR",
-    label: "Moteur DC",
-    icon: "🌀",
-    width: 84,
-    height: 50,
-    pins: buildPins("DC_MOTOR"),
-  },
+  LED: { id: "LED", label: "LED", icon: "💡", width: 80, height: 64, pins: buildPins("LED") },
+  RESISTOR: { id: "RESISTOR", label: "Résistance", icon: "〰️", width: 84, height: 28, pins: buildPins("RESISTOR") },
+  ARDUINO: { id: "ARDUINO", label: "Arduino UNO", icon: "🤖", width: 120, height: 140, pins: buildPins("ARDUINO") },
+  BUTTON: { id: "BUTTON", label: "Bouton", icon: "🔘", width: 60, height: 60, pins: buildPins("BUTTON") },
+  BUTTON_LATCHING: { id: "BUTTON_LATCHING", label: "Interrupteur", icon: "🔲", width: 60, height: 60, pins: buildPins("BUTTON_LATCHING") },
+  POWER: { id: "POWER", label: "Alimentation", icon: "⚡", width: 70, height: 90, pins: buildPins("POWER") },
+  CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 40, pins: buildPins("CAPACITOR") },
+  BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 70, height: 50, pins: buildPins("BUZZER") },
+  POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 90, height: 50, pins: buildPins("POTENTIOMETER") },
+  LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 36, pins: buildPins("LDR") },
+  THERMISTOR: { id: "THERMISTOR", label: "Thermistance", icon: "🌡", width: 84, height: 36, pins: buildPins("THERMISTOR") },
+  DIODE: { id: "DIODE", label: "Diode", icon: "↦|", width: 84, height: 30, pins: buildPins("DIODE") },
+  RGB_LED: { id: "RGB_LED", label: "LED RGB", icon: "🌈", width: 90, height: 56, pins: buildPins("RGB_LED") },
+  NPN_TRANSISTOR: { id: "NPN_TRANSISTOR", label: "Transistor NPN", icon: "NPN", width: 90, height: 60, pins: buildPins("NPN_TRANSISTOR") },
+  SERVO: { id: "SERVO", label: "Micro Servo", icon: "⚙️", width: 90, height: 70, pins: buildPins("SERVO") },
+  DC_MOTOR: { id: "DC_MOTOR", label: "Moteur DC", icon: "🌀", width: 84, height: 50, pins: buildPins("DC_MOTOR") },
 }
 
-/** Liste ordonnée pour la sidebar */
-export const PALETTE_ITEMS = [
-  COMPONENT_TYPES.LED,
-  COMPONENT_TYPES.RESISTOR,
-  COMPONENT_TYPES.ARDUINO,
-  COMPONENT_TYPES.BUTTON,
-  COMPONENT_TYPES.BUTTON_LATCHING,
-  COMPONENT_TYPES.POWER,
-  COMPONENT_TYPES.CAPACITOR,
-  COMPONENT_TYPES.BUZZER,
-  COMPONENT_TYPES.POTENTIOMETER,
-  COMPONENT_TYPES.LDR,
-  COMPONENT_TYPES.THERMISTOR,
-  COMPONENT_TYPES.DIODE,
-  COMPONENT_TYPES.RGB_LED,
-  COMPONENT_TYPES.NPN_TRANSISTOR,
-  COMPONENT_TYPES.SERVO,
-  COMPONENT_TYPES.DC_MOTOR,
-]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR]
 
-/**
- * @param {string} type
- */
-export function getComponentDef(type) {
-  return COMPONENT_TYPES[type] ?? null
-}
+export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 
-/**
- * Crée une nouvelle instance de composant.
- * @param {string} type
- * @param {number} x
- * @param {number} y
- */
 export function createComponent(type, x, y) {
   const def = getComponentDef(type)
   if (!def) return null
-
   return {
-    uid: createUid(),
-    type: def.id,
-    x,
-    y,
+    uid: createUid(), type: def.id, x, y,
     pins: def.pins.map((pin) => ({ ...pin })),
     ...(def.id === "BUTTON" ? { state: "released" } : {}),
     ...(def.id === "BUTTON_LATCHING" ? { state: "off" } : {}),
