@@ -21,7 +21,8 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-.circuit-component__body--resistor {
+.circuit-component__body--resistor,
+.circuit-component__body--led {
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -34,14 +35,14 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  border-radius: 6px;
-  background: #222;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 0;
+  background: transparent;
+  transition: none;
 }
 
 .part-led--on {
-  background: #14532d;
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
+  background: transparent;
+  box-shadow: none;
 }
 
 .part-led__dome {
@@ -593,6 +594,7 @@
   z-index: 5;
   pointer-events: auto;
 }
+
 .part-button--pressed .part-button__cap {
   fill: #374151;
   transform: translateY(2px) scale(0.94);
@@ -617,27 +619,6 @@
   user-select: none;
 }
 
-.part-latching-button__lead {
-  stroke: #9ca3af;
-  stroke-width: 2.5;
-}
-
-.part-latching-button__housing {
-  fill: #1e293b;
-  stroke: #475569;
-  stroke-width: 1.5;
-}
-
-.part-latching-button__cap {
-  fill: #64748b;
-  stroke: #1f2937;
-  stroke-width: 1.5;
-}
-
-.part-latching-button__cap--on {
-  fill: #22c55e;
-}
-
-.part-latching-button__cap--off {
-  fill: #64748b;
+.part-latching-button--on {
+  filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.75));
 }
