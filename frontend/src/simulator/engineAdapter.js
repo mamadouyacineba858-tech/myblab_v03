@@ -1,25 +1,13 @@
 /**
  * engineAdapter.js
  *
- * Convertit un Document Core (ReactDocumentMapper.toCore()) vers le format
- * plat attendu par engine.js : uid/type/x/y/state/pins (composants),
- * fromUid/fromPin/toUid/toPin (wires). Composants et wires incomplets sont
- * silencieusement ignorés.
- *
- * MB-BREADBOARD-002 (Blueprint MB-BREADBOARD-001 §5) : point d'appel unique
- * par lequel runSimulationWithRuntime() (via useCircuitState.js) reçoit ses
- * wires. Les arêtes virtuelles dérivées d'un éventuel breadboard
- * (deriveBreadboardVirtualWiresBridge) sont ajoutées ici, en plus des wires
- * explicites — c'est ce branchement, et non buildNets()/prepareCircuit()
- * eux-mêmes (non modifiés), qui rend le breadboard réellement visible à la
- * simulation (AC-13). Sans breadboard, le comportement est strictement
- * inchangé (TB-14/TB-15) : deriveBreadboardVirtualWiresBridge() retourne []
- * en l'absence de coreDocument.breadboard.
- *
- * @param {{ components: Array<object>, wires: Array<object>, breadboard?: object }} coreDocument
- * @returns {{ components: Array<object>, wires: Array<object> }}
+ * Convertit un Document Core vers le format plat attendu par engine.js.
+ * MB-BREADBOARD-012 : les wires qui utilisent un endpoint trou sont résolus
+ * par breadboardConnectivity.js et ne doivent donc pas être transmis comme
+ * des références de composants fictifs au moteur.
  */
 import { deriveBreadboardVirtualWiresBridge } from '../utils/breadboardConnectivity.js'
+import { isBreadboardHoleEndpoint } from '../utils/breadboardWireEndpoint.js'
 
 function clone(value) {
   if (value === undefined) return undefined
@@ -72,6 +60,10 @@ export function toEngineInput(coreDocument) {
     const toUid = wire?.pinB?.componentId
     const toPin = wire?.pinB?.pinId
 
+    if (isBreadboardHoleEndpoint(fromUid, fromPin) || isBreadboardHoleEndpoint(toUid, toPin)) {
+      continue
+    }
+
     if (fromUid === undefined || fromUid === null || toUid === undefined || toUid === null) {
       continue
     }
@@ -79,6 +71,9 @@ export function toEngineInput(coreDocument) {
     result.wires.push({ fromUid, fromPin, toUid, toPin })
   }
 
+  // Explicit hole-terminated wires are translated into real pin-to-pin edges
+  // through their breadboard electrical groups. Existing breadboard virtual
+  // connectivity remains the single source of truth for that derivation.
   result.wires.push(...deriveBreadboardVirtualWiresBridge(coreDocument))
 
   return result
