@@ -35,8 +35,9 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "GND", label: "GND", dx: 58, dy: 25 },
   ],
   CAPACITOR: [
-    { id: "pinA", label: "A", dx: 0, dy: 20 },
-    { id: "pinB", label: "B", dx: 70, dy: 20 },
+    // Ancres sur les extrémités réelles des deux pattes verticales.
+    { id: "pinA", label: "A", dx: 24, dy: 62 },
+    { id: "pinB", label: "B", dx: 46, dy: 62 },
   ],
   BUZZER: [
     { id: "plus", label: "+", dx: 10, dy: 50 },
@@ -123,7 +124,7 @@ export const COMPONENT_TYPES = {
   BUTTON: { id: "BUTTON", label: "Bouton", icon: "🔘", width: 60, height: 60, pins: buildPins("BUTTON") },
   BUTTON_LATCHING: { id: "BUTTON_LATCHING", label: "Interrupteur", icon: "🔲", width: 60, height: 60, pins: buildPins("BUTTON_LATCHING") },
   POWER: { id: "POWER", label: "Alimentation", icon: "⚡", width: 70, height: 90, pins: buildPins("POWER") },
-  CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 40, pins: buildPins("CAPACITOR") },
+  CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 64, pins: buildPins("CAPACITOR") },
   BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 70, height: 50, pins: buildPins("BUZZER") },
   POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 90, height: 50, pins: buildPins("POTENTIOMETER") },
   LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 36, pins: buildPins("LDR") },
