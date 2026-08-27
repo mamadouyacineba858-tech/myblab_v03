@@ -42,9 +42,11 @@ export function BreadboardWireEndpoints({ breadboard }) {
     <svg
       className="breadboard-wire-endpoints"
       style={{
+        position: "absolute",
         left: breadboard.position.x - PADDING,
         top: breadboard.position.y - PADDING,
         pointerEvents: "none",
+        zIndex: 4,
       }}
       width={width}
       height={height}
