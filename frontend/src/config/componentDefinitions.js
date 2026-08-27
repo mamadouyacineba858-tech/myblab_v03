@@ -9,8 +9,8 @@ import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
 const PIN_PRESENTATION_BY_TYPE = {
   LED: [
     // Ancres sur les extrémités réelles des pattes physiques.
-    { id: "anode", label: "Anode", dx: 31, dy: 60 },
-    { id: "cathode", label: "Cathode", dx: 54, dy: 60 },
+    { id: "anode", label: "Anode", dx: 31, dy: 62 },
+    { id: "cathode", label: "Cathode", dx: 54, dy: 62 },
   ],
   RESISTOR: [
     { id: "A", label: "A", dx: 0, dy: 14 },
@@ -117,7 +117,7 @@ function buildPins(type) {
 }
 
 export const COMPONENT_TYPES = {
-  LED: { id: "LED", label: "LED", icon: "💡", width: 80, height: 64, pins: buildPins("LED") },
+  LED: { id: "LED", label: "LED", icon: "💡", width: 80, height: 72, pins: buildPins("LED") },
   RESISTOR: { id: "RESISTOR", label: "Résistance", icon: "〰️", width: 84, height: 28, pins: buildPins("RESISTOR") },
   ARDUINO: { id: "ARDUINO", label: "Arduino UNO", icon: "🤖", width: 120, height: 140, pins: buildPins("ARDUINO") },
   BUTTON: { id: "BUTTON", label: "Bouton", icon: "🔘", width: 60, height: 60, pins: buildPins("BUTTON") },
