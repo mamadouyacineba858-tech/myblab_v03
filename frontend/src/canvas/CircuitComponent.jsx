@@ -40,20 +40,15 @@ export function CircuitComponent({ component }) {
   const handleBodyMouseDown = useCallback(
     (e) => {
       if (e.button !== 0 || !uid) return
-      
-      // CORRECTION 2 : Prise de contrÃ´le totale de l'interaction souris
       e.preventDefault()
       e.stopPropagation()
 
-      const isMultiSelect = e.ctrlKey || e.metaKey // metaKey pour la compatibilitÃ© Mac (Cmd)
-
-      // CORRECTION 1 : Ctrl+clic modifie la sÃ©lection mais ne lance PAS le drag
+      const isMultiSelect = e.ctrlKey || e.metaKey
       if (isMultiSelect) {
         toggleSelection({ type: 'component', id: uid })
-        return // On s'arrÃªte ici, pas de startDrag
+        return
       }
 
-      // Comportement normal : sÃ©lection unique + prÃ©paration au drag
       selectOnly({ type: 'component', id: uid })
       startDrag(e, uid, x, y)
     },
@@ -72,9 +67,7 @@ export function CircuitComponent({ component }) {
   const handleButtonPointerDown = useCallback((e) => {
     e.preventDefault()
     e.stopPropagation()
-
     setButtonState(uid, "pressed")
-
     if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) {
       e.currentTarget.setPointerCapture?.(e.pointerId)
     }
@@ -83,9 +76,7 @@ export function CircuitComponent({ component }) {
   const handleButtonPointerUp = useCallback((e) => {
     e.preventDefault()
     e.stopPropagation()
-
     setButtonState(uid, "released")
-
     if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
       e.currentTarget.releasePointerCapture?.(e.pointerId)
     }
@@ -93,9 +84,7 @@ export function CircuitComponent({ component }) {
 
   const handleButtonPointerCancel = useCallback((e) => {
     e.stopPropagation()
-
     setButtonState(uid, "released")
-
     if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
       e.currentTarget.releasePointerCapture?.(e.pointerId)
     }
@@ -133,14 +122,15 @@ export function CircuitComponent({ component }) {
     }
 
     window.addEventListener("blur", handleWindowBlur)
-
-    return () => {
-      window.removeEventListener("blur", handleWindowBlur)
-    }
+    return () => window.removeEventListener("blur", handleWindowBlur)
   }, [isButton, uid, component.state, setButtonState])
+
   if (!uid || !def) return null
 
   const pins = def.pins ?? []
+  const bodyClassName = type === "RESISTOR"
+    ? "circuit-component__body circuit-component__body--resistor"
+    : "circuit-component__body"
 
   return (
     <div
@@ -156,7 +146,7 @@ export function CircuitComponent({ component }) {
       onMouseDown={handleBodyMouseDown}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="circuit-component__body">
+      <div className={bodyClassName}>
         <PartRenderer
           type={type}
           uid={uid}
