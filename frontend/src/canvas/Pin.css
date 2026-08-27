@@ -16,6 +16,27 @@
     box-shadow 0.12s ease;
 }
 
+/*
+ * RESISTOR visual contract: the physical leads rendered by ResistorPart
+ * already terminate exactly at the logical pin coordinates. The generic
+ * circular pin marker must therefore not remain visible as a second,
+ * artificial connector on the canvas. The button stays fully interactive:
+ * opacity hides presentation only; pointer-events remain enabled.
+ */
+.circuit-component:has(.part-resistor) .myblab-pin {
+  opacity: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.circuit-component:has(.part-resistor) .myblab-pin:hover,
+.circuit-component:has(.part-resistor) .myblab-pin--hover {
+  opacity: 0;
+  transform: none;
+  box-shadow: none;
+}
+
 .myblab-pin--hover,
 .myblab-pin:hover {
   transform: scale(1.35);
