@@ -128,7 +128,7 @@ export function CircuitComponent({ component }) {
   if (!uid || !def) return null
 
   const pins = def.pins ?? []
-  const bodyClassName = type === "RESISTOR" || type === "LED"
+  const bodyClassName = type === "RESISTOR" || type === "LED" || type === "CAPACITOR"
     ? `circuit-component__body circuit-component__body--${type.toLowerCase()}`
     : "circuit-component__body"
 
