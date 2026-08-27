@@ -9,8 +9,11 @@ export function LedPart({ isOn }) {
   return (
     <div
       className={`part-led ${isOn ? 'part-led--on' : ''}`}
-      style={{ background: 'transparent', boxShadow: 'none', border: 'none' }}
       aria-label={isOn ? 'LED allumée' : 'LED éteinte'}
+      style={{
+        background: 'transparent',
+        boxShadow: 'none',
+      }}
     >
       <svg viewBox="0 0 80 40" width="80" height="40" role="img" aria-hidden="true">
         <defs>
