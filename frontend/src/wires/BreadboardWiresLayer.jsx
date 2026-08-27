@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { getPinPosition } from "../utils/geometry.js"
@@ -25,9 +25,9 @@ function resolveEndpoint(endpoint, components, breadboard) {
   return pin ? getPinPosition(component, pin) : null
 }
 
-/** MB-BREADBOARD-012 — renders persisted wires with one or two hole endpoints. */
+/** MB-BREADBOARD-012 — renders and selects persisted wires with hole endpoints. */
 export function BreadboardWiresLayer() {
-  const { components, wires, breadboard } = useCircuit()
+  const { components, wires, breadboard, isSelected, selectOnly, toggleSelection } = useCircuit()
 
   const paths = useMemo(() => {
     const result = []
@@ -46,23 +46,46 @@ export function BreadboardWiresLayer() {
     return result
   }, [components, wires, breadboard])
 
+  const handleSelect = useCallback((wireId) => (event) => {
+    event.stopPropagation()
+    if (event.ctrlKey || event.metaKey) {
+      toggleSelection({ type: "wire", id: wireId })
+    } else {
+      selectOnly({ type: "wire", id: wireId })
+    }
+  }, [selectOnly, toggleSelection])
+
   if (paths.length === 0) return null
 
   return (
     <svg className="wires-layer wires-layer--breadboard" aria-hidden="true">
-      {paths.map((path) => (
-        <path
-          key={path.id}
-          d={path.d}
-          fill="none"
-          stroke="#f97316"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ pointerEvents: "none" }}
-          aria-label={path.id}
-        />
-      ))}
+      {paths.map((path) => {
+        const selected = isSelected({ type: "wire", id: path.id })
+        return (
+          <g key={path.id}>
+            <path
+              d={path.d}
+              fill="none"
+              stroke="transparent"
+              strokeWidth={28}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ pointerEvents: "stroke" }}
+              onClick={handleSelect(path.id)}
+            />
+            <path
+              d={path.d}
+              fill="none"
+              stroke={selected ? "#22c55e" : "#f97316"}
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ pointerEvents: "none" }}
+              aria-label={path.id}
+            />
+          </g>
+        )
+      })}
     </svg>
   )
 }
