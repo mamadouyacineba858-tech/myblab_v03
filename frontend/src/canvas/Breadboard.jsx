@@ -261,6 +261,19 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
     return new Set(breadboardInsertPreview.holes.map((h) => `${h.column}:${h.row}`))
   }, [breadboardInsertPreview])
 
+  const stripRows = useMemo(
+    () => [...new Set(holes.filter((hole) => hole.kind === "STRIP").map((hole) => hole.row))].sort((a, b) => a - b),
+    [holes]
+  )
+  const topLabelHoles = useMemo(
+    () => holes.filter((hole) => hole.kind === "STRIP" && hole.row === stripExtents.topMin),
+    [holes, stripExtents.topMin]
+  )
+  const bottomLabelHoles = useMemo(
+    () => holes.filter((hole) => hole.kind === "STRIP" && hole.row === stripExtents.bottomMax),
+    [holes, stripExtents.bottomMax]
+  )
+
   if (!breadboard || !breadboard.position) return null
 
   const width = (STANDARD_V1_LAYOUT.columns - 1) * BREADBOARD_PITCH + PADDING * 2
@@ -329,6 +342,54 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
             y2={stripExtents.bottomMax * BREADBOARD_PITCH + PADDING}
           />
         ))}
+
+      <g className="breadboard__labels" pointerEvents="none">
+        {railRows.map(({ row, polarity }) => {
+          const label = polarity === "plus" ? "+" : "−"
+          const y = row * BREADBOARD_PITCH + PADDING + 4
+          return (
+            <React.Fragment key={`rail-label-${row}`}>
+              <text className={`breadboard__rail-label breadboard__rail-label--${polarity}`} x={PADDING - 7} y={y} textAnchor="middle">{label}</text>
+              <text className={`breadboard__rail-label breadboard__rail-label--${polarity}`} x={width - PADDING + 7} y={y} textAnchor="middle">{label}</text>
+            </React.Fragment>
+          )
+        })}
+
+        {topLabelHoles.map((hole) => (
+          <text
+            key={`top-column-label-${hole.column}`}
+            className="breadboard__column-label"
+            x={hole.x - breadboard.position.x + PADDING}
+            y={hole.y - breadboard.position.y + PADDING - 6}
+            textAnchor="middle"
+          >
+            {hole.column + 1}
+          </text>
+        ))}
+
+        {bottomLabelHoles.map((hole) => (
+          <text
+            key={`bottom-column-label-${hole.column}`}
+            className="breadboard__column-label"
+            x={hole.x - breadboard.position.x + PADDING}
+            y={hole.y - breadboard.position.y + PADDING + 11}
+            textAnchor="middle"
+          >
+            {hole.column + 1}
+          </text>
+        ))}
+
+        {stripRows.map((row, index) => {
+          const label = String.fromCharCode(97 + index)
+          const y = row * BREADBOARD_PITCH + PADDING + 4
+          return (
+            <React.Fragment key={`strip-row-label-${row}`}>
+              <text className="breadboard__row-label" x={PADDING - 7} y={y} textAnchor="middle">{label}</text>
+              <text className="breadboard__row-label" x={width - PADDING + 7} y={y} textAnchor="middle">{label}</text>
+            </React.Fragment>
+          )
+        })}
+      </g>
 
       {holes.map((hole) => {
         const key = `${hole.column}:${hole.row}`
