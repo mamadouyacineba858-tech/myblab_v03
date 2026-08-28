@@ -61,8 +61,8 @@
 
 /* Rainure centrale clairement identifiable comme séparation physique. */
 .breadboard__groove {
-  fill: rgba(2, 6, 23, 0.82);
-  stroke: rgba(100, 116, 139, 0.45);
+  fill: #cbd5e1;
+  stroke: #94a3b8;
   stroke-width: 1;
 }
 
@@ -142,10 +142,9 @@
 }
 
 .breadboard__groove {
-  fill: #334155;
-  stroke: #64748b;
+  fill: #cbd5e1;
+  stroke: #94a3b8;
   stroke-width: 1;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
 }
 
 .breadboard__group-divider {
@@ -171,4 +170,47 @@
   fill: #dc2626;
   stroke: #fee2e2;
   stroke-width: 1.8;
+}
+
+/* MB-BREADBOARD-009-safe VIS-002 : rayon de rendu uniquement.
+   Centre cx/cy inchangé ; aucune modification de la géométrie logique,
+   du pitch, du snapping, du placement ou de la connectivité. */
+.breadboard__hole {
+  r: 3px;
+}
+
+/* MB-BREADBOARD-009-safe VIS-003 : repères dérivés des trous existants. */
+.breadboard__labels {
+  pointer-events: none;
+}
+
+.breadboard__rail-label,
+.breadboard__column-label,
+.breadboard__row-label {
+  fill: #334155;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  font-weight: 500;
+  pointer-events: none;
+  user-select: none;
+}
+
+.breadboard__rail-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.breadboard__rail-label--plus {
+  fill: #dc2626;
+}
+
+.breadboard__rail-label--minus {
+  fill: #2563eb;
+}
+
+.breadboard__column-label,
+.breadboard__row-label {
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
 }
