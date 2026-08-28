@@ -94,3 +94,81 @@
   stroke: #fecaca;
   stroke-width: 1;
 }
+
+/* MB-BREADBOARD-VIS-001 — Presentation pass 1.
+   IMPORTANT : presentation only. No local transform, no coordinate rewrite,
+   no change to holeAt(), snapping, placement or connectivity. */
+.breadboard {
+  filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.28));
+}
+
+.breadboard__body {
+  fill: #e2e8f0;
+  fill-opacity: 1;
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+
+.breadboard__hole {
+  fill: #1e293b;
+  stroke: #cbd5e1;
+  stroke-width: 1.8;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 0.7px 0.7px rgba(0, 0, 0, 0.55));
+}
+
+.breadboard__hole--rail {
+  stroke-width: 1.9;
+}
+
+.breadboard__hole--rail-plus {
+  fill: #b91c1c;
+  stroke: #fecaca;
+}
+
+.breadboard__hole--rail-minus {
+  fill: #1d4ed8;
+  stroke: #bfdbfe;
+}
+
+.breadboard__rail-line--plus {
+  stroke: #dc2626;
+  opacity: 0.9;
+}
+
+.breadboard__rail-line--minus {
+  stroke: #2563eb;
+  opacity: 0.9;
+}
+
+.breadboard__groove {
+  fill: #334155;
+  stroke: #64748b;
+  stroke-width: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.breadboard__group-divider {
+  stroke: #94a3b8;
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.breadboard__hole--occupied,
+.breadboard__hole--feedback-valid {
+  fill: #16a34a;
+  stroke: #dcfce7;
+  stroke-width: 1.8;
+}
+
+.breadboard__hole--bus-active {
+  fill: #d97706;
+  stroke: #fef3c7;
+  stroke-width: 2;
+}
+
+.breadboard__hole--feedback-invalid {
+  fill: #dc2626;
+  stroke: #fee2e2;
+  stroke-width: 1.8;
+}
