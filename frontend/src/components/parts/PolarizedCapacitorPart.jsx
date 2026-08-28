@@ -46,7 +46,7 @@ export function PolarizedCapacitorPart() {
           </filter>
         </defs>
 
-        {/* Physical leads: same visual diameter family as the resistor. */}
+        {/* Physical leads. */}
         <line x1="25" y1="53.5" x2="25" y2="75" stroke="#596672" strokeWidth="5.4" strokeLinecap="round" />
         <line x1="45" y1="53.5" x2="45" y2="74" stroke="#596672" strokeWidth="5.4" strokeLinecap="round" />
         <line x1="25" y1="53.5" x2="25" y2="75" stroke="url(#pcLead)" strokeWidth="3.5" strokeLinecap="round" />
@@ -54,40 +54,51 @@ export function PolarizedCapacitorPart() {
         <line x1="24.2" y1="54" x2="24.2" y2="73.5" stroke="#fff" strokeOpacity=".3" strokeWidth=".8" strokeLinecap="round" />
         <line x1="44.2" y1="54" x2="44.2" y2="72.8" stroke="#fff" strokeOpacity=".3" strokeWidth=".8" strokeLinecap="round" />
 
-        {/* Blue aluminum sleeve: straight cylindrical wall with rolled lower skirt. */}
+        {/* Cylindrical blue sleeve. */}
         <path
-          d="M35 4
-             C23.4 4 15.1 7.2 14.3 16.1
-             C13.7 23.8 13.7 38.2 14.8 45.3
-             C15.7 51.1 20.3 54.3 27 55.2
-             C29.7 55.6 32.5 55.8 35 55.8
-             C37.5 55.8 40.3 55.6 43 55.2
-             C49.7 54.3 54.3 51.1 55.2 45.3
-             C56.3 38.2 56.3 23.8 55.7 16.1
-             C54.9 7.2 46.6 4 35 4 Z"
+          d="M35 5.2
+             C23.7 5.2 16.1 8 15.2 16.1
+             C14.4 23.4 14.4 38.2 15.4 44.8
+             C16.1 49.7 19.2 52.3 24.6 53.9
+             C27.6 54.8 31 55.1 35 55.1
+             C39 55.1 42.4 54.8 45.4 53.9
+             C50.8 52.3 53.9 49.7 54.6 44.8
+             C55.6 38.2 55.6 23.4 54.8 16.1
+             C53.9 8 46.3 5.2 35 5.2 Z"
           fill="url(#pcBody)"
           filter="url(#pcShadow)"
         />
 
-        {/* Rolled bottom rim. */}
+        {/* Rolled lower skirt with the characteristic small recessed waist/crease. */}
         <path
-          d="M14.9 43.7 C16.7 50.9 23.1 54.5 35 54.9 C46.9 54.5 53.3 50.9 55.1 43.7 C54.6 51.8 47.9 56.3 35 56.3 C22.1 56.3 15.4 51.8 14.9 43.7 Z"
+          d="M15.3 43.3
+             C16.2 48.4 20.1 50.9 25.2 52.1
+             C28.2 52.8 31.5 53.05 35 53.05
+             C38.5 53.05 41.8 52.8 44.8 52.1
+             C49.9 50.9 53.8 48.4 54.7 43.3
+             L55.1 47.2
+             C54.5 52.4 48.2 56.4 35 56.5
+             C21.8 56.4 15.5 52.4 14.9 47.2 Z"
           fill="#0a4278"
-          opacity=".88"
+          opacity=".98"
         />
-        <path d="M18.3 49.1 C22.5 53.1 28 54.2 35 54.35 C42 54.2 47.5 53.1 51.7 49.1" fill="none" stroke="#4b9bd7" strokeOpacity=".38" strokeWidth="1.15" />
+        <path d="M16.3 46.3 C20.7 50.2 26.8 51.55 35 51.7 C43.2 51.55 49.3 50.2 53.7 46.3" fill="none" stroke="#5ca7df" strokeOpacity=".42" strokeWidth="1.2" />
+        <path d="M17.9 50.8 C22.1 54.3 28.1 55.5 35 55.65 C41.9 55.5 47.9 54.3 52.1 50.8" fill="none" stroke="#06345b" strokeOpacity=".72" strokeWidth="1.1" />
+        <path d="M21.4 52.35 C25.1 53.85 29.5 54.45 35 54.5 C40.5 54.45 44.9 53.85 48.6 52.35" fill="none" stroke="#1b659d" strokeOpacity=".8" strokeWidth=".8" />
 
-        {/* Negative polarity sleeve stripe, wrapped around the cylinder. */}
+        {/* Negative polarity stripe continues into the lower skirt. */}
         <path
-          d="M42.2 7 C46.8 8.8 49.9 12.7 51.1 18 C52.1 24.7 52 38.6 49.9 45.1 C48.8 48.5 46.5 51 43.2 52.5 L41.4 52.5 L41.4 7.3 Z"
+          d="M42.2 7.5
+             C46.5 9.1 49.5 12.8 50.8 18
+             C51.8 24.7 51.7 38.2 49.7 44.7
+             C48.7 48 46.5 50.4 43.1 52.1
+             L41.6 52.4 L41.6 7.7 Z"
           fill="url(#pcStripe)"
-          opacity=".9"
+          opacity=".84"
         />
+        <path d="M43.1 52.1 C46.4 50.4 48.6 48 49.7 44.7 L50.8 47.2 C49.7 50.6 47.4 53.2 44.2 54.9 L42.2 55.6 L42.1 52.7 Z" fill="url(#pcStripe)" opacity=".84" />
         <g fill="#33414c" opacity=".96" fontFamily="Arial,sans-serif" fontSize="5.1" fontWeight="700" textAnchor="middle">
-          <text x="46" y="18">−</text>
-          <text x="46" y="26">−</text>
-          <text x="46" y="34">−</text>
-          <text x="46" y="42">−</text>
+          <text x="46" y="18">−</text><text x="46" y="26">−</text><text x="46" y="34">−</text><text x="46" y="42">−</text>
         </g>
 
         {/* Printed rating. */}
@@ -96,22 +107,24 @@ export function PolarizedCapacitorPart() {
           <text x="18" y="35.2" fontSize="4.5">25V</text>
         </g>
 
-        {/* Realistic aluminum top: rolled blue rim + recessed metal safety vent. */}
-        <ellipse cx="35" cy="7.1" rx="21.2" ry="5.15" fill="#062e52" opacity=".96" />
-        <ellipse cx="35" cy="6.65" rx="20.1" ry="4.55" fill="#1c5f98" />
-        <ellipse cx="35" cy="6.35" rx="18.65" ry="3.65" fill="url(#pcTopMetal)" />
-        <ellipse cx="35" cy="6.22" rx="17.15" ry="3.0" fill="url(#pcTopSurface)" />
+        {/* Recessed metal safety cap: the blue sleeve forms a raised lip around it. */}
+        <ellipse cx="35" cy="7.1" rx="21.2" ry="5.15" fill="#052b4b" opacity=".98" />
+        <ellipse cx="35" cy="6.85" rx="20.1" ry="4.55" fill="#1c619b" />
+        <ellipse cx="35" cy="6.7" rx="18.45" ry="3.85" fill="#06141d" />
+        <ellipse cx="35" cy="6.6" rx="17.05" ry="3.15" fill="url(#pcTopMetal)" />
+        <ellipse cx="35" cy="6.5" rx="15.9" ry="2.55" fill="url(#pcTopSurface)" />
+        <ellipse cx="35" cy="6.28" rx="15.2" ry="2.05" fill="#3b454c" opacity=".96" />
 
-        {/* Recessed scored safety vent: dark groove with metallic cut edges. */}
-        <path d="M20.8 5.45 L35 6.18 L49.2 5.45" fill="none" stroke="#11181e" strokeWidth="2.05" strokeLinecap="round" />
-        <path d="M35 4.15 L35 8.35" fill="none" stroke="#10171d" strokeWidth="1.9" strokeLinecap="round" />
-        <path d="M21.9 4.35 L48.1 8.05" fill="none" stroke="#dbe1e5" strokeOpacity=".66" strokeWidth=".78" strokeLinecap="round" />
-        <path d="M48.1 4.35 L21.9 8.05" fill="none" stroke="#080e13" strokeOpacity=".92" strokeWidth="1.05" strokeLinecap="round" />
-        <path d="M23.5 5.05 L35 5.62 L46.5 5.05" fill="none" stroke="#fff" strokeOpacity=".22" strokeWidth=".55" strokeLinecap="round" />
+        {/* Deep scored safety vent, sitting inside the metal cap. */}
+        <path d="M21.5 5.72 L35 6.3 L48.5 5.72" fill="none" stroke="#090f14" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M35 4.5 L35 8.1" fill="none" stroke="#080f14" strokeWidth="1.75" strokeLinecap="round" />
+        <path d="M22.8 5.05 L47.2 7.9" fill="none" stroke="#d9e0e4" strokeOpacity=".68" strokeWidth=".65" strokeLinecap="round" />
+        <path d="M47.2 5.05 L22.8 7.9" fill="none" stroke="#070d12" strokeOpacity=".9" strokeWidth=".95" strokeLinecap="round" />
+        <path d="M24.1 5.55 C27.4 4.95 31.2 4.75 35 4.75 C38.8 4.75 42.6 4.95 45.9 5.55" fill="none" stroke="#f3f6f7" strokeOpacity=".2" strokeWidth=".5" />
 
-        {/* Sleeve highlight and cylindrical side shading. */}
-        <path d="M21.8 13.2 C25.1 8.2 30.1 6.2 35 5.9" fill="none" stroke="#fff" strokeOpacity=".48" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M17.8 19 C16.9 27.2 17.1 39.7 19.5 46.3" fill="none" stroke="#062f55" strokeOpacity=".48" strokeWidth="1.45" strokeLinecap="round" />
+        {/* Sleeve highlights. */}
+        <path d="M22 13.2 C25.3 8.3 30.2 6.35 34.9 6.05" fill="none" stroke="#fff" strokeOpacity=".48" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M17.9 19 C17 27.2 17.2 39.6 19.5 46.2" fill="none" stroke="#062f55" strokeOpacity=".48" strokeWidth="1.45" strokeLinecap="round" />
       </svg>
     </div>
   )
