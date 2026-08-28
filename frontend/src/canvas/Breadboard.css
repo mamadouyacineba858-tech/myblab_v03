@@ -9,12 +9,6 @@
      conservent donc la priorité de hit-test là où ils se superposent. */
   pointer-events: auto;
   overflow: visible;
-  /* MB-BREADBOARD-009 : le breadboard était trop petit à zoom=1 pour être
-     utilisé visuellement. Agrandissement PRESENTATION uniquement : aucune
-     coordonnée de trou, aucun pas électrique et aucun calcul de placement
-     n'est modifié. Le transform ne change pas le modèle géométrique. */
-  transform: scale(1.25);
-  transform-origin: top left;
 }
 
 .breadboard--selected {
@@ -30,7 +24,7 @@
 }
 
 /* MB-BREADBOARD-009 : contraste volontairement fort pour que les trous
-   restent lisibles après l'agrandissement et à zoom normal. */
+   restent lisibles à zoom normal. */
 .breadboard__hole {
   fill: rgba(226, 232, 240, 0.72);
   stroke: rgba(248, 250, 252, 0.95);
