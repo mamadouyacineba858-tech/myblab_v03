@@ -9,12 +9,6 @@
      conservent donc la priorité de hit-test là où ils se superposent. */
   pointer-events: auto;
   overflow: visible;
-  /* MB-BREADBOARD-009 : le breadboard était trop petit à zoom=1 pour être
-     utilisé visuellement. Agrandissement PRESENTATION uniquement : aucune
-     coordonnée de trou, aucun pas électrique et aucun calcul de placement
-     n'est modifié. Le transform ne change pas le modèle géométrique. */
-  transform: scale(1.25);
-  transform-origin: top left;
 }
 
 .breadboard--selected {
@@ -30,7 +24,7 @@
 }
 
 /* MB-BREADBOARD-009 : contraste volontairement fort pour que les trous
-   restent lisibles après l'agrandissement et à zoom normal. */
+   restent lisibles à zoom normal. */
 .breadboard__hole {
   fill: rgba(226, 232, 240, 0.72);
   stroke: rgba(248, 250, 252, 0.95);
@@ -67,8 +61,8 @@
 
 /* Rainure centrale clairement identifiable comme séparation physique. */
 .breadboard__groove {
-  fill: rgba(2, 6, 23, 0.82);
-  stroke: rgba(100, 116, 139, 0.45);
+  fill: #cbd5e1;
+  stroke: #94a3b8;
   stroke-width: 1;
 }
 
@@ -99,4 +93,124 @@
   fill: #ef4444;
   stroke: #fecaca;
   stroke-width: 1;
+}
+
+/* MB-BREADBOARD-VIS-001 — Presentation pass 1.
+   IMPORTANT : presentation only. No local transform, no coordinate rewrite,
+   no change to holeAt(), snapping, placement or connectivity. */
+.breadboard {
+  filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.28));
+}
+
+.breadboard__body {
+  fill: #e2e8f0;
+  fill-opacity: 1;
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+
+.breadboard__hole {
+  fill: #1e293b;
+  stroke: #cbd5e1;
+  stroke-width: 1.8;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 0.7px 0.7px rgba(0, 0, 0, 0.55));
+}
+
+.breadboard__hole--rail {
+  stroke-width: 1.9;
+}
+
+.breadboard__hole--rail-plus {
+  fill: #b91c1c;
+  stroke: #fecaca;
+}
+
+.breadboard__hole--rail-minus {
+  fill: #1d4ed8;
+  stroke: #bfdbfe;
+}
+
+.breadboard__rail-line--plus {
+  stroke: #dc2626;
+  opacity: 0.9;
+}
+
+.breadboard__rail-line--minus {
+  stroke: #2563eb;
+  opacity: 0.9;
+}
+
+.breadboard__groove {
+  fill: #cbd5e1;
+  stroke: #94a3b8;
+  stroke-width: 1;
+}
+
+.breadboard__group-divider {
+  stroke: #94a3b8;
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.breadboard__hole--occupied,
+.breadboard__hole--feedback-valid {
+  fill: #16a34a;
+  stroke: #dcfce7;
+  stroke-width: 1.8;
+}
+
+.breadboard__hole--bus-active {
+  fill: #d97706;
+  stroke: #fef3c7;
+  stroke-width: 2;
+}
+
+.breadboard__hole--feedback-invalid {
+  fill: #dc2626;
+  stroke: #fee2e2;
+  stroke-width: 1.8;
+}
+
+/* MB-BREADBOARD-009-safe VIS-002 : rayon de rendu uniquement.
+   Centre cx/cy inchangé ; aucune modification de la géométrie logique,
+   du pitch, du snapping, du placement ou de la connectivité. */
+.breadboard__hole {
+  r: 3px;
+}
+
+/* MB-BREADBOARD-009-safe VIS-003 : repères dérivés des trous existants. */
+.breadboard__labels {
+  pointer-events: none;
+}
+
+.breadboard__rail-label,
+.breadboard__column-label,
+.breadboard__row-label {
+  fill: #334155;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  font-weight: 500;
+  pointer-events: none;
+  user-select: none;
+}
+
+.breadboard__rail-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.breadboard__rail-label--plus {
+  fill: #dc2626;
+}
+
+.breadboard__rail-label--minus {
+  fill: #2563eb;
+}
+
+.breadboard__column-label,
+.breadboard__row-label {
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
 }
