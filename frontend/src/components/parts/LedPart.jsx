@@ -8,7 +8,7 @@ import React from 'react'
  * - anode : (28,62)
  * - cathode : (52,62)
  *
- * V16 : pattes plus épaisses et finition métallique plus réaliste.
+ * V17 : patte droite épaissie pour correspondre au diamètre physique cible.
  * Les extrémités électriques restent inchangées.
  */
 export function LedPart({ isOn, uid }) {
@@ -70,32 +70,27 @@ export function LedPart({ isOn, uid }) {
           </clipPath>
         </defs>
 
-        {/* Physical leads: visibly thicker, silver/tinned finish; cathode subtly bent. */}
-        <path d="M28 39 V62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="4" strokeLinecap="round" />
+        {/* Physical leads: straight anode intentionally thicker; cathode retains accepted 4px diameter and bend. */}
+        <path d="M28 39 V62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="5.2" strokeLinecap="round" />
         <path d="M52 39 C52 43.1 53.1 44.9 55.3 47 C57.6 49.2 58.2 51.4 57.05 53.8 C55.95 56.15 53.95 59.35 52 62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M27.2 40 V61.25" fill="none" stroke="#f8fafb" strokeWidth="0.82" strokeLinecap="round" opacity="0.76" />
+        <path d="M27.12 40 V61.25" fill="none" stroke="#f8fafb" strokeWidth="0.95" strokeLinecap="round" opacity="0.76" />
         <path d="M51.2 40 C51.3 43.35 52.7 45.1 54.9 47.2 C57.05 49.25 57.6 51.3 56.55 53.55 C55.45 55.85 53.65 58.9 52.2 61.25" fill="none" stroke="#f8fafb" strokeWidth="0.82" strokeLinecap="round" opacity="0.76" />
 
-        {/* Thin molded collar */}
         <path d="M13 36 H67 V39 Q67 41.5 61 42 H19 Q13 41.5 13 39 Z" fill={`url(#${id}-collar)`} stroke="#431015" strokeWidth="1" />
         <path d="M14.5 36 H65.5 V37.5 H14.5 Z" fill="#ff9b9d" opacity="0.58" />
         <path d="M18 40 C28 42 52 42 62 40" fill="none" stroke="#351014" strokeWidth="0.9" opacity="0.78" />
 
-        {/* Tall rounded 5 mm-style lens */}
         <path d="M15 37 V15 C15 6.2 25.7 1 40 1 C54.3 1 65 6.2 65 15 V37 Z" fill={`url(#${id}-glass)`} stroke="#57131a" strokeWidth="1.25" />
         <path d="M17 36 V15.4 C17 7.9 26.6 3 40 3 C53.4 3 63 7.9 63 15.4 V36 Z" fill={`url(#${id}-dome)`} opacity="0.84" />
         <path d="M16 16 C16.8 7.8 26.8 2.5 40 2.2 C30.7 4 24.5 9.4 24.5 16 V36 H17 Z" fill="#ffd0d0" opacity="0.18" />
         <path d="M64 16 C63.2 7.8 53.2 2.5 40 2.2 C49.3 4 55.5 9.4 55.5 16 V36 H63 Z" fill="#28070b" opacity="0.22" />
 
         <g clipPath={`url(#${id}-glass-clip)`}>
-          {/* Reflector / cup */}
           <path d="M21 37 Q40 24 59 37 Q40 42 21 37 Z" fill="#f1f3f5" opacity="0.84" />
           <path d="M25 35 Q40 27 55 35 Q40 39 25 35 Z" fill="#a9b1b8" opacity="0.82" />
           <path d="M28 34 Q40 28.8 52 34" fill="none" stroke="#ffffff" strokeWidth="0.9" opacity="0.84" />
-          {/* Die */}
           <rect x="37.2" y="29.2" width="5.6" height="3.9" rx="0.7" fill={chip} stroke="#695452" strokeWidth="0.65" />
           <rect x="38" y="29.85" width="4" height="2.4" rx="0.45" fill={isOn ? '#fff7a8' : '#bdaea9'} opacity="0.92" />
-          {/* Bond wires */}
           <path d="M40 29.3 Q35.2 24.7 30.2 22" fill="none" stroke="#f7f8fa" strokeWidth="0.62" strokeLinecap="round" />
           <path d="M42.3 32.3 Q47 26.1 50.1 23" fill="none" stroke="#f7f8fa" strokeWidth="0.62" strokeLinecap="round" />
           <circle cx="30.2" cy="22" r="0.65" fill="#ffffff" opacity="0.9" />
@@ -104,7 +99,6 @@ export function LedPart({ isOn, uid }) {
           {isOn && <circle cx="40" cy="31.2" r="2.8" fill="#fffdf1" opacity="0.98" />}
         </g>
 
-        {/* Lens highlights and cathode-side mark */}
         <ellipse cx="30.5" cy="8.2" rx="7" ry="2.25" fill="#ffe6e6" opacity={isOn ? 0.92 : 0.66} transform="rotate(-18 30.5 8.2)" />
         <path d="M20 25 C21 15.8 26.2 8.5 33.5 5.7" fill="none" stroke="#fff0f0" strokeWidth="1.3" strokeLinecap="round" opacity={isOn ? 0.8 : 0.54} />
         <path d="M22.4 28 C23 20.6 26 14.5 29.2 11.5" fill="none" stroke="#ffffff" strokeWidth="0.55" strokeLinecap="round" opacity="0.46" />
