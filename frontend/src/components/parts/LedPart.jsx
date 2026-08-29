@@ -8,16 +8,15 @@ import React from 'react'
  * - anode : (28,62)
  * - cathode : (52,62)
  *
- * V14 : proportions rapprochées de la référence réaliste. Le dôme reste haut
- * et arrondi, la collerette est compacte et les pattes sont longues, fines et
- * différenciées : anode droite, cathode légèrement cintrée. Les extrémités
- * électriques restent inchangées.
+ * V15 : pattes plus proches d'un composant réel : diamètre augmenté,
+ * finition métallique argentée/tinée plus naturelle et patte cathode
+ * légèrement cintrée. Les extrémités électriques restent inchangées.
  */
 export function LedPart({ isOn, uid }) {
   const lensMain = isOn ? '#e52a31' : '#8e1f24'
   const lensDark = isOn ? '#8f0d16' : '#4f1116'
   const lensLight = isOn ? '#ff7478' : '#bd454b'
-  const metal = isOn ? '#edf2f5' : '#aeb6bd'
+  const metal = isOn ? '#d9dee1' : '#b8bec2'
   const chip = isOn ? '#fffdf2' : '#d2c9c5'
   const id = String(uid ?? 'led').replace(/[^a-zA-Z0-9_-]/g, '_')
 
@@ -53,10 +52,12 @@ export function LedPart({ isOn, uid }) {
             <stop offset="100%" stopColor="#431015" />
           </linearGradient>
           <linearGradient id={`${id}-metal`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#59626a" />
-            <stop offset="36%" stopColor={metal} />
-            <stop offset="62%" stopColor="#8f989f" />
-            <stop offset="100%" stopColor="#4d555d" />
+            <stop offset="0%" stopColor="#5e656b" />
+            <stop offset="22%" stopColor="#aeb5ba" />
+            <stop offset="48%" stopColor={metal} />
+            <stop offset="58%" stopColor="#eef1f2" />
+            <stop offset="76%" stopColor="#9aa2a8" />
+            <stop offset="100%" stopColor="#565d63" />
           </linearGradient>
           <radialGradient id={`${id}-glow`} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#fffef0" stopOpacity="1" />
@@ -69,11 +70,11 @@ export function LedPart({ isOn, uid }) {
           </clipPath>
         </defs>
 
-        {/* Long, fine leads: anode straight, cathode subtly bent; exact endpoints stay at y=62. */}
-        <path d="M28 39 V62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="2.05" strokeLinecap="round" />
-        <path d="M52 39 C52 43.1 53.1 44.9 55.3 47 C57.6 49.2 58.2 51.4 57.05 53.8 C55.95 56.15 53.95 59.35 52 62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="2.05" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M27.55 40 V61.35" fill="none" stroke="#f7f9fb" strokeWidth="0.48" strokeLinecap="round" opacity="0.72" />
-        <path d="M51.55 40 C51.6 43.35 52.7 45.1 54.9 47.2 C57.05 49.25 57.6 51.3 56.55 53.55 C55.45 55.85 53.65 58.9 52.2 61.35" fill="none" stroke="#f7f9fb" strokeWidth="0.48" strokeLinecap="round" opacity="0.72" />
+        {/* Physical leads: thicker, silver/tinned finish; cathode subtly bent. */}
+        <path d="M28 39 V62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="2.8" strokeLinecap="round" />
+        <path d="M52 39 C52 43.1 53.1 44.9 55.3 47 C57.6 49.2 58.2 51.4 57.05 53.8 C55.95 56.15 53.95 59.35 52 62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M27.48 40 V61.25" fill="none" stroke="#f5f7f8" strokeWidth="0.62" strokeLinecap="round" opacity="0.7" />
+        <path d="M51.48 40 C51.55 43.35 52.7 45.1 54.9 47.2 C57.05 49.25 57.6 51.3 56.55 53.55 C55.45 55.85 53.65 58.9 52.2 61.25" fill="none" stroke="#f5f7f8" strokeWidth="0.62" strokeLinecap="round" opacity="0.7" />
 
         {/* Thin molded collar */}
         <path d="M13 36 H67 V39 Q67 41.5 61 42 H19 Q13 41.5 13 39 Z" fill={`url(#${id}-collar)`} stroke="#431015" strokeWidth="1" />
