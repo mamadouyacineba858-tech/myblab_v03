@@ -1,12 +1,5 @@
 /**
- * circuitSelectors.test.js — MB-VIS-004.
- *
- * Couvre uniquement buildWirePaths, seule fonction modifiée par ce ticket
- * dans ce fichier (retrait du paramètre selectedWireId et du calcul de
- * couleur — géométrie pure désormais, cf. wirePath.js/WiresLayer.jsx pour
- * le nouveau calcul visuel centralisé). buildConnectedPinsSet et
- * wireAlreadyExists ne sont pas modifiées par ce ticket et ne sont donc pas
- * ajoutées ici (hors périmètre).
+ * circuitSelectors.test.js — MB-VIS-004 / MB-VIS-005 / MB-VIS-LED-V5.
  */
 import { describe, it, expect } from 'vitest'
 import { buildWirePaths } from '../circuitSelectors.js'
@@ -25,7 +18,7 @@ describe('MB-VIS-004 — buildWirePaths (géométrie pure)', () => {
     expect(paths[0]).not.toHaveProperty('color')
   })
 
-  it('accepte un appel à deux arguments (sans selectedWireId, désormais retiré de la signature)', () => {
+  it('accepte un appel à deux arguments', () => {
     expect(() => buildWirePaths([led, resistor], [wire])).not.toThrow()
   })
 
@@ -41,7 +34,7 @@ describe('MB-VIS-004 — buildWirePaths (géométrie pure)', () => {
 })
 
 describe('MB-VIS-005 — buildWirePaths consomme les waypoints persistants du wire', () => {
-  it('un wire sans waypoints produit le même tracé qu\'avant MB-VIS-005 (non-régression)', () => {
+  it('un wire sans waypoints produit un tracé stable', () => {
     const withoutField = buildWirePaths([led, resistor], [wire])
     const withEmptyArray = buildWirePaths([led, resistor], [{ ...wire, waypoints: [] }])
     expect(withoutField[0].d).toBe(withEmptyArray[0].d)
@@ -52,5 +45,20 @@ describe('MB-VIS-005 — buildWirePaths consomme les waypoints persistants du wi
     const paths = buildWirePaths([led, resistor], [routedWire])
     expect(paths).toHaveLength(1)
     expect(paths[0].d).toContain('L 90 40')
+  })
+})
+
+describe('MB-VIS-LED-V5 — wire endpoint projection', () => {
+  it('starts an LED wire at the physical foot while preserving the canonical pin id', () => {
+    const paths = buildWirePaths([led, resistor], [wire])
+    expect(paths).toHaveLength(1)
+    expect(paths[0].d.startsWith('M 28 60')).toBe(true)
+  })
+
+  it('keeps non-LED wire endpoints on their canonical coordinates', () => {
+    const reverse = { ...wire, fromUid: 'res-1', fromPin: 'A', toUid: 'led-1', toPin: 'cathode' }
+    const paths = buildWirePaths([led, resistor], [reverse])
+    expect(paths).toHaveLength(1)
+    expect(paths[0].d.startsWith('M 184 14')).toBe(true)
   })
 })
