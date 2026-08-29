@@ -1,5 +1,6 @@
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { getPinPosition } from "./geometry.js"
+import { getPinPresentationPosition } from "./pinPresentationGeometry.js"
 import { buildWirePath } from "../wires/wirePath.js"
 
 /** @param {string} uid @param {string} pinId */
@@ -31,15 +32,9 @@ export function buildConnectedPinsSet(wires) {
  * Chemins SVG des fils — positions calculées au render, jamais stockées dans le modèle.
  *
  * Géométrie pure (MB-VIS-004) : ne calcule plus de couleur/état visuel.
- * Avant ce ticket, cette fonction pré-calculait une couleur via
- * getWireColor({highlight: wire.id === selectedWireId}), redondante avec le
- * calcul de sélection (isSelected, Set de multi-sélection) déjà effectué
- * indépendamment par WiresLayer.jsx — deux implémentations parallèles du
- * même concept. Consolidation retenue (Blueprint MB-VIS-004, section E ;
- * condition de l'arbitrage CSA Q2, 2026-08-20 : "ne doit pas introduire une
- * nouvelle duplication") : tout le calcul visuel (sélection, hover, état
- * logique) est désormais centralisé dans WiresLayer.jsx, seul endroit ayant
- * accès aux trois informations à la fois.
+ * Les coordonnées électriques restent celles de getPinPosition(); la
+ * présentation peut toutefois projeter le point d'arrivée d'un composant
+ * vers sa géométrie physique via getPinPresentationPosition().
  *
  * @param {Array<{ uid, type, x, y }>} components
  * @param {Array<{ id, fromUid, fromPin, toUid, toPin, waypoints? }>} wires waypoints (MB-VIS-005, ADR-008 amendé) : points intermédiaires persistants optionnels, consommés dans leur ordre par buildWirePath().
@@ -69,8 +64,13 @@ export function buildWirePaths(components, wires) {
     const toPinDef = toDef.pins?.find((p) => p.id === wire.toPin)
     if (!fromPinDef || !toPinDef) continue
 
-    const fromPos = getPinPosition(fromComp, fromPinDef)
-    const toPos = getPinPosition(toComp, toPinDef)
+    // Electrical geometry remains canonical and untouched.
+    // The wire path is presentation geometry, so it may use a visual
+    // projection such as the LED's physical lead endpoints.
+    const fromElectricalPos = getPinPosition(fromComp, fromPinDef)
+    const toElectricalPos = getPinPosition(toComp, toPinDef)
+    const fromPos = getPinPresentationPosition(fromComp, fromPinDef) ?? fromElectricalPos
+    const toPos = getPinPresentationPosition(toComp, toPinDef) ?? toElectricalPos
     if (!fromPos || !toPos) continue
 
     const d = buildWirePath(fromPos, toPos, wire.waypoints)
