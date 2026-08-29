@@ -16,6 +16,7 @@ export function Pin({
   isPending,
   isConnected,
   onPinClick,
+  hideVisualMarker = false,
 }) {
   const [hover, setHover] = useState(false)
 
@@ -42,6 +43,7 @@ export function Pin({
       style={{
         left: Number.isFinite(left) ? left : 0,
         top: Number.isFinite(top) ? top : 0,
+        opacity: hideVisualMarker ? 0 : 1,
       }}
       title={label ?? pinId}
       onMouseDown={handleMouseDown}
