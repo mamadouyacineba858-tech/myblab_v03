@@ -27,6 +27,8 @@ export function LedPart({ isOn }) {
         border: 0,
         borderRadius: 0,
         overflow: 'visible',
+        display: 'block',
+        position: 'relative',
         filter: isOn ? 'drop-shadow(0 0 4px rgba(239, 68, 68, 0.55))' : 'none',
       }}
     >
@@ -37,7 +39,7 @@ export function LedPart({ isOn }) {
         role="img"
         aria-hidden="true"
         overflow="visible"
-        style={{ display: 'block', overflow: 'visible' }}
+        style={{ display: 'block', overflow: 'visible', position: 'absolute', left: 0, top: 0 }}
       >
         {/* Deux pattes métalliques longues : endpoints visuels à (28,68)/(52,68). */}
         <path d="M28 29 L28 68" fill="none" stroke="#777f88" strokeWidth="2.8" strokeLinecap="round" />
