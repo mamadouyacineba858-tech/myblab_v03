@@ -7,8 +7,8 @@
  */
 
 const LED_VISUAL_PINS = {
-  anode: { x: 28, y: 60 },
-  cathode: { x: 52, y: 60 },
+  anode: { x: 28, y: 40 },
+  cathode: { x: 52, y: 40 },
 }
 
 /**
