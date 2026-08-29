@@ -1,22 +1,14 @@
 .breadboard {
   position: absolute;
   z-index: 1;
-  /* MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : "auto" (au lieu de
-     "none") pour que le breadboard participe désormais à la sélection/au
-     drag — clic sur son corps -> sélection (Breadboard.jsx, handleMouseDown).
-     Aucune régression sur les composants/wires : ils restent visuellement
+  /* MB-BREADBOARD-006 (CSA Ruling â€” Option B, Â§5/Â§6) : "auto" (au lieu de
+     "none") pour que le breadboard participe dÃ©sormais Ã  la sÃ©lection/au
+     drag â€” clic sur son corps -> sÃ©lection (Breadboard.jsx, handleMouseDown).
+     Aucune rÃ©gression sur les composants/wires : ils restent visuellement
      AU-DESSUS du breadboard (z-index composants 5, z-index wires 3 > 1) et
-     conservent donc la priorité de hit-test là où ils se superposent. */
+     conservent donc la prioritÃ© de hit-test lÃ  oÃ¹ ils se superposent. */
   pointer-events: auto;
-  overflow: visible;
-  /* MB-BREADBOARD-010 : NE PAS appliquer de transform local au breadboard.
-     Les coordonnées des trous et des pins sont exprimées dans le même
-     repère canvas (BREADBOARD_PITCH / holeAt()). Un scale CSS local décale
-     visuellement les trous par rapport aux pins et rend le breadboard
-     inutilisable malgré une connectivité logique correcte. L'agrandissement
-     doit être réalisé par le zoom commun du canvas, jamais par un transform
-     local de ce composant. */
-  transform: none;
+  overflow: visible;`r`n  /* MB-BREADBOARD-012 : aucun transform local.`r`n     Les coordonnées des trous restent dans le même repère canvas.`r`n  */`r`n  transform: none;
 }
 
 .breadboard--selected {
@@ -32,7 +24,7 @@
 }
 
 /* MB-BREADBOARD-009 : contraste volontairement fort pour que les trous
-   restent lisibles à zoom normal. */
+   restent lisibles Ã  zoom normal. */
 .breadboard__hole {
   fill: rgba(226, 232, 240, 0.72);
   stroke: rgba(248, 250, 252, 0.95);
@@ -67,10 +59,10 @@
   opacity: 0.7;
 }
 
-/* Rainure centrale clairement identifiable comme séparation physique. */
+/* Rainure centrale clairement identifiable comme sÃ©paration physique. */
 .breadboard__groove {
-  fill: rgba(2, 6, 23, 0.82);
-  stroke: rgba(100, 116, 139, 0.45);
+  fill: #cbd5e1;
+  stroke: #94a3b8;
   stroke-width: 1;
 }
 
@@ -101,4 +93,124 @@
   fill: #ef4444;
   stroke: #fecaca;
   stroke-width: 1;
+}
+
+/* MB-BREADBOARD-VIS-001 â€” Presentation pass 1.
+   IMPORTANT : presentation only. No local transform, no coordinate rewrite,
+   no change to holeAt(), snapping, placement or connectivity. */
+.breadboard {
+  filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.28));
+}
+
+.breadboard__body {
+  fill: #e2e8f0;
+  fill-opacity: 1;
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+}
+
+.breadboard__hole {
+  fill: #1e293b;
+  stroke: #cbd5e1;
+  stroke-width: 1.8;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 0.7px 0.7px rgba(0, 0, 0, 0.55));
+}
+
+.breadboard__hole--rail {
+  stroke-width: 1.9;
+}
+
+.breadboard__hole--rail-plus {
+  fill: #b91c1c;
+  stroke: #fecaca;
+}
+
+.breadboard__hole--rail-minus {
+  fill: #1d4ed8;
+  stroke: #bfdbfe;
+}
+
+.breadboard__rail-line--plus {
+  stroke: #dc2626;
+  opacity: 0.9;
+}
+
+.breadboard__rail-line--minus {
+  stroke: #2563eb;
+  opacity: 0.9;
+}
+
+.breadboard__groove {
+  fill: #cbd5e1;
+  stroke: #94a3b8;
+  stroke-width: 1;
+}
+
+.breadboard__group-divider {
+  stroke: #94a3b8;
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.breadboard__hole--occupied,
+.breadboard__hole--feedback-valid {
+  fill: #16a34a;
+  stroke: #dcfce7;
+  stroke-width: 1.8;
+}
+
+.breadboard__hole--bus-active {
+  fill: #d97706;
+  stroke: #fef3c7;
+  stroke-width: 2;
+}
+
+.breadboard__hole--feedback-invalid {
+  fill: #dc2626;
+  stroke: #fee2e2;
+  stroke-width: 1.8;
+}
+
+/* MB-BREADBOARD-009-safe VIS-002 : rayon de rendu uniquement.
+   Centre cx/cy inchangÃ© ; aucune modification de la gÃ©omÃ©trie logique,
+   du pitch, du snapping, du placement ou de la connectivitÃ©. */
+.breadboard__hole {
+  r: 3px;
+}
+
+/* MB-BREADBOARD-009-safe VIS-003 : repÃ¨res dÃ©rivÃ©s des trous existants. */
+.breadboard__labels {
+  pointer-events: none;
+}
+
+.breadboard__rail-label,
+.breadboard__column-label,
+.breadboard__row-label {
+  fill: #334155;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  font-weight: 500;
+  pointer-events: none;
+  user-select: none;
+}
+
+.breadboard__rail-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.breadboard__rail-label--plus {
+  fill: #dc2626;
+}
+
+.breadboard__rail-label--minus {
+  fill: #2563eb;
+}
+
+.breadboard__column-label,
+.breadboard__row-label {
+  transform: rotate(-90deg);
+  transform-box: fill-box;
+  transform-origin: center;
 }

@@ -184,4 +184,70 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
     expect(result.current.components[0].x).toBe(placedPosition.x)
     expect(result.current.components[0].y).toBe(placedPosition.y)
   })
+
+  // MISSION — INTÉGRATION LED MYBlab (implémentation contrôlée, zéro
+  // régression) : le composant LED n'était couvert, pour le canal réel
+  // ADD_COMPONENT (CommandBus -> AddComponentHandler -> HistoryService), par
+  // aucun test d'intégration — seul le niveau unitaire
+  // (computeBreadboardPlacement(), breadboardPlacementAdapter.test.js)
+  // prouvait déjà que LED atteint valid:true malgré son écart de pins de
+  // 80px (non multiple de BREADBOARD_PITCH=12), via l'algorithme de
+  // recherche généralisé — comportement intentionnel, non modifié ici.
+  //
+  // Position attendue obtenue en exécutant le véritable
+  // computeBreadboardPlacement() (breadboardPlacementAdapter.js) via un
+  // script Node jetable (supprimé après usage), jamais calculée à la main —
+  // même discipline que TEST 2/3/4 ci-dessus. Le candidat brut (121,195)
+  // reproduit, translaté par l'offset du breadboard posé ici via
+  // addBreadboard(120,180), exactement le candidat (1,15) déjà validé au
+  // niveau unitaire pour un breadboard en position (0,0) dans
+  // breadboardPlacementAdapter.test.js ; la translation étant un multiple
+  // exact de BREADBOARD_PITCH=12, elle préserve colonne/rangée à
+  // l'identique (vérifié par exécution réelle, pas supposé).
+  it('TEST 8 (MISSION INTÉGRATION LED) : avec breadboard + LED (pins écart 80px, non multiple de BREADBOARD_PITCH), ADD_COMPONENT utilise la position retournée par computeBreadboardPlacement() — non-régression de la couverture existante RESISTOR/ARDUINO', () => {
+    const { result } = renderHook(() => useCircuit(), { wrapper })
+
+    act(() => {
+      result.current.addBreadboard(120, 180)
+    })
+    act(() => {
+      result.current.addComponent('LED', 121, 195)
+    })
+
+    expect(result.current.components.length).toBe(1)
+    const led = result.current.components[0]
+    expect(led.type).toBe('LED')
+    expect(led.x).toBe(122)
+    expect(led.y).toBe(195)
+    // Non-régression du point de régression principal (TEST 3) : la
+    // position breadboard n'est pas repassée dans snapToGrid (GRID_SIZE=20).
+    expect(led.x % 20).not.toBe(0)
+    expect(led.y % 20).not.toBe(0)
+  })
+
+  it('TEST 9 (MISSION INTÉGRATION LED) : Undo/Redo d\'un ADD_COMPONENT LED placé sur breadboard fonctionne, et restaure exactement la même position', () => {
+    const { result } = renderHook(() => useCircuit(), { wrapper })
+
+    act(() => {
+      result.current.addBreadboard(120, 180)
+    })
+    act(() => {
+      result.current.addComponent('LED', 121, 195)
+    })
+    expect(result.current.components.length).toBe(1)
+    const placedPosition = { x: result.current.components[0].x, y: result.current.components[0].y }
+
+    act(() => {
+      result.current.undo()
+    })
+    expect(result.current.components.length).toBe(0)
+    expect(result.current.canRedo()).toBe(true)
+
+    act(() => {
+      result.current.redo()
+    })
+    expect(result.current.components.length).toBe(1)
+    expect(result.current.components[0].x).toBe(placedPosition.x)
+    expect(result.current.components[0].y).toBe(placedPosition.y)
+  })
 })

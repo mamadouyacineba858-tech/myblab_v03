@@ -2,8 +2,10 @@ import { useCallback, useRef } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { GridBackground } from "./GridBackground.jsx"
 import { Breadboard } from "./Breadboard.jsx"
+import { BreadboardWireEndpoints } from "./BreadboardWireEndpoints.jsx"
 import { CircuitComponent } from "./CircuitComponent.jsx"
 import { WiresLayer } from "../wires/WiresLayer.jsx"
+import { BreadboardWiresLayer } from "../wires/BreadboardWiresLayer.jsx"
 import { MarqueeOverlay } from "./MarqueeOverlay.jsx"
 import { GRID_SIZE } from "../utils/grid.js"
 import "./SimulationCanvas.css"
@@ -27,20 +29,20 @@ export function SimulationCanvas() {
 
   useKeyboardSystem()
 
-  const setRef = useCallback((node) => { 
-    if (canvasRef) canvasRef.current = node 
+  const setRef = useCallback((node) => {
+    if (canvasRef) canvasRef.current = node
   }, [canvasRef])
 
   const handleCanvasPointerDown = useCallback((e) => {
     // Vérifier que le clic est sur le fond du canvas
     const target = e.target
-    const isCanvasBackground = 
+    const isCanvasBackground =
       target === canvasRef?.current ||
       target?.classList?.contains('simulation-canvas') ||
       target?.closest?.('.simulation-canvas') === canvasRef?.current
-    
+
     if (!isCanvasBackground) return
-    
+
     // Ne pas démarrer de marquee si on clique sur un composant
     if (e.target?.closest?.('.circuit-component')) return
 
@@ -53,9 +55,13 @@ export function SimulationCanvas() {
     // déjà appliquée côté useCircuitState.js.
     if (e.target?.closest?.('.breadboard')) return
 
+    // MB-BREADBOARD-012 : l'overlay des trous possède sa propre interaction
+    // de câblage ; le canvas ne doit donc pas démarrer de marquee ici.
+    if (e.target?.closest?.('.breadboard-wire-endpoints')) return
+
     // Ne pas démarrer de marquee si le câblage est actif
     if (isWiringActive) return
-    
+
     // Démarrer le marquee
     isMarqueeActiveRef.current = true
     startMarquee(e)
@@ -67,7 +73,7 @@ export function SimulationCanvas() {
       isMarqueeActiveRef.current = false
       return
     }
-    
+
     if (isWiringActive) {
       cancelWiring()
       return
@@ -115,9 +121,9 @@ export function SimulationCanvas() {
   const hasComponents = components.length > 0
 
   return (
-    <div 
-      ref={setRef} 
-      className="simulation-canvas" 
+    <div
+      ref={setRef}
+      className="simulation-canvas"
       onPointerDown={handleCanvasPointerDown}
       onClick={handleCanvasClick}
       onDrop={handleDrop}
@@ -133,6 +139,8 @@ export function SimulationCanvas() {
           breadboardInsertPreview={breadboardInsertPreview}
         />
         <WiresLayer wirePaths={wirePaths} />
+        <BreadboardWiresLayer />
+        <BreadboardWireEndpoints breadboard={breadboard} />
         <div className="simulation-canvas__components">
           {components.map((comp) => (
             <CircuitComponent key={comp.uid} component={comp} />
