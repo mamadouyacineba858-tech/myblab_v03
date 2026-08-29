@@ -1,7 +1,7 @@
 // MB-COMPONENT-LIBRARY-002 (correction disclosed, hors périmètre strict des
 // Part renderers mais nécessaire) : import React explicite requis par la
 // config vitest secondaire (frontend/src/simulator/vitest.config.ts, sans
-// @vitejs/plugin-react) pour tout .jsx rendu sous cette config — même
+// @vitejs/plugin-react) pour tout fichier .jsx rendu sous cette config — même
 // convention déjà appliquée à chaque Part renderer. Ce fichier n'avait
 // jamais été rendu directement sous cette config avant les tests
 // d'intégration CircuitComponent -> PartRenderer ajoutés par ce ticket
@@ -12,6 +12,7 @@ import { getComponentDef } from "../config/componentDefinitions.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { Pin } from "./Pin.jsx"
 import { PartRenderer } from "../components/parts/PartRenderer.jsx"
+import { getPinPresentationPosition } from "../utils/pinPresentationGeometry.js"
 import "./CircuitComponent.css"
 
 export function CircuitComponent({ component }) {
@@ -139,6 +140,7 @@ export function CircuitComponent({ component }) {
 
   const pins = def.pins ?? []
   const isLed = type === "LED"
+  const presentationHeight = isLed ? 64 : (def.height ?? 40)
 
   return (
     <div
@@ -147,7 +149,7 @@ export function CircuitComponent({ component }) {
         left: x,
         top: y,
         width: def.width ?? 80,
-        height: def.height ?? 40,
+        height: presentationHeight,
         outline: selected ? '2px solid #22c55e' : 'none',
         outlineOffset: '2px',
       }}
@@ -183,18 +185,23 @@ export function CircuitComponent({ component }) {
         />
       </div>
 
-      {pins.map((pin) => (
-        <Pin
-          key={pin.id}
-          pinId={pin.id}
-          label={pin.label ?? pin.id}
-          left={pin.dx ?? 0}
-          top={pin.dy ?? 0}
-          isPending={isPinPending(uid, pin.id)}
-          isConnected={isPinConnected(uid, pin.id)}
-          onPinClick={handlePinClick}
-        />
-      ))}
+      {pins.map((pin) => {
+        const presentationPosition = getPinPresentationPosition(component, pin)
+        const left = presentationPosition ? presentationPosition.x - x : pin.dx ?? 0
+        const top = presentationPosition ? presentationPosition.y - y : pin.dy ?? 0
+        return (
+          <Pin
+            key={pin.id}
+            pinId={pin.id}
+            label={pin.label ?? pin.id}
+            left={left}
+            top={top}
+            isPending={isPinPending(uid, pin.id)}
+            isConnected={isPinConnected(uid, pin.id)}
+            onPinClick={handlePinClick}
+          />
+        )
+      })}
     </div>
   )
 }
