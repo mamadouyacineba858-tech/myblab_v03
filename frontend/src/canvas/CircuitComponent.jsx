@@ -40,20 +40,17 @@ export function CircuitComponent({ component }) {
   const handleBodyMouseDown = useCallback(
     (e) => {
       if (e.button !== 0 || !uid) return
-      
-      // CORRECTION 2 : Prise de contrÃ´le totale de l'interaction souris
+
       e.preventDefault()
       e.stopPropagation()
 
-      const isMultiSelect = e.ctrlKey || e.metaKey // metaKey pour la compatibilitÃ© Mac (Cmd)
+      const isMultiSelect = e.ctrlKey || e.metaKey
 
-      // CORRECTION 1 : Ctrl+clic modifie la sÃ©lection mais ne lance PAS le drag
       if (isMultiSelect) {
         toggleSelection({ type: 'component', id: uid })
-        return // On s'arrÃªte ici, pas de startDrag
+        return
       }
 
-      // Comportement normal : sÃ©lection unique + prÃ©paration au drag
       selectOnly({ type: 'component', id: uid })
       startDrag(e, uid, x, y)
     },
@@ -141,6 +138,7 @@ export function CircuitComponent({ component }) {
   if (!uid || !def) return null
 
   const pins = def.pins ?? []
+  const isLed = type === "LED"
 
   return (
     <div
@@ -156,7 +154,15 @@ export function CircuitComponent({ component }) {
       onMouseDown={handleBodyMouseDown}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="circuit-component__body">
+      <div
+        className="circuit-component__body"
+        style={isLed ? {
+          background: 'transparent',
+          border: '0',
+          borderRadius: 0,
+          boxShadow: 'none',
+        } : undefined}
+      >
         <PartRenderer
           type={type}
           uid={uid}
