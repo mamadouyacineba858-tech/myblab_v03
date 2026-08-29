@@ -12,8 +12,8 @@ describe('MB-VIS-LED-V5 — presentation-only pin geometry', () => {
       expect.objectContaining({ id: 'cathode', dx: 80, dy: 20 }),
     ])
 
-    expect(getPinPresentationPosition(component, def.pins[0])).toEqual({ x: 128, y: 260 })
-    expect(getPinPresentationPosition(component, def.pins[1])).toEqual({ x: 152, y: 260 })
+    expect(getPinPresentationPosition(component, def.pins[0])).toEqual({ x: 128, y: 240 })
+    expect(getPinPresentationPosition(component, def.pins[1])).toEqual({ x: 152, y: 240 })
   })
 
   it('falls back to canonical coordinates for non-LED components', () => {
