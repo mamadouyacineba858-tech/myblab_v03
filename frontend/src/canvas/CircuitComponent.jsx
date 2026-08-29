@@ -197,6 +197,7 @@ export function CircuitComponent({ component }) {
             isPending={isPinPending(uid, pin.id)}
             isConnected={isPinConnected(uid, pin.id)}
             onPinClick={handlePinClick}
+            hideVisualMarker={type === "LED"}
           />
         )
       })}
