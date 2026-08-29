@@ -52,7 +52,7 @@ describe('MB-VIS-LED-V5 — wire endpoint projection', () => {
   it('starts an LED wire at the physical foot while preserving the canonical pin id', () => {
     const paths = buildWirePaths([led, resistor], [wire])
     expect(paths).toHaveLength(1)
-    expect(paths[0].d.startsWith('M 28 40')).toBe(true)
+    expect(paths[0].d.startsWith('M 28 68')).toBe(true)
   })
 
   it('keeps non-LED wire endpoints on their canonical coordinates', () => {
