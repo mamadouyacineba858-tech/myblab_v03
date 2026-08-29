@@ -1,6 +1,7 @@
 import { useCallback } from "react"
 import { PALETTE_ITEMS } from "../config/componentDefinitions.js"
 import { useCircuit } from "../context/useCircuit.js"
+import { LedPart } from "./parts/LedPart.jsx"
 import "./Sidebar.css"
 
 /**
@@ -36,15 +37,9 @@ export function Sidebar() {
     if (!type) return
     e.dataTransfer.setData("application/myblab-component", type)
     e.dataTransfer.effectAllowed = "copy"
-    // MB-BREADBOARD-008 (O1) : type poussé explicitement dans useCircuitState.js
-    // (ref synchrone) — jamais relu depuis e.dataTransfer.getData() pendant
-    // les dragover ultérieurs (restriction navigateur, voir useCircuitState.js).
     startSidebarComponentDrag(type)
   }, [startSidebarComponentDrag])
 
-  // MB-BREADBOARD-008 (O6, I-P10) : nettoyage de fin de drag, quelle qu'en
-  // soit l'issue (drop réussi, annulation Echap, relâché hors cible valide)
-  // — dragend se déclenche systématiquement sur l'élément source.
   const handleDragEnd = useCallback(() => {
     endSidebarComponentDrag()
   }, [endSidebarComponentDrag])
@@ -81,7 +76,15 @@ export function Sidebar() {
                 onDragEnd={handleDragEnd}
                 onClick={() => handlePaletteClick(item.id)}
               >
-                <span className="myblab-palette__icon">{item.icon}</span>
+                {item.id === "LED" ? (
+                  <span className="myblab-palette__icon myblab-palette__icon--led" aria-hidden="true">
+                    <span className="myblab-palette__led-preview">
+                      <LedPart isOn={false} uid="sidebar-led-preview" />
+                    </span>
+                  </span>
+                ) : (
+                  <span className="myblab-palette__icon">{item.icon}</span>
+                )}
                 <span className="myblab-palette__label">{item.label}</span>
               </button>
             </li>
