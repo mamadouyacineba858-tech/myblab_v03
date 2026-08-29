@@ -3,21 +3,21 @@ import React from 'react'
 /**
  * Rendu visuel réaliste d'une LED traversante 5 mm.
  *
- * Contrat électrique V8 :
+ * Contrat électrique V6/V8 préservé :
  * - viewBox / dimensions : 80×64
- * - anode visuelle : (28,62)
- * - cathode visuelle : (52,62)
+ * - anode : (28,62)
+ * - cathode : (52,62)
  *
- * Les coordonnées électriques sont définies dans componentDefinitions.js.
- * Ce renderer ne déplace jamais les pins : il dessine simplement les pattes
- * jusqu'à leurs extrémités physiques.
+ * Le renderer ne modifie jamais les pins électriques. Les deux pattes
+ * visibles se terminent exactement sur leurs endpoints physiques.
  */
-export function LedPart({ isOn }) {
+export function LedPart({ isOn, uid }) {
   const lensMain = isOn ? '#e52a31' : '#8e1f24'
-  const lensDark = isOn ? '#9e0f18' : '#5a1419'
-  const lensLight = isOn ? '#ff7777' : '#c95458'
-  const metal = isOn ? '#e6edf2' : '#b7bec4'
-  const chip = isOn ? '#fffdf8' : '#d8d0cc'
+  const lensDark = isOn ? '#8f0d16' : '#4f1116'
+  const lensLight = isOn ? '#ff7478' : '#bd454b'
+  const metal = isOn ? '#edf2f5' : '#aeb6bd'
+  const chip = isOn ? '#fffdf2' : '#d2c9c5'
+  const id = String(uid ?? 'led').replace(/[^a-zA-Z0-9_-]/g, '_')
 
   return (
     <div
@@ -33,7 +33,7 @@ export function LedPart({ isOn }) {
         overflow: 'visible',
         display: 'block',
         position: 'relative',
-        filter: isOn ? 'drop-shadow(0 0 3px rgba(255, 60, 60, 0.55))' : 'none',
+        filter: isOn ? 'drop-shadow(0 0 3px rgba(255, 55, 55, 0.55))' : 'none',
       }}
     >
       <svg
@@ -46,89 +46,86 @@ export function LedPart({ isOn }) {
         style={{ display: 'block', overflow: 'visible' }}
       >
         <defs>
-          <linearGradient id="led-glass" x1="0" y1="0" x2="1" y2="0">
+          <linearGradient id={`${id}-glass`} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor={lensDark} />
-            <stop offset="18%" stopColor={lensMain} />
-            <stop offset="48%" stopColor={lensLight} />
+            <stop offset="16%" stopColor={lensMain} />
+            <stop offset="46%" stopColor={lensLight} />
             <stop offset="72%" stopColor={lensMain} />
             <stop offset="100%" stopColor={lensDark} />
           </linearGradient>
-          <radialGradient id="led-dome" cx="42%" cy="28%" r="72%">
-            <stop offset="0%" stopColor="#ffb2b2" stopOpacity={isOn ? 0.55 : 0.3} />
-            <stop offset="28%" stopColor={lensLight} stopOpacity="0.72" />
-            <stop offset="68%" stopColor={lensMain} stopOpacity="0.92" />
+          <radialGradient id={`${id}-dome`} cx="38%" cy="24%" r="78%">
+            <stop offset="0%" stopColor="#ffd0d0" stopOpacity={isOn ? 0.62 : 0.34} />
+            <stop offset="26%" stopColor={lensLight} stopOpacity="0.72" />
+            <stop offset="64%" stopColor={lensMain} stopOpacity="0.94" />
             <stop offset="100%" stopColor={lensDark} />
           </radialGradient>
-          <linearGradient id="led-collar" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ed676b" />
-            <stop offset="28%" stopColor="#b62d35" />
-            <stop offset="70%" stopColor="#7e1b22" />
-            <stop offset="100%" stopColor="#4d1318" />
+          <linearGradient id={`${id}-collar`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f17b7e" />
+            <stop offset="30%" stopColor="#b62d35" />
+            <stop offset="72%" stopColor="#741820" />
+            <stop offset="100%" stopColor="#431015" />
           </linearGradient>
-          <linearGradient id="led-metal" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#727b84" />
-            <stop offset="38%" stopColor={metal} />
-            <stop offset="62%" stopColor="#8a939b" />
-            <stop offset="100%" stopColor="#59616a" />
+          <linearGradient id={`${id}-metal`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#59626a" />
+            <stop offset="36%" stopColor={metal} />
+            <stop offset="62%" stopColor="#8f989f" />
+            <stop offset="100%" stopColor="#4d555d" />
           </linearGradient>
-          <radialGradient id="led-glow" cx="50%" cy="50%" r="50%">
+          <radialGradient id={`${id}-glow`} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#fffef0" stopOpacity="1" />
-            <stop offset="22%" stopColor="#fff36b" stopOpacity="0.95" />
-            <stop offset="55%" stopColor="#ff4b45" stopOpacity="0.5" />
+            <stop offset="22%" stopColor="#fff36b" stopOpacity="0.96" />
+            <stop offset="56%" stopColor="#ff4b45" stopOpacity="0.5" />
             <stop offset="100%" stopColor="#ff2525" stopOpacity="0" />
           </radialGradient>
-          <clipPath id="led-glass-clip">
-            <path d="M14 33 V16 C14 7.6 25.2 2 40 2 C54.8 2 66 7.6 66 16 V33 Z" />
+          <clipPath id={`${id}-glass-clip`}>
+            <path d="M9 33 V16 C9 7 22.4 1 40 1 C57.6 1 71 7 71 16 V33 Z" />
           </clipPath>
         </defs>
 
-        {/* Pattes métalliques : leurs extrémités sont exactement les endpoints V6. */}
-        <path d="M28 34 V62" fill="none" stroke="url(#led-metal)" strokeWidth="3.1" strokeLinecap="round" />
-        <path d="M52 34 V62" fill="none" stroke="url(#led-metal)" strokeWidth="3.1" strokeLinecap="round" />
-        <path d="M27.35 36 V61.4" fill="none" stroke="#f1f4f7" strokeWidth="0.7" strokeLinecap="round" opacity="0.7" />
-        <path d="M51.35 36 V61.4" fill="none" stroke="#f1f4f7" strokeWidth="0.7" strokeLinecap="round" opacity="0.7" />
+        {/* Pattes : endpoints électriques inchangés, exactement à y=62. */}
+        <path d="M28 34 V62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="3.2" strokeLinecap="round" />
+        <path d="M52 34 V62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="3.2" strokeLinecap="round" />
+        <path d="M27.35 36 V61.35" fill="none" stroke="#f7f9fb" strokeWidth="0.7" strokeLinecap="round" opacity="0.72" />
+        <path d="M51.35 36 V61.35" fill="none" stroke="#f7f9fb" strokeWidth="0.7" strokeLinecap="round" opacity="0.72" />
 
-        {/* Base moulée : épaisseur et rebord visibles. */}
-        <path d="M12.5 31.5 H67.5 V35 Q67.5 38.5 63 39 H17 Q12.5 38.5 12.5 35 Z" fill="url(#led-collar)" stroke="#4c1116" strokeWidth="0.9" />
-        <path d="M14.5 31.5 H65.5 V33.2 H14.5 Z" fill="#f17b7e" opacity="0.62" />
-        <path d="M16 37.1 C27 39 53 39 64 37.1" fill="none" stroke="#3e1014" strokeWidth="0.9" opacity="0.8" />
+        {/* Collerette moulée typique d'une LED traversante. */}
+        <path d="M8.5 31.5 H71.5 V35 Q71.5 39 66 40 H14 Q8.5 39 8.5 35 Z" fill={`url(#${id}-collar)`} stroke="#431015" strokeWidth="1" />
+        <path d="M10.5 31.5 H69.5 V33.2 H10.5 Z" fill="#ff9b9d" opacity="0.58" />
+        <path d="M13 37.3 C25 40 55 40 67 37.3" fill="none" stroke="#351014" strokeWidth="1" opacity="0.78" />
 
-        {/* Dôme plastique : volume cylindrique + sommet arrondi. */}
-        <path d="M14 33 V16 C14 7.6 25.2 2 40 2 C54.8 2 66 7.6 66 16 V33 Z" fill="url(#led-glass)" stroke="#5d151a" strokeWidth="1.2" />
-        <path d="M16 31 V16.3 C16 9 26.3 3.9 40 3.9 C53.7 3.9 64 9 64 16.3 V31 Z" fill="url(#led-dome)" opacity="0.82" />
+        {/* Corps 5 mm : dôme large et arrondi, sans boîte rectangulaire. */}
+        <path d="M9 33 V16 C9 7 22.4 1 40 1 C57.6 1 71 7 71 16 V33 Z" fill={`url(#${id}-glass)`} stroke="#57131a" strokeWidth="1.25" />
+        <path d="M11 31 V16.4 C11 8.9 23.1 3 40 3 C56.9 3 69 8.9 69 16.4 V31 Z" fill={`url(#${id}-dome)`} opacity="0.84" />
 
-        {/* Ombre latérale du moulage pour éviter l'aspect d'un simple aplat. */
-        <path d="M14.8 17 C15.2 8.8 26.2 3 40 3 C30.5 5.1 24 10.4 24 17 V31 H16 Z" fill="#ffb0b0" opacity="0.18" />
-        <path d="M64.5 17 C64.2 9.1 54 4 40 3 C49.5 5.1 56 10.4 56 17 V31 H64 Z" fill="#350b0f" opacity="0.18" />
+        {/* Ombres de moulage pour donner une vraie profondeur au plastique. */
+        <path d="M10 17 C10.7 8.3 23.3 2.3 40 2.3 C28.7 4.5 20.5 10.2 20.5 17 V31 H11 Z" fill="#ffd0d0" opacity="0.18" />
+        <path d="M70 17 C69.4 8.3 56.8 2.3 40 2.3 C51.3 4.5 59.5 10.2 59.5 17 V31 H69 Z" fill="#28070b" opacity="0.2" />
 
-        {/* Réflecteur métallique concave, visible à travers le dôme. */}
-        <g clipPath="url(#led-glass-clip)">
-          <path d="M22 33 Q40 19 58 33 Q40 38 22 33 Z" fill="#eef1f3" opacity="0.78" />
-          <path d="M25 31 Q40 22 55 31 Q40 34.5 25 31 Z" fill="#aeb6bd" opacity="0.78" />
-          <path d="M28 30 Q40 24.5 52 30" fill="none" stroke="#ffffff" strokeWidth="0.9" opacity="0.8" />
+        {/* Réflecteur, chip et bond wires visibles au travers du dôme. */}
+        <g clipPath={`url(#${id}-glass-clip)`}>
+          <path d="M18 33 Q40 17.5 62 33 Q40 39 18 33 Z" fill="#f1f3f5" opacity="0.84" />
+          <path d="M22 31 Q40 20.8 58 31 Q40 35.2 22 31 Z" fill="#a9b1b8" opacity="0.82" />
+          <path d="M25 30 Q40 22.7 55 30" fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.84" />
 
-          {/* Chip central. */}
-          <rect x="37.2" y="26" width="5.6" height="4.2" rx="0.65" fill={chip} stroke="#6c5655" strokeWidth="0.65" />
-          <rect x="38.1" y="26.65" width="3.8" height="2.7" rx="0.4" fill={isOn ? '#fff7b0' : '#c5b6b1'} opacity="0.9" />
+          <rect x="36.8" y="25.8" width="6.4" height="4.6" rx="0.7" fill={chip} stroke="#695452" strokeWidth="0.7" />
+          <rect x="37.8" y="26.55" width="4.4" height="2.9" rx="0.45" fill={isOn ? '#fff7a8' : '#bdaea9'} opacity="0.92" />
 
-          {/* Bond wires fins. */}
-          <path d="M40 26.1 Q35 21 30.5 18.2" fill="none" stroke="#f5f7f8" strokeWidth="0.62" strokeLinecap="round" />
-          <path d="M42 29 Q47 23.3 50.5 19.5" fill="none" stroke="#f5f7f8" strokeWidth="0.62" strokeLinecap="round" />
-          <circle cx="30.5" cy="18.2" r="0.65" fill="#ffffff" opacity="0.85" />
-          <circle cx="50.5" cy="19.5" r="0.65" fill="#ffffff" opacity="0.85" />
+          <path d="M40 26.1 Q34.8 21.2 28.8 18" fill="none" stroke="#f7f8fa" strokeWidth="0.65" strokeLinecap="round" />
+          <path d="M42.5 29.5 Q48 23.1 51.4 18.8" fill="none" stroke="#f7f8fa" strokeWidth="0.65" strokeLinecap="round" />
+          <circle cx="28.8" cy="18" r="0.7" fill="#ffffff" opacity="0.9" />
+          <circle cx="51.4" cy="18.8" r="0.7" fill="#ffffff" opacity="0.9" />
 
-          {/* Cœur lumineux uniquement en état ON. */}
-          {isOn && <circle cx="40" cy="28" r="12" fill="url(#led-glow)" opacity="0.9" />}
-          {isOn && <circle cx="40" cy="28" r="3.2" fill="#fffdf1" opacity="0.98" />}
+          {isOn && <circle cx="40" cy="28" r="15" fill={`url(#${id}-glow)`} opacity="0.9" />}
+          {isOn && <circle cx="40" cy="28" r="3.3" fill="#fffdf1" opacity="0.98" />}
         </g>
 
-        {/* Reflets de surface : deux signatures de plastique bombé. */}
-        <ellipse cx="28" cy="9.2" rx="7.4" ry="2.25" fill="#ffdede" opacity={isOn ? 0.9 : 0.62} transform="rotate(-17 28 9.2)" />
-        <path d="M18.8 22 C19.6 14.8 24.2 8.6 31.2 6.1" fill="none" stroke="#ffe8e8" strokeWidth="1.25" strokeLinecap="round" opacity={isOn ? 0.78 : 0.5} />
-        <path d="M20.5 24 C21.1 18.6 23.5 14.5 26.6 12" fill="none" stroke="#ffffff" strokeWidth="0.55" strokeLinecap="round" opacity="0.42" />
+        {/* Reflets du plastique bombé. */}
+        <ellipse cx="27" cy="8.4" rx="8.7" ry="2.5" fill="#ffe6e6" opacity={isOn ? 0.92 : 0.66} transform="rotate(-17 27 8.4)" />
+        <path d="M15.5 22.5 C16.6 14.5 22.3 7.6 31.5 5" fill="none" stroke="#fff0f0" strokeWidth="1.45" strokeLinecap="round" opacity={isOn ? 0.8 : 0.54} />
+        <path d="M18 24.5 C18.7 18.1 21.7 13.6 25.2 10.8" fill="none" stroke="#ffffff" strokeWidth="0.58" strokeLinecap="round" opacity="0.46" />
 
         {/* Repère cathode sur la collerette. */}
-        <path d="M61.2 32.2 L63.4 34.1 H59 Z" fill="#f5f7f8" opacity="0.96" />
+        <path d="M64.7 32.1 L67.1 34.2 H62.2 Z" fill="#f5f7f8" opacity="0.96" />
       </svg>
     </div>
   )
