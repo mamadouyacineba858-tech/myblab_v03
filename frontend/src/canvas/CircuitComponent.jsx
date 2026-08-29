@@ -1,7 +1,7 @@
 // MB-COMPONENT-LIBRARY-002 (correction disclosed, hors périmètre strict des
 // Part renderers mais nécessaire) : import React explicite requis par la
 // config vitest secondaire (frontend/src/simulator/vitest.config.ts, sans
-// @vitejs/plugin-react) pour tout fichier .jsx rendu sous cette config — même
+// @vitejs/plugin-react) pour tout fichier JSX rendu sous cette config — même
 // convention déjà appliquée à chaque Part renderer. Ce fichier n'avait
 // jamais été rendu directement sous cette config avant les tests
 // d'intégration CircuitComponent -> PartRenderer ajoutés par ce ticket
@@ -139,8 +139,6 @@ export function CircuitComponent({ component }) {
   if (!uid || !def) return null
 
   const pins = def.pins ?? []
-  const isLed = type === "LED"
-  const presentationHeight = isLed ? 64 : (def.height ?? 40)
 
   return (
     <div
@@ -149,7 +147,7 @@ export function CircuitComponent({ component }) {
         left: x,
         top: y,
         width: def.width ?? 80,
-        height: presentationHeight,
+        height: def.height ?? 40,
         outline: selected ? '2px solid #22c55e' : 'none',
         outlineOffset: '2px',
       }}
@@ -158,7 +156,7 @@ export function CircuitComponent({ component }) {
     >
       <div
         className="circuit-component__body"
-        style={isLed ? {
+        style={type === "LED" ? {
           background: 'transparent',
           border: '0',
           borderRadius: 0,
