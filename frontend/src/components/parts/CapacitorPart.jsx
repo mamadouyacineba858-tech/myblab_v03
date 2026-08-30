@@ -3,43 +3,49 @@ import React from 'react'
 /**
  * Rendu visuel réaliste d'un condensateur céramique traversant.
  *
- * Contrat électrique inchangé : viewBox 70×40, pinA=(0,20), pinB=(70,20).
- * Les pattes visuelles rejoignent les endpoints latéraux puis descendent
- * sous le corps, sans introduire de polarité.
+ * Contrat électrique inchangé : pinA=(0,20), pinB=(70,20).
+ * Le dessin visuel est volontairement indépendant de la position des
+ * endpoints : les connexions restent latérales pour le moteur, tandis que
+ * les pattes visibles descendent sous le corps.
  */
 export function CapacitorPart() {
   return (
     <div className="part-capacitor" aria-label="Condensateur">
-      <svg viewBox="0 0 70 40" width="70" height="40" role="img" aria-hidden="true" overflow="visible">
+      <svg viewBox="0 0 70 64" width="70" height="64" role="img" aria-hidden="true" overflow="visible" style={{ display: 'block', overflow: 'visible' }}>
         <defs>
           <linearGradient id="capacitor-body" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#6e8fa6" />
-            <stop offset="18%" stopColor="#a8c1d0" />
-            <stop offset="48%" stopColor="#d6e4ea" />
-            <stop offset="72%" stopColor="#91adbd" />
-            <stop offset="100%" stopColor="#55768d" />
+            <stop offset="0%" stopColor="#174f86" />
+            <stop offset="20%" stopColor="#2f78b5" />
+            <stop offset="48%" stopColor="#4f91c5" />
+            <stop offset="72%" stopColor="#28689f" />
+            <stop offset="100%" stopColor="#12436f" />
           </linearGradient>
+          <radialGradient id="capacitor-dome" cx="30%" cy="18%" r="82%">
+            <stop offset="0%" stopColor="#d9efff" stopOpacity="0.8" />
+            <stop offset="24%" stopColor="#77b2db" stopOpacity="0.52" />
+            <stop offset="62%" stopColor="#2c73ad" stopOpacity="0.72" />
+            <stop offset="100%" stopColor="#103f69" stopOpacity="0.92" />
+          </radialGradient>
           <linearGradient id="capacitor-metal" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#66727a" />
-            <stop offset="35%" stopColor="#e4eaed" />
-            <stop offset="58%" stopColor="#aeb8be" />
+            <stop offset="0%" stopColor="#69757d" />
+            <stop offset="32%" stopColor="#f2f5f6" />
+            <stop offset="54%" stopColor="#b9c2c7" />
+            <stop offset="78%" stopColor="#eef2f4" />
             <stop offset="100%" stopColor="#59636a" />
-          </linearGradient>
-          <linearGradient id="capacitor-highlight" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.72" />
-            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {/* Electrical endpoints remain exactly at (0,20) and (70,20). */}
-        <path d="M0 20 C7 20 10 21 13 25 V36" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M70 20 C63 20 60 21 57 25 V36" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Visible leads: equal diameter, short, vertical below the body. */}
+        <path d="M28 32 V61" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.2" strokeLinecap="round" />
+        <path d="M42 32 V61" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.2" strokeLinecap="round" />
+        <path d="M27.45 34 V59.5" fill="none" stroke="#ffffff" strokeWidth="0.65" strokeLinecap="round" opacity="0.68" />
+        <path d="M41.45 34 V59.5" fill="none" stroke="#ffffff" strokeWidth="0.65" strokeLinecap="round" opacity="0.68" />
 
-        {/* Compact ceramic body. */}
-        <rect x="13" y="7" width="44" height="26" rx="10" fill="url(#capacitor-body)" stroke="#3f5f73" strokeWidth="1.2" />
-        <ellipse cx="35" cy="12" rx="19" ry="6" fill="url(#capacitor-highlight)" opacity="0.5" />
-        <path d="M17 17 C21 10 28 9 35 9 C42 9 49 10 53 17" fill="none" stroke="#eef7fb" strokeWidth="1" opacity="0.45" />
-        <path d="M16 27 C25 32 45 32 54 27" fill="none" stroke="#304c5e" strokeWidth="1" opacity="0.4" />
+        {/* Rounded blue ceramic body, deliberately compact and non-polarized. */}
+        <path d="M17 34 V18 C17 7.6 24.8 2 35 2 C45.2 2 53 7.6 53 18 V34 Z" fill="url(#capacitor-body)" stroke="#123e63" strokeWidth="1.15" />
+        <path d="M19 32 V18 C19 9.3 25.6 4.2 35 4.2 C44.4 4.2 51 9.3 51 18 V32 Z" fill="url(#capacitor-dome)" opacity="0.9" />
+        <path d="M21 18 C22 10.7 27.3 5.8 34.5 5.1 C29.2 7.1 25.4 11.8 25.1 18 V31 H20 Z" fill="#e8f6ff" opacity="0.2" />
+        <path d="M20 32 C27 35 43 35 50 32" fill="none" stroke="#0b3150" strokeWidth="1" opacity="0.42" />
       </svg>
     </div>
   )
