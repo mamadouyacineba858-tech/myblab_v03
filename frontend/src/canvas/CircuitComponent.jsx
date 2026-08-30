@@ -41,19 +41,19 @@ export function CircuitComponent({ component }) {
     (e) => {
       if (e.button !== 0 || !uid) return
       
-      // CORRECTION 2 : Prise de contrÃ´le totale de l'interaction souris
+      // CORRECTION 2 : Prise de contrôle totale de l'interaction souris
       e.preventDefault()
       e.stopPropagation()
 
-      const isMultiSelect = e.ctrlKey || e.metaKey // metaKey pour la compatibilitÃ© Mac (Cmd)
+      const isMultiSelect = e.ctrlKey || e.metaKey // metaKey pour la compatibilité Mac (Cmd)
 
-      // CORRECTION 1 : Ctrl+clic modifie la sÃ©lection mais ne lance PAS le drag
+      // CORRECTION 1 : Ctrl+clic modifie la sélection mais ne lance PAS le drag
       if (isMultiSelect) {
         toggleSelection({ type: 'component', id: uid })
-        return // On s'arrÃªte ici, pas de startDrag
+        return // On s'arrête ici, pas de startDrag
       }
 
-      // Comportement normal : sÃ©lection unique + prÃ©paration au drag
+      // Comportement normal : sélection unique + préparation au drag
       selectOnly({ type: 'component', id: uid })
       startDrag(e, uid, x, y)
     },
@@ -156,7 +156,16 @@ export function CircuitComponent({ component }) {
       onMouseDown={handleBodyMouseDown}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="circuit-component__body">
+      <div
+        className="circuit-component__body"
+        style={type === "CAPACITOR" ? {
+          border: '0',
+          borderRadius: 0,
+          background: 'transparent',
+          boxShadow: 'none',
+          padding: 0,
+        } : undefined}
+      >
         <PartRenderer
           type={type}
           uid={uid}
