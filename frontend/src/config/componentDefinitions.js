@@ -187,7 +187,7 @@ export const COMPONENT_TYPES = {
     label: "Condensateur",
     icon: "║║",
     width: 70,
-    height: 40,
+    height: 64,
     pins: buildPins("CAPACITOR"),
   },
   BUZZER: {
