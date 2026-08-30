@@ -1,3 +1,5 @@
+import { getComponentDef } from "../config/componentDefinitions.js"
+
 /**
  * Normalise un composant pour le rendu (évite undefined / NaN).
  *
@@ -30,6 +32,21 @@
  * second snap (toutes les positions qui l'atteignaient étaient déjà des
  * multiples de GRID_SIZE par construction — voir Delivery Report).
  *
+ * [MB-VIS-COMP-004] La coercion de `state` suivait jusqu'ici deux
+ * branchements littéraux sur le TYPE concret (`component.type === "BUTTON"`
+ * / `"BUTTON_LATCHING"`). Elle suit désormais le contrat déclaratif déjà
+ * introduit par MB-VIS-COMP-002/003 (`componentDefinitions.js` :
+ * `interaction.type`, `initialState`) via `_normalizeInteractionState()`
+ * ci-dessous. `getComponentDef()` est la même source de vérité déjà
+ * consultée par `createComponent()` (componentDefinitions.js) et par les
+ * gardes de `useCircuitState.js` (setButtonState/toggleLatchingButton,
+ * MB-VIS-COMP-003) — un seul et même contrat, jamais deux mécanismes
+ * concurrents pouvant diverger. Un futur type déclarant `interaction.type`
+ * ("momentary" ou "latching") est normalisé ici SANS modification de cette
+ * fonction. Comportement observable inchangé pour BUTTON/BUTTON_LATCHING et
+ * pour tout composant sans capacité d'interaction (RESISTOR/LED/CAPACITOR/…
+ * continuent de ne recevoir aucune clé `state` — voir rapport §9/§7 TEST 9).
+ *
  * @param {object | null | undefined} component
  * @returns {object | null}
  */
@@ -42,13 +59,42 @@ export function normalizeComponent(component) {
     x: Number.isFinite(component.x) ? component.x : 0,
     y: Number.isFinite(component.y) ? component.y : 0,
     pins: Array.isArray(component.pins) ? [...component.pins] : [],
-    ...(component.type === "BUTTON"
-      ? { state: component.state === "pressed" ? "pressed" : "released" }
-      : {}),
-    ...(component.type === "BUTTON_LATCHING"
-      ? { state: component.state === "on" ? "on" : "off" }
-      : {}),
-    }
+    ..._normalizeInteractionState(component),
+  }
+}
+
+/**
+ * [MB-VIS-COMP-004] Dérive la clé `state` (si applicable) du contrat
+ * déclaratif `interaction`/`initialState` de la définition du composant
+ * (componentDefinitions.js), au lieu d'un branchement sur le type concret.
+ *
+ * - Aucune capacité `interaction` déclarée (RESISTOR, LED, CAPACITOR, tout
+ *   type inconnu de componentDefinitions.js) → aucune clé `state` ajoutée
+ *   (identique au comportement préexistant pour "tout type autre que
+ *   BUTTON/BUTTON_LATCHING").
+ * - `interaction.type === "momentary"` → vocabulaire {"pressed","released"} ;
+ *   un état déjà valide ("pressed") est préservé tel quel (TEST 7) ; sinon
+ *   la valeur par défaut est `initialState` déclaré (secours "released" si
+ *   `initialState` est absent — ne devrait pas se produire en pratique,
+ *   `componentDefinitions.js` déclarant toujours les deux ensemble).
+ * - `interaction.type === "latching"` → même principe, vocabulaire
+ *   {"on","off"}, secours "off".
+ *
+ * @param {object} component
+ * @returns {{state?: string}}
+ */
+function _normalizeInteractionState(component) {
+  const def = getComponentDef(component.type)
+  const interactionType = def?.interaction?.type
+  const initialState = def?.initialState
+
+  if (interactionType === "momentary") {
+    return { state: component.state === "pressed" ? "pressed" : (initialState ?? "released") }
+  }
+  if (interactionType === "latching") {
+    return { state: component.state === "on" ? "on" : (initialState ?? "off") }
+  }
+  return {}
 }
 
 /**
