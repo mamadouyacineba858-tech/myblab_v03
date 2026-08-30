@@ -1713,15 +1713,22 @@ if (import.meta.env.DEV) {
   const zoomIn = useCallback(() => setZoom((z) => Math.min(2, +(z + 0.1).toFixed(2))), [])
   const zoomOut = useCallback(() => setZoom((z) => Math.max(0.5, +(z - 0.1).toFixed(2))), [])
   const toggleGrid = useCallback(() => setShowGrid((v) => !v), [])
+  // MB-VIS-COMP-003 : la garde ne teste plus littéralement le type concret
+  // ("BUTTON") mais la capacité déclarative interaction.type === "momentary"
+  // (componentDefinitions.js, introduite par MB-VIS-COMP-002). Un futur type
+  // déclarant cette même capacité fonctionne ici sans modification de ce
+  // fichier. Infrastructure strictement inchangée : mutation transitoire
+  // hors historique (A1.6) — voir DÉCISION ARCHITECTURALE du rapport
+  // MB-VIS-COMP-003 sur la non-unification avec toggleLatchingButton.
   const setButtonState = useCallback((uid, state) => {
     if (!uid) return
     if (state !== "pressed" && state !== "released") return
 
     setComponents((prev) =>
       prev.map((c) => {
-        // A1.6 : mutation d'Ã©tat transitoire, hors historique.
+        // A1.6 : mutation d'état transitoire, hors historique.
         // Garde d'idempotence : aucune modification si l'état est inchangé.
-        if (c.uid !== uid || c.type !== "BUTTON" || c.state === state) {
+        if (c.uid !== uid || getComponentDef(c.type)?.interaction?.type !== "momentary" || c.state === state) {
           return c
         }
         return { ...c, state }
@@ -1729,8 +1736,12 @@ if (import.meta.env.DEV) {
     )
   }, [])
 
+  // MB-VIS-COMP-003 : idem, capacité interaction.type === "latching" au lieu
+  // du type concret "BUTTON_LATCHING". Infrastructure inchangée : passe par
+  // ToggleLatchingButtonCommand + HistoryManager (Undo/Redo préservé —
+  // ToggleLatchingButtonCommand ne teste déjà aucun type concret).
   const toggleLatchingButton = useCallback((uid) => {
-    const comp = components.find(c => c.uid === uid && c.type === "BUTTON_LATCHING")
+    const comp = components.find(c => c.uid === uid && getComponentDef(c.type)?.interaction?.type === "latching")
     if (!comp) return
 
     const oldState = comp.state
