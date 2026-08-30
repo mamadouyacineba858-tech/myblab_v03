@@ -1,13 +1,17 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel du condensateur disque traversant.
  * Les deux pattes sont verticales et sortent sous le corps.
  */
 export function CapacitorPart() {
+  const def = getComponentDef("CAPACITOR")
+  const width = def?.width ?? 70
+  const height = def?.height ?? 40
   return (
     <div className="part-capacitor" aria-label="Condensateur">
-      <svg viewBox="0 0 70 40" width="70" height="40" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         {/* Pattes métalliques verticales, même diamètre et même longueur. */}
         <line x1="24" y1="27" x2="24" y2="40" className="part-capacitor__lead" />
         <line x1="46" y1="27" x2="46" y2="40" className="part-capacitor__lead" />

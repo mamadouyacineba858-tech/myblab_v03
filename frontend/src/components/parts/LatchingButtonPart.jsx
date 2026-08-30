@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel Interrupteur à bascule / BUTTON_LATCHING (MB-COMPONENT-LIBRARY-002).
@@ -15,6 +16,9 @@ export function LatchingButtonPart({
   onPointerDown,
   onClick,
 }) {
+  const def = getComponentDef("BUTTON_LATCHING")
+  const width = def?.width ?? 60
+  const height = def?.height ?? 60
   const isOn = state === "on"
 
   return (
@@ -28,7 +32,7 @@ export function LatchingButtonPart({
         userSelect: "none",
       }}
     >
-      <svg viewBox="0 0 60 60" width="60" height="60" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         <line x1="0" y1="30" x2="14" y2="30" className="part-latching-button__lead" />
         <line x1="46" y1="30" x2="60" y2="30" className="part-latching-button__lead" />
         <rect x="10" y="20" width="40" height="20" rx="6" className="part-latching-button__housing" />

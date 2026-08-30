@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel Alimentation / POWER (MB-COMPONENT-LIBRARY-002).
@@ -9,9 +10,12 @@ import React from 'react'
  * dx=70/dy=25 et GND dx=70/dy=65, tous deux sur le bord droit).
  */
 export function PowerPart() {
+  const def = getComponentDef("POWER")
+  const width = def?.width ?? 70
+  const height = def?.height ?? 90
   return (
     <div className="part-power" aria-label="Alimentation">
-      <svg viewBox="0 0 70 90" width="70" height="90" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         <line x1="56" y1="25" x2="70" y2="25" className="part-power__lead part-power__lead--plus" />
         <line x1="56" y1="65" x2="70" y2="65" className="part-power__lead part-power__lead--gnd" />
         <rect x="6" y="6" width="50" height="78" rx="6" className="part-power__body" />

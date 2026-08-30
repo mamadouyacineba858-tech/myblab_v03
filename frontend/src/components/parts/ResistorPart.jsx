@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel Résistance (MB-VIS-002).
@@ -17,9 +18,12 @@ import React from 'react'
  * (cf. GATE 1 MB-VIS-002, section D).
  */
 export function ResistorPart() {
+  const def = getComponentDef("RESISTOR")
+  const width = def?.width ?? 84
+  const height = def?.height ?? 28
   return (
     <div className="part-resistor" aria-label="Résistance">
-      <svg viewBox="0 0 84 28" width="84" height="28" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         <line x1="0" y1="14" x2="18" y2="14" className="part-resistor__lead" />
         <line x1="72" y1="14" x2="84" y2="14" className="part-resistor__lead" />
         <rect x="18" y="4" width="54" height="20" rx="9" className="part-resistor__body" />

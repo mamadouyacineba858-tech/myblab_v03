@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel LED RGB (MB-COMPONENT-LIBRARY-002).
@@ -15,13 +16,16 @@ import React from 'react'
  * le style CSS-driven du reste du catalogue réaliste, LOCK-19/VIS-TEST-08).
  */
 export function RgbLedPart({ r, g, b }) {
+  const def = getComponentDef("RGB_LED")
+  const width = def?.width ?? 90
+  const height = def?.height ?? 56
   const isR = r === true
   const isG = g === true
   const isB = b === true
 
   return (
     <div className="part-rgb-led" aria-label="LED RGB">
-      <svg viewBox="0 0 90 56" width="90" height="56" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         <line x1="12" y1="48" x2="12" y2="56" className="part-rgb-led__leg" />
         <line x1="34" y1="48" x2="34" y2="56" className="part-rgb-led__leg" />
         <line x1="56" y1="48" x2="56" y2="56" className="part-rgb-led__leg" />

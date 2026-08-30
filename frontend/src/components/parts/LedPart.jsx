@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel réaliste d'une LED traversante 5 mm.
@@ -12,6 +13,9 @@ import React from 'react'
  * Les extrémités électriques restent inchangées.
  */
 export function LedPart({ isOn, uid }) {
+  const def = getComponentDef("LED")
+  const width = def?.width ?? 80
+  const height = def?.height ?? 64
   const lensMain = isOn ? '#e52a31' : '#8e1f24'
   const lensDark = isOn ? '#8f0d16' : '#4f1116'
   const lensLight = isOn ? '#ff7478' : '#bd454b'
@@ -29,7 +33,7 @@ export function LedPart({ isOn, uid }) {
         position: 'relative', filter: isOn ? 'drop-shadow(0 0 3px rgba(255, 55, 55, 0.55))' : 'none',
       }}
     >
-      <svg viewBox="0 0 80 64" width="80" height="64" role="img" aria-hidden="true" overflow="visible" style={{ display: 'block', overflow: 'visible' }}>
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true" overflow="visible" style={{ display: 'block', overflow: 'visible' }}>
         <defs>
           <linearGradient id={`${id}-glass`} x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor={lensDark} />

@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel Micro Servo (MB-COMPONENT-LIBRARY-002).
@@ -9,9 +10,12 @@ import React from 'react'
  * dx=90/dy=20, vcc dx=90/dy=35, gnd dx=90/dy=50, tous sur le bord droit).
  */
 export function ServoPart() {
+  const def = getComponentDef("SERVO")
+  const width = def?.width ?? 90
+  const height = def?.height ?? 70
   return (
     <div className="part-servo" aria-label="Micro Servo">
-      <svg viewBox="0 0 90 70" width="90" height="70" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         <line x1="63" y1="20" x2="90" y2="20" className="part-servo__lead part-servo__lead--signal" />
         <line x1="63" y1="35" x2="90" y2="35" className="part-servo__lead part-servo__lead--vcc" />
         <line x1="63" y1="50" x2="90" y2="50" className="part-servo__lead part-servo__lead--gnd" />

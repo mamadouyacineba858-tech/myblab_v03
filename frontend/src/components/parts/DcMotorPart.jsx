@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel Moteur DC (MB-COMPONENT-LIBRARY-002).
@@ -10,9 +11,12 @@ import React from 'react'
  * dy=25).
  */
 export function DcMotorPart() {
+  const def = getComponentDef("DC_MOTOR")
+  const width = def?.width ?? 84
+  const height = def?.height ?? 50
   return (
     <div className="part-dc-motor" aria-label="Moteur DC">
-      <svg viewBox="0 0 84 50" width="84" height="50" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         <line x1="0" y1="25" x2="14" y2="25" className="part-dc-motor__lead" />
         <line x1="70" y1="25" x2="84" y2="25" className="part-dc-motor__lead" />
         <rect x="14" y="8" width="56" height="34" rx="17" className="part-dc-motor__body" />

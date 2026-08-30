@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel Diode (MB-VIS-002).
@@ -13,9 +14,12 @@ import React from 'react'
  * aucune donnée inventée.
  */
 export function DiodePart() {
+  const def = getComponentDef("DIODE")
+  const width = def?.width ?? 84
+  const height = def?.height ?? 30
   return (
     <div className="part-diode" aria-label="Diode">
-      <svg viewBox="0 0 84 30" width="84" height="30" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         <line x1="0" y1="15" x2="20" y2="15" className="part-diode__lead" />
         <line x1="70" y1="15" x2="84" y2="15" className="part-diode__lead" />
         <rect x="20" y="6" width="50" height="18" rx="4" className="part-diode__body" />

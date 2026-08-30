@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel Arduino UNO (MB-COMPONENT-LIBRARY-002).
@@ -10,9 +11,12 @@ import React from 'react'
  * GND dx=0/dy=110 sur le bord gauche, 5V dx=120/dy=50 sur le bord droit).
  */
 export function ArduinoPart() {
+  const def = getComponentDef("ARDUINO")
+  const width = def?.width ?? 120
+  const height = def?.height ?? 140
   return (
     <div className="part-arduino" aria-label="Arduino UNO">
-      <svg viewBox="0 0 120 140" width="120" height="140" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         <line x1="0" y1="50" x2="10" y2="50" className="part-arduino__lead" />
         <line x1="0" y1="75" x2="10" y2="75" className="part-arduino__lead" />
         <line x1="0" y1="110" x2="10" y2="110" className="part-arduino__lead" />

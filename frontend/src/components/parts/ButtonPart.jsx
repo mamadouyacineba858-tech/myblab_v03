@@ -1,4 +1,5 @@
 import React from 'react'
+import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
  * Rendu visuel Bouton-poussoir (MB-COMPONENT-LIBRARY-002).
@@ -23,6 +24,9 @@ export function ButtonPart({
   onLostPointerCapture,
   onMouseDown,
 }) {
+  const def = getComponentDef("BUTTON")
+  const width = def?.width ?? 60
+  const height = def?.height ?? 60
   const isPressed = state === "pressed"
 
   return (
@@ -39,7 +43,7 @@ export function ButtonPart({
         userSelect: "none",
       }}
     >
-      <svg viewBox="0 0 60 60" width="60" height="60" role="img" aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true">
         <line x1="0" y1="30" x2="15" y2="30" className="part-button__lead" />
         <line x1="45" y1="30" x2="60" y2="30" className="part-button__lead" />
         <rect x="12" y="12" width="36" height="36" rx="4" className="part-button__base" />
