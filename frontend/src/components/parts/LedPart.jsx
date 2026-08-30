@@ -3,8 +3,7 @@ import React from 'react'
 /**
  * Rendu visuel réaliste d'une LED traversante 5 mm.
  * Contrat électrique conservé : viewBox 80×64, anode (28,62), cathode (52,62).
- * V19 : renforcement de la patte droite rectiligne, avec géométrie remplie
- * plutôt qu'un simple stroke afin de garder une largeur stable au rendu.
+ * V20 : les deux pattes ont désormais le même diamètre visuel réaliste.
  */
 export function LedPart({ isOn, uid }) {
   const lensMain = isOn ? '#e52a31' : '#8e1f24'
@@ -40,13 +39,13 @@ export function LedPart({ isOn, uid }) {
           <clipPath id={`${id}-glass-clip`}><path d="M15 37 V15 C15 6.2 25.7 1 40 1 C54.3 1 65 6.2 65 15 V37 Z" /></clipPath>
         </defs>
 
-        {/* Physical anode: wider filled metal geometry; centerline and endpoint unchanged. */}
-        <rect x="23.5" y="38.5" width="9" height="23.5" rx="4.5" fill={`url(#${id}-metal)`} />
-        <rect x="25.0" y="39.5" width="1.1" height="21.5" rx="0.55" fill="#f8fafb" opacity="0.78" />
+        {/* Physical anode: same 5 px visual diameter as the bent cathode; centerline and endpoint unchanged. */}
+        <rect x="25.5" y="38.5" width="5" height="23.5" rx="2.5" fill={`url(#${id}-metal)`} />
+        <rect x="26.25" y="39.5" width="0.7" height="21.5" rx="0.35" fill="#f8fafb" opacity="0.78" />
 
-        {/* Physical cathode: filled bent geometry, endpoint remains exactly (52,62). */}
-        <path d="M50 38.5 H54 C54 42.4 54.7 43.8 57.0 46.0 C59.9 48.8 60.2 51.5 58.7 54.5 C57.5 56.9 54.9 59.9 53.0 62.0 H49.5 C51.2 59.0 54.2 55.2 55.2 53.2 C56.1 51.3 55.6 49.9 53.7 48.1 C51.0 45.5 50 43.3 50 38.5 Z" fill={`url(#${id}-metal)`} />
-        <path d="M51.3 40.0 H52.2 C52.3 43.0 53.1 44.4 55.0 46.3 C57.4 48.7 58.0 50.9 56.8 53.5 C55.7 55.8 53.5 58.5 52.0 60.8" fill="none" stroke="#f8fafb" strokeWidth="0.82" strokeLinecap="round" opacity="0.76" />
+        {/* Physical cathode: same 5 px base diameter, with the characteristic bend; endpoint remains exactly (52,62). */}
+        <path d="M49.5 38.5 H54.5 C54.5 42.4 55.0 43.8 57.3 46.0 C60.2 48.8 60.5 51.5 59.0 54.5 C57.8 56.9 55.2 59.9 53.0 62.0 H48.5 C50.7 59.0 53.7 55.2 54.7 53.2 C55.6 51.3 55.1 49.9 53.2 48.1 C50.5 45.5 49.5 43.3 49.5 38.5 Z" fill={`url(#${id}-metal)`} />
+        <path d="M50.8 40.0 H52.0 C52.1 43.0 53.1 44.4 55.2 46.3 C57.6 48.7 58.2 50.9 57.0 53.5 C55.9 55.8 53.7 58.5 52.0 60.8" fill="none" stroke="#f8fafb" strokeWidth="0.82" strokeLinecap="round" opacity="0.76" />
 
         {/* Thin molded collar */}
         <path d="M13 36 H67 V39 Q67 41.5 61 42 H19 Q13 41.5 13 39 Z" fill={`url(#${id}-collar)`} stroke="#431015" strokeWidth="1" />
