@@ -3,6 +3,8 @@ import React from 'react'
 /**
  * Rendu visuel réaliste d'un condensateur céramique traversant.
  * Contrat électrique inchangé : pinA=(0,20), pinB=(70,20).
+ * Le rendu déborde volontairement de la boîte logique afin de conserver
+ * une silhouette réaliste sans modifier les coordonnées électriques.
  */
 export function CapacitorPart() {
   return (
@@ -15,10 +17,10 @@ export function CapacitorPart() {
         .circuit-component:has(.part-capacitor) .myblab-pin { opacity: 0 !important; }
         .circuit-component:has(.part-capacitor) .circuit-component__body {
           background: transparent !important; border: 0 !important; box-shadow: none !important;
-          border-radius: 0 !important; padding: 0 !important;
+          border-radius: 0 !important; padding: 0 !important; overflow: visible !important;
         }
       `}</style>
-      <svg viewBox="0 0 70 64" width="70" height="64" role="img" aria-hidden="true" overflow="visible" style={{ display: 'block', overflow: 'visible' }}>
+      <svg viewBox="0 0 70 64" width="84" height="77" role="img" aria-hidden="true" overflow="visible" style={{ display: 'block', overflow: 'visible' }}>
         <defs>
           <linearGradient id="capacitor-body" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#164b80" />
@@ -51,7 +53,7 @@ export function CapacitorPart() {
         <path d="M24.45 47 V59.7" fill="none" stroke="#ffffff" strokeWidth="0.58" strokeLinecap="round" opacity="0.76" />
         <path d="M44.45 47 V59.7" fill="none" stroke="#ffffff" strokeWidth="0.58" strokeLinecap="round" opacity="0.76" />
 
-        {/* Corps : silhouette volontairement proche de la référence, large et bombée. */}
+        {/* Silhouette : corps large, bombé, resserré à la base comme la référence. */}
         <path
           d="M5 42 V19 C5 7.2 17.2 1 35 1 C52.8 1 65 7.2 65 19 V42 C65 47.6 59 51 51.5 51 C45.8 51 41.5 47.6 35 47.6 C28.5 47.6 24.2 51 18.5 51 C11 51 5 47.6 5 42 Z"
           fill="url(#capacitor-body)"
