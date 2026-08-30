@@ -5,9 +5,8 @@ import React from 'react'
  *
  * Contrat électrique inchangé : pinA=(0,20), pinB=(70,20).
  * Le dessin visuel est indépendant des endpoints : les connexions restent
- * latérales pour le moteur, tandis que les pattes visibles descendent sous
- * le corps. Les marqueurs Pin restent interactifs mais sont invisibles sur
- * le Canvas afin de ne pas polluer la silhouette réaliste.
+ * disponibles pour le moteur tandis que la silhouette visible est celle
+ * d'un condensateur radial à corps époxy bombé et deux pattes courtes.
  */
 export function CapacitorPart() {
   return (
@@ -17,41 +16,83 @@ export function CapacitorPart() {
           opacity: 0 !important;
         }
       `}</style>
-      <svg viewBox="0 0 70 64" width="70" height="64" role="img" aria-hidden="true" overflow="visible" style={{ display: 'block', overflow: 'visible' }}>
+      <svg viewBox="0 0 70 104" width="70" height="104" role="img" aria-hidden="true" overflow="visible" style={{ display: 'block', overflow: 'visible' }}>
         <defs>
           <linearGradient id="capacitor-body" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#174f86" />
-            <stop offset="20%" stopColor="#2f78b5" />
-            <stop offset="48%" stopColor="#4f91c5" />
-            <stop offset="72%" stopColor="#28689f" />
-            <stop offset="100%" stopColor="#12436f" />
+            <stop offset="0%" stopColor="#123f70" />
+            <stop offset="13%" stopColor="#1f609d" />
+            <stop offset="34%" stopColor="#3d88c5" />
+            <stop offset="52%" stopColor="#2d73ae" />
+            <stop offset="76%" stopColor="#1d5c98" />
+            <stop offset="100%" stopColor="#0d365e" />
           </linearGradient>
-          <radialGradient id="capacitor-dome" cx="30%" cy="18%" r="82%">
-            <stop offset="0%" stopColor="#d9efff" stopOpacity="0.8" />
-            <stop offset="24%" stopColor="#77b2db" stopOpacity="0.52" />
-            <stop offset="62%" stopColor="#2c73ad" stopOpacity="0.72" />
-            <stop offset="100%" stopColor="#103f69" stopOpacity="0.92" />
+          <radialGradient id="capacitor-highlight" cx="29%" cy="17%" r="76%">
+            <stop offset="0%" stopColor="#e8f7ff" stopOpacity="0.92" />
+            <stop offset="15%" stopColor="#9ed0f1" stopOpacity="0.62" />
+            <stop offset="42%" stopColor="#4e95ca" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#123e6c" stopOpacity="0" />
           </radialGradient>
           <linearGradient id="capacitor-metal" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#69757d" />
-            <stop offset="32%" stopColor="#f2f5f6" />
-            <stop offset="54%" stopColor="#b9c2c7" />
-            <stop offset="78%" stopColor="#eef2f4" />
+            <stop offset="0%" stopColor="#5d6870" />
+            <stop offset="25%" stopColor="#dfe5e8" />
+            <stop offset="50%" stopColor="#ffffff" />
+            <stop offset="72%" stopColor="#aeb8be" />
             <stop offset="100%" stopColor="#59636a" />
           </linearGradient>
         </defs>
 
-        {/* Visible leads: equal diameter, short, vertical below the body. */}
-        <path d="M28 32 V61" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.2" strokeLinecap="round" />
-        <path d="M42 32 V61" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.2" strokeLinecap="round" />
-        <path d="M27.45 34 V59.5" fill="none" stroke="#ffffff" strokeWidth="0.65" strokeLinecap="round" opacity="0.68" />
-        <path d="M41.45 34 V59.5" fill="none" stroke="#ffffff" strokeWidth="0.65" strokeLinecap="round" opacity="0.68" />
+        {/* Two equal short leads, positioned under the narrowed body. */}
+        <path d="M27 69 V100" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.6" strokeLinecap="round" />
+        <path d="M43 69 V100" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.6" strokeLinecap="round" />
+        <path d="M26.35 71 V98.5" fill="none" stroke="#ffffff" strokeWidth="0.72" strokeLinecap="round" opacity="0.72" />
+        <path d="M42.35 71 V98.5" fill="none" stroke="#ffffff" strokeWidth="0.72" strokeLinecap="round" opacity="0.72" />
 
-        {/* Rounded blue ceramic body, deliberately compact and non-polarized. */}
-        <path d="M17 34 V18 C17 7.6 24.8 2 35 2 C45.2 2 53 7.6 53 18 V34 Z" fill="url(#capacitor-body)" stroke="#123e63" strokeWidth="1.15" />
-        <path d="M19 32 V18 C19 9.3 25.6 4.2 35 4.2 C44.4 4.2 51 9.3 51 18 V32 Z" fill="url(#capacitor-dome)" opacity="0.9" />
-        <path d="M21 18 C22 10.7 27.3 5.8 34.5 5.1 C29.2 7.1 25.4 11.8 25.1 18 V31 H20 Z" fill="#e8f6ff" opacity="0.2" />
-        <path d="M20 32 C27 35 43 35 50 32" fill="none" stroke="#0b3150" strokeWidth="1" opacity="0.42" />
+        {/* Reference silhouette: rounded epoxy bulb, broad shoulder, tapered neck and shallow bottom scallop. */}
+        <path
+          d="M35 2
+             C18.7 2 8 13.2 8 30.2
+             C8 43.7 13.2 50.3 16.7 57.3
+             C19.3 62.5 19.2 68.2 22.3 71.2
+             C25.4 74.2 29.2 72.6 35 69.4
+             C40.8 72.6 44.6 74.2 47.7 71.2
+             C50.8 68.2 50.7 62.5 53.3 57.3
+             C56.8 50.3 62 43.7 62 30.2
+             C62 13.2 51.3 2 35 2 Z"
+          fill="url(#capacitor-body)"
+          stroke="#0b3155"
+          strokeWidth="1.2"
+        />
+        <path
+          d="M35 4
+             C20.6 4 10.5 14.2 10.5 30.3
+             C10.5 42.2 15.3 48.6 18.5 55.7
+             C21 61.2 20.9 66.1 23 68.6
+             C26 70.6 30.5 69.1 35 66.8
+             C39.5 69.1 44 70.6 47 68.6
+             C49.1 66.1 49 61.2 51.5 55.7
+             C54.7 48.6 59.5 42.2 59.5 30.3
+             C59.5 14.2 49.4 4 35 4 Z"
+          fill="url(#capacitor-highlight)"
+          opacity="0.92"
+        />
+
+        {/* Soft molded highlight and side depth. */}
+        <path
+          d="M18.5 43 C16.5 32 17.8 19 24.2 11.5 C27.2 8 30.8 6.1 34.2 5.2 C27.3 8.2 23.3 14.7 23 23.1 C22.7 33.1 24.8 42.2 22.3 51.7 C21.4 55 20.8 58.2 21.1 61.4"
+          fill="none"
+          stroke="#eef9ff"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          opacity="0.34"
+        />
+        <path
+          d="M53.5 17 C59 25 58.7 37.5 54 48.5 C51.1 55.2 49.3 61 48.8 66.2"
+          fill="none"
+          stroke="#062848"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          opacity="0.3"
+        />
       </svg>
     </div>
   )
