@@ -23,7 +23,7 @@ export function CapacitorPart() {
           <linearGradient id="capacitor-body" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#164b80" />
             <stop offset="16%" stopColor="#276da8" />
-            <stop offset="38%" stopColor="#4f93c9" />
+            <stop offset="38%" stopColor="#5a9ed0" />
             <stop offset="54%" stopColor="#397fb8" />
             <stop offset="78%" stopColor="#21619a" />
             <stop offset="100%" stopColor="#103b65" />
@@ -46,30 +46,30 @@ export function CapacitorPart() {
         </defs>
 
         {/* Pattes : même diamètre, courtes, verticales et métalliques. */}
-        <path d="M28 45 V61" fill="none" stroke={`url(#capacitor-metal)`} strokeWidth="3.1" strokeLinecap="round" />
-        <path d="M42 45 V61" fill="none" stroke={`url(#capacitor-metal)`} strokeWidth="3.1" strokeLinecap="round" />
-        <path d="M27.45 46 V59.7" fill="none" stroke="#ffffff" strokeWidth="0.58" strokeLinecap="round" opacity="0.76" />
-        <path d="M41.45 46 V59.7" fill="none" stroke="#ffffff" strokeWidth="0.58" strokeLinecap="round" opacity="0.76" />
+        <path d="M25 46 V61" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.1" strokeLinecap="round" />
+        <path d="M45 46 V61" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.1" strokeLinecap="round" />
+        <path d="M24.45 47 V59.7" fill="none" stroke="#ffffff" strokeWidth="0.58" strokeLinecap="round" opacity="0.76" />
+        <path d="M44.45 47 V59.7" fill="none" stroke="#ffffff" strokeWidth="0.58" strokeLinecap="round" opacity="0.76" />
 
-        {/* Silhouette : large bulbe supérieur, épaules souples et col resserré. */}
+        {/* Corps : silhouette volontairement proche de la référence, large et bombée. */}
         <path
-          d="M16 40 V18.5 C16 7.7 24.1 1.5 35 1.5 C45.9 1.5 54 7.7 54 18.5 V40 C54 45.4 49.6 48.3 44.1 48.3 C40.4 48.3 38.2 45.8 35 45.8 C31.8 45.8 29.6 48.3 25.9 48.3 C20.4 48.3 16 45.4 16 40 Z"
+          d="M5 42 V19 C5 7.2 17.2 1 35 1 C52.8 1 65 7.2 65 19 V42 C65 47.6 59 51 51.5 51 C45.8 51 41.5 47.6 35 47.6 C28.5 47.6 24.2 51 18.5 51 C11 51 5 47.6 5 42 Z"
           fill="url(#capacitor-body)"
           stroke="#103a60"
           strokeWidth="1.15"
         />
         <path
-          d="M18.2 39.2 V18.7 C18.2 9.2 25.1 3.7 35 3.7 C44.9 3.7 51.8 9.2 51.8 18.7 V39.2 C51.8 43.3 47.8 46.2 43.7 46.2 C40.2 46.2 38.1 43.8 35 43.8 C31.9 43.8 29.8 46.2 26.3 46.2 C22.2 46.2 18.2 43.3 18.2 39.2 Z"
+          d="M7.2 41 V19.2 C7.2 9.2 17.9 3.2 35 3.2 C52.1 3.2 62.8 9.2 62.8 19.2 V41 C62.8 45.4 57.4 48.6 51 48.6 C45.4 48.6 41.3 45.2 35 45.2 C28.7 45.2 24.6 48.6 19 48.6 C12.6 48.6 7.2 45.4 7.2 41 Z"
           fill="url(#capacitor-dome)"
           opacity="0.94"
         />
 
-        {/* Reflets spéculaires et ombre de contact pour donner un vrai volume. */}
-        <path d="M21.1 18.8 C22 10.5 27.5 5.1 34.8 4.6 C29.2 7.1 25.7 12.2 25.5 19 V36.5 C24.2 39.4 22.6 40.5 20.8 39.3 Z" fill="#eefaff" opacity="0.30" />
-        <path d="M23 11.8 C25.5 7.2 29.2 4.8 34.1 4.2" fill="none" stroke="#ffffff" strokeWidth="1.7" strokeLinecap="round" opacity="0.62" />
-        <path d="M50.1 18 C49.4 11.1 44.8 6.2 38.8 4.8 C45.5 7.4 48 12.3 48.2 19 V38.8 C49.1 41.3 50.1 41.6 50.2 39 Z" fill="#062946" opacity="0.20" />
-        <path d="M19.7 40.2 C25.2 43.2 30.2 41.9 35 41.9 C39.8 41.9 44.8 43.2 50.3 40.2" fill="none" stroke="#082c4b" strokeWidth="1.05" opacity="0.48" />
-        <path d="M25.8 46.6 C29.4 47.5 31.7 45.4 35 45.4 C38.3 45.4 40.6 47.5 44.2 46.6" fill="none" stroke="#071f35" strokeWidth="0.72" opacity="0.34" />
+        {/* Reflets spéculaires et ombres de volume. */}
+        <path d="M10.8 19.5 C11.7 10.1 20.7 4.2 34.6 3.4 C25.8 6 18.9 12.1 18.5 19.7 V40.5 C17.2 43.4 14.1 44.7 10.7 42.6 Z" fill="#eefaff" opacity="0.31" />
+        <path d="M14.2 13.4 C17.6 7.3 24.4 4.3 33.1 3.7" fill="none" stroke="#ffffff" strokeWidth="1.9" strokeLinecap="round" opacity="0.66" />
+        <path d="M59.2 18.5 C58.4 10.7 51.9 5.5 43.2 3.8 C53.1 7.1 56.4 12.3 56.5 19.4 V40.1 C57.7 43 59.1 43.2 59.4 39.7 Z" fill="#062946" opacity="0.21" />
+        <path d="M9.5 41.5 C18.1 45.1 25.4 43.3 35 43.3 C44.6 43.3 51.9 45.1 60.5 41.5" fill="none" stroke="#082c4b" strokeWidth="1.05" opacity="0.48" />
+        <path d="M18.4 48.8 C24.8 50 29 46.5 35 46.5 C41 46.5 45.2 50 51.6 48.8" fill="none" stroke="#071f35" strokeWidth="0.72" opacity="0.36" />
       </svg>
     </div>
   )
