@@ -3,8 +3,8 @@ import React from 'react'
 /**
  * Rendu visuel réaliste d'une LED traversante 5 mm.
  * Contrat électrique conservé : viewBox 80×64, anode (28,62), cathode (52,62).
- * V18 : les pattes physiques sont des formes SVG remplies, afin de garantir
- * leur largeur visuelle indépendamment du rendu du stroke.
+ * V19 : renforcement de la patte droite rectiligne, avec géométrie remplie
+ * plutôt qu'un simple stroke afin de garder une largeur stable au rendu.
  */
 export function LedPart({ isOn, uid }) {
   const lensMain = isOn ? '#e52a31' : '#8e1f24'
@@ -40,9 +40,9 @@ export function LedPart({ isOn, uid }) {
           <clipPath id={`${id}-glass-clip`}><path d="M15 37 V15 C15 6.2 25.7 1 40 1 C54.3 1 65 6.2 65 15 V37 Z" /></clipPath>
         </defs>
 
-        {/* Physical anode: filled metal geometry, centerline and endpoint unchanged. */}
-        <rect x="24.5" y="38.5" width="7" height="23.5" rx="3.5" fill={`url(#${id}-metal)`} />
-        <rect x="26.0" y="39.5" width="1.05" height="21.5" rx="0.52" fill="#f8fafb" opacity="0.78" />
+        {/* Physical anode: wider filled metal geometry; centerline and endpoint unchanged. */}
+        <rect x="23.5" y="38.5" width="9" height="23.5" rx="4.5" fill={`url(#${id}-metal)`} />
+        <rect x="25.0" y="39.5" width="1.1" height="21.5" rx="0.55" fill="#f8fafb" opacity="0.78" />
 
         {/* Physical cathode: filled bent geometry, endpoint remains exactly (52,62). */}
         <path d="M50 38.5 H54 C54 42.4 54.7 43.8 57.0 46.0 C59.9 48.8 60.2 51.5 58.7 54.5 C57.5 56.9 54.9 59.9 53.0 62.0 H49.5 C51.2 59.0 54.2 55.2 55.2 53.2 C56.1 51.3 55.6 49.9 53.7 48.1 C51.0 45.5 50 43.3 50 38.5 Z" fill={`url(#${id}-metal)`} />
