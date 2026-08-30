@@ -4,13 +4,19 @@ import React from 'react'
  * Rendu visuel réaliste d'un condensateur céramique traversant.
  *
  * Contrat électrique inchangé : pinA=(0,20), pinB=(70,20).
- * Le dessin visuel est volontairement indépendant de la position des
- * endpoints : les connexions restent latérales pour le moteur, tandis que
- * les pattes visibles descendent sous le corps.
+ * Le dessin visuel est indépendant des endpoints : les connexions restent
+ * latérales pour le moteur, tandis que les pattes visibles descendent sous
+ * le corps. Les marqueurs Pin restent interactifs mais sont invisibles sur
+ * le Canvas afin de ne pas polluer la silhouette réaliste.
  */
 export function CapacitorPart() {
   return (
     <div className="part-capacitor" aria-label="Condensateur">
+      <style>{`
+        .circuit-component:has(.part-capacitor) .myblab-pin {
+          opacity: 0 !important;
+        }
+      `}</style>
       <svg viewBox="0 0 70 64" width="70" height="64" role="img" aria-hidden="true" overflow="visible" style={{ display: 'block', overflow: 'visible' }}>
         <defs>
           <linearGradient id="capacitor-body" x1="0" y1="0" x2="1" y2="0">
