@@ -11,13 +11,6 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "anode", label: "Anode", dx: 0, dy: 20 },
     { id: "cathode", label: "Cathode", dx: 80, dy: 20 },
   ],
-  // MB-BREADBOARD-003 (Blueprint MB-BREADBOARD-003 §1) : dx du second pin
-  // corrigé de 90 → 84 (multiple de BREADBOARD_PITCH=12 le plus proche —
-  // vérifié numériquement : 90 mod 12 = 6, hors tolérance d'insertion (±2)
-  // quelle que soit la position, donc les deux pattes ne pouvaient jamais
-  // atterrir simultanément sur des trous valides). `width` (COMPONENT_TYPES
-  // ci-dessous) suit la même correction pour garder les pins aux bords du
-  // corps rendu.
   RESISTOR: [
     { id: "A", label: "A", dx: 0, dy: 14 },
     { id: "B", label: "B", dx: 84, dy: 14 },
@@ -29,42 +22,41 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "5V", label: "5V", dx: 120, dy: 50 },
   ],
   BUTTON: [
-    { id: "pin1", label: "1", dx: 0, dy: 30 },
-    { id: "pin2", label: "2", dx: 60, dy: 30 },
+    { id: "1", label: "1", dx: 0, dy: 20 },
+    { id: "2", label: "2", dx: 60, dy: 20 },
   ],
   BUTTON_LATCHING: [
-    { id: "pin1", label: "1", dx: 0, dy: 30 },
-    { id: "pin2", label: "2", dx: 60, dy: 30 },
+    { id: "1", label: "1", dx: 0, dy: 20 },
+    { id: "2", label: "2", dx: 60, dy: 20 },
   ],
   POWER: [
-    { id: "5V", label: "+5V", dx: 70, dy: 37 },
-    { id: "GND", label: "GND", dx: 58, dy: 25 },
+    { id: "5V", label: "+5V", dx: 0, dy: 20 },
+    { id: "GND", label: "GND", dx: 0, dy: 70 },
   ],
   CAPACITOR: [
     { id: "pinA", label: "A", dx: 0, dy: 20 },
     { id: "pinB", label: "B", dx: 70, dy: 20 },
   ],
   BUZZER: [
-    { id: "plus", label: "+", dx: 10, dy: 50 },
-    { id: "minus", label: "-", dx: 60, dy: 50 },
+    { id: "positive", label: "+", dx: 18, dy: 0 },
+    { id: "negative", label: "−", dx: 52, dy: 0 },
   ],
   POTENTIOMETER: [
-    { id: "left", label: "L", dx: 10, dy: 50 },
-    { id: "wiper", label: "W", dx: 45, dy: 0 },
-    { id: "right", label: "R", dx: 80, dy: 50 },
+    { id: "VCC", label: "VCC", dx: 0, dy: 20 },
+    { id: "WIPER", label: "WIPER", dx: 45, dy: 50 },
+    { id: "GND", label: "GND", dx: 90, dy: 20 },
   ],
-  // MB-BREADBOARD-003 : même correction dx 90 → 84 qu'au-dessus (RESISTOR).
   LDR: [
-    { id: "A", label: "A", dx: 0, dy: 18 },
-    { id: "B", label: "B", dx: 84, dy: 18 },
+    { id: "A", label: "A", dx: 0, dy: 28 },
+    { id: "B", label: "B", dx: 70, dy: 28 },
   ],
   THERMISTOR: [
-    { id: "A", label: "A", dx: 0, dy: 18 },
-    { id: "B", label: "B", dx: 84, dy: 18 },
+    { id: "A", label: "A", dx: 0, dy: 28 },
+    { id: "B", label: "B", dx: 70, dy: 28 },
   ],
   DIODE: [
-    { id: "anode", label: "A", dx: 0, dy: 15 },
-    { id: "cathode", label: "K", dx: 84, dy: 15 },
+    { id: "anode", label: "A", dx: 0, dy: 20 },
+    { id: "cathode", label: "K", dx: 70, dy: 20 },
   ],
   RGB_LED: [
     { id: "R", label: "R", dx: 12, dy: 56 },
@@ -79,38 +71,22 @@ const PIN_PRESENTATION_BY_TYPE = {
   ],
   SERVO: [
     { id: "signal", label: "SIG", dx: 90, dy: 20 },
-    { id: "vcc", label: "VCC", dx: 90, dy: 35 },
-    { id: "gnd", label: "GND", dx: 90, dy: 50 },
+    { id: "vcc", label: "VCC", dx: 90, dy: 45 },
+    { id: "gnd", label: "GND", dx: 90, dy: 70 },
   ],
-  // MB-BREADBOARD-003 : même correction dx 90 → 84 qu'au-dessus (RESISTOR).
   DC_MOTOR: [
-    { id: "plus", label: "+", dx: 0, dy: 25 },
-    { id: "minus", label: "-", dx: 84, dy: 25 },
+    { id: "positive", label: "+", dx: 0, dy: 25 },
+    { id: "negative", label: "−", dx: 90, dy: 25 },
   ],
 }
 
 function buildPins(type) {
-  const canonicalEntry = getCanonicalEntry(type)
-  const presentationPins = PIN_PRESENTATION_BY_TYPE[type]
+  const canonical = getCanonicalEntry(type)
+  if (!canonical) return []
+  const presentation = PIN_PRESENTATION_BY_TYPE[type] ?? []
 
-  if (!canonicalEntry || !presentationPins) {
-    throw new Error(`Unknown component pin definition: ${type}`)
-  }
-
-  const presentationById = new Map()
-  for (const presentationPin of presentationPins) {
-    if (presentationById.has(presentationPin.id)) {
-      throw new Error(`Duplicate presentation pin id for component ${type}: ${presentationPin.id}`)
-    }
-    presentationById.set(presentationPin.id, presentationPin)
-  }
-
-  if (canonicalEntry.pins.length !== presentationPins.length) {
-    throw new Error(`Pin count mismatch for component ${type}`)
-  }
-
-  return canonicalEntry.pins.map((canonicalPin) => {
-    const presentationPin = presentationById.get(canonicalPin.id)
+  return canonical.pins.map((canonicalPin) => {
+    const presentationPin = presentation.find((pin) => pin.id === canonicalPin.id)
     if (!presentationPin) {
       throw new Error(`Missing presentation pin for component ${type}: ${canonicalPin.id}`)
     }
@@ -123,14 +99,6 @@ function buildPins(type) {
     }
   })
 }
-
-/**
- * Définitions des composants électroniques MYBlab.
- * Chaque type expose : dimensions, pins (offsets relatifs), métadonnées simulation.
- *
- * Modèle instance sur le canvas :
- * { uid, type, x, y, pins: [] }  — pins[] réservé pour état futur (ex. bouton pressé)
- */
 
 export const COMPONENT_TYPES = {
   LED: {
@@ -145,7 +113,6 @@ export const COMPONENT_TYPES = {
     id: "RESISTOR",
     label: "Résistance",
     icon: "〰️",
-    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin B ci-dessus.
     width: 84,
     height: 28,
     pins: buildPins("RESISTOR"),
@@ -187,7 +154,7 @@ export const COMPONENT_TYPES = {
     label: "Condensateur",
     icon: "║║",
     width: 70,
-    height: 40,
+    height: 64,
     pins: buildPins("CAPACITOR"),
   },
   BUZZER: {
@@ -208,29 +175,26 @@ export const COMPONENT_TYPES = {
   },
   LDR: {
     id: "LDR",
-    label: "Photoresistance (LDR)",
-    icon: "☀️",
-    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin B ci-dessus.
-    width: 84,
-    height: 36,
+    label: "Photorésistance",
+    icon: "☀",
+    width: 70,
+    height: 56,
     pins: buildPins("LDR"),
   },
   THERMISTOR: {
     id: "THERMISTOR",
     label: "Thermistance",
     icon: "🌡",
-    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin B ci-dessus.
-    width: 84,
-    height: 36,
+    width: 70,
+    height: 56,
     pins: buildPins("THERMISTOR"),
   },
   DIODE: {
     id: "DIODE",
     label: "Diode",
-    icon: "↦|",
-    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin cathode ci-dessus.
-    width: 84,
-    height: 30,
+    icon: "▶|",
+    width: 70,
+    height: 40,
     pins: buildPins("DIODE"),
   },
   RGB_LED: {
@@ -252,24 +216,22 @@ export const COMPONENT_TYPES = {
   SERVO: {
     id: "SERVO",
     label: "Micro Servo",
-    icon: "⚙️",
-    width: 90,
-    height: 70,
+    icon: "⚙",
+    width: 110,
+    height: 90,
     pins: buildPins("SERVO"),
   },
   DC_MOTOR: {
     id: "DC_MOTOR",
     label: "Moteur DC",
-    icon: "🌀",
-    // MB-BREADBOARD-003 : width 90 → 84, cohérent avec dx du pin minus ci-dessus.
-    width: 84,
+    icon: "⚙",
+    width: 90,
     height: 50,
     pins: buildPins("DC_MOTOR"),
   },
 }
 
-/** Liste ordonnée pour la sidebar */
-export const PALETTE_ITEMS = [
+export const COMPONENT_LIBRARY = [
   COMPONENT_TYPES.LED,
   COMPONENT_TYPES.RESISTOR,
   COMPONENT_TYPES.ARDUINO,
@@ -288,30 +250,18 @@ export const PALETTE_ITEMS = [
   COMPONENT_TYPES.DC_MOTOR,
 ]
 
-/**
- * @param {string} type
- */
 export function getComponentDef(type) {
   return COMPONENT_TYPES[type] ?? null
 }
 
-/**
- * Crée une nouvelle instance de composant.
- * @param {string} type
- * @param {number} x
- * @param {number} y
- */
-export function createComponent(type, x, y) {
+export function createComponent(type, x = 100, y = 100) {
   const def = getComponentDef(type)
   if (!def) return null
-
   return {
-    uid: createUid(),
-    type: def.id,
+    uid: createUid(type.toLowerCase()),
+    type,
     x,
     y,
     pins: def.pins.map((pin) => ({ ...pin })),
-    ...(def.id === "BUTTON" ? { state: "released" } : {}),
-    ...(def.id === "BUTTON_LATCHING" ? { state: "off" } : {}),
   }
 }
