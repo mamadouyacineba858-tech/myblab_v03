@@ -65,7 +65,12 @@ export function CircuitComponent({ component }) {
     [onPinClick, uid]
   )
 
-  const isButton = type === "BUTTON"
+  // MB-VIS-COMP-002 : dérivé de la capacité déclarative `interaction`
+  // (componentDefinitions.js) au lieu de tester littéralement le type.
+  // Comportement strictement inchangé : seul BUTTON déclare
+  // interaction.type === "momentary", seul BUTTON_LATCHING déclare
+  // interaction.type === "latching" — voir componentDefinitions.js.
+  const isButton = def?.interaction?.type === "momentary"
 
   const handleButtonPointerDown = useCallback((e) => {
     e.preventDefault()
@@ -108,7 +113,7 @@ export function CircuitComponent({ component }) {
     e.preventDefault()
     e.stopPropagation()
   }, [])
-  const isLatchingButton = type === "BUTTON_LATCHING"
+  const isLatchingButton = def?.interaction?.type === "latching"
 
   const handleLatchingButtonPointerDown = useCallback((e) => {
     e.preventDefault()

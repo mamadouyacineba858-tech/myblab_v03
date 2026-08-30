@@ -1,13 +1,23 @@
 import { useMemo } from 'react';
-import { getLedState, getRgbLedState } from '../../simulator/engine.js';
 import { createDefaultVisualizationManager } from '../../visualization/factory.js';
 import { DEFAULT_REGISTRATIONS } from '../../visualization/defaultRegistrations.js';
+import { getVisualState } from '../../visualization/visualStateRegistry.js';
+import '../../visualization/defaultVisualStateRegistrations.js';
 
 /**
  * PartRenderer — Rendu des composants électroniques
- * 
+ *
  * Délègue la sélection et le rendu du composant au VisualizationManager.
- * La logique métier (LED, RGB_LED) est conservée localement.
+ *
+ * MB-VIS-COMP-002 : la logique métier spécifique à LED/RGB_LED (calcul de
+ * isOn / r,g,b à partir des signaux de pins) n'est plus branchée
+ * littéralement ici (`if (type === 'LED') ...`). Elle est déclarée dans le
+ * Visual State Registry (visualization/visualStateRegistry.js +
+ * defaultVisualStateRegistrations.js) et consultée génériquement via
+ * getVisualState(type, context). Un type sans resolver enregistré
+ * fonctionne normalement (getVisualState retourne {}) : ajouter un
+ * composant visuel statique ne nécessite donc plus de modifier ce
+ * fichier.
  */
 export function PartRenderer({
   type,
@@ -45,14 +55,9 @@ export function PartRenderer({
     ...otherProps,
   };
 
-  // Enrichissement des props selon le type (comportement strictement conservé)
-  if (type === 'LED') {
-    const { on } = getLedState(uid ?? "", signals);
-    rendererProps = { ...rendererProps, isOn: on };
-  } else if (type === 'RGB_LED') {
-    const { r, g, b } = getRgbLedState(uid ?? "", signals);
-    rendererProps = { ...rendererProps, r, g, b };
-  }
+  // Enrichissement des props via le Visual State Registry (comportement
+  // strictement conservé pour LED/RGB_LED ; {} pour tout autre type).
+  rendererProps = { ...rendererProps, ...getVisualState(type, { uid, pinSignals: signals }) };
 
   // Délégation complète au VisualizationManager
   return manager.render(type, rendererProps);
