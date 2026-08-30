@@ -4,7 +4,21 @@
  * Electrical pin coordinates remain canonical in componentDefinitions.js and
  * continue to drive simulation/connectivity/breadboard placement. This module
  * only defines where a connector is drawn and where a wire visually lands.
+ *
+ * [MB-VIS-COMP-005] Le cas générique (aucune projection visuelle) déléguait
+ * jusqu'ici à une réimplémentation locale de la même formule
+ * (`component.x + pinDef.dx`, `component.y + pinDef.dy`, même garde
+ * Number.isFinite) que `geometry.js::getPinPosition()` — duplication
+ * établie (byte pour byte identique) et retirée : ce fichier délègue
+ * maintenant à `getPinPosition()`, la fonction géométrique canonique
+ * unique. La projection visuelle LED elle-même (LED_VISUAL_PINS) est
+ * volontairement conservée telle quelle : c'est une décision de
+ * présentation légitime, distincte du calcul canonique, documentée depuis
+ * MB-VIS-LED-V5, qui ne déplace jamais la position électrique retournée
+ * par getPinPosition() (I8) — seul l'endroit où un fil est DESSINÉ change,
+ * jamais la géométrie électrique.
  */
+import { getPinPosition } from "./geometry.js"
 
 const LED_VISUAL_PINS = {
   anode: { x: 28, y: 62 },
@@ -13,8 +27,9 @@ const LED_VISUAL_PINS = {
 
 /**
  * Resolve the presentation coordinate of a component pin.
- * Falls back to the canonical electrical coordinate for every component and
- * every pin that has no presentation override.
+ * Falls back to the canonical electrical coordinate (getPinPosition(),
+ * geometry.js) for every component and every pin that has no presentation
+ * override.
  */
 export function getPinPresentationPosition(component, pinDef) {
   if (!component || !pinDef) return null
@@ -27,10 +42,7 @@ export function getPinPresentationPosition(component, pinDef) {
     return { x, y }
   }
 
-  const x = component.x + pinDef.dx
-  const y = component.y + pinDef.dy
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return null
-  return { x, y }
+  return getPinPosition(component, pinDef)
 }
 
 export function getLedVisualPinPosition(pinId) {

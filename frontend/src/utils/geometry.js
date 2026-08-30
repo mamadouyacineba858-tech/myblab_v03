@@ -5,6 +5,24 @@
 
 /**
  * Position absolue d'une pin sur le canvas.
+ *
+ * [MB-VIS-COMP-005] Fonction géométrique CANONIQUE unique : traduction pure
+ * `component.x/y` (position d'instance) + `pinDef.dx/dy` (offset local de
+ * définition, componentDefinitions.js) → coordonnées absolues Canvas.
+ * Aucune rotation n'est appliquée : aucun composant du pipeline réel ne
+ * porte de `component.rotation` actif (seule occurrence trouvée dans tout
+ * le code source : un champ arbitraire de test de passthrough générique,
+ * ReactDocumentMapper.test.js T11, sans rapport avec la géométrie des
+ * pins — voir rapport MB-VIS-COMP-005 §Rotation). Si une rotation devient
+ * un jour active, cette fonction est le seul endroit où l'appliquer.
+ *
+ * Aucun branchement par type de composant ici (I6) — c'est précisément ce
+ * qui la distingue de `pinPresentationGeometry.js::getPinPresentationPosition()`,
+ * qui délègue son cas générique à CETTE fonction mais conserve, à côté,
+ * une projection visuelle volontaire et légitime pour LED (MB-VIS-LED-V5) :
+ * cette dernière ne fait PAS partie du calcul canonique et ne déplace
+ * jamais la position électrique retournée ici.
+ *
  * @param {{ x: number, y: number }} component
  * @param {{ dx: number, dy: number }} pinDef
  * @returns {{ x: number, y: number } | null}
