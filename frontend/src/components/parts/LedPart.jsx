@@ -8,8 +8,9 @@ import React from 'react'
  * - anode : (28,62)
  * - cathode : (52,62)
  *
- * V16 : pattes plus épaisses et finition métallique plus réaliste.
- * Les extrémités électriques restent inchangées.
+ * V17 : patte droite épaissie pour retrouver une proportion réaliste avec
+ * la patte coudée et la référence physique. Les extrémités électriques
+ * restent inchangées.
  */
 export function LedPart({ isOn, uid }) {
   const lensMain = isOn ? '#e52a31' : '#8e1f24'
@@ -70,10 +71,10 @@ export function LedPart({ isOn, uid }) {
           </clipPath>
         </defs>
 
-        {/* Physical leads: straight lead thickened to match the reference; cathode remains subtly bent. */}
-        <path d="M28 39 V62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="7" strokeLinecap="round" />
+        {/* Physical leads: straight lead widened; cathode remains subtly bent. */}
+        <path d="M28 39 V62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="9" strokeLinecap="round" />
         <path d="M52 39 C52 43.1 53.1 44.9 55.3 47 C57.6 49.2 58.2 51.4 57.05 53.8 C55.95 56.15 53.95 59.35 52 62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M27.2 40 V61.25" fill="none" stroke="#f8fafb" strokeWidth="0.82" strokeLinecap="round" opacity="0.76" />
+        <path d="M27.15 40 V61.25" fill="none" stroke="#f8fafb" strokeWidth="1" strokeLinecap="round" opacity="0.76" />
         <path d="M51.2 40 C51.3 43.35 52.7 45.1 54.9 47.2 C57.05 49.25 57.6 51.3 56.55 53.55 C55.45 55.85 53.65 58.9 52.2 61.25" fill="none" stroke="#f8fafb" strokeWidth="0.82" strokeLinecap="round" opacity="0.76" />
 
         {/* Thin molded collar */}
