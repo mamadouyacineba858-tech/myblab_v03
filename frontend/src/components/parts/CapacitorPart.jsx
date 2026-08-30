@@ -1,37 +1,87 @@
 import React from 'react'
 
 /**
- * Rendu visuel réaliste d'un condensateur traversant.
+ * Rendu visuel réaliste d'un condensateur radial/disque.
  * Contrat électrique inchangé : pinA=(0,20), pinB=(70,20).
- * Silhouette compacte inspirée de la référence validée.
+ * Le rendu visuel déborde volontairement de la boîte logique 70×40.
  */
 export function CapacitorPart() {
   return (
-    <div className="part-capacitor" aria-label="Condensateur" style={{ position:'relative', width:'70px', height:'40px', overflow:'visible', background:'transparent', border:0, borderRadius:0, boxShadow:'none', display:'block' }}>
+    <div
+      className="part-capacitor"
+      aria-label="Condensateur"
+      style={{
+        position: 'relative', width: '70px', height: '40px', overflow: 'visible',
+        background: 'transparent', border: 0, borderRadius: 0, boxShadow: 'none', display: 'block',
+      }}
+    >
       <style>{`.circuit-component:has(.part-capacitor) .myblab-pin{opacity:0!important}.circuit-component:has(.part-capacitor) .circuit-component__body{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:0!important;overflow:visible!important}`}</style>
-      <svg viewBox="0 -20 70 80" width="70" height="80" role="img" aria-hidden="true" overflow="visible" style={{position:'absolute',left:0,top:'-20px',width:'70px',height:'80px',display:'block',overflow:'visible'}}>
+
+      <svg
+        viewBox="0 -42 70 100"
+        width="70"
+        height="100"
+        role="img"
+        aria-hidden="true"
+        overflow="visible"
+        style={{ position:'absolute', left:0, top:'-42px', width:'70px', height:'100px', display:'block', overflow:'visible' }}
+      >
         <defs>
-          <radialGradient id="capacitor-body" cx="29%" cy="18%" r="82%">
-            <stop offset="0%" stopColor="#bfe2f8"/><stop offset="17%" stopColor="#75afd9"/><stop offset="43%" stopColor="#347db7"/><stop offset="74%" stopColor="#14558e"/><stop offset="100%" stopColor="#0b3761"/>
+          <radialGradient id="capacitor-disk" cx="32%" cy="25%" r="78%">
+            <stop offset="0%" stopColor="#ffe6a3" />
+            <stop offset="24%" stopColor="#f6bd43" />
+            <stop offset="62%" stopColor="#d98b12" />
+            <stop offset="88%" stopColor="#b96908" />
+            <stop offset="100%" stopColor="#8c4d05" />
           </radialGradient>
-          <linearGradient id="capacitor-metal" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#59636a"/><stop offset="28%" stopColor="#d9e0e4"/><stop offset="48%" stopColor="#ffffff"/><stop offset="64%" stopColor="#aab4ba"/><stop offset="100%" stopColor="#505a61"/>
+          <linearGradient id="capacitor-lead" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#596066" />
+            <stop offset="28%" stopColor="#b8bec2" />
+            <stop offset="48%" stopColor="#f3f5f6" />
+            <stop offset="64%" stopColor="#9da5aa" />
+            <stop offset="100%" stopColor="#50575c" />
           </linearGradient>
+          <filter id="capacitor-shadow" x="-30%" y="-30%" width="160%" height="170%">
+            <feGaussianBlur stdDeviation="0.9" />
+          </filter>
         </defs>
 
-        <path d="M24 38 V59" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.6" strokeLinecap="round"/>
-        <path d="M46 38 V59" fill="none" stroke="url(#capacitor-metal)" strokeWidth="3.6" strokeLinecap="round"/>
-        <path d="M23.35 39 V57.8" fill="none" stroke="#ffffff" strokeWidth="0.6" strokeLinecap="round" opacity="0.7"/>
-        <path d="M45.35 39 V57.8" fill="none" stroke="#ffffff" strokeWidth="0.6" strokeLinecap="round" opacity="0.7"/>
+        {/* Deux longues pattes métalliques identiques. */}
+        <path d="M24 34 V88" fill="none" stroke="#172027" strokeWidth="3.1" strokeLinecap="round" opacity="0.32" filter="url(#capacitor-shadow)" />
+        <path d="M46 34 V88" fill="none" stroke="#172027" strokeWidth="3.1" strokeLinecap="round" opacity="0.32" filter="url(#capacitor-shadow)" />
+        <path d="M24 34 V88" fill="none" stroke="url(#capacitor-lead)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M46 34 V88" fill="none" stroke="url(#capacitor-lead)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M23.55 35 V86.5" fill="none" stroke="#ffffff" strokeWidth="0.45" strokeLinecap="round" opacity="0.62" />
+        <path d="M45.55 35 V86.5" fill="none" stroke="#ffffff" strokeWidth="0.45" strokeLinecap="round" opacity="0.62" />
 
-        {/* Corps compact : largeur dominante, sommet arrondi, côtés presque droits. */}
-        <path d="M11 37 C8 33 7 27 7 20 C7 7 9 0 13 -7 C18 -16 26 -20 35 -20 C44 -20 52 -16 57 -7 C61 0 63 7 63 20 C63 27 62 33 59 37 C57 40 53 42 49 41 C44 40 40 38 35 38 C30 38 26 40 21 41 C17 42 13 40 11 37 Z" fill="url(#capacitor-body)" stroke="#0a355b" strokeWidth="1.2"/>
+        {/* Corps disque : forme circulaire légèrement aplatie, proche du premier modèle fourni. */}
+        <ellipse cx="35" cy="7" rx="25.5" ry="26" fill="#713d05" opacity="0.28" filter="url(#capacitor-shadow)" />
+        <path
+          d="M35 -19
+             C49 -19 60 -8 60 7
+             C60 22 49 33 35 33
+             C21 33 10 22 10 7
+             C10 -8 21 -19 35 -19 Z"
+          fill="url(#capacitor-disk)"
+          stroke="#9b5908"
+          strokeWidth="1.2"
+        />
 
-        <path d="M15 34 C12 28 11 22 11 16 C11 5 15 -5 22 -13 C19 -5 17 4 17 14 C17 23 19 30 16 35 Z" fill="#f3fbff" opacity="0.28"/>
-        <ellipse cx="27" cy="-11" rx="9" ry="4.4" fill="#ffffff" opacity="0.64" transform="rotate(-24 27 -11)"/>
-        <path d="M14 14 C16 4 20 -5 29 -13" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" opacity="0.5"/>
-        <path d="M58 16 C59 25 57 32 53 37 C50 40 47 40 44 39" fill="none" stroke="#062c4d" strokeWidth="2.8" opacity="0.25" strokeLinecap="round"/>
-        <path d="M14 37 C21 40 28 38 35 39 C42 38 49 40 56 37" fill="none" stroke="#062b49" strokeWidth="1.05" opacity="0.5"/>
+        {/* Reflets du vernis/moulage. */
+        <path
+          d="M18 16 C14 8 15 -2 20 -9 C24 -14 28 -17 33 -18 C26 -12 22 -5 22 4 C22 10 23 16 21 20 Z"
+          fill="#fff4c9"
+          opacity="0.34"
+        />
+        <ellipse cx="25" cy="-8" rx="7.5" ry="3.5" fill="#fff9df" opacity="0.55" transform="rotate(-25 25 -8)" />
+        <path d="M17 8 C18 -2 23 -10 31 -15" fill="none" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" opacity="0.42" />
+
+        {/* Marquage discret, comme sur un composant réel. */}
+        <text x="35" y="5.5" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="5.4" fontWeight="700" fill="#713b08" opacity="0.78">104</text>
+        <text x="35" y="11.5" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="3.4" fontWeight="600" fill="#713b08" opacity="0.68">50V</text>
+
+        {/* Petit liseré inférieur. */}
+        <path d="M15 20 C21 29 28 32 35 32 C42 32 49 29 55 20" fill="none" stroke="#9c5908" strokeWidth="0.9" opacity="0.58" />
       </svg>
     </div>
   )
