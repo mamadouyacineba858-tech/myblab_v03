@@ -212,6 +212,9 @@ La trajectoire stratégique de l'expérience est définie en §1.1 : **atteindre
 | --- | --- | --- |
 | EXP1 | Formalisation et clôture de MB-VIS-001 | Réalisé techniquement |
 | EXP2 | Visualisation des fils | Non commencé |
+| EXP3 | Parité visuelle composants & expérience — seuil Tinkercad | Planifié |
+| EXP4 | Dépassement du benchmark Tinkercad | Futur |
+| EXP5 | Laboratoire virtuel avancé et immersif | Vision long terme |
 
 ### EXP1 — Formalisation et clôture de MB-VIS-001
 
@@ -220,6 +223,56 @@ Consolider la traçabilité PMO de la capacité déjà réalisée, sans refaire 
 ### EXP2 — Visualisation des fils
 
 Étendre la restitution graphique aux fils et connexions du circuit, dans le respect des responsabilités de Presentation.
+
+### EXP3 — Parité visuelle composants & expérience — seuil Tinkercad
+
+Construire, par itérations PMO contrôlées, le niveau de restitution visuelle et d'expérience nécessaire pour atteindre le benchmark Tinkercad. Les travaux couvrent notamment la cohérence géométrique et dimensionnelle des composants, le réalisme des matériaux et des broches, les états visuels, le canvas, le câblage, le breadboard, les cartes et la cohérence générale de l'environnement de travail.
+
+Les Tickets PMO issus d'EXP3 sont organisés comme une séquence indicative et révisable après audit du dépôt :
+
+| Séquence | Ticket cible | Finalité de référence | État |
+| --- | --- | --- | --- |
+| V1 | MB-VIS-RENDER-009 | Baseline visuelle et contrat de qualité de rendu | Planifié |
+| V2 | MB-VIS-LED-010 | LED réaliste niveau benchmark | Planifié |
+| V3 | MB-VIS-COMP-011 | Résistance réaliste et proportions physiques | Planifié |
+| V4 | MB-VIS-COMP-012 | Diodes et composants axiaux | Planifié |
+| V5 | MB-VIS-COMP-013 | Boutons et interrupteurs — mécanique et états | Planifié |
+| V6 | MB-VIS-COMP-014 | Condensateurs, inductances et passifs | Planifié |
+| V7 | MB-VIS-COMP-015 | Transistors et semi-conducteurs | Planifié |
+| V8 | MB-VIS-COMP-016 | Potentiomètres et capteurs | Planifié |
+| V9 | MB-VIS-COMP-017 | Buzzer, moteur et servo | Planifié |
+| V10 | MB-VIS-COMP-018 | RGB LED et variantes LED | Planifié |
+| V11 | MB-VIS-COMP-019 | Arduino et cartes — rendu réaliste | Planifié |
+| V12 | MB-VIS-COMP-020 | Pins, contacts et précision d'ancrage | Planifié |
+| V13 | MB-VIS-WIRE-021 | Fils — géométrie, épaisseur, routage et jonctions | Planifié |
+| V14 | MB-VIS-WIRE-022 | États électriques et restitution dynamique des fils | Planifié |
+| V15 | MB-VIS-BREAD-023 | Breadboard — restitution visuelle de référence | Planifié |
+| V16 | MB-VIS-BREAD-024 | Insertion, alignement et assemblage breadboard | Planifié |
+| V17 | MB-VIS-CANVAS-025 | Canvas — grille, zoom, sélection, déplacement et snapping | Planifié |
+| V18 | MB-VIS-CANVAS-026 | Profondeur, ombres et feedback d'interaction | Planifié |
+| V19 | MB-VIS-STATE-027 | Système visuel des états de simulation | Planifié |
+| V20 | MB-VIS-LAB-028 | Cohérence visuelle globale du laboratoire | Planifié |
+| V21 | MB-VIS-QA-029 | Visual regression suite et verrouillage des rendus | Planifié |
+| V22 | MB-VIS-TINKERCAD-030 | Audit comparatif MYBlab ↔ benchmark Tinkercad et gate de niveau 1 | Jalon |
+
+Cette séquence n'est pas une spécification d'implémentation et ne donne pas d'autorisation implicite de modifier un sous-système architectural. Chaque ticket doit disposer de son Blueprint, de ses invariants, de ses limites de périmètre et de son CSA GO avant implémentation.
+
+### EXP4 — Dépassement du benchmark Tinkercad
+
+Identifier puis construire les capacités par lesquelles MYBlab apporte une valeur visuelle, interactive et pédagogique supérieure au benchmark. EXP4 commence après le gate de niveau 1 et ne se limite pas à reproduire Tinkercad.
+
+### EXP5 — Laboratoire virtuel avancé et immersif
+
+Préparer, à long terme et sous contrôle architectural, l'évolution vers un laboratoire électronique virtuel réaliste et immersif : représentation physique avancée, instrumentation, observation des phénomènes, interactions spatiales et, lorsque les ADR et l'architecture le permettront, représentation 3D.
+
+### 7.3 Règles spécifiques de progression visuelle
+
+1. **Audit avant implémentation** — l'ordre détaillé des Tickets EXP3 doit être confirmé ou ajusté par un audit du dépôt à la clôture du ticket précédent.
+2. **Amélioration visible** — chaque ticket visuel doit produire une amélioration observable de la qualité de restitution ou de l'expérience, sans sacrifier les invariants du Core.
+3. **Réalisme compatible** — le réalisme doit rester compatible avec les performances, la maintenabilité et l'architecture React/SVG retenue ; aucune architecture 3D n'est présupposée par EXP3.
+4. **Contrats canoniques** — les dimensions, pins, états et autres métadonnées déclaratives existants doivent être réutilisés plutôt que dupliqués.
+5. **Qualité de référence** — les critères de comparaison avec Tinkercad portent sur la perception utilisateur, la cohérence, les proportions, le comportement visuel et la qualité d'interaction, pas sur une copie de code ou de mécanismes propriétaires.
+6. **Gate de niveau 1** — MB-VIS-TINKERCAD-030 constitue le jalon de décision : le passage au niveau 2 doit être explicitement validé et tracé.
 
 ---
 
@@ -328,7 +381,9 @@ SIM1 ─ SIM2 ─ SIM3
 EMB1 - Runtime firmware réel
  └── exécution du comportement firmware
 
-EXP1 ───────────────────── EXP2
+EXP1 ───────────────────── EXP2 ───── EXP3 ───── EXP4 ───── EXP5
+                              │
+                              └── MB-VIS-RENDER-009 → … → MB-VIS-TINKERCAD-030
 ```
 
 Ce graphe ne signifie pas que chaque Épic doit attendre la clôture complète de toutes ses dépendances pour commencer.
@@ -458,6 +513,18 @@ Résultats attendus :
 * EXP2 traité selon les capacités stabilisées du Core et de l'Execution ;
 * cohérence globale de la restitution vérifiée.
 
+## J7 — Seuil visuel Tinkercad
+
+Résultats attendus :
+
+* EXP3 réalisé selon la séquence PMO validée et ajustée par audits successifs ;
+* composants usuels, fils, breadboard, cartes et canvas atteignent un niveau de référence cohérent ;
+* visual regression et critères de qualité visuelle verrouillés ;
+* **MB-VIS-TINKERCAD-030** exécuté comme gate comparatif ;
+* décision explicite de passage au Niveau 2 — Dépasser Tinkercad.
+
+J7 est un jalon Experience. Il ne modifie pas à lui seul les responsabilités architecturales du Tome II.
+
 ---
 
 # 15. Règles de gouvernance de la roadmap
@@ -489,6 +556,10 @@ Un Ticket PMO doit pouvoir être rattaché sans ambiguïté à un Programme et �
 ### R7 — La roadmap reste révisable
 
 Les priorités et jalons peuvent évoluer lorsque l'état réel du dépôt, une nouvelle décision architecturale ou une contrainte majeure le justifie. Toute modification significative doit toutefois rester traçable.
+
+### R8 — La trajectoire Tinkercad est un benchmark, pas une spécification
+
+Les Tickets EXP3 peuvent utiliser Tinkercad comme référence de qualité perçue et d'expérience, mais ne doivent pas copier son code, ses mécanismes propriétaires ou présumer une architecture identique. Le benchmark sert à mesurer un niveau cible ; l'architecture de MYBlab reste gouvernée par le Tome II et les ADR.
 
 ---
 
@@ -543,3 +614,5 @@ Toute évolution future de cette roadmap doit préserver la traçabilité :
 **Vision → Architecture → Programme → Épic → PMO → Implémentation → Vérification.**
 
 La trajectoire stratégique définie en §1.1 fait désormais partie intégrante de cette référence : **atteindre le niveau Tinkercad, dépasser ce benchmark, puis tendre vers un laboratoire électronique virtuel MYBlab avancé.** Elle ne doit pas être perdue ou implicitement abandonnée au fil des tickets futurs ; toute évolution significative de cette ambition doit être explicitement décidée et tracée dans la roadmap et les documents de gouvernance appropriés.
+
+La séquence EXP3 `MB-VIS-RENDER-009` → `MB-VIS-TINKERCAD-030` est désormais inscrite comme trajectoire indicative du premier seuil visuel. Elle reste révisable après audit de chaque étape et ne constitue pas une autorisation d'implémentation anticipée.
