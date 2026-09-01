@@ -21,6 +21,50 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
+/* MB-VIS-PROTOTYPE-001C.2 — un composant à backend RASTER (asset validé qui
+   porte déjà sa propre silhouette détourée ET son ombre de contact cuite dans
+   l'image) ne doit pas recevoir l'habillage de « carte » générique du
+   wrapper : le fond sombre, la bordure, les coins arrondis et l'ombre portée
+   générique sont neutralisés ici pour qu'il ne subsiste que l'asset lui-même
+   au-dessus du canvas / de la breadboard.
+   Le sélecteur cible la classe racine STABLE que le renderer émet
+   (`.part-resistor`, cf. plus bas dans ce fichier) — pas un flag temporaire,
+   pas de détection fragile, aucune branche `type === "…"` dans la couche de
+   rendu (ce qui préserve le garde-fou renderQualityGate T6). Quand d'autres
+   composants passeront au backend raster, leur `.part-<type>` s'ajoute à cette
+   liste ; l'architecture VISUAL/INDUSTRIAL pourra ensuite remplacer ce
+   sélecteur par un attribut déclaratif `[data-backend="raster"]` sans changer
+   l'intention. L'ombre de contact reste fournie par l'asset (non recréée ici). */
+.circuit-component__body:has(> .part-resistor) {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* MB-VIS-PROTOTYPE-001C.4 — RESISTOR raster : le marqueur visuel du <Pin>
+   (`.myblab-pin` — disque sombre #1e293b cerclé de #94a3b8, z-index 10)
+   dessine un « trou » sombre bien visible exactement à la pointe de chaque
+   lead, aux points d'insertion A(0,14)/B(84,14). Le lead métallique de
+   l'asset est déjà peint jusqu'à l'extrémité (pixel opaque vérifié) : on
+   neutralise donc uniquement l'HABILLAGE du marqueur pour le RESISTOR —
+   même effet visuel que `hideVisualMarker` déjà appliqué à la LED
+   (CircuitComponent.jsx) — mais par CSS, SANS branche `type === "…"` dans la
+   couche de rendu (garde-fou renderQualityGate T6 préservé) et SANS toucher
+   le système breadboard.
+   Le <button> reste dans le DOM : `opacity` inchangée (l'inline style du
+   Pin garde `opacity:1`), `pointer-events` intacts, dimensions/position
+   inchangées → câblage (clic), drag et sélection ne changent pas. Comme
+   pour la LED, le retour visuel de survol / pending / connecté n'est plus
+   rendu sur les pins du RESISTOR (le clic de câblage reste fonctionnel).
+   Aucun trou de breadboard n'est modifié : ceux voisins du RESISTOR restent
+   rendus normalement par Breadboard.jsx. */
+.circuit-component:has(.part-resistor) .myblab-pin {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
 .part-led {
   display: flex;
   align-items: center;

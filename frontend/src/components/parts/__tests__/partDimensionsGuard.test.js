@@ -33,6 +33,13 @@ const PART_FILES = readdirSync(PARTS_DIR).filter(
   (name) => name.endsWith("Part.jsx") && name !== "PartRenderer.jsx"
 )
 
+// MB-VIS-PROTOTYPE-001C : renderers passés au backend RASTER — ils rendent
+// un <img> vers un asset validé au lieu d'un <svg>. Le garde-fou "dimensions
+// du <svg> racine non codées en dur" ne s'applique plus à eux ; on vérifie
+// à la place l'absence de <svg> et la présence d'un <img> vers /assets/.
+// Ils continuent de dériver leurs dimensions de getComponentDef (2ᵉ `it`).
+const RASTER_PART_FILES = new Set(["ResistorPart.jsx"])
+
 function stripComments(source) {
   return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")
 }
@@ -67,6 +74,25 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
   })
 
   for (const file of PART_FILES) {
+    if (RASTER_PART_FILES.has(file)) {
+      it(`${file} : backend raster — aucun <svg> racine, rend un <img> vers /assets/`, () => {
+        const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")
+        const codeOnly = stripComments(rawSource)
+        expect(extractRootSvgOpenTag(codeOnly), `${file} ne devrait plus contenir de <svg>`).toBeNull()
+        expect(codeOnly, `${file} doit rendre un <img>`).toMatch(/<img\b/)
+        expect(codeOnly, `${file} doit référencer un asset sous /assets/`).toMatch(/["'`]\/assets\//)
+      })
+
+      it(`${file} : importe getComponentDef depuis componentDefinitions.js (source canonique unique)`, () => {
+        const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")
+        const codeOnly = stripComments(rawSource)
+        expect(codeOnly).toMatch(
+          /import\s*\{\s*getComponentDef\s*\}\s*from\s*["']\.\.\/\.\.\/config\/componentDefinitions\.js["']/
+        )
+      })
+      continue
+    }
+
     it(`${file} : le <svg> racine ne contient aucun viewBox/width/height littéral`, () => {
       const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")
       const codeOnly = stripComments(rawSource)

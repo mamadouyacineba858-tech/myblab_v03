@@ -319,6 +319,16 @@ EXP4 / EXP5 — dépassement du benchmark puis laboratoire virtuel immersif
 
 **Règle de gouvernance.** Aucun nouveau Ticket PMO d'amélioration visuelle composant-par-composant ne doit être lancé avant la validation CSA explicite de `MB-VIS-RENDER-010` (nouveau langage visuel) et de la technologie de rendu retenue. Les entrées V13 et suivantes de §7.2 (fils, breadboard, canvas, états, cohérence globale, QA visuelle, gate Tinkercad) restent valides et sont re-priorisées à la sortie de `MB-VIS-REVIEW-001`.
 
+**Éclatement historique de `MB-VIS-PROTOTYPE-001` (RESISTOR) et capitalisation.** Le prototype RESISTOR a été réalisé en plusieurs étapes : `001A` (feuille de production + harnais, `8ef285f`) → `CSA-AMENDMENT-001` (cible durcie, `6759e18`) → production externe → `001B` (validation raster, CSA VISUAL GO) → `001C` (intégration raster) → `001C.1` (audit wrapper) → `001C.2` (suppression du chrome wrapper) → `001C.4` (neutralisation des marqueurs de pin) → **état visuel validé par le CSA**, versionné par `MB-VIS-RESISTOR-CONSOLIDATION-001`. Les enseignements sont capitalisés dans :
+- `docs/pmo/standards/VISUAL-COMPONENT-PROTOCOL.md` — **protocole visuel standard en 12 phases** (0 Audit renderer → 1 Référence → 2 Asset → 3 Validation pixel → 4 Validation géométrique → 5 Intégration → 6 Artefacts wrapper → 7 Pin/câblage → 8 Breadboard → 9 Zoom → 10 Tests/tsc/build → 11 CSA VISUAL GO → 12 Versionnage), checklist « zéro perte de temps », familles de composants ;
+- `docs/pmo/repository-knowledge-base/KNOWN-BROKEN-STATE.md` — commande de test canonique, build `Breadboard.css` rouge pré-existant, 16 tests FAIL historiques, distinction FAIL pré-existant / régression ;
+- `docs/pmo/delivery-reports/MB-VIS-RESISTOR-CONSOLIDATED.md` — chronologie, validations, erreurs capitalisées ;
+- `docs/pmo/tickets/MB-VIS-PROTOTYPE-001{B,C,C.1,C.2,C.4}-resistor.md` — tickets historiques reconstitués.
+
+Ces enseignements et ce protocole sont **obligatoires** pour tous les composants visuels suivants.
+
+**`MB-VIS-INDUSTRIAL-001` avant DIODE.** Avant de traiter le composant suivant, `MB-VIS-INDUSTRIAL-001` doit **généraliser le backend déclaratif** : branchement de `resolveBackend()` + du champ `visual.backend` dans le `RendererRegistry` ; remplacement des règles CSS spécifiques `:has(.part-resistor)` (chrome du wrapper `.circuit-component__body` et marqueur `.myblab-pin`) par un attribut déclaratif `[data-backend="raster"]` / un flag `markerless` (aucun `type === "…"` ni `:has(.part-<kebab>)` par composant) ; helper générique des gardes de test raster ; budget de test raster (`RENDER_BUDGET.raster`) ; correctif `Breadboard.css` pré-existant. Séquence recommandée : **CAPITALISATION → `MB-VIS-INDUSTRIAL-001` → DIODE → LED → CAPACITOR → LDR / THERMISTOR → DC_MOTOR → suite** (§7.2 re-séquencée).
+
 ---
 
 # 8. Knowledge & Learning

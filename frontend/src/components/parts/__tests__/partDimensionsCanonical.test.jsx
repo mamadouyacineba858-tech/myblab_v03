@@ -40,8 +40,12 @@ import { COMPONENT_TYPES, getComponentDef } from "../../../config/componentDefin
 
 // Les 16 renderers concernés par MB-VIS-COMP-006 (tous ceux qui déclarent un
 // <svg> racine dimensionné — la totalité du catalogue courant).
+// MB-VIS-PROTOTYPE-001C : RESISTOR est passé au backend RASTER (rend un
+// <img> vers un asset validé, plus de <svg>). Il est retiré de ce
+// describe.each "dimensions du <svg>" et couvert par un describe dédié
+// ci-dessous, qui vérifie la même propriété (dimensions dérivées de
+// componentDefinitions.js, suivi de mutation) sur l'<img>.
 const ALL_PARTS = [
-  { type: "RESISTOR", Component: ResistorPart },
   { type: "LED", Component: LedPart },
   { type: "CAPACITOR", Component: CapacitorPart },
   { type: "DIODE", Component: DiodePart },
@@ -106,6 +110,35 @@ describe("MB-VIS-COMP-006 — dimensions des Part renderers dérivées de compon
       const svg = container.querySelector("svg")
       expect(svg.getAttribute("width")).toBe(String(def.width))
       expect(svg.getAttribute("height")).toBe(String(def.height))
+    })
+  })
+
+  describe("MB-VIS-PROTOTYPE-001C — RESISTOR backend raster : dimensions de l'<img> dérivées de componentDefinitions.js", () => {
+    it("TEST — au repos : width/height de l'<img> égalent EXACTEMENT def.width/def.height ; aucun <svg>", () => {
+      const def = getComponentDef("RESISTOR")
+      const { container } = render(<ResistorPart />)
+      const img = container.querySelector("img")
+      expect(img).not.toBeNull()
+      expect(container.querySelector("svg")).toBeNull()
+      expect(img.getAttribute("width")).toBe(String(def.width))
+      expect(img.getAttribute("height")).toBe(String(def.height))
+    })
+
+    it("TEST — mutation : si componentDefinitions.js change width/height, l'<img> rendu suit IMMÉDIATEMENT", () => {
+      withSwappedDimensions("RESISTOR", { width: 321, height: 654 }, () => {
+        const { container } = render(<ResistorPart />)
+        const img = container.querySelector("img")
+        expect(img.getAttribute("width")).toBe("321")
+        expect(img.getAttribute("height")).toBe("654")
+      })
+    })
+
+    it("TEST — après restauration : l'<img> revient à la valeur canonique d'origine", () => {
+      const def = getComponentDef("RESISTOR")
+      const { container } = render(<ResistorPart />)
+      const img = container.querySelector("img")
+      expect(img.getAttribute("width")).toBe(String(def.width))
+      expect(img.getAttribute("height")).toBe(String(def.height))
     })
   })
 

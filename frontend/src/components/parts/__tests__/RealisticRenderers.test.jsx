@@ -109,7 +109,9 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (structurel)', () =
 })
 
 describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat géométrique)', () => {
-  it.each(LOT)('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js', ({ type, Component }) => {
+  // MB-VIS-PROTOTYPE-001C : RESISTOR est passé au backend RASTER (<img>),
+  // exclu de la vérification "<svg> dimensionné" et couvert juste en dessous.
+  it.each(LOT.filter((entry) => entry.type !== 'RESISTOR'))('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js', ({ type, Component }) => {
     const def = getComponentDef(type)
     const { container } = render(<Component isOn={false} />)
     const svg = container.querySelector('svg')
@@ -117,6 +119,17 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat gé
     expect(svg.getAttribute('width')).toBe(String(def.width))
     expect(svg.getAttribute('height')).toBe(String(def.height))
     expect(svg.getAttribute('viewBox')).toBe(`0 0 ${def.width} ${def.height}`)
+  })
+
+  it('RESISTOR : backend raster — <img> aux dimensions de componentDefinitions.js, aucun <svg>', () => {
+    const def = getComponentDef('RESISTOR')
+    const { container } = render(<ResistorPart />)
+    const img = container.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(container.querySelector('svg')).toBeNull()
+    expect(img.getAttribute('width')).toBe(String(def.width))
+    expect(img.getAttribute('height')).toBe(String(def.height))
+    expect(img.getAttribute('src')).toMatch(/^\/assets\/components\/resistor\/resistor\.default\./)
   })
 
   it('RESISTOR : aria-label correct, aucune prop dynamique requise', () => {

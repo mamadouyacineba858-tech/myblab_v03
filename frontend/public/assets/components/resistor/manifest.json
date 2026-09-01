@@ -1,0 +1,66 @@
+{
+  "$comment": "Manifeste d'intégrité des assets visuels RESISTOR. Généré manuellement par MB-VIS-RESISTOR-CONSOLIDATION-001 à partir de mesures Node (fs.statSync, crypto SHA-256, parse PNG IHDR / WebP VP8X). Les SHA-256 sont figés : tout ticket ultérieur qui les modifie doit être traité comme une régression d'asset.",
+  "type": "RESISTOR",
+  "typeKebab": "resistor",
+  "canonicalBox": { "width": 84, "height": 28 },
+  "pins": [
+    { "id": "A", "dx": 0, "dy": 14 },
+    { "id": "B", "dx": 84, "dy": 14 }
+  ],
+  "backend": "raster",
+  "originTicket": "MB-VIS-PROTOTYPE-001B",
+  "validation": {
+    "csaVerdict": "CSA VISUAL GO — RESISTOR",
+    "qaScore": 4.63,
+    "qaTarget": 4,
+    "harness": "frontend/src/visualization/assetValidation/componentAssetValidation.js (contrôles A–L, PASS)",
+    "leadAnchorToleranceCanvasPx": 0.75,
+    "consolidatedReport": "docs/pmo/delivery-reports/MB-VIS-RESISTOR-CONSOLIDATED.md"
+  },
+  "assets": [
+    {
+      "file": "resistor.default.1x.png",
+      "state": "default",
+      "resolution": "1x",
+      "format": "png",
+      "alpha": true,
+      "width": 170,
+      "height": 57,
+      "bytes": 5631,
+      "sha256": "b5eae0cc87abf5ea0efd92f2020c9a42eb83405a494dbefe112f94076be1b670"
+    },
+    {
+      "file": "resistor.default.1x.webp",
+      "state": "default",
+      "resolution": "1x",
+      "format": "webp",
+      "alpha": true,
+      "width": 170,
+      "height": 57,
+      "bytes": 3030,
+      "sha256": "e6b8550329eec9ed04686a6a4517a2d1d4a81989ae2209842050c0b2713dcdf7"
+    },
+    {
+      "file": "resistor.default.3x.png",
+      "state": "default",
+      "resolution": "3x",
+      "format": "png",
+      "alpha": true,
+      "width": 510,
+      "height": 171,
+      "bytes": 25861,
+      "sha256": "115b56ab6e544288a5cbf042767a8f2d03c8a42a91746213471a84088ddcaa57"
+    },
+    {
+      "file": "resistor.default.3x.webp",
+      "state": "default",
+      "resolution": "3x",
+      "format": "webp",
+      "alpha": true,
+      "width": 510,
+      "height": 171,
+      "bytes": 10272,
+      "sha256": "c6ff40ceccba6a124c9cc60ca8380afe9f2b254db7d9bbd2c34d8e943ee87548"
+    }
+  ]
+}

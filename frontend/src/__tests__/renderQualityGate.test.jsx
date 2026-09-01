@@ -219,7 +219,13 @@ describe("MB-VIS-RENDER-009 — TEST T9 : garde-fou performance — nombre de pr
       const Component = getComponentByType(type)
       const { container } = render(<Component {...fixedPropsFor(type)} />)
       const svg = container.querySelector("svg")
-      expect(svg).not.toBeNull()
+      // MB-VIS-PROTOTYPE-001C : un renderer backend "raster" ne rend pas de
+      // <svg> mais un <img> vers un asset validé -> 0 primitive SVG, sous le
+      // plafond par construction. Le garde-fou reste actif pour les <svg>.
+      if (!svg) {
+        expect(container.querySelector("img"), `${type} : ni <svg> ni <img>`).not.toBeNull()
+        return
+      }
       const count = svg.querySelectorAll(PRIMITIVE_SELECTOR).length
       expect(count, `${type} compte ${count} primitives SVG`).toBeLessThan(PRIMITIVE_CEILING)
     })
