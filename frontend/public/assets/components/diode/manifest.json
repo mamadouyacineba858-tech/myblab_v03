@@ -1,0 +1,42 @@
+{
+  "component": "DIODE",
+  "backend": "raster",
+  "assetFamily": "diode",
+  "canonical": {
+    "width": 84,
+    "height": 30,
+    "pins": {
+      "anode": [
+        0,
+        15
+      ],
+      "cathode": [
+        84,
+        15
+      ]
+    }
+  },
+  "variants": [
+    {
+      "file": "diode.default.1x.png",
+      "scale": 1
+    },
+    {
+      "file": "diode.default.1x.webp",
+      "scale": 1
+    },
+    {
+      "file": "diode.default.3x.png",
+      "scale": 3
+    },
+    {
+      "file": "diode.default.3x.webp",
+      "scale": 3
+    }
+  ],
+  "budget": {
+    "maxWeightKbPerVariantSimple": 30,
+    "maxDimensionPx": 1024
+  },
+  "provenance": "AI-generated visual asset prepared for MB-VIS-PROTOTYPE-002; geometry contract remains repository-canonical."
+}

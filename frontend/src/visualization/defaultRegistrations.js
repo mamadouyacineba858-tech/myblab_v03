@@ -68,7 +68,10 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'POTENTIOMETER', component: PotentiometerPart },
   { type: 'LDR', component: LdrPart },
   { type: 'THERMISTOR', component: ThermistorPart },
-  { type: 'DIODE', component: DiodePart },
+  // DIODE : deuxième composant à backend raster (asset validé
+  // MB-VIS-PROTOTYPE-002). raster => bareBody + markerless dérivés, via le
+  // même mécanisme déclaratif que RESISTOR — aucun code central spécifique.
+  { type: 'DIODE', component: DiodePart, visual: { backend: 'raster' } },
   { type: 'RGB_LED', component: RgbLedPart },
   { type: 'NPN_TRANSISTOR', component: NpnTransistorPart },
   { type: 'SERVO', component: ServoPart },

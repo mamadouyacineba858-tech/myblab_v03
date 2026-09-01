@@ -22,6 +22,7 @@ import React from "react"
 import { describe, it, expect } from "vitest"
 import { render, act } from "@testing-library/react"
 import { readFileSync, existsSync, statSync } from "node:fs"
+import { createHash } from "node:crypto"
 import { fileURLToPath } from "node:url"
 import { dirname, resolve } from "node:path"
 
@@ -236,17 +237,49 @@ describe("MB-VIS-RENDER-009 — TEST T9 : garde-fou performance — nombre de pr
   }
 })
 
-describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : budget de poids des assets raster (RENDER_BUDGET.raster)", () => {
+describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster)", () => {
   // Pendant raster du garde-fou T9 (primitives SVG) : pour chaque composant
-  // dont l'entrée de registre déclare le backend raster, on vérifie que son
-  // manifeste d'assets existe, est cohérent (octets réels == déclarés) et
-  // reste sous le budget de poids / dimension du contrat visuel. Générique :
-  // tout futur composant raster est couvert sans le nommer ici.
+  // dont l'entrée de registre déclare le backend raster, on vérifie sur les
+  // FICHIERS RÉELS (octets, dimensions, sha256) que le paquet d'assets est
+  // présent, cohérent avec son manifeste / son ASSET-INTEGRITY, sous le budget
+  // de poids et de dimension du contrat visuel, et ancré à la géométrie
+  // canonique. Générique et TOLÉRANT AU SCHÉMA : `manifest.type` ou
+  // `manifest.component` ; `manifest.assets[]` (schéma RESISTOR) ou
+  // `manifest.variants[]` (schéma DIODE) ; `ASSET-INTEGRITY.json` optionnel.
+  // Tout futur composant raster est couvert sans le nommer ici.
   const publicDir = resolve(__dirname, "../../public")
   const RASTER_TYPES = ALL_TYPES.filter(
     (type) => getComponentPresentation(type).backend === "raster"
   )
   const toKebab = (type) => type.toLowerCase().replace(/_/g, "-")
+  const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
+
+  // Dimensions réelles d'un PNG (IHDR) ou d'un WebP (VP8X / VP8L / VP8 lossy).
+  function imageDims(buf) {
+    if (buf.toString("ascii", 12, 16) === "IHDR") {
+      return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) }
+    }
+    if (buf.toString("ascii", 0, 4) === "RIFF" && buf.toString("ascii", 8, 12) === "WEBP") {
+      const fourcc = buf.toString("ascii", 12, 16)
+      if (fourcc === "VP8X") {
+        return {
+          w: 1 + (buf[24] | (buf[25] << 8) | (buf[26] << 16)),
+          h: 1 + (buf[27] | (buf[28] << 8) | (buf[29] << 16)),
+        }
+      }
+      if (fourcc === "VP8L") {
+        const b = buf[21] | (buf[22] << 8) | (buf[23] << 16) | (buf[24] << 24)
+        return { w: (b & 0x3fff) + 1, h: ((b >> 14) & 0x3fff) + 1 }
+      }
+      if (fourcc === "VP8 ") {
+        return {
+          w: ((buf[27] << 8) | buf[26]) & 0x3fff,
+          h: ((buf[29] << 8) | buf[28]) & 0x3fff,
+        }
+      }
+    }
+    return null
+  }
 
   it("le budget raster du contrat est exploitable (bornes > 0)", () => {
     expect(RENDER_BUDGET.raster.maxWeightKbPerVariantSimple).toBeGreaterThan(0)
@@ -258,35 +291,85 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : budget de poids des assets raster
   })
 
   for (const type of RASTER_TYPES) {
-    it(`${type} : manifeste d'assets présent, octets cohérents, sous le budget`, () => {
+    it(`${type} : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget`, () => {
       const kebab = toKebab(type)
       const dir = resolve(publicDir, `assets/components/${kebab}`)
       const manifestPath = resolve(dir, "manifest.json")
       expect(existsSync(manifestPath), `manifeste manquant : ${manifestPath}`).toBe(true)
-
       const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"))
-      expect(manifest.type).toBe(type)
-      expect(Array.isArray(manifest.assets)).toBe(true)
-      // @1x + @3x, chacun en webp + png
-      expect(manifest.assets.length).toBe(RENDER_BUDGET.raster.resolutions * 2)
+
+      // composant déclaré (schéma RESISTOR: `type` ; schéma DIODE: `component`)
+      expect(manifest.type ?? manifest.component).toBe(type)
+      // backend déclaré cohérent si présent
+      if (manifest.backend !== undefined) expect(manifest.backend).toBe("raster")
+      // géométrie canonique déclarée cohérente avec componentDefinitions
+      // (schéma DIODE: `canonical` ; schéma RESISTOR: `canonicalBox`)
+      const canon = manifest.canonical ?? manifest.canonicalBox
+      if (canon) {
+        const def = COMPONENT_TYPES[type]
+        expect(canon.width).toBe(def.width)
+        expect(canon.height).toBe(def.height)
+      }
+
+      // liste des variantes image : `assets[]` OU `variants[]`
+      const entries = (manifest.assets ?? manifest.variants ?? [])
+      const imageEntries = entries.filter((e) => /\.(webp|png)$/.test(e.file))
+      expect(
+        imageEntries.length,
+        "attendu 2 résolutions × (webp + png)"
+      ).toBe(RENDER_BUDGET.raster.resolutions * 2)
+
+      // intégrité optionnelle (bytes + sha256 par fichier)
+      const integPath = resolve(dir, "ASSET-INTEGRITY.json")
+      const integrity = existsSync(integPath)
+        ? new Map(JSON.parse(readFileSync(integPath, "utf-8")).map((r) => [r.file, r]))
+        : null
 
       const cap =
-        manifest.complexity === "complex"
+        manifest.complexity === "complex" || manifest.budget?.complexity === "complex"
           ? RENDER_BUDGET.raster.maxWeightKbPerVariantComplex
           : RENDER_BUDGET.raster.maxWeightKbPerVariantSimple
 
-      for (const asset of manifest.assets) {
-        const assetPath = resolve(dir, asset.file)
-        expect(existsSync(assetPath), `asset manquant : ${asset.file}`).toBe(true)
-        expect(statSync(assetPath).size, `${asset.file} : octets réels ≠ manifeste`).toBe(asset.bytes)
+      for (const entry of imageEntries) {
+        const p = resolve(dir, entry.file)
+        expect(existsSync(p), `asset manquant : ${entry.file}`).toBe(true)
+        const buf = readFileSync(p)
+        const bytes = buf.length
+        expect(statSync(p).size).toBe(bytes)
+
+        // octets réels == manifeste (si déclarés) et == ASSET-INTEGRITY (si présent)
+        if (typeof entry.bytes === "number") {
+          expect(bytes, `${entry.file} : octets réels ≠ manifeste`).toBe(entry.bytes)
+        }
+        if (integrity?.has(entry.file)) {
+          expect(bytes, `${entry.file} : octets réels ≠ ASSET-INTEGRITY`).toBe(integrity.get(entry.file).bytes)
+          expect(sha256(buf), `${entry.file} : sha256 réel ≠ ASSET-INTEGRITY`).toBe(integrity.get(entry.file).sha256)
+        }
+
+        // budget de poids
         expect(
-          asset.bytes / 1024,
-          `${asset.file} = ${(asset.bytes / 1024).toFixed(1)} Ko > budget ${cap} Ko`
+          bytes / 1024,
+          `${entry.file} = ${(bytes / 1024).toFixed(1)} Ko > budget ${cap} Ko`
         ).toBeLessThanOrEqual(cap)
+
+        // dimension réelle ≤ maxDimensionPx
+        const dims = imageDims(buf)
+        expect(dims, `${entry.file} : en-tête image illisible`).not.toBeNull()
         expect(
-          Math.max(asset.width, asset.height),
-          `${asset.file} dépasse maxDimensionPx`
+          Math.max(dims.w, dims.h),
+          `${entry.file} (${dims.w}×${dims.h}) dépasse maxDimensionPx`
         ).toBeLessThanOrEqual(RENDER_BUDGET.raster.maxDimensionPx)
+      }
+
+      // @3x ≈ 3 × @1x (± 1 px) sur chaque format, quand les 2 résolutions existent
+      for (const ext of ["webp", "png"]) {
+        const one = imageEntries.find((e) => e.file.includes(`.1x.${ext}`))
+        const three = imageEntries.find((e) => e.file.includes(`.3x.${ext}`))
+        if (!one || !three) continue
+        const a = imageDims(readFileSync(resolve(dir, one.file)))
+        const c = imageDims(readFileSync(resolve(dir, three.file)))
+        expect(Math.abs(c.w - a.w * 3), `${ext}: 3x.w ≠ 3×1x.w`).toBeLessThanOrEqual(1)
+        expect(Math.abs(c.h - a.h * 3), `${ext}: 3x.h ≠ 3×1x.h`).toBeLessThanOrEqual(1)
       }
     })
   }

@@ -1,12 +1,29 @@
-# MB-VIS-PROTOTYPE-002 — DIODE — Audit, spécification de production et statut d'intégration
+# MB-VIS-PROTOTYPE-002 — DIODE — Intégration raster
 
-**Statut : BLOCKED — production externe de l'asset requise.** Aucune régression, aucune modification de code.
+**Statut : PASS — DIODE intégré au backend raster déclaratif.** Historique : phase d'audit/spec clôturée BLOCKED (`6277d99`) ; asset produit et vérifié en externe ; intégration `MB-VIS-PROTOTYPE-002B` livrée (voir `docs/pmo/delivery-reports/MB-VIS-PROTOTYPE-002-diode-delivery-report.md`).
 **Programme / Épic :** Experience → EXP3 → `ROADMAP_PLATFORM.md` §7.4 (MYBlab Physical/Realistic Visual Engine).
 **Antécédents :** `MB-VIS-RENDER-010` (`visualContract.js`), `MB-VIS-INDUSTRIAL-001` (backend déclaratif, commit `db24f72`), `docs/pmo/standards/VISUAL-COMPONENT-PROTOCOL.md`, chaîne RESISTOR (`MB-VIS-PROTOTYPE-001A→001C.4`, `docs/pmo/delivery-reports/MB-VIS-RESISTOR-CONSOLIDATED.md`).
-**Base Git :** `db24f72f6ae0e53f4ff4789f338ab747f7d6dc74`.
+**Base Git (audit) :** `db24f72` · **Base Git (intégration 002B) :** `6277d993aaf4466e77c50eac6d2800752a30d27b`.
 **Numérotation :** ce ticket occupe l'identifiant `MB-VIS-PROTOTYPE-002`, réattribué à DIODE par la séquence recommandée post-consolidation (`ROADMAP_PLATFORM.md` §7.4, `VISUAL-COMPONENT-PROTOCOL.md` « Ordre recommandé » : CAPITALISATION → INDUSTRIAL-001 → **DIODE** → LED → …), en lieu et place de l'affectation originelle de `MB-VIS-RENDER-010` §6 (`002 = LED`), explicitement révisée par l'amendement de re-séquencement.
 
-**Ce ticket NE FAIT PAS** : aucun rendu Blender, aucun asset produit ou fabriqué, aucune modification de `DiodePart.jsx`, `defaultRegistrations.js`, `componentDefinitions.js`, `CircuitComponent.jsx`, `CircuitComponent.css`, `Pin.jsx`, `Breadboard.*`, `simulator/*`. Aucune dépendance ajoutée.
+**Ce que 002B modifie :** `DiodePart.jsx` (SVG → raster), `defaultRegistrations.js` (`visual: { backend: 'raster' }` sur DIODE), `renderQualityGate.test.jsx` (T10 rendu tolérant au schéma de manifeste), `visualContract.test.js` (liste des types raster), `DiodePart.uid.test.jsx` → `DiodePart.raster.test.jsx`, + le paquet d'assets `frontend/public/assets/components/diode/`. **NON modifiés :** `componentDefinitions.js`, `CircuitComponent.jsx`, `CircuitComponent.css`, `Pin.jsx`, `Pin.css`, `Breadboard.*`, `geometry.js`, `pinPresentationGeometry.js`, `simulator/*`, `models/*`. Aucune dépendance.
+
+---
+
+## 0. Livraison MB-VIS-PROTOTYPE-002B (intégration)
+
+| Élément | Résultat |
+|---|---|
+| Assets | 6 fichiers dans `frontend/public/assets/components/diode/` — `diode.default.{1x,3x}.{webp,png}` (170×61 / 510×182, alpha, PNG RGBA8 + WebP VP8L), `manifest.json`, `ASSET-INTEGRITY.json`. SHA-256 vérifiés == `ASSET-INTEGRITY.json`. Poids : 2928 / 3584 / 17032 / 23230 o — tous ≤ 30 Ko. **Non régénérés / non recompressés / non renommés.** |
+| Renderer | `DiodePart.jsx` : `<div class="part-diode"><picture><source type="image/webp" srcSet 1x/3x><img src=…3x.png srcSet …pointer-events:none></picture></div>` — patron `ResistorPart.jsx`, dimensions via `getComponentDef("DIODE")` (84×30), aucun `<svg>`/`<defs>`/gradient. |
+| Registre | `{ type: 'DIODE', component: DiodePart, visual: { backend: 'raster' } }` — `getComponentPresentation('DIODE')` → `{ backend: 'raster', bareBody: true, markerless: true }`. |
+| Renderer central | **inchangé** — chrome (`data-bare-body`) et masquage du marqueur (`hideVisualMarker`) dérivés automatiquement du backend par le mécanisme `MB-VIS-INDUSTRIAL-001`. Aucun `type === "DIODE"`, aucune règle CSS `:has(.part-diode)`, aucun `!important`, aucun z-index. |
+| Géométrie fonctionnelle | boîte **84×30**, pins **anode(0,15) / cathode(84,15)** — inchangées (`componentDefinitions.js` non touché). |
+| Tests | ciblé : `DiodePart.raster.test.jsx` (11) + `renderQualityGate` T10 (RESISTOR + DIODE) + `visualContract` + `partDimensions*` + `RealisticRenderers` + `circuitComponentRasterChrome` + `ResistorPart.raster` + `componentLibraryRolloutGate` → **9 fichiers / 321 tests, 100 % PASS**. Suite complète : **1620 pass / 16 fail (1636)** — base `6277d99` : 1615 / 16 (1631) → **+5 tests, 0 nouveau FAIL** ; 10 fichiers en échec identiques à `KNOWN-BROKEN-STATE.md` §3. `tsc -b` exit 0. `npm run build` exit 0. |
+| Test SVG V0 | `DiodePart.uid.test.jsx` (verrouillait `<defs>`/gradients/namespace `uid`) → **remplacé** par `DiodePart.raster.test.jsx` (couvre les 8 points requis). |
+| T10 générique | rendu **tolérant au schéma** : `manifest.type` ou `manifest.component` ; `manifest.assets[]` ou `manifest.variants[]` ; `canonical` ou `canonicalBox` ; `ASSET-INTEGRITY.json` optionnel (cross-check octets + sha256) ; dimensions et poids lus sur les **fichiers réels**. RESISTOR et DIODE couverts par le même test, sans les nommer. |
+
+**Verdict d'intégration : PASS — DIODE raster intégré, zéro régression, zéro hack.**
 
 ---
 
@@ -131,25 +148,34 @@ Commande canonique : `npx vitest run --config src/simulator/vitest.config.ts` (d
 | `npx tsc -b` | **exit 0** |
 | `npm run build` | **exit 0** (build vert depuis le correctif `Breadboard.css` de `MB-VIS-INDUSTRIAL-001`) |
 
-## 7. Conformité `VISUAL-COMPONENT-PROTOCOL.md`
+> **Note :** les §1–§6 ci-dessus décrivent l'**état d'audit** (avant 002B, `getComponentPresentation('DIODE')` valait alors `{ backend: 'svg', … }`). L'état livré est celui du §0 ci-dessus.
+
+## 7. Conformité `VISUAL-COMPONENT-PROTOCOL.md` (après 002B)
 
 | Phase | Statut |
 |---|---|
-| 0 — Audit renderer existant | ✅ fait (ce document, §1) |
-| 1 — Référence visuelle | ⚠️ partielle — cahier des charges dérivé (§3), **1 point à trancher par le CSA** : verre vs résine (§3) |
-| 2 — Production / choix asset | ❌ **BLOQUÉ** — aucun asset, production externe requise |
-| 3 → 12 | non atteintes (dépendent de la Phase 2) |
+| 0 — Audit renderer existant | ✅ (§1) |
+| 1 — Référence visuelle | ✅ cahier des charges dérivé (§3) ; matériau tranché à la production externe (verre translucide 1N4148, cohérent `MATERIALS.GLASS`) |
+| 2 — Production / choix asset | ✅ paquet produit et vérifié en externe (`ASSET-INTEGRITY.json`) |
+| 3 — Validation pixel | ✅ octets/sha256/dimensions/alpha vérifiés (probe Node + `renderQualityGate` T10) |
+| 4 — Validation géométrique | ✅ 170×61 / 510×182 (`@3x = 3×@1x ± 1 px`), ≤ 1024 px ; pins anode(0,15)/cathode(84,15) inchangés |
+| 5 — Intégration | ✅ `DiodePart.jsx` raster + `visual: { backend: 'raster' }` + `DiodePart.raster.test.jsx` |
+| 6 — Artefacts wrapper | ✅ automatique (`data-bare-body` dérivé — aucune règle CSS ajoutée) |
+| 7 — Pin / câblage | ✅ `hideVisualMarker` dérivé (`opacity:0`), `<button>` conservé, bubbling wrapper testé |
+| 8 — Breadboard | ✅ aucun fichier `Breadboard.*` touché |
+| 9 — Zoom | via mécanisme générique (transform CSS unique), non re-mesuré navigateur dans cette passe |
+| 10 — Tests / tsc / build | ✅ 321 ciblés PASS, 1620/1636 suite, `tsc` 0, `build` 0, 0 nouveau FAIL |
+| 11 — CSA VISUAL GO | ⏳ à confirmer par le CSA sur ce livrable |
+| 12 — Versionnage | ✅ commit dédié `MB-VIS-PROTOTYPE-002` + push |
 
 ## 8. Limitations
 
-- Aucun asset raster DIODE n'existe : ce ticket ne peut pas aller au-delà de la Phase 1 du protocole.
-- Le choix matériau verre/résine du corps n'est pas tranché — nécessite une décision CSA avant production externe.
-- Les dimensions `@1x`/`@3x` indicatives (§3) sont extrapolées du ratio observé sur l'asset RESISTOR validé, non mesurées sur un asset réel — à confirmer comme pour RESISTOR (§2 de `001A`, confirmé en `001B`).
+- **Phase 9 (contrôle navigateur des zooms 0.5×/1×/2×)** non ré-exécutée dans cette passe : DIODE hérite du mécanisme générique déjà validé au navigateur pour RESISTOR (transform CSS unique, aucun recalcul par zoom). À confirmer par le CSA si un contrôle visuel navigateur est exigé avant GO.
+- Le manifeste DIODE (`component`/`canonical`/`variants` + `ASSET-INTEGRITY.json`) suit un schéma différent du manifeste RESISTOR (`type`/`canonicalBox`/`assets`) que j'avais rédigé en consolidation. `renderQualityGate` T10 a été rendu **tolérant aux deux schémas** ; une harmonisation ultérieure du manifeste RESISTOR sur le schéma DIODE (plus structuré) reste une dette documentaire mineure, hors périmètre de ce ticket.
 
 ## 9. Verdict
 
-**BLOCKED — production externe de l'asset requise.** Aucune régression : 1615/1631 tests inchangés, `tsc` et `build` verts, 0 hack introduit, 0 fichier fonctionnel modifié. Le mécanisme déclaratif `MB-VIS-INDUSTRIAL-001` est confirmé **directement réutilisable pour DIODE sans aucune adaptation du renderer central** — seul l'asset manque.
+**PASS — DIODE intégré au backend raster déclaratif (`MB-VIS-PROTOTYPE-002` / 002B).**
+Assets vérifiés, renderer converti, registre déclaratif, **aucune modification du renderer central**, géométrie fonctionnelle intacte (84×30 ; anode(0,15)/cathode(84,15)), `simulator/*` non touché, 0 hack (`type === "DIODE"` / `:has(.part-diode)` / `!important` / z-index : 0), 0 nouvelle régression (1620/1636, 16 FAIL historiques inchangés), `tsc` et `build` verts.
 
-**Prochaine étape :** production externe de `diode.default.{1x,3x}.{webp,png}` (après décision CSA verre/résine), puis validation (`MB-VIS-PROTOTYPE-002B` ou suite de ce ticket, sur le modèle `001B`), puis intégration (`DiodePart.jsx` → `<picture>/<img>`, `visual: { backend: 'raster' }`, `manifest.json`, remplacement de `DiodePart.uid.test.jsx`).
-
-**Composant suivant : NE PAS enchaîner sur LED.** Cette mission s'arrête après DIODE, conformément à la directive reçue.
+**Composant suivant : NE PAS enchaîner sur LED.** `MB-VIS-PROTOTYPE-002` est finalisé ; la mission s'arrête ici, conformément à la directive reçue.

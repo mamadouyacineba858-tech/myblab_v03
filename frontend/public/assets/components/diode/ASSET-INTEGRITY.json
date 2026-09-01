@@ -1,0 +1,27 @@
+[
+  {
+    "file": "diode.default.1x.png",
+    "bytes": 3584,
+    "sha256": "ee84b5d66b4e2511d27b7271759d90099bcf1ed02495cbc243e62b346610b537"
+  },
+  {
+    "file": "diode.default.1x.webp",
+    "bytes": 2928,
+    "sha256": "b59d2273ea21e62bdf61bcfe08305cda08efe4ffde65fd1910793a27ec92524f"
+  },
+  {
+    "file": "diode.default.3x.png",
+    "bytes": 23230,
+    "sha256": "f46abba5ec642491f633bd290ef40784b9dcccf4207db8a2b0e4ceecf7a61934"
+  },
+  {
+    "file": "diode.default.3x.webp",
+    "bytes": 17032,
+    "sha256": "3c523f07d7c9000c8e5e87274aefc5c8115d6d4cab471159cf67c8c08e8285f9"
+  },
+  {
+    "file": "manifest.json",
+    "bytes": 758,
+    "sha256": "ee9ed422d296e99b0931a1362a3918a9cdb9581f160f81292efad738f0b7c90c"
+  }
+]

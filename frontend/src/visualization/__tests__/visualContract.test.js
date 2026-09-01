@@ -230,13 +230,14 @@ describe('G — Backend Contract', () => {
     }
   })
 
-  it('MB-VIS-INDUSTRIAL-001 — exactement un composant raster déclaré aujourd\'hui : RESISTOR (les 15 autres restent svg par défaut)', () => {
+  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) ; tous les autres restent svg par défaut', () => {
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes).toEqual(['RESISTOR'])
+    expect(rasterTypes.slice().sort()).toEqual(['DIODE', 'RESISTOR'])
+    const rasterSet = new Set(rasterTypes)
     for (const { type } of DEFAULT_REGISTRATIONS) {
-      if (type === 'RESISTOR') continue
+      if (rasterSet.has(type)) continue
       expect(getComponentPresentation(type).backend, `${type} doit rester svg`).toBe('svg')
     }
   })
