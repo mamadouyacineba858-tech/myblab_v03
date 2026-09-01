@@ -33,17 +33,32 @@ import { RgbLedPart } from '../components/parts/RgbLedPart.jsx';
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
 import { DcMotorPart } from '../components/parts/DcMotorPart.jsx';
+import { resolvePresentation } from './visualContract.js';
 
 /**
- * Liste des associations type → composant
- * 
+ * Liste des associations type → composant (+ déclaration `visual` optionnelle)
+ *
  * ⚠️ Les types doivent correspondre à ceux utilisés dans le système.
- * 
- * @type {Array<{type: string, component: React.ComponentType}>}
+ *
+ * `visual` (MB-VIS-INDUSTRIAL-001) est une DÉCLARATION DE PRÉSENTATION
+ * optionnelle, consommée génériquement via `resolvePresentation()`
+ * (visualContract.js) — jamais par un `type === "…"` dans le renderer :
+ *   - `backend`    : 'svg' (défaut) | 'raster' | 'r3f'
+ *   - `bareBody`   : le wrapper .circuit-component__body ne pose aucun habillage
+ *   - `markerless` : les marqueurs visuels de <Pin> ne sont pas rendus
+ * Une entrée sans `visual` → backend 'svg', habillage + marqueurs par défaut
+ * (comportement historique strictement préservé).
+ *
+ * @type {Array<{type: string, component: React.ComponentType, visual?: {backend?: string, bareBody?: boolean, markerless?: boolean}}>}
  */
 export const DEFAULT_REGISTRATIONS = [
-  { type: 'LED', component: LedPart },
-  { type: 'RESISTOR', component: ResistorPart },
+  // LED : renderer SVG qui dessine lui-même son fond et ses pattes -> pas
+  // d'habillage de carte, pas de marqueur de pin (comportement pré-existant,
+  // auparavant codé par `type === "LED"` dans CircuitComponent.jsx).
+  { type: 'LED', component: LedPart, visual: { markerless: true, bareBody: true } },
+  // RESISTOR : premier composant à backend raster (asset validé
+  // MB-VIS-PROTOTYPE-001B). raster => bareBody + markerless dérivés.
+  { type: 'RESISTOR', component: ResistorPart, visual: { backend: 'raster' } },
   { type: 'ARDUINO', component: ArduinoPart },
   { type: 'BUTTON', component: ButtonPart },
  { type: 'BUTTON_LATCHING', component: LatchingButtonPart },
@@ -76,6 +91,33 @@ export function getAvailableTypes() {
 export function getComponentByType(type) {
   const entry = DEFAULT_REGISTRATIONS.find(entry => entry.type === type);
   return entry ? entry.component : null;
+}
+
+const VISUAL_BY_TYPE = new Map(
+  DEFAULT_REGISTRATIONS.map((entry) => [entry.type, entry.visual])
+);
+
+/**
+ * Déclaration `visual` brute d'un type (ou `undefined` si l'entrée n'en
+ * déclare pas). MB-VIS-INDUSTRIAL-001.
+ * @param {string} type
+ * @returns {{backend?: string, bareBody?: boolean, markerless?: boolean}|undefined}
+ */
+export function getComponentVisual(type) {
+  return VISUAL_BY_TYPE.get(type);
+}
+
+/**
+ * Drapeaux de présentation résolus d'un type ({ backend, bareBody, markerless }).
+ * Accesseur statique (lit DEFAULT_REGISTRATIONS) équivalent à
+ * `VisualizationManager.getPresentation(type)` — même source, même résultat.
+ * Utilisé par CircuitComponent.jsx (qui ne détient pas de manager) et par les
+ * gardes de test. MB-VIS-INDUSTRIAL-001.
+ * @param {string} type
+ * @returns {{ backend: 'svg'|'raster'|'r3f', bareBody: boolean, markerless: boolean }}
+ */
+export function getComponentPresentation(type) {
+  return resolvePresentation(VISUAL_BY_TYPE.get(type));
 }
 
 export default DEFAULT_REGISTRATIONS;

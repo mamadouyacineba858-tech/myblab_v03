@@ -35,7 +35,7 @@ import { RgbLedPart } from '../RgbLedPart.jsx'
 import { NpnTransistorPart } from '../NpnTransistorPart.jsx'
 import { ServoPart } from '../ServoPart.jsx'
 import { DcMotorPart } from '../DcMotorPart.jsx'
-import { DEFAULT_REGISTRATIONS, getComponentByType } from '../../../visualization/defaultRegistrations.js'
+import { DEFAULT_REGISTRATIONS, getComponentByType, getComponentPresentation } from '../../../visualization/defaultRegistrations.js'
 import { createDefaultVisualizationManager } from '../../../visualization/factory.js'
 import { getComponentDef } from '../../../config/componentDefinitions.js'
 import { CircuitProvider } from '../../../context/CircuitContext.jsx'
@@ -66,6 +66,10 @@ const LOT2 = [
   { type: 'SERVO', Component: ServoPart, label: 'Micro Servo' },
   { type: 'DC_MOTOR', Component: DcMotorPart, label: 'Moteur DC' },
 ]
+
+// MB-VIS-INDUSTRIAL-001 : la répartition SVG / RASTER est dérivée du registre
+// (déclaration `visual.backend`), plus jamais un `entry.type !== 'RESISTOR'`.
+const isRaster = (type) => getComponentPresentation(type).backend === 'raster'
 
 const circuitWrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
 
@@ -109,9 +113,10 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (structurel)', () =
 })
 
 describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat géométrique)', () => {
-  // MB-VIS-PROTOTYPE-001C : RESISTOR est passé au backend RASTER (<img>),
-  // exclu de la vérification "<svg> dimensionné" et couvert juste en dessous.
-  it.each(LOT.filter((entry) => entry.type !== 'RESISTOR'))('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js', ({ type, Component }) => {
+  // MB-VIS-INDUSTRIAL-001 : les renderers "backend raster" (<img>) sont exclus
+  // de la vérification "<svg> dimensionné" et couverts juste en dessous. La
+  // liste est dérivée du registre, pas d'un type codé en dur.
+  it.each(LOT.filter((entry) => !isRaster(entry.type)))('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js', ({ type, Component }) => {
     const def = getComponentDef(type)
     const { container } = render(<Component isOn={false} />)
     const svg = container.querySelector('svg')
@@ -121,15 +126,15 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat gé
     expect(svg.getAttribute('viewBox')).toBe(`0 0 ${def.width} ${def.height}`)
   })
 
-  it('RESISTOR : backend raster — <img> aux dimensions de componentDefinitions.js, aucun <svg>', () => {
-    const def = getComponentDef('RESISTOR')
-    const { container } = render(<ResistorPart />)
+  it.each(LOT.filter((entry) => isRaster(entry.type)))('$type : backend raster — <img> aux dimensions de componentDefinitions.js, aucun <svg>', ({ type, Component }) => {
+    const def = getComponentDef(type)
+    const { container } = render(<Component />)
     const img = container.querySelector('img')
     expect(img).not.toBeNull()
     expect(container.querySelector('svg')).toBeNull()
     expect(img.getAttribute('width')).toBe(String(def.width))
     expect(img.getAttribute('height')).toBe(String(def.height))
-    expect(img.getAttribute('src')).toMatch(/^\/assets\/components\/resistor\/resistor\.default\./)
+    expect(img.getAttribute('src')).toMatch(new RegExp(`^/assets/components/${type.toLowerCase().replace(/_/g, '-')}/`))
   })
 
   it('RESISTOR : aria-label correct, aucune prop dynamique requise', () => {
@@ -198,7 +203,7 @@ describe('MB-COMPONENT-LIBRARY-002 — second lot de renderers réalistes (struc
 })
 
 describe('MB-COMPONENT-LIBRARY-002 — second lot (rendu, contrat géométrique, VIS-TEST-02)', () => {
-  it.each(LOT2)('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js (LOCK-04/LOCK-05, aucune géométrie modifiée)', ({ type, Component }) => {
+  it.each(LOT2.filter((entry) => !isRaster(entry.type)))('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js (LOCK-04/LOCK-05, aucune géométrie modifiée)', ({ type, Component }) => {
     const def = getComponentDef(type)
     const { container } = render(<Component />)
     const svg = container.querySelector('svg')

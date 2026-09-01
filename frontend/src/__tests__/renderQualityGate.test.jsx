@@ -21,12 +21,13 @@
 import React from "react"
 import { describe, it, expect } from "vitest"
 import { render, act } from "@testing-library/react"
-import { readFileSync, existsSync } from "node:fs"
+import { readFileSync, existsSync, statSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, resolve } from "node:path"
 
 import { COMPONENT_TYPES } from "../config/componentDefinitions.js"
-import { DEFAULT_REGISTRATIONS, getComponentByType } from "../visualization/defaultRegistrations.js"
+import { DEFAULT_REGISTRATIONS, getComponentByType, getComponentPresentation } from "../visualization/defaultRegistrations.js"
+import { RENDER_BUDGET } from "../visualization/visualContract.js"
 import { CircuitProvider } from "../context/CircuitContext.jsx"
 import { useCircuit } from "../context/useCircuit.js"
 import { CircuitComponent } from "../canvas/CircuitComponent.jsx"
@@ -148,9 +149,12 @@ describe("MB-VIS-RENDER-009 — TEST T6 : absence de nouveau branchement génér
   // — toutes en minuscules, donc naturellement exclues).
   const TYPE_BRANCH_PATTERN = /\btype\s*(===|!==)\s*["']([A-Z0-9_]+)["']/g
 
-  const KNOWN_EXCEPTIONS = {
-    "CircuitComponent.jsx": ["LED", "LED"], // 2 occurrences documentées (style du body + hideVisualMarker), toutes deux présentationnelles pour LED
-  }
+  // MB-VIS-INDUSTRIAL-001 : les 2 anciennes comparaisons `type === "LED"` de
+  // CircuitComponent.jsx (habillage du body + masquage du marqueur de pin) ont
+  // été remplacées par une présentation DÉCLARATIVE (getComponentPresentation
+  // -> data-bare-body / hideVisualMarker). La couche de rendu ne contient donc
+  // plus AUCUNE comparaison de type : la table d'exceptions est vide.
+  const KNOWN_EXCEPTIONS = {}
 
   const RENDER_FILES = [
     { path: resolve(__dirname, "../canvas/CircuitComponent.jsx"), key: "CircuitComponent.jsx" },
@@ -228,6 +232,62 @@ describe("MB-VIS-RENDER-009 — TEST T9 : garde-fou performance — nombre de pr
       }
       const count = svg.querySelectorAll(PRIMITIVE_SELECTOR).length
       expect(count, `${type} compte ${count} primitives SVG`).toBeLessThan(PRIMITIVE_CEILING)
+    })
+  }
+})
+
+describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : budget de poids des assets raster (RENDER_BUDGET.raster)", () => {
+  // Pendant raster du garde-fou T9 (primitives SVG) : pour chaque composant
+  // dont l'entrée de registre déclare le backend raster, on vérifie que son
+  // manifeste d'assets existe, est cohérent (octets réels == déclarés) et
+  // reste sous le budget de poids / dimension du contrat visuel. Générique :
+  // tout futur composant raster est couvert sans le nommer ici.
+  const publicDir = resolve(__dirname, "../../public")
+  const RASTER_TYPES = ALL_TYPES.filter(
+    (type) => getComponentPresentation(type).backend === "raster"
+  )
+  const toKebab = (type) => type.toLowerCase().replace(/_/g, "-")
+
+  it("le budget raster du contrat est exploitable (bornes > 0)", () => {
+    expect(RENDER_BUDGET.raster.maxWeightKbPerVariantSimple).toBeGreaterThan(0)
+    expect(RENDER_BUDGET.raster.maxWeightKbPerVariantComplex).toBeGreaterThanOrEqual(
+      RENDER_BUDGET.raster.maxWeightKbPerVariantSimple
+    )
+    expect(RENDER_BUDGET.raster.maxDimensionPx).toBeGreaterThan(0)
+    expect(RENDER_BUDGET.raster.resolutions).toBe(2)
+  })
+
+  for (const type of RASTER_TYPES) {
+    it(`${type} : manifeste d'assets présent, octets cohérents, sous le budget`, () => {
+      const kebab = toKebab(type)
+      const dir = resolve(publicDir, `assets/components/${kebab}`)
+      const manifestPath = resolve(dir, "manifest.json")
+      expect(existsSync(manifestPath), `manifeste manquant : ${manifestPath}`).toBe(true)
+
+      const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"))
+      expect(manifest.type).toBe(type)
+      expect(Array.isArray(manifest.assets)).toBe(true)
+      // @1x + @3x, chacun en webp + png
+      expect(manifest.assets.length).toBe(RENDER_BUDGET.raster.resolutions * 2)
+
+      const cap =
+        manifest.complexity === "complex"
+          ? RENDER_BUDGET.raster.maxWeightKbPerVariantComplex
+          : RENDER_BUDGET.raster.maxWeightKbPerVariantSimple
+
+      for (const asset of manifest.assets) {
+        const assetPath = resolve(dir, asset.file)
+        expect(existsSync(assetPath), `asset manquant : ${asset.file}`).toBe(true)
+        expect(statSync(assetPath).size, `${asset.file} : octets réels ≠ manifeste`).toBe(asset.bytes)
+        expect(
+          asset.bytes / 1024,
+          `${asset.file} = ${(asset.bytes / 1024).toFixed(1)} Ko > budget ${cap} Ko`
+        ).toBeLessThanOrEqual(cap)
+        expect(
+          Math.max(asset.width, asset.height),
+          `${asset.file} dépasse maxDimensionPx`
+        ).toBeLessThanOrEqual(RENDER_BUDGET.raster.maxDimensionPx)
+      }
     })
   }
 })

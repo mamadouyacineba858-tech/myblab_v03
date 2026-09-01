@@ -1,5 +1,6 @@
 import React from 'react';
 import { RendererRegistry } from './registry.js';
+import { resolvePresentation } from './visualContract.js';
 
 /**
  * VisualizationManager — Gestionnaire de visualisation des composants
@@ -72,6 +73,26 @@ export class VisualizationManager {
     }
 
     return React.createElement(Component, props);
+  }
+
+  /**
+   * Drapeaux de présentation résolus d'un type (MB-VIS-INDUSTRIAL-001).
+   * Lit la déclaration `visual` portée par le registre et la résout via
+   * `resolvePresentation()` — aucun couplage par type.
+   * @param {string} type
+   * @returns {{ backend: 'svg'|'raster'|'r3f', bareBody: boolean, markerless: boolean }}
+   */
+  getPresentation(type) {
+    return resolvePresentation(this._registry.getVisual(type));
+  }
+
+  /**
+   * Backend de rendu résolu d'un type ('svg' par défaut).
+   * @param {string} type
+   * @returns {'svg'|'raster'|'r3f'}
+   */
+  getBackend(type) {
+    return this.getPresentation(type).backend;
   }
 
   /**

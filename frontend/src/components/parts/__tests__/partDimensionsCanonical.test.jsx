@@ -37,15 +37,17 @@ import { NpnTransistorPart } from "../NpnTransistorPart.jsx"
 import { ServoPart } from "../ServoPart.jsx"
 import { DcMotorPart } from "../DcMotorPart.jsx"
 import { COMPONENT_TYPES, getComponentDef } from "../../../config/componentDefinitions.js"
+import { getComponentPresentation } from "../../../visualization/defaultRegistrations.js"
 
-// Les 16 renderers concernés par MB-VIS-COMP-006 (tous ceux qui déclarent un
-// <svg> racine dimensionné — la totalité du catalogue courant).
-// MB-VIS-PROTOTYPE-001C : RESISTOR est passé au backend RASTER (rend un
-// <img> vers un asset validé, plus de <svg>). Il est retiré de ce
-// describe.each "dimensions du <svg>" et couvert par un describe dédié
-// ci-dessous, qui vérifie la même propriété (dimensions dérivées de
-// componentDefinitions.js, suivi de mutation) sur l'<img>.
-const ALL_PARTS = [
+// Catalogue complet (16). MB-VIS-INDUSTRIAL-001 : la répartition
+// SVG / RASTER est DÉRIVÉE du registre (`getComponentPresentation().backend`),
+// plus jamais une liste de types codée en dur. Les renderers SVG sont
+// vérifiés sur leur <svg> racine dimensionné ; les renderers raster (RESISTOR,
+// et tout futur composant qui déclare `backend: 'raster'`) sur leur <img>.
+// Dans les deux cas : dimensions dérivées de componentDefinitions.js, prouvées
+// par un test de MUTATION.
+const CATALOG = [
+  { type: "RESISTOR", Component: ResistorPart },
   { type: "LED", Component: LedPart },
   { type: "CAPACITOR", Component: CapacitorPart },
   { type: "DIODE", Component: DiodePart },
@@ -62,6 +64,8 @@ const ALL_PARTS = [
   { type: "SERVO", Component: ServoPart },
   { type: "DC_MOTOR", Component: DcMotorPart },
 ]
+const SVG_PARTS = CATALOG.filter((p) => getComponentPresentation(p.type).backend !== "raster")
+const RASTER_PARTS = CATALOG.filter((p) => getComponentPresentation(p.type).backend === "raster")
 
 /**
  * Mute temporairement width/height d'un type RÉEL déjà enregistré dans
@@ -83,7 +87,7 @@ function withSwappedDimensions(type, { width, height }, callback) {
 }
 
 describe("MB-VIS-COMP-006 — dimensions des Part renderers dérivées de componentDefinitions.js", () => {
-  describe.each(ALL_PARTS)("$type", ({ type, Component }) => {
+  describe.each(SVG_PARTS)("$type", ({ type, Component }) => {
     it("TEST — au repos : viewBox/width/height du <svg> égalent EXACTEMENT def.width/def.height (comparaison dynamique, pas une valeur recopiée)", () => {
       const def = getComponentDef(type)
       const { container } = render(<Component />)
@@ -113,10 +117,10 @@ describe("MB-VIS-COMP-006 — dimensions des Part renderers dérivées de compon
     })
   })
 
-  describe("MB-VIS-PROTOTYPE-001C — RESISTOR backend raster : dimensions de l'<img> dérivées de componentDefinitions.js", () => {
+  describe.each(RASTER_PARTS)("$type (backend raster) — dimensions de l'<img> dérivées de componentDefinitions.js", ({ type, Component }) => {
     it("TEST — au repos : width/height de l'<img> égalent EXACTEMENT def.width/def.height ; aucun <svg>", () => {
-      const def = getComponentDef("RESISTOR")
-      const { container } = render(<ResistorPart />)
+      const def = getComponentDef(type)
+      const { container } = render(<Component />)
       const img = container.querySelector("img")
       expect(img).not.toBeNull()
       expect(container.querySelector("svg")).toBeNull()
@@ -125,8 +129,8 @@ describe("MB-VIS-COMP-006 — dimensions des Part renderers dérivées de compon
     })
 
     it("TEST — mutation : si componentDefinitions.js change width/height, l'<img> rendu suit IMMÉDIATEMENT", () => {
-      withSwappedDimensions("RESISTOR", { width: 321, height: 654 }, () => {
-        const { container } = render(<ResistorPart />)
+      withSwappedDimensions(type, { width: 321, height: 654 }, () => {
+        const { container } = render(<Component />)
         const img = container.querySelector("img")
         expect(img.getAttribute("width")).toBe("321")
         expect(img.getAttribute("height")).toBe("654")
@@ -134,8 +138,8 @@ describe("MB-VIS-COMP-006 — dimensions des Part renderers dérivées de compon
     })
 
     it("TEST — après restauration : l'<img> revient à la valeur canonique d'origine", () => {
-      const def = getComponentDef("RESISTOR")
-      const { container } = render(<ResistorPart />)
+      const def = getComponentDef(type)
+      const { container } = render(<Component />)
       const img = container.querySelector("img")
       expect(img.getAttribute("width")).toBe(String(def.width))
       expect(img.getAttribute("height")).toBe(String(def.height))

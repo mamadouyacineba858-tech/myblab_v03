@@ -12,6 +12,7 @@ import { getComponentDef } from "../config/componentDefinitions.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { Pin } from "./Pin.jsx"
 import { PartRenderer } from "../components/parts/PartRenderer.jsx"
+import { getComponentPresentation } from "../visualization/defaultRegistrations.js"
 import { getPinPresentationPosition } from "../utils/pinPresentationGeometry.js"
 import "./CircuitComponent.css"
 
@@ -35,6 +36,11 @@ export function CircuitComponent({ component }) {
   const y = component?.y ?? 0
 
   const def = useMemo(() => getComponentDef(type), [type])
+
+  // MB-VIS-INDUSTRIAL-001 : présentation DÉCLARATIVE (backend / bareBody /
+  // markerless) dérivée de l'entrée de registre — remplace les anciens
+  // branchements `type === "LED"` (habillage du body + masquage du marqueur).
+  const presentation = useMemo(() => getComponentPresentation(type), [type])
 
   const selected = isSelected({ type: 'component', id: uid })
 
@@ -148,6 +154,7 @@ export function CircuitComponent({ component }) {
   return (
     <div
       className="circuit-component"
+      data-backend={presentation.backend}
       style={{
         left: x,
         top: y,
@@ -161,12 +168,7 @@ export function CircuitComponent({ component }) {
     >
       <div
         className="circuit-component__body"
-        style={type === "LED" ? {
-          background: 'transparent',
-          border: '0',
-          borderRadius: 0,
-          boxShadow: 'none',
-        } : undefined}
+        data-bare-body={presentation.bareBody ? "" : undefined}
       >
         <PartRenderer
           type={type}
@@ -202,7 +204,7 @@ export function CircuitComponent({ component }) {
             isPending={isPinPending(uid, pin.id)}
             isConnected={isPinConnected(uid, pin.id)}
             onPinClick={handlePinClick}
-            hideVisualMarker={type === "LED"}
+            hideVisualMarker={presentation.markerless}
           />
         )
       })}

@@ -7,15 +7,19 @@
 export class RendererRegistry {
   constructor() {
     this._registry = new Map();
+    // MB-VIS-INDUSTRIAL-001 : déclaration `visual` optionnelle par type
+    // (backend / bareBody / markerless). Annuaire pur, aucune logique métier.
+    this._visual = new Map();
   }
 
   /**
    * Enregistre un type avec son composant renderer
    * @param {string} type - Identifiant unique du type
    * @param {React.ComponentType} Component - Composant React
+   * @param {{backend?: string, bareBody?: boolean, markerless?: boolean}} [visual] - déclaration de présentation optionnelle
    * @returns {this} - Pour chaînage
    */
-  register(type, Component) {
+  register(type, Component, visual = undefined) {
     if (typeof type !== 'string' || type.trim() === '') {
       throw new Error('[RendererRegistry] register: type must be a non-empty string');
     }
@@ -29,12 +33,15 @@ export class RendererRegistry {
     }
 
     this._registry.set(type, Component);
+    if (visual !== undefined) {
+      this._visual.set(type, visual);
+    }
     return this;
   }
 
   /**
    * Enregistre plusieurs types
-   * @param {Array<{type: string, component: React.ComponentType}>} registrations
+   * @param {Array<{type: string, component: React.ComponentType, visual?: object}>} registrations
    * @returns {this}
    */
   registerAll(registrations) {
@@ -44,13 +51,25 @@ export class RendererRegistry {
 
     for (const entry of registrations) {
       if (entry && typeof entry === 'object' && entry.type && entry.component) {
-        this.register(entry.type, entry.component);
+        this.register(entry.type, entry.component, entry.visual);
       } else {
         console.warn('[RendererRegistry] registerAll: skipping invalid entry', entry);
       }
     }
 
     return this;
+  }
+
+  /**
+   * Déclaration `visual` brute d'un type (ou `undefined`). MB-VIS-INDUSTRIAL-001.
+   * @param {string} type
+   * @returns {object|undefined}
+   */
+  getVisual(type) {
+    if (typeof type !== 'string') {
+      return undefined;
+    }
+    return this._visual.get(type);
   }
 
   /**

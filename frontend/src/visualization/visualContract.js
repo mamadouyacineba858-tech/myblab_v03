@@ -220,6 +220,40 @@ export function resolveBackend(visual) {
   return isValidBackend(b) ? b : DEFAULT_BACKEND
 }
 
+/**
+ * MB-VIS-INDUSTRIAL-001 — dérive les drapeaux de PRÉSENTATION d'une entrée de
+ * registre à partir de sa seule déclaration `visual`. Aucun couplage par type
+ * de composant : le renderer central lit ces drapeaux, jamais `type === "…"`.
+ *
+ *  - `backend`    : `resolveBackend(visual)` — `'svg'` par défaut (rétrocompat).
+ *  - `bareBody`   : le wrapper `.circuit-component__body` ne pose AUCUN
+ *                   habillage de « carte » (fond, bordure, coins arrondis,
+ *                   ombre générique). Par défaut `true` pour un backend
+ *                   `raster` (l'asset porte sa propre silhouette + ombre de
+ *                   contact) ; sinon la valeur booléenne explicite
+ *                   `visual.bareBody` (un renderer SVG qui dessine lui-même
+ *                   son fond, ex. LED, peut la déclarer).
+ *  - `markerless` : les marqueurs visuels des `<Pin>` ne sont pas rendus (le
+ *                   renderer dessine ses propres extrémités). Par défaut `true`
+ *                   pour un backend `raster` ; sinon `visual.markerless`. Les
+ *                   `<Pin>` restent dans le DOM et cliquables dans tous les cas
+ *                   (câblage inchangé) — seul le disque est masqué, via
+ *                   l'`opacity: 0` inline déjà porté par `Pin.jsx`.
+ *
+ * @param {{ backend?: string, bareBody?: boolean, markerless?: boolean }|null|undefined} visual
+ * @returns {{ backend: 'svg'|'raster'|'r3f', bareBody: boolean, markerless: boolean }}
+ */
+export function resolvePresentation(visual) {
+  const backend = resolveBackend(visual)
+  const isRaster = backend === BACKENDS.RASTER
+  const v = visual && typeof visual === 'object' ? visual : {}
+  return Object.freeze({
+    backend,
+    bareBody: typeof v.bareBody === 'boolean' ? v.bareBody : isRaster,
+    markerless: typeof v.markerless === 'boolean' ? v.markerless : isRaster,
+  })
+}
+
 /* ============================================================
  * H — ASSET CONTRACT (backend raster)
  * AUCUN asset réel n'est produit dans MB-VIS-RENDER-010.

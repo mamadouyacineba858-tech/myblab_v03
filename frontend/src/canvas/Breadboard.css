@@ -8,7 +8,10 @@
      AU-DESSUS du breadboard (z-index composants 5, z-index wires 3 > 1) et
      conservent donc la prioritÃ© de hit-test lÃ  oÃ¹ ils se superposent. */
   pointer-events: auto;
-  overflow: visible;`r`n  /* MB-BREADBOARD-012 : aucun transform local.`r`n     Les coordonnées des trous restent dans le même repère canvas.`r`n  */`r`n  transform: none;
+  overflow: visible;
+  /* MB-BREADBOARD-012 : aucun transform local.
+     Les coordonnées des trous restent dans le même repère canvas. */
+  transform: none;
 }
 
 .breadboard--selected {

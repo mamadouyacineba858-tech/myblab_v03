@@ -25,6 +25,7 @@ import { describe, it, expect } from "vitest"
 import { readFileSync, readdirSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, resolve } from "node:path"
+import { DEFAULT_REGISTRATIONS, getComponentPresentation } from "../../../visualization/defaultRegistrations.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PARTS_DIR = resolve(__dirname, "..")
@@ -33,12 +34,18 @@ const PART_FILES = readdirSync(PARTS_DIR).filter(
   (name) => name.endsWith("Part.jsx") && name !== "PartRenderer.jsx"
 )
 
-// MB-VIS-PROTOTYPE-001C : renderers passés au backend RASTER — ils rendent
-// un <img> vers un asset validé au lieu d'un <svg>. Le garde-fou "dimensions
-// du <svg> racine non codées en dur" ne s'applique plus à eux ; on vérifie
-// à la place l'absence de <svg> et la présence d'un <img> vers /assets/.
-// Ils continuent de dériver leurs dimensions de getComponentDef (2ᵉ `it`).
-const RASTER_PART_FILES = new Set(["ResistorPart.jsx"])
+// MB-VIS-INDUSTRIAL-001 : la liste des renderers "backend raster" est DÉRIVÉE
+// du registre (déclaration `visual.backend`), plus jamais un nom de fichier
+// codé en dur. Un renderer raster rend un <img> vers un asset validé au lieu
+// d'un <svg> : le garde-fou "dimensions du <svg> racine non codées en dur" ne
+// s'y applique pas ; on vérifie à la place l'absence de <svg>, la présence
+// d'un <img> vers /assets/ et l'import canonique de getComponentDef. Tout
+// futur composant raster (DIODE, LED, ...) est couvert sans l'ajouter ici.
+const RASTER_PART_FILES = new Set(
+  DEFAULT_REGISTRATIONS
+    .filter((entry) => getComponentPresentation(entry.type).backend === "raster")
+    .map((entry) => `${entry.component.name}.jsx`)
+)
 
 function stripComments(source) {
   return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")

@@ -21,27 +21,18 @@ npx vitest run --config src/simulator/vitest.config.ts [chemins…]
 
 De même, `npm --prefix frontend exec tsc -b` n'exécute pas le typecheck attendu (npm parse `-b` comme `--b`). Utiliser : `cd frontend ; npx tsc -b`.
 
-## 2. Build `vite build` / `npm run build` — ROUGE (pré-existant, hors périmètre)
+## 2. Build `vite build` / `npm run build` — CORRIGÉ par `MB-VIS-INDUSTRIAL-001` (`d3a3d1f`+1)
 
+**Historique (base `d3a3d1f` et antérieures) :** `npm run build` était **ROUGE** :
 ```
 ✗ [lightningcss minify] Unexpected token Semicolon
   at …/node_modules/lightningcss/node/index.js:56:14
 ```
+**Cause :** `frontend/src/canvas/Breadboard.css`, ligne 11, contenait des séquences d'échappement **littérales** `` `r`n `` (résidu d'un edit PowerShell antérieur), rendant le fichier non parsable par `lightningcss` (utilisé par `vite build`) → build entier avorté.
 
-**Cause :** `frontend/src/canvas/Breadboard.css` contient, autour de la ligne 11, des séquences d'échappement **littérales** `` `r`n `` (résidu d'un edit PowerShell antérieur) et un `;` mal placé. `lightningcss` (utilisé par `vite build`) refuse de parser le fichier et **avorte le build entier**.
+**Correctif (`MB-VIS-INDUSTRIAL-001`) :** remplacement des `` `r`n `` littéraux par de vrais retours à la ligne. **Déclarations inchangées** (`overflow: visible`, `transform: none`), commentaire préservé, `z-index: 1` intact — aucune modification de géométrie, de `holeAt()`, ni de comportement breadboard.
 
-**Vérification d'isolement (Node, sans dépendance ajoutée) :**
-```js
-const l = require('lightningcss'); const fs = require('fs');
-for (const f of ['src/canvas/CircuitComponent.css','src/canvas/Breadboard.css']) {
-  try { l.transform({ filename: f, code: fs.readFileSync(f), minify: true }); console.log('OK   '+f) }
-  catch (e) { console.log('FAIL '+f+' -> '+e.message) }
-}
-// OK   src/canvas/CircuitComponent.css
-// FAIL src/canvas/Breadboard.css -> Unexpected token Semicolon
-```
-
-**Périmètre :** correctif renvoyé à `MB-VIS-INDUSTRIAL-001` (cf. `MB-VIS-RENDER-010` §6). **Ne pas corriger** dans un ticket visuel de composant. `tsc -b` reste **exit 0** — le typecheck n'est pas affecté.
+**État actuel :** `lightningcss.transform()` OK sur les 3 CSS de `canvas/` ; `npx tsc -b` exit 0 ; `npm run build` **exit 0**. Si le build redevient rouge sur `lightningcss`, c'est une **régression** à traiter, pas un pré-existant.
 
 ## 3. Tests en échec — pré-existants (16), au commit `6759e18` + livrable RESISTOR consolidé
 

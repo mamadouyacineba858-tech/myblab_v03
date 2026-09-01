@@ -28,7 +28,7 @@ import {
   SCALE, SCALE_REFERENCE, SCALE_AUDIT, FILL_FACTOR,
   MATERIALS, MATERIAL_FAMILIES,
   LEAD_ANCHORING,
-  BACKENDS, BACKEND_STATUS, DEFAULT_BACKEND, isValidBackend, resolveBackend,
+  BACKENDS, BACKEND_STATUS, DEFAULT_BACKEND, isValidBackend, resolveBackend, resolvePresentation,
   ASSET_CONTRACT,
   RENDER_BUDGET,
   CAPTURE, CAPTURE_MODES, DEFAULT_CAPTURE_MODE, isDeterministicCapture,
@@ -37,7 +37,8 @@ import {
 } from '../visualContract.js'
 
 import { getComponentDef } from '../../config/componentDefinitions.js'
-import { DEFAULT_REGISTRATIONS } from '../defaultRegistrations.js'
+import { DEFAULT_REGISTRATIONS, getComponentPresentation } from '../defaultRegistrations.js'
+import { createDefaultVisualizationManager } from '../factory.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const MODULE_PATH = resolve(__dirname, '../visualContract.js')
@@ -190,13 +191,54 @@ describe('G — Backend Contract', () => {
     expect(isValidBackend('raster')).toBe(true)
     expect(isValidBackend('r3f')).toBe(true)
     expect(isValidBackend('bogus')).toBe(false)
-    // aucune entrée ne déclare de backend aujourd'hui -> comportement inchangé
     expect(resolveBackend(undefined)).toBe('svg')
     expect(resolveBackend(null)).toBe('svg')
     expect(resolveBackend({})).toBe('svg')
     expect(resolveBackend({ backend: 'bogus' })).toBe('svg')
     expect(resolveBackend({ backend: 'raster' })).toBe('raster')
     expect(resolveBackend({ backend: 'r3f' })).toBe('r3f')
+  })
+
+  it('MB-VIS-INDUSTRIAL-001 — resolvePresentation dérive backend / bareBody / markerless sans couplage par type', () => {
+    // entrée absente -> tout par défaut (svg, habillage + marqueurs)
+    expect(resolvePresentation(undefined)).toEqual({ backend: 'svg', bareBody: false, markerless: false })
+    expect(resolvePresentation({})).toEqual({ backend: 'svg', bareBody: false, markerless: false })
+    // backend raster -> bareBody + markerless dérivés true
+    expect(resolvePresentation({ backend: 'raster' })).toEqual({ backend: 'raster', bareBody: true, markerless: true })
+    // backend svg mais drapeaux explicites (cas LED)
+    expect(resolvePresentation({ bareBody: true, markerless: true })).toEqual({ backend: 'svg', bareBody: true, markerless: true })
+    // un backend raster peut ré-activer explicitement l'habillage / le marqueur
+    expect(resolvePresentation({ backend: 'raster', bareBody: false })).toEqual({ backend: 'raster', bareBody: false, markerless: true })
+    expect(Object.isFrozen(resolvePresentation({}))).toBe(true)
+  })
+
+  it('MB-VIS-INDUSTRIAL-001 — la présentation est réellement branchée dans le RendererRegistry / VisualizationManager', () => {
+    const manager = createDefaultVisualizationManager(DEFAULT_REGISTRATIONS)
+    // le registre porte la déclaration `visual` -> getBackend / getPresentation
+    expect(manager.getBackend('RESISTOR')).toBe('raster')
+    expect(manager.getBackend('LED')).toBe('svg')
+    expect(manager.getBackend('CAPACITOR')).toBe('svg')
+    expect(manager.getPresentation('RESISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
+    expect(manager.getPresentation('LED')).toEqual({ backend: 'svg', bareBody: true, markerless: true })
+    expect(manager.getPresentation('CAPACITOR')).toEqual({ backend: 'svg', bareBody: false, markerless: false })
+  })
+
+  it('MB-VIS-INDUSTRIAL-001 — accesseur statique getComponentPresentation == manager (même source, même résultat)', () => {
+    const manager = createDefaultVisualizationManager(DEFAULT_REGISTRATIONS)
+    for (const { type } of DEFAULT_REGISTRATIONS) {
+      expect(getComponentPresentation(type)).toEqual(manager.getPresentation(type))
+    }
+  })
+
+  it('MB-VIS-INDUSTRIAL-001 — exactement un composant raster déclaré aujourd\'hui : RESISTOR (les 15 autres restent svg par défaut)', () => {
+    const rasterTypes = DEFAULT_REGISTRATIONS
+      .map((e) => e.type)
+      .filter((t) => getComponentPresentation(t).backend === 'raster')
+    expect(rasterTypes).toEqual(['RESISTOR'])
+    for (const { type } of DEFAULT_REGISTRATIONS) {
+      if (type === 'RESISTOR') continue
+      expect(getComponentPresentation(type).backend, `${type} doit rester svg`).toBe('svg')
+    }
   })
 })
 
