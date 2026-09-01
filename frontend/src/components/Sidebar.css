@@ -8,6 +8,32 @@
   color: #e2e8f0;
   padding: 16px 12px;
   box-sizing: border-box;
+  /* MB-UX-COMPONENT-LIBRARY-SCROLL-001 : la sidebar tient dans sa colonne
+     (hauteur du parent flex .myblab-app) et ne déborde jamais de l'écran ;
+     c'est la section Composants (--scroll) qui absorbe le surplus. */
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* MB-UX-COMPONENT-LIBRARY-SCROLL-001 : la bibliothèque de composants prend
+   la hauteur restante de la sidebar et défile verticalement en interne
+   (tous les composants — dont DIODE, RGB_LED, SERVO, DC_MOTOR — restent
+   atteignables), sans faire défiler le reste de l'application. En-tête
+   "Composants", section Câblage et pied de page restent fixes. */
+.myblab-sidebar__section--scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.myblab-sidebar__section--scroll .myblab-palette {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
 }
 
 .myblab-sidebar__header { margin-bottom: 20px; }

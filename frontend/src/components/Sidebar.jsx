@@ -1,4 +1,10 @@
-import { useCallback } from "react"
+// Import React explicite : requis par la config vitest secondaire
+// (frontend/src/simulator/vitest.config.ts, sans @vitejs/plugin-react) pour
+// tout .jsx rendu sous cette config — même convention que CircuitComponent.jsx
+// / Pin.jsx / les Part renderers. Sidebar.test.jsx est le premier test à
+// rendre ce composant directement. Ajout d'import pur, aucun changement de
+// comportement.
+import React, { useCallback } from "react"
 import { PALETTE_ITEMS } from "../config/componentDefinitions.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { LedPart } from "./parts/LedPart.jsx"
@@ -63,7 +69,7 @@ export function Sidebar() {
         </button>
       </section>
 
-      <section className="myblab-sidebar__section">
+      <section className="myblab-sidebar__section myblab-sidebar__section--scroll">
         <h2 className="myblab-sidebar__title">Composants</h2>
         <ul className="myblab-palette">
           {PALETTE_ITEMS.map((item) => (
