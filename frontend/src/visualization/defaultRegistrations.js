@@ -52,10 +52,11 @@ import { resolvePresentation } from './visualContract.js';
  * @type {Array<{type: string, component: React.ComponentType, visual?: {backend?: string, bareBody?: boolean, markerless?: boolean}}>}
  */
 export const DEFAULT_REGISTRATIONS = [
-  // LED : renderer SVG qui dessine lui-même son fond et ses pattes -> pas
-  // d'habillage de carte, pas de marqueur de pin (comportement pré-existant,
-  // auparavant codé par `type === "LED"` dans CircuitComponent.jsx).
-  { type: 'LED', component: LedPart, visual: { markerless: true, bareBody: true } },
+  // LED : troisième composant à backend raster (paquet d'assets validé
+  // MB-VIS-PROTOTYPE-003, états `off` / `on` — luminescence cuite dans
+  // `led.on.*`). raster => bareBody + markerless dérivés, via le même
+  // mécanisme déclaratif que RESISTOR / DIODE — aucun code central spécifique.
+  { type: 'LED', component: LedPart, visual: { backend: 'raster' } },
   // RESISTOR : premier composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-001B). raster => bareBody + markerless dérivés.
   { type: 'RESISTOR', component: ResistorPart, visual: { backend: 'raster' } },

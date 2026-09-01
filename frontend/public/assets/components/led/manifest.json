@@ -1,0 +1,104 @@
+{
+  "component": "LED",
+  "backend": "raster",
+  "version": "1.0.0",
+  "canonical": {
+    "width": 80,
+    "height": 64,
+    "pins": {
+      "anode": [
+        28,
+        62
+      ],
+      "cathode": [
+        52,
+        62
+      ]
+    },
+    "origin": "top-left"
+  },
+  "states": [
+    "off",
+    "on"
+  ],
+  "formats": [
+    "png",
+    "webp"
+  ],
+  "variants": [
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.off.1x.png",
+      "width": 80,
+      "height": 64
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.off.1x.webp",
+      "width": 80,
+      "height": 64
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.off.3x.png",
+      "width": 240,
+      "height": 192
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.off.3x.webp",
+      "width": 240,
+      "height": 192
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.on.1x.png",
+      "width": 80,
+      "height": 64
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.on.1x.webp",
+      "width": 80,
+      "height": 64
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.on.3x.png",
+      "width": 240,
+      "height": 192
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.on.3x.webp",
+      "width": 240,
+      "height": 192
+    }
+  ],
+  "background": "transparent",
+  "dpi": [
+    "1x",
+    "3x"
+  ],
+  "visual": {
+    "off": "non-emissive",
+    "on": "integrated red glow in asset"
+  },
+  "provenance": "AI-generated visual asset package prepared for MB-VIS-PROTOTYPE-003; geometry contract remains repository-canonical."
+}

@@ -110,11 +110,13 @@ describe("MB-VIS-INDUSTRIAL-001 — application au rendu réel (attributs décla
     expect(container.querySelector(".circuit-component__body svg")).toBeNull()
   })
 
-  it("LED (backend svg, bareBody + markerless déclarés) : data-backend=svg, data-bare-body présent, marqueurs masqués", () => {
-    expect(getComponentPresentation("LED")).toMatchObject({ backend: "svg", bareBody: true, markerless: true })
+  it("LED (backend raster, MB-VIS-PROTOTYPE-003) : data-backend=raster, data-bare-body présent, asset <img>, marqueurs masqués", () => {
+    expect(getComponentPresentation("LED")).toMatchObject({ backend: "raster", bareBody: true, markerless: true })
     const { container } = mountType("LED")
-    expect(container.querySelector(".circuit-component").getAttribute("data-backend")).toBe("svg")
+    expect(container.querySelector(".circuit-component").getAttribute("data-backend")).toBe("raster")
     expect(container.querySelector(".circuit-component__body").hasAttribute("data-bare-body")).toBe(true)
+    expect(container.querySelector(".circuit-component__body img")).not.toBeNull()
+    expect(container.querySelector(".circuit-component__body svg")).toBeNull()
     for (const p of container.querySelectorAll(".myblab-pin")) expect(p.style.opacity).toBe("0")
   })
 

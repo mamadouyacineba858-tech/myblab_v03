@@ -205,7 +205,7 @@ describe('G — Backend Contract', () => {
     expect(resolvePresentation({})).toEqual({ backend: 'svg', bareBody: false, markerless: false })
     // backend raster -> bareBody + markerless dérivés true
     expect(resolvePresentation({ backend: 'raster' })).toEqual({ backend: 'raster', bareBody: true, markerless: true })
-    // backend svg mais drapeaux explicites (cas LED)
+    // backend svg mais drapeaux explicites (renderer SVG qui dessine son propre fond)
     expect(resolvePresentation({ bareBody: true, markerless: true })).toEqual({ backend: 'svg', bareBody: true, markerless: true })
     // un backend raster peut ré-activer explicitement l'habillage / le marqueur
     expect(resolvePresentation({ backend: 'raster', bareBody: false })).toEqual({ backend: 'raster', bareBody: false, markerless: true })
@@ -216,10 +216,10 @@ describe('G — Backend Contract', () => {
     const manager = createDefaultVisualizationManager(DEFAULT_REGISTRATIONS)
     // le registre porte la déclaration `visual` -> getBackend / getPresentation
     expect(manager.getBackend('RESISTOR')).toBe('raster')
-    expect(manager.getBackend('LED')).toBe('svg')
+    expect(manager.getBackend('LED')).toBe('raster')
     expect(manager.getBackend('CAPACITOR')).toBe('svg')
     expect(manager.getPresentation('RESISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
-    expect(manager.getPresentation('LED')).toEqual({ backend: 'svg', bareBody: true, markerless: true })
+    expect(manager.getPresentation('LED')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('CAPACITOR')).toEqual({ backend: 'svg', bareBody: false, markerless: false })
   })
 
@@ -230,11 +230,11 @@ describe('G — Backend Contract', () => {
     }
   })
 
-  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) ; tous les autres restent svg par défaut', () => {
+  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) ; tous les autres restent svg par défaut', () => {
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes.slice().sort()).toEqual(['DIODE', 'RESISTOR'])
+    expect(rasterTypes.slice().sort()).toEqual(['DIODE', 'LED', 'RESISTOR'])
     const rasterSet = new Set(rasterTypes)
     for (const { type } of DEFAULT_REGISTRATIONS) {
       if (rasterSet.has(type)) continue

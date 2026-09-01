@@ -2,118 +2,82 @@ import React from 'react'
 import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
- * Rendu visuel réaliste d'une LED traversante 5 mm.
+ * Rendu visuel LED — backend RASTER (MB-VIS-PROTOTYPE-003).
  *
- * Contrat électrique conservé :
- * - viewBox / dimensions : 80×64
- * - anode : (28,62)
- * - cathode : (52,62)
+ * Remplace l'ancien rendu SVG volumétrique « through-hole » (série
+ * MB-VIS-LED V8→V17 : `<defs>` + 6 gradients namespacés par `uid`, glow
+ * conditionnel dessiné dans le SVG) par le paquet d'assets raster produit et
+ * vérifié pour MB-VIS-PROTOTYPE-003, intégré via le mécanisme déclaratif de
+ * MB-VIS-INDUSTRIAL-001 (`defaultRegistrations` → `visual: { backend: 'raster' }`
+ * → `getComponentPresentation('LED')` → wrapper `data-bare-body` + pins
+ * `markerless`, sans aucun `type === "LED"` ni règle CSS spécifique).
  *
- * V16 : pattes plus épaisses et finition métallique plus réaliste.
- * Les extrémités électriques restent inchangées.
+ * Patron identique à `ResistorPart.jsx` / `DiodePart.jsx` : `frontend/public/`
+ * est servi à la racine web → `/assets/components/led/…`, priorité WebP via
+ * `<picture>`, fallback PNG, aucune logique JS de sélection d'asset.
+ *
+ * Spécificité LED (premier composant raster à ÉTATS visuels discrets) :
+ *  - deux états d'asset, `off` et `on`, chacun décliné @1x/@3x en WebP + PNG ;
+ *  - la luminescence de l'état allumé est CUITE dans l'asset `led.on.*`
+ *    (aucun `box-shadow` / `filter` / pseudo-élément / glow SVG côté renderer) ;
+ *  - l'état provient EXCLUSIVEMENT du système existant : `isOn` est dérivé des
+ *    signaux de pins par le Visual State Registry
+ *    (`defaultVisualStateRegistrations.js` → `getLedState`) et transmis en prop
+ *    par `PartRenderer.jsx` — aucune logique de simulation déplacée ici ;
+ *  - le wrapper conserve la classe `.part-led` / `.part-led--on` et l'attribut
+ *    `aria-label` (« LED allumée » / « LED éteinte ») du contrat historique.
+ *
+ * Contrat inchangé :
+ *  - dimensions dérivées de `getComponentDef("LED")` (80×64) — aucune valeur
+ *    recopiée, `componentDefinitions.js` NON modifié ;
+ *  - pins anode(28,62) / cathode(52,62) : produits par CircuitComponent/Pin,
+ *    jamais dessinés dans l'asset ni ici ;
+ *  - l'`<img>` ne porte AUCUN gestionnaire, `draggable={false}`,
+ *    `pointer-events: none` → drag / sélection / câblage / hit-test / zoom
+ *    restent la responsabilité du wrapper `.circuit-component` ;
+ *  - `uid` reste accepté (contrat de props inchangé) mais n'est plus consommé
+ *    (plus de `<defs>` à namespacer) → rendu déterministe pour toute instance.
  */
-export function LedPart({ isOn, uid }) {
+const ASSET_DIR = '/assets/components/led'
+
+const ASSET_SOURCES = {
+  off: {
+    webp: `${ASSET_DIR}/led.off.1x.webp 1x, ${ASSET_DIR}/led.off.3x.webp 3x`,
+    png: `${ASSET_DIR}/led.off.1x.png 1x, ${ASSET_DIR}/led.off.3x.png 3x`,
+    fallback: `${ASSET_DIR}/led.off.3x.png`,
+  },
+  on: {
+    webp: `${ASSET_DIR}/led.on.1x.webp 1x, ${ASSET_DIR}/led.on.3x.webp 3x`,
+    png: `${ASSET_DIR}/led.on.1x.png 1x, ${ASSET_DIR}/led.on.3x.png 3x`,
+    fallback: `${ASSET_DIR}/led.on.3x.png`,
+  },
+}
+
+export function LedPart({ isOn } = {}) {
   const def = getComponentDef("LED")
   const width = def?.width ?? 80
   const height = def?.height ?? 64
-  const lensMain = isOn ? '#e52a31' : '#8e1f24'
-  const lensDark = isOn ? '#8f0d16' : '#4f1116'
-  const lensLight = isOn ? '#ff7478' : '#bd454b'
-  const metal = isOn ? '#dfe3e5' : '#c0c5c8'
-  const chip = isOn ? '#fffdf2' : '#d2c9c5'
-  const id = String(uid ?? 'led').replace(/[^a-zA-Z0-9_-]/g, '_')
+  const source = isOn ? ASSET_SOURCES.on : ASSET_SOURCES.off
 
   return (
     <div
       className={`part-led ${isOn ? 'part-led--on' : ''}`}
       aria-label={isOn ? 'LED allumée' : 'LED éteinte'}
-      style={{
-        width: '100%', height: '100%', background: 'transparent', border: 0,
-        borderRadius: 0, boxShadow: 'none', overflow: 'visible', display: 'block',
-        position: 'relative', filter: isOn ? 'drop-shadow(0 0 3px rgba(255, 55, 55, 0.55))' : 'none',
-      }}
     >
-      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-hidden="true" overflow="visible" style={{ display: 'block', overflow: 'visible' }}>
-        <defs>
-          <linearGradient id={`${id}-glass`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor={lensDark} />
-            <stop offset="14%" stopColor={lensMain} />
-            <stop offset="42%" stopColor={lensLight} />
-            <stop offset="64%" stopColor={lensMain} />
-            <stop offset="100%" stopColor={lensDark} />
-          </linearGradient>
-          <radialGradient id={`${id}-dome`} cx="34%" cy="18%" r="84%">
-            <stop offset="0%" stopColor="#ffd0d0" stopOpacity={isOn ? 0.62 : 0.34} />
-            <stop offset="25%" stopColor={lensLight} stopOpacity="0.72" />
-            <stop offset="62%" stopColor={lensMain} stopOpacity="0.94" />
-            <stop offset="100%" stopColor={lensDark} />
-          </radialGradient>
-          <linearGradient id={`${id}-collar`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f17b7e" />
-            <stop offset="26%" stopColor="#b62d35" />
-            <stop offset="72%" stopColor="#741820" />
-            <stop offset="100%" stopColor="#431015" />
-          </linearGradient>
-          <linearGradient id={`${id}-metal`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#555b60" />
-            <stop offset="20%" stopColor="#aeb5ba" />
-            <stop offset="42%" stopColor={metal} />
-            <stop offset="53%" stopColor="#f5f6f6" />
-            <stop offset="66%" stopColor="#c5cbce" />
-            <stop offset="82%" stopColor="#969ea4" />
-            <stop offset="100%" stopColor="#5b6268" />
-          </linearGradient>
-          <radialGradient id={`${id}-glow`} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#fffef0" stopOpacity="1" />
-            <stop offset="22%" stopColor="#fff36b" stopOpacity="0.96" />
-            <stop offset="56%" stopColor="#ff4b45" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#ff2525" stopOpacity="0" />
-          </radialGradient>
-          <clipPath id={`${id}-glass-clip`}>
-            <path d="M15 37 V15 C15 6.2 25.7 1 40 1 C54.3 1 65 6.2 65 15 V37 Z" />
-          </clipPath>
-        </defs>
-
-        {/* Physical leads: straight lead thickened to match the reference; cathode remains subtly bent. */}
-        <path d="M28 39 V62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="7" strokeLinecap="round" />
-        <path d="M52 39 C52 43.1 53.1 44.9 55.3 47 C57.6 49.2 58.2 51.4 57.05 53.8 C55.95 56.15 53.95 59.35 52 62" fill="none" stroke={`url(#${id}-metal)`} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M27.2 40 V61.25" fill="none" stroke="#f8fafb" strokeWidth="0.82" strokeLinecap="round" opacity="0.76" />
-        <path d="M51.2 40 C51.3 43.35 52.7 45.1 54.9 47.2 C57.05 49.25 57.6 51.3 56.55 53.55 C55.45 55.85 53.65 58.9 52.2 61.25" fill="none" stroke="#f8fafb" strokeWidth="0.82" strokeLinecap="round" opacity="0.76" />
-
-        {/* Thin molded collar */}
-        <path d="M13 36 H67 V39 Q67 41.5 61 42 H19 Q13 41.5 13 39 Z" fill={`url(#${id}-collar)`} stroke="#431015" strokeWidth="1" />
-        <path d="M14.5 36 H65.5 V37.5 H14.5 Z" fill="#ff9b9d" opacity="0.58" />
-        <path d="M18 40 C28 42 52 42 62 40" fill="none" stroke="#351014" strokeWidth="0.9" opacity="0.78" />
-
-        {/* Tall rounded 5 mm-style lens */}
-        <path d="M15 37 V15 C15 6.2 25.7 1 40 1 C54.3 1 65 6.2 65 15 V37 Z" fill={`url(#${id}-glass)`} stroke="#57131a" strokeWidth="1.25" />
-        <path d="M17 36 V15.4 C17 7.9 26.6 3 40 3 C53.4 3 63 7.9 63 15.4 V36 Z" fill={`url(#${id}-dome)`} opacity="0.84" />
-        <path d="M16 16 C16.8 7.8 26.8 2.5 40 2.2 C30.7 4 24.5 9.4 24.5 16 V36 H17 Z" fill="#ffd0d0" opacity="0.18" />
-        <path d="M64 16 C63.2 7.8 53.2 2.5 40 2.2 C49.3 4 55.5 9.4 55.5 16 V36 H63 Z" fill="#28070b" opacity="0.22" />
-
-        <g clipPath={`url(#${id}-glass-clip)`}>
-          {/* Reflector / cup */}
-          <path d="M21 37 Q40 24 59 37 Q40 42 21 37 Z" fill="#f1f3f5" opacity="0.84" />
-          <path d="M25 35 Q40 27 55 35 Q40 39 25 35 Z" fill="#a9b1b8" opacity="0.82" />
-          <path d="M28 34 Q40 28.8 52 34" fill="none" stroke="#ffffff" strokeWidth="0.9" opacity="0.84" />
-          {/* Die */}
-          <rect x="37.2" y="29.2" width="5.6" height="3.9" rx="0.7" fill={chip} stroke="#695452" strokeWidth="0.65" />
-          <rect x="38" y="29.85" width="4" height="2.4" rx="0.45" fill={isOn ? '#fff7a8' : '#bdaea9'} opacity="0.92" />
-          {/* Bond wires */}
-          <path d="M40 29.3 Q35.2 24.7 30.2 22" fill="none" stroke="#f7f8fa" strokeWidth="0.62" strokeLinecap="round" />
-          <path d="M42.3 32.3 Q47 26.1 50.1 23" fill="none" stroke="#f7f8fa" strokeWidth="0.62" strokeLinecap="round" />
-          <circle cx="30.2" cy="22" r="0.65" fill="#ffffff" opacity="0.9" />
-          <circle cx="50.1" cy="23" r="0.65" fill="#ffffff" opacity="0.9" />
-          {isOn && <circle cx="40" cy="31.2" r="14" fill={`url(#${id}-glow)`} opacity="0.9" />}
-          {isOn && <circle cx="40" cy="31.2" r="2.8" fill="#fffdf1" opacity="0.98" />}
-        </g>
-
-        {/* Lens highlights and cathode-side mark */}
-        <ellipse cx="30.5" cy="8.2" rx="7" ry="2.25" fill="#ffe6e6" opacity={isOn ? 0.92 : 0.66} transform="rotate(-18 30.5 8.2)" />
-        <path d="M20 25 C21 15.8 26.2 8.5 33.5 5.7" fill="none" stroke="#fff0f0" strokeWidth="1.3" strokeLinecap="round" opacity={isOn ? 0.8 : 0.54} />
-        <path d="M22.4 28 C23 20.6 26 14.5 29.2 11.5" fill="none" stroke="#ffffff" strokeWidth="0.55" strokeLinecap="round" opacity="0.46" />
-        <path d="M59 36.3 L61.2 38.2 H56.8 Z" fill="#f5f7f8" opacity="0.96" />
-      </svg>
+      <picture className="part-led__picture">
+        <source type="image/webp" srcSet={source.webp} />
+        <img
+          className="part-led__img"
+          src={source.fallback}
+          srcSet={source.png}
+          width={width}
+          height={height}
+          draggable={false}
+          alt=""
+          aria-hidden="true"
+          style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
+        />
+      </picture>
     </div>
   )
 }

@@ -311,22 +311,42 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
         expect(canon.height).toBe(def.height)
       }
 
+      // MB-VIS-PROTOTYPE-003 — nombre d'états visuels discrets déclarés :
+      // schéma LED `states: ["off","on"]` ; RESISTOR / DIODE ne déclarent pas
+      // `states` -> 1 seul état implicite ("default"). Aucun nombre codé en
+      // dur : le paquet attendu est states × resolutions × (webp + png).
+      const stateCount =
+        Array.isArray(manifest.states) && manifest.states.length ? manifest.states.length : 1
+
       // liste des variantes image : `assets[]` OU `variants[]`
       const entries = (manifest.assets ?? manifest.variants ?? [])
       const imageEntries = entries.filter((e) => /\.(webp|png)$/.test(e.file))
       expect(
         imageEntries.length,
-        "attendu 2 résolutions × (webp + png)"
-      ).toBe(RENDER_BUDGET.raster.resolutions * 2)
+        `attendu ${stateCount} état(s) × ${RENDER_BUDGET.raster.resolutions} résolutions × (webp + png)`
+      ).toBe(stateCount * RENDER_BUDGET.raster.resolutions * 2)
 
-      // intégrité optionnelle (bytes + sha256 par fichier)
+      // intégrité optionnelle (bytes + sha256 par fichier) — tolérant au schéma :
+      // tableau racine `[ {file,bytes,sha256}, … ]` (schéma DIODE) OU objet
+      // `{ component, version, files: [ … ] }` (schéma LED).
       const integPath = resolve(dir, "ASSET-INTEGRITY.json")
       const integrity = existsSync(integPath)
-        ? new Map(JSON.parse(readFileSync(integPath, "utf-8")).map((r) => [r.file, r]))
+        ? (() => {
+            const raw = JSON.parse(readFileSync(integPath, "utf-8"))
+            const list = Array.isArray(raw) ? raw : Array.isArray(raw.files) ? raw.files : []
+            return new Map(list.map((r) => [r.file, r]))
+          })()
         : null
 
+      // budget de poids : `complexe` si le manifeste le déclare explicitement,
+      // OU si le paquet embarque plusieurs états visuels émissifs (ex. LED :
+      // l'état `on` porte la luminescence cuite dans l'asset, nettement plus
+      // lourde qu'un passif matte — RENDER_BUDGET.raster est explicitement
+      // `provisional`, `confirmBy: MB-VIS-PROTOTYPE-001..003`). Sinon `simple`.
       const cap =
-        manifest.complexity === "complex" || manifest.budget?.complexity === "complex"
+        manifest.complexity === "complex" ||
+        manifest.budget?.complexity === "complex" ||
+        stateCount > 1
           ? RENDER_BUDGET.raster.maxWeightKbPerVariantComplex
           : RENDER_BUDGET.raster.maxWeightKbPerVariantSimple
 
@@ -361,15 +381,22 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
         ).toBeLessThanOrEqual(RENDER_BUDGET.raster.maxDimensionPx)
       }
 
-      // @3x ≈ 3 × @1x (± 1 px) sur chaque format, quand les 2 résolutions existent
-      for (const ext of ["webp", "png"]) {
-        const one = imageEntries.find((e) => e.file.includes(`.1x.${ext}`))
-        const three = imageEntries.find((e) => e.file.includes(`.3x.${ext}`))
-        if (!one || !three) continue
-        const a = imageDims(readFileSync(resolve(dir, one.file)))
-        const c = imageDims(readFileSync(resolve(dir, three.file)))
-        expect(Math.abs(c.w - a.w * 3), `${ext}: 3x.w ≠ 3×1x.w`).toBeLessThanOrEqual(1)
-        expect(Math.abs(c.h - a.h * 3), `${ext}: 3x.h ≠ 3×1x.h`).toBeLessThanOrEqual(1)
+      // @3x ≈ 3 × @1x (± 1 px) sur chaque (état, format), quand les 2
+      // résolutions existent. `states` absent -> un seul appariement global
+      // (comportement RESISTOR / DIODE strictement inchangé).
+      const pairingStates = stateCount > 1 ? manifest.states : [null]
+      for (const st of pairingStates) {
+        const inState = (e) => st == null || e.file.includes(`.${st}.`)
+        for (const ext of ["webp", "png"]) {
+          const one = imageEntries.find((e) => inState(e) && e.file.includes(`.1x.${ext}`))
+          const three = imageEntries.find((e) => inState(e) && e.file.includes(`.3x.${ext}`))
+          if (!one || !three) continue
+          const a = imageDims(readFileSync(resolve(dir, one.file)))
+          const c = imageDims(readFileSync(resolve(dir, three.file)))
+          const tag = st == null ? ext : `${st}.${ext}`
+          expect(Math.abs(c.w - a.w * 3), `${tag}: 3x.w ≠ 3×1x.w`).toBeLessThanOrEqual(1)
+          expect(Math.abs(c.h - a.h * 3), `${tag}: 3x.h ≠ 3×1x.h`).toBeLessThanOrEqual(1)
+        }
       }
     })
   }

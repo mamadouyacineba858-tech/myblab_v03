@@ -44,41 +44,22 @@
   box-shadow: none;
 }
 
+/* MB-VIS-PROTOTYPE-003 — LED portée au backend raster : le renderer rend un
+   asset `<picture>/<img>` transparent (états `off` / `on`, luminescence cuite
+   dans `led.on.*`). Plus aucun habillage de « boîte » ni glow CSS ici — le
+   fond sombre, les coins arrondis, la transition et surtout le `box-shadow`
+   vert de `.part-led--on` (interdits : le halo doit provenir UNIQUEMENT de
+   l'asset ON) ont été retirés. Les classes `.part-led` / `.part-led--on`
+   restent posées par LedPart.jsx (hook de style + contrat de test) ; leur
+   seul rôle CSS résiduel est le centrage, comme `.part-resistor` /
+   `.part-diode`. Les anciennes règles `.part-led__dome/flange/leg` ciblaient
+   des primitives SVG qui n'existent plus. */
 .part-led {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
-  border-radius: 6px;
-  background: #222;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.part-led--on {
-  background: #14532d;
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
-}
-
-.part-led__dome {
-  fill: #4b5563;
-  stroke: #94a3b8;
-  stroke-width: 1.5;
-  transition: fill 0.2s ease, filter 0.2s ease;
-}
-
-.part-led--on .part-led__dome {
-  fill: #22c55e;
-  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.9));
-}
-
-.part-led__flange {
-  fill: #1f2937;
-}
-
-.part-led__leg {
-  stroke: #9ca3af;
-  stroke-width: 2;
 }
 
 .part-resistor {

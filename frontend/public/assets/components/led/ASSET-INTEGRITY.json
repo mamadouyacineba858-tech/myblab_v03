@@ -1,0 +1,51 @@
+{
+  "component": "LED",
+  "version": "1.0.0",
+  "files": [
+    {
+      "file": "led.off.1x.png",
+      "bytes": 3665,
+      "sha256": "bd85945daa126badb01d8d8ce48d8f53a9388172b158b2550d6f05c17fcb4692"
+    },
+    {
+      "file": "led.off.1x.webp",
+      "bytes": 3314,
+      "sha256": "4afb536ae34dc89342968f466bd3994c69e8f98021001f1544a070f050de24ac"
+    },
+    {
+      "file": "led.off.3x.png",
+      "bytes": 25681,
+      "sha256": "c60bf6929d16f64ecfbdbd086c2090aa68a4ec4e87429aa8726ffba3b6f4156a"
+    },
+    {
+      "file": "led.off.3x.webp",
+      "bytes": 18772,
+      "sha256": "b9860edb04fcc2e6d5be5aea36505732124a27365ad695d5c89e0b5e4a54d409"
+    },
+    {
+      "file": "led.on.1x.png",
+      "bytes": 4462,
+      "sha256": "981a6391e384aa085fe328856fd4492c532e826961e6309dcb181ea2baa5514a"
+    },
+    {
+      "file": "led.on.1x.webp",
+      "bytes": 4474,
+      "sha256": "e236d17c8d620a5e81433640538e2ef11ef74d54796d52a49b957f304e9218f1"
+    },
+    {
+      "file": "led.on.3x.png",
+      "bytes": 34272,
+      "sha256": "ce71318ff8ee8f0c1a20645739f21b22e6e34403de6427118354b7377b50b32b"
+    },
+    {
+      "file": "led.on.3x.webp",
+      "bytes": 24022,
+      "sha256": "c0a83891e74b717c3a93ea6038e255f9735a0fb9d6c23cb4c36e5caaa6631925"
+    },
+    {
+      "file": "manifest.json",
+      "bytes": 1861,
+      "sha256": "7bdccb43d95ef1ddc4357fa48444bfde7126a7c1a0ad2e3d37a0e3628cd8644a"
+    }
+  ]
+}
