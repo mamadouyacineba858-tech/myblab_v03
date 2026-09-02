@@ -75,7 +75,11 @@ export const DEFAULT_REGISTRATIONS = [
   // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
   // LED / CAPACITOR.
   { type: 'LDR', component: LdrPart, visual: { backend: 'raster' } },
-  { type: 'THERMISTOR', component: ThermistorPart },
+  // THERMISTOR : sixième composant à backend raster (asset validé
+  // MB-VIS-PROTOTYPE-006, état unique `default`). raster => bareBody +
+  // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
+  // LED / CAPACITOR / LDR.
+  { type: 'THERMISTOR', component: ThermistorPart, visual: { backend: 'raster' } },
   // DIODE : deuxième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-002). raster => bareBody + markerless dérivés, via le
   // même mécanisme déclaratif que RESISTOR — aucun code central spécifique.

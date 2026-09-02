@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "type": "THERMISTOR",
+  "files": [
+    {
+      "file": "thermistor.default.1x.png",
+      "bytes": 2149,
+      "sha256": "7d944b1d457943a43930e3e490cb85a01f573b365c93ffb704e0200ab2b947f8",
+      "width": 84,
+      "height": 36,
+      "alpha": true
+    },
+    {
+      "file": "thermistor.default.1x.webp",
+      "bytes": 1738,
+      "sha256": "d7a753e40cc48b6fa9d969678caa80d041bd78cfb67592439203c1feb61edbd5",
+      "width": 84,
+      "height": 36,
+      "alpha": true
+    },
+    {
+      "file": "thermistor.default.3x.png",
+      "bytes": 9328,
+      "sha256": "86feb49d7b973b68259d72b01407a794c465e5a02d80a42e0b65587b5e72e2b2",
+      "width": 252,
+      "height": 108,
+      "alpha": true
+    },
+    {
+      "file": "thermistor.default.3x.webp",
+      "bytes": 6382,
+      "sha256": "41bdda4bad1b4c34734b004d3e13e889facfbc6f9c595dcbeb5615f3dfaec3c6",
+      "width": 252,
+      "height": 108,
+      "alpha": true
+    }
+  ]
+}

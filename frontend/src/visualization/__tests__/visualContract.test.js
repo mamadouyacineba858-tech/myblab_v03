@@ -219,12 +219,14 @@ describe('G — Backend Contract', () => {
     expect(manager.getBackend('LED')).toBe('raster')
     expect(manager.getBackend('CAPACITOR')).toBe('raster')
     expect(manager.getBackend('LDR')).toBe('raster')
-    expect(manager.getBackend('THERMISTOR')).toBe('svg')
+    expect(manager.getBackend('THERMISTOR')).toBe('raster')
+    expect(manager.getBackend('BUZZER')).toBe('svg')
     expect(manager.getPresentation('RESISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('LED')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('CAPACITOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('LDR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
-    expect(manager.getPresentation('THERMISTOR')).toEqual({ backend: 'svg', bareBody: false, markerless: false })
+    expect(manager.getPresentation('THERMISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
+    expect(manager.getPresentation('BUZZER')).toEqual({ backend: 'svg', bareBody: false, markerless: false })
   })
 
   it('MB-VIS-INDUSTRIAL-001 — accesseur statique getComponentPresentation == manager (même source, même résultat)', () => {
@@ -234,11 +236,11 @@ describe('G — Backend Contract', () => {
     }
   })
 
-  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + CAPACITOR (004) + LDR (005) ; tous les autres restent svg par défaut', () => {
+  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + CAPACITOR (004) + LDR (005) + THERMISTOR (006) ; tous les autres restent svg par défaut', () => {
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes.slice().sort()).toEqual(['CAPACITOR', 'DIODE', 'LDR', 'LED', 'RESISTOR'])
+    expect(rasterTypes.slice().sort()).toEqual(['CAPACITOR', 'DIODE', 'LDR', 'LED', 'RESISTOR', 'THERMISTOR'])
     const rasterSet = new Set(rasterTypes)
     for (const { type } of DEFAULT_REGISTRATIONS) {
       if (rasterSet.has(type)) continue

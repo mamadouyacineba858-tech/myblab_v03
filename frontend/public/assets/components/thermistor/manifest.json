@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "type": "THERMISTOR",
+  "backend": "raster",
+  "assetFamily": "thermistor",
+  "canonical": {
+    "width": 84,
+    "height": 36,
+    "pins": {
+      "A": [
+        0,
+        18
+      ],
+      "B": [
+        84,
+        18
+      ]
+    }
+  },
+  "state": "default",
+  "complexity": "simple",
+  "variants": [
+    {
+      "state": "default",
+      "scale": 1,
+      "format": "png",
+      "file": "thermistor.default.1x.png",
+      "width": 84,
+      "height": 36
+    },
+    {
+      "state": "default",
+      "scale": 1,
+      "format": "webp",
+      "file": "thermistor.default.1x.webp",
+      "width": 84,
+      "height": 36
+    },
+    {
+      "state": "default",
+      "scale": 3,
+      "format": "png",
+      "file": "thermistor.default.3x.png",
+      "width": 252,
+      "height": 108
+    },
+    {
+      "state": "default",
+      "scale": 3,
+      "format": "webp",
+      "file": "thermistor.default.3x.webp",
+      "width": 252,
+      "height": 108
+    }
+  ],
+  "budget": {
+    "maxWeightKbPerVariantSimple": 30,
+    "maxDimension": 1024
+  }
+}
