@@ -1,0 +1,54 @@
+{
+  "version": "4.0.0",
+  "component": "DC_MOTOR",
+  "backend": "raster",
+  "assetFamily": "dc-motor",
+  "canonical": {
+    "width": 84,
+    "height": 50,
+    "pins": {
+      "plus": [
+        0,
+        25
+      ],
+      "minus": [
+        84,
+        25
+      ]
+    }
+  },
+  "variants": [
+    {
+      "file": "dc-motor.default.1x.png",
+      "state": "default",
+      "scale": "1x",
+      "format": "png",
+      "width": 84,
+      "height": 50
+    },
+    {
+      "file": "dc-motor.default.1x.webp",
+      "state": "default",
+      "scale": "1x",
+      "format": "webp",
+      "width": 84,
+      "height": 50
+    },
+    {
+      "file": "dc-motor.default.3x.png",
+      "state": "default",
+      "scale": "3x",
+      "format": "png",
+      "width": 252,
+      "height": 150
+    },
+    {
+      "file": "dc-motor.default.3x.webp",
+      "state": "default",
+      "scale": "3x",
+      "format": "webp",
+      "width": 252,
+      "height": 150
+    }
+  ]
+}

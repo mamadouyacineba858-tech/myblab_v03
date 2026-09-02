@@ -87,7 +87,11 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'RGB_LED', component: RgbLedPart },
   { type: 'NPN_TRANSISTOR', component: NpnTransistorPart },
   { type: 'SERVO', component: ServoPart },
-  { type: 'DC_MOTOR', component: DcMotorPart },
+  // DC_MOTOR : septième composant à backend raster (asset validé
+  // MB-VIS-PROTOTYPE-007 v5, état unique `default`). raster => bareBody +
+  // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
+  // LED / CAPACITOR / LDR / THERMISTOR.
+  { type: 'DC_MOTOR', component: DcMotorPart, visual: { backend: 'raster' } },
 ];
 
 /**

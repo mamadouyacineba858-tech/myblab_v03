@@ -1,0 +1,27 @@
+[
+  {
+    "file": "dc-motor.default.1x.png",
+    "bytes": 5511,
+    "sha256": "a88e0f7f72adea1bd5c95f4216128bf3f1164f10978b5ff02c8da58d846e58f0"
+  },
+  {
+    "file": "dc-motor.default.1x.webp",
+    "bytes": 4064,
+    "sha256": "585adb984f61ddc2cc03d76b8035568af2d23519d558fbc378a0e77ff6aea937"
+  },
+  {
+    "file": "dc-motor.default.3x.png",
+    "bytes": 9016,
+    "sha256": "c056344084d214dce13e8b8eeab17b1d7f35ba7c348c412b55875fa990d50cdf"
+  },
+  {
+    "file": "dc-motor.default.3x.webp",
+    "bytes": 25986,
+    "sha256": "9d54073a595fdfa565d0ab223d1234b7dbbe8c9ba42917c75c8f1b260dbed11d"
+  },
+  {
+    "file": "manifest.json",
+    "bytes": 952,
+    "sha256": "c3e28048fe1f2f8085a5cb7bb86fd85a2964fbc1d5a9db82fe2c641461953c86"
+  }
+]
