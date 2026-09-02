@@ -223,30 +223,18 @@
   fill: #94a3b8;
 }
 
+/* MB-VIS-PROTOTYPE-004 — CAPACITOR portée au backend raster : le renderer
+   rend un asset `<picture>/<img>` transparent (état unique `default`).
+   `.part-capacitor` est conservée (hook de style + contrat du composant) et
+   réduite au centrage, comme `.part-resistor` / `.part-diode` / `.part-led`.
+   Les anciennes règles `.part-capacitor__lead/disc/disc-outline` ciblaient
+   des primitives SVG qui n'existent plus. */
 .part-capacitor {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.part-capacitor__lead {
-  stroke: #9ca3af;
-  stroke-width: 2.5;
-}
-
-.part-capacitor__disc {
-  fill: #f5b942;
-  stroke: #b8860b;
-  stroke-width: 1.5;
-}
-
-.part-capacitor__disc-outline {
-  fill: none;
-  stroke: #8a5a00;
-  stroke-width: 1;
-  opacity: 0.4;
 }
 
 /* =========================================================

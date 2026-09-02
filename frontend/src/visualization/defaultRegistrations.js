@@ -64,7 +64,10 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'BUTTON', component: ButtonPart },
  { type: 'BUTTON_LATCHING', component: LatchingButtonPart },
   { type: 'POWER', component: PowerPart },
-  { type: 'CAPACITOR', component: CapacitorPart },
+  // CAPACITOR : quatrième composant à backend raster (asset validé
+  // MB-VIS-PROTOTYPE-004, état unique `default`). raster => bareBody +
+  // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE / LED.
+  { type: 'CAPACITOR', component: CapacitorPart, visual: { backend: 'raster' } },
   { type: 'BUZZER', component: BuzzerPart },
   { type: 'POTENTIOMETER', component: PotentiometerPart },
   { type: 'LDR', component: LdrPart },

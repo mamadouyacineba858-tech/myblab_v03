@@ -1,0 +1,27 @@
+{
+  "component": "CAPACITOR",
+  "version": "1.0.0",
+  "algorithm": "SHA-256",
+  "files": [
+    {
+      "file": "capacitor.default.1x.png",
+      "bytes": 1811,
+      "sha256": "d1faeb38713037f2747a2ec31a557bf5d394f127433fa16e890c6381713ba389"
+    },
+    {
+      "file": "capacitor.default.1x.webp",
+      "bytes": 1544,
+      "sha256": "fdf6f123c669a9c65630430461e3c95882132a89798f05e8ec07d475759e03c3"
+    },
+    {
+      "file": "capacitor.default.3x.png",
+      "bytes": 11573,
+      "sha256": "684e8ee6e7fe7cb26c39be87d7ea0ee89b0d4fbdbac52d4601ad1864633b46be"
+    },
+    {
+      "file": "capacitor.default.3x.webp",
+      "bytes": 4122,
+      "sha256": "5ecc61c5598dccc067258de6d4187d1e26ebed13f4deb51c54deb4d8d11084b8"
+    }
+  ]
+}
