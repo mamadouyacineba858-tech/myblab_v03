@@ -70,7 +70,11 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'CAPACITOR', component: CapacitorPart, visual: { backend: 'raster' } },
   { type: 'BUZZER', component: BuzzerPart },
   { type: 'POTENTIOMETER', component: PotentiometerPart },
-  { type: 'LDR', component: LdrPart },
+  // LDR : cinquième composant à backend raster (asset validé
+  // MB-VIS-PROTOTYPE-005, état unique `default`). raster => bareBody +
+  // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
+  // LED / CAPACITOR.
+  { type: 'LDR', component: LdrPart, visual: { backend: 'raster' } },
   { type: 'THERMISTOR', component: ThermistorPart },
   // DIODE : deuxième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-002). raster => bareBody + markerless dérivés, via le

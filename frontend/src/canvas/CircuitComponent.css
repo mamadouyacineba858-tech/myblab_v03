@@ -320,29 +320,18 @@
    MB-COMPONENT-LIBRARY-002 — LDR (photorésistance)
    ========================================================= */
 
+/* MB-VIS-PROTOTYPE-005 — LDR portée au backend raster : le renderer rend un
+   asset `<picture>/<img>` transparent (état unique `default`). `.part-ldr`
+   est conservée et réduite au centrage, comme `.part-resistor` /
+   `.part-diode` / `.part-led` / `.part-capacitor`. Les anciennes règles
+   `.part-ldr__lead/disc/track` ciblaient des primitives SVG qui n'existent
+   plus. */
 .part-ldr {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.part-ldr__lead {
-  stroke: #9ca3af;
-  stroke-width: 2.5;
-}
-
-.part-ldr__disc {
-  fill: #d4e157;
-  stroke: #9e9d24;
-  stroke-width: 1.5;
-}
-
-.part-ldr__track {
-  fill: none;
-  stroke: #556b1f;
-  stroke-width: 1.5;
 }
 
 /* =========================================================

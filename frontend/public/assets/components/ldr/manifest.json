@@ -1,0 +1,99 @@
+{
+  "version": "1.0.0",
+  "type": "LDR",
+  "backend": "raster",
+  "assetFamily": "ldr",
+  "canonical": {
+    "width": 84,
+    "height": 36,
+    "pins": {
+      "pinA": [
+        0,
+        18
+      ],
+      "pinB": [
+        84,
+        18
+      ]
+    }
+  },
+  "state": "default",
+  "variants": [
+    {
+      "file": "ldr.default.1x.png",
+      "bytes": 5658,
+      "sha256": "220eb9f8b401faaf1d20ae5495069e1db8a5a55056057ffdc6e0dd86292105dc",
+      "dimensions": [
+        84,
+        36
+      ],
+      "alpha": {
+        "corners": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "transparent": 1604,
+        "nonopaque": 1950
+      }
+    },
+    {
+      "file": "ldr.default.1x.webp",
+      "bytes": 3022,
+      "sha256": "4f2a93780cfef0b497b74f9c5de9524bfe1d6fa5c069e367cb932c166b848303",
+      "dimensions": [
+        84,
+        36
+      ],
+      "alpha": {
+        "corners": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "transparent": 1604,
+        "nonopaque": 1950
+      }
+    },
+    {
+      "file": "ldr.default.3x.png",
+      "bytes": 27759,
+      "sha256": "1d095f521c157ea859ffa544ec13184d918a36ff0dcc781fbd2ebda0937cb5df",
+      "dimensions": [
+        252,
+        108
+      ],
+      "alpha": {
+        "corners": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "transparent": 15342,
+        "nonopaque": 16668
+      }
+    },
+    {
+      "file": "ldr.default.3x.webp",
+      "bytes": 19492,
+      "sha256": "ae4738e6b7162acb6cd95780ad0c948475dc080a201b96354f2c3259963d7828",
+      "dimensions": [
+        252,
+        108
+      ],
+      "alpha": {
+        "corners": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "transparent": 15342,
+        "nonopaque": 16668
+      }
+    }
+  ]
+}
