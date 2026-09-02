@@ -61,8 +61,16 @@ export const DEFAULT_REGISTRATIONS = [
   // MB-VIS-PROTOTYPE-001B). raster => bareBody + markerless dérivés.
   { type: 'RESISTOR', component: ResistorPart, visual: { backend: 'raster' } },
   { type: 'ARDUINO', component: ArduinoPart },
-  { type: 'BUTTON', component: ButtonPart },
- { type: 'BUTTON_LATCHING', component: LatchingButtonPart },
+  // BUTTON : huitième composant à backend raster (asset validé
+  // MB-VIS-PROTOTYPE-008, états `released` / `pressed`). raster => bareBody +
+  // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
+  // LED / CAPACITOR / LDR / THERMISTOR / DC_MOTOR.
+  { type: 'BUTTON', component: ButtonPart, visual: { backend: 'raster' } },
+  // BUTTON_LATCHING : neuvième composant à backend raster (asset validé
+  // MB-VIS-PROTOTYPE-008, états `off` / `on`, rocker rouge cuit dans les
+  // deux assets). raster => bareBody + markerless dérivés, même mécanisme
+  // déclaratif que les autres composants raster.
+  { type: 'BUTTON_LATCHING', component: LatchingButtonPart, visual: { backend: 'raster' } },
   { type: 'POWER', component: PowerPart },
   // CAPACITOR : quatrième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-004, état unique `default`). raster => bareBody +

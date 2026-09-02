@@ -317,7 +317,7 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
     })
   })
 
-  it("BUTTON : le clic réel (pointerdown/pointerup) sur le nouveau rendu SVG met bien à jour l'état pressé dans le Document (interaction non régressée, AC-06)", () => {
+  it("BUTTON : le clic réel (pointerdown/pointerup) sur le rendu raster (MB-VIS-PROTOTYPE-008) met bien à jour l'état pressé dans le Document (interaction non régressée, AC-06)", () => {
     let circuitApi = null
     render(
       <CanvasHarness onReady={(api) => { circuitApi = api }} />,

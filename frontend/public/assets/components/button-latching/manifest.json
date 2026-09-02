@@ -1,0 +1,93 @@
+{
+  "component": "BUTTON_LATCHING",
+  "version": "3.1.0",
+  "backend": "raster",
+  "states": [
+    "off",
+    "on"
+  ],
+  "formats": [
+    "webp",
+    "png"
+  ],
+  "scales": [
+    "1x",
+    "3x"
+  ],
+  "dimensions": {
+    "1x": {
+      "width": 60,
+      "height": 60
+    },
+    "3x": {
+      "width": 180,
+      "height": 180
+    }
+  },
+  "variants": [
+    {
+      "file": "button-latching.off.1x.png",
+      "state": "off",
+      "scale": "1x",
+      "format": "png",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "button-latching.off.1x.webp",
+      "state": "off",
+      "scale": "1x",
+      "format": "webp",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "button-latching.off.3x.png",
+      "state": "off",
+      "scale": "3x",
+      "format": "png",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "button-latching.off.3x.webp",
+      "state": "off",
+      "scale": "3x",
+      "format": "webp",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "button-latching.on.1x.png",
+      "state": "on",
+      "scale": "1x",
+      "format": "png",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "button-latching.on.1x.webp",
+      "state": "on",
+      "scale": "1x",
+      "format": "webp",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "button-latching.on.3x.png",
+      "state": "on",
+      "scale": "3x",
+      "format": "png",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "button-latching.on.3x.webp",
+      "state": "on",
+      "scale": "3x",
+      "format": "webp",
+      "width": 180,
+      "height": 180
+    }
+  ]
+}

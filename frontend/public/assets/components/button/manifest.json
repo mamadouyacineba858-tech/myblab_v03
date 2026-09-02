@@ -1,0 +1,93 @@
+{
+  "component": "BUTTON",
+  "version": "3.1.0",
+  "backend": "raster",
+  "states": [
+    "released",
+    "pressed"
+  ],
+  "formats": [
+    "webp",
+    "png"
+  ],
+  "scales": [
+    "1x",
+    "3x"
+  ],
+  "dimensions": {
+    "1x": {
+      "width": 60,
+      "height": 60
+    },
+    "3x": {
+      "width": 180,
+      "height": 180
+    }
+  },
+  "variants": [
+    {
+      "file": "button.released.1x.png",
+      "state": "released",
+      "scale": "1x",
+      "format": "png",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "button.released.1x.webp",
+      "state": "released",
+      "scale": "1x",
+      "format": "webp",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "button.released.3x.png",
+      "state": "released",
+      "scale": "3x",
+      "format": "png",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "button.released.3x.webp",
+      "state": "released",
+      "scale": "3x",
+      "format": "webp",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "button.pressed.1x.png",
+      "state": "pressed",
+      "scale": "1x",
+      "format": "png",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "button.pressed.1x.webp",
+      "state": "pressed",
+      "scale": "1x",
+      "format": "webp",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "button.pressed.3x.png",
+      "state": "pressed",
+      "scale": "3x",
+      "format": "png",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "button.pressed.3x.webp",
+      "state": "pressed",
+      "scale": "3x",
+      "format": "webp",
+      "width": 180,
+      "height": 180
+    }
+  ]
+}

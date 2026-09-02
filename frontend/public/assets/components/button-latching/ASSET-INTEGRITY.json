@@ -1,0 +1,47 @@
+[
+  {
+    "file": "button-latching.off.1x.png",
+    "bytes": 1562,
+    "sha256": "90e15b15d02bfdede0d1148fe7ed2c84b955be6d0ba3e8170662001eb44f1731"
+  },
+  {
+    "file": "button-latching.off.1x.webp",
+    "bytes": 4834,
+    "sha256": "91a2a69b9c9c287fa436413c7a75cd7a341d203bd87e55ec252b7576b526f691"
+  },
+  {
+    "file": "button-latching.off.3x.png",
+    "bytes": 5133,
+    "sha256": "9aadf2b2c5a7134c190c44dac3bd0b8e9f02a5ab8d8ff4c68721c5f4473c0613"
+  },
+  {
+    "file": "button-latching.off.3x.webp",
+    "bytes": 26958,
+    "sha256": "1b240f62547119a1ed5ec060fcb9cdcc8eba8d1c99cede4c27da8fe21f1a6817"
+  },
+  {
+    "file": "button-latching.on.1x.png",
+    "bytes": 1554,
+    "sha256": "92415e36c55b98911c31386f22e97e762b71a288f766277814c95e37a4ab5352"
+  },
+  {
+    "file": "button-latching.on.1x.webp",
+    "bytes": 4614,
+    "sha256": "22e1641b4bdc1700b7b664368501a66b0faf4033af5b0bce4611a735859d075b"
+  },
+  {
+    "file": "button-latching.on.3x.png",
+    "bytes": 5417,
+    "sha256": "0bd9961ed58a55399e0ac7d4b8696ae8b45e0028acbb096fd34f802fed74960d"
+  },
+  {
+    "file": "button-latching.on.3x.webp",
+    "bytes": 27180,
+    "sha256": "9e5f647bf7ff735ecd5020ea71815543d0cd0139632cd174c3a829ab79b36c4f"
+  },
+  {
+    "file": "manifest.json",
+    "bytes": 1655,
+    "sha256": "f21154cf54cb62a5924b682d7f107cecbbafba73ce8e315089983c53f48c92bf"
+  }
+]
