@@ -212,7 +212,7 @@ La trajectoire stratégique de l'expérience est définie en §1.1 : **atteindre
 | --- | --- | --- |
 | EXP1 | Formalisation et clôture de MB-VIS-001 | Réalisé techniquement |
 | EXP2 | Visualisation des fils | Non commencé |
-| EXP3 | Parité visuelle composants & expérience — seuil Tinkercad | Planifié |
+| EXP3 | Parité visuelle composants & expérience — seuil Tinkercad | En cours de recalage |
 | EXP4 | Dépassement du benchmark Tinkercad | Futur |
 | EXP5 | Laboratoire virtuel avancé et immersif | Vision long terme |
 
@@ -228,106 +228,132 @@ Consolider la traçabilité PMO de la capacité déjà réalisée, sans refaire 
 
 Construire, par itérations PMO contrôlées, le niveau de restitution visuelle et d'expérience nécessaire pour atteindre le benchmark Tinkercad. Les travaux couvrent notamment la cohérence géométrique et dimensionnelle des composants, le réalisme des matériaux et des broches, les états visuels, le canvas, le câblage, le breadboard, les cartes et la cohérence générale de l'environnement de travail.
 
-Les Tickets PMO issus d'EXP3 sont organisés comme une séquence indicative et révisable après audit du dépôt :
+La séquence historique V1→V22 ci-dessous est conservée à des fins de traçabilité, mais **elle n'est plus l'ordre opérationnel à suivre**. Plusieurs de ses éléments ont déjà été réalisés sous des tickets antérieurs ou ont été regroupés/reformulés après l'évolution réelle du dépôt.
 
-| Séquence | Ticket cible | Finalité de référence | État |
+### 7.2.1 — Séquence historique EXP3
+
+| Séquence historique | Ticket historique | Finalité initiale | Statut après recalage |
 | --- | --- | --- | --- |
-| V1 | MB-VIS-RENDER-009 | Baseline visuelle et contrat de qualité de rendu | Planifié |
-| V2 | MB-VIS-LED-010 | LED réaliste niveau benchmark | Planifié |
-| V3 | MB-VIS-COMP-011 | Résistance réaliste et proportions physiques | Planifié |
-| V4 | MB-VIS-COMP-012 | Diodes et composants axiaux | Planifié |
-| V5 | MB-VIS-COMP-013 | Boutons et interrupteurs — mécanique et états | Planifié |
-| V6 | MB-VIS-COMP-014 | Condensateurs, inductances et passifs | Planifié |
-| V7 | MB-VIS-COMP-015 | Transistors et semi-conducteurs | Planifié |
-| V8 | MB-VIS-COMP-016 | Potentiomètres et capteurs | Planifié |
-| V9 | MB-VIS-COMP-017 | Buzzer, moteur et servo | Planifié |
-| V10 | MB-VIS-COMP-018 | RGB LED et variantes LED | Planifié |
-| V11 | MB-VIS-COMP-019 | Arduino et cartes — rendu réaliste | Planifié |
-| V12 | MB-VIS-COMP-020 | Pins, contacts et précision d'ancrage | Planifié |
-| V13 | MB-VIS-WIRE-021 | Fils — géométrie, épaisseur, routage et jonctions | Planifié |
-| V14 | MB-VIS-WIRE-022 | États électriques et restitution dynamique des fils | Planifié |
-| V15 | MB-VIS-BREAD-023 | Breadboard — restitution visuelle de référence | Planifié |
-| V16 | MB-VIS-BREAD-024 | Insertion, alignement et assemblage breadboard | Planifié |
-| V17 | MB-VIS-CANVAS-025 | Canvas — grille, zoom, sélection, déplacement et snapping | Planifié |
-| V18 | MB-VIS-CANVAS-026 | Profondeur, ombres et feedback d'interaction | Planifié |
-| V19 | MB-VIS-STATE-027 | Système visuel des états de simulation | Planifié |
-| V20 | MB-VIS-LAB-028 | Cohérence visuelle globale du laboratoire | Planifié |
-| V21 | MB-VIS-QA-029 | Visual regression suite et verrouillage des rendus | Planifié |
-| V22 | MB-VIS-TINKERCAD-030 | Audit comparatif MYBlab ↔ benchmark Tinkercad et gate de niveau 1 | Jalon |
+| V1 | MB-VIS-RENDER-009 | Baseline visuelle et contrat de qualité de rendu | Historique / capitalisé |
+| V2 | MB-VIS-LED-010 | LED réaliste niveau benchmark | Réalisé sous travaux antérieurs |
+| V3 | MB-VIS-COMP-011 | Résistance réaliste et proportions physiques | Réalisé |
+| V4 | MB-VIS-COMP-012 | Diodes et composants axiaux | Réalisé |
+| V5 | MB-VIS-COMP-013 | Boutons et interrupteurs — mécanique et états | Réalisé sous MB-VIS-PROTOTYPE-008 |
+| V6 | MB-VIS-COMP-014 | Condensateurs, inductances et passifs | Condensateur réalisé ; inductance à évaluer |
+| V7 | MB-VIS-COMP-015 | Transistors et semi-conducteurs | À traiter dans la nouvelle séquence |
+| V8 | MB-VIS-COMP-016 | Potentiomètres et capteurs | Potentiomètre restant ; LDR et thermistor réalisés |
+| V9 | MB-VIS-COMP-017 | Buzzer, moteur et servo | Moteur réalisé ; buzzer et servo restants |
+| V10 | MB-VIS-COMP-018 | RGB LED et variantes LED | À traiter |
+| V11 | MB-VIS-COMP-019 | Arduino et cartes — rendu réaliste | À traiter |
+| V12 | MB-VIS-COMP-020 | Pins, contacts et précision d'ancrage | À traiter transversalement |
+| V13 | MB-VIS-WIRE-021 | Fils — géométrie, épaisseur, routage et jonctions | À traiter |
+| V14 | MB-VIS-WIRE-022 | États électriques et restitution dynamique des fils | À traiter |
+| V15 | MB-VIS-BREAD-023 | Breadboard — restitution visuelle de référence | À traiter |
+| V16 | MB-VIS-BREAD-024 | Insertion, alignement et assemblage breadboard | À traiter |
+| V17 | MB-VIS-CANVAS-025 | Canvas — grille, zoom, sélection, déplacement et snapping | À traiter |
+| V18 | MB-VIS-CANVAS-026 | Profondeur, ombres et feedback d'interaction | À traiter |
+| V19 | MB-VIS-STATE-027 | Système visuel des états de simulation | À traiter |
+| V20 | MB-VIS-LAB-028 | Cohérence visuelle globale du laboratoire | À traiter |
+| V21 | MB-VIS-QA-029 | Visual regression suite et verrouillage des rendus | À traiter |
+| V22 | MB-VIS-TINKERCAD-030 | Audit comparatif MYBlab ↔ benchmark Tinkercad et gate de niveau 1 | Jalon final à renuméroter dans la séquence opérationnelle |
 
-Cette séquence n'est pas une spécification d'implémentation et ne donne pas d'autorisation implicite de modifier un sous-système architectural. Chaque ticket doit disposer de son Blueprint, de ses invariants, de ses limites de périmètre et de son CSA GO avant implémentation.
+Cette table est un **historique de planification**, pas une liste de tickets à relancer. Un travail déjà réalisé ne doit pas être recréé sous un autre identifiant uniquement pour respecter l'ancienne numérotation.
 
-### EXP4 — Dépassement du benchmark Tinkercad
+### 7.2.2 — Nouvelle séquence opérationnelle EXP3
 
-Identifier puis construire les capacités par lesquelles MYBlab apporte une valeur visuelle, interactive et pédagogique supérieure au benchmark. EXP4 commence après le gate de niveau 1 et ne se limite pas à reproduire Tinkercad.
+La séquence suivante constitue désormais la référence de planification opérationnelle pour le seuil Tinkercad. Elle a été recalée à partir de l'état réel du dépôt et des travaux déjà réalisés.
 
-### EXP5 — Laboratoire virtuel avancé et immersif
+| Ordre | Ticket opérationnel | Objet | État | Dépendance principale |
+| ---: | --- | --- | --- | --- |
+| 0 | AUDIT-EXP3-001 | Audit global initial et recalage de la séquence | Réalisé | — |
+| 1 | MB-VIS-COMP-031 | Buzzer réaliste | **PROCHAIN** | Baseline visuelle existante |
+| 2 | MB-VIS-COMP-032 | Potentiomètre réaliste | Planifié | COMP-031 |
+| 3 | MB-VIS-COMP-033 | RGB LED réaliste et états | Planifié | COMP-032 |
+| 4 | MB-VIS-COMP-034 | Transistor NPN réaliste | Planifié | COMP-033 |
+| 5 | MB-VIS-COMP-035 | Servo réaliste | Planifié | COMP-034 |
+| 6 | MB-VIS-COMP-036 | Arduino / carte réaliste | Planifié | COMP-035 |
+| 7 | MB-VIS-CONTACT-037 | Pins, contacts et précision d'ancrage | Planifié | Composants principaux stabilisés |
+| 8 | MB-VIS-WIRE-038 | Fils — géométrie, épaisseur, routage et jonctions | Planifié | CONTACT-037 |
+| 9 | MB-VIS-WIRE-039 | Fils — états électriques et restitution dynamique | Planifié | WIRE-038 + états disponibles |
+| 10 | MB-VIS-BREAD-040 | Breadboard — restitution visuelle de référence | Planifié | CONTACT-037 + WIRE-038 |
+| 11 | MB-VIS-BREAD-041 | Breadboard — insertion, alignement et assemblage | Planifié | BREAD-040 |
+| 12 | MB-VIS-CANVAS-042 | Canvas — grille, zoom, sélection, déplacement, snapping | Planifié | BREAD-041 |
+| 13 | MB-VIS-CANVAS-043 | Canvas — profondeur, ombres, feedback d'interaction | Planifié | CANVAS-042 |
+| 14 | MB-VIS-STATE-044 | Système visuel des états de simulation | Planifié | WIRE-039 + composants à états |
+| 15 | MB-VIS-LAB-045 | Cohérence visuelle globale du laboratoire | Planifié | 031–044 |
+| 16 | MB-VIS-QA-046 | Visual regression suite et verrouillage des rendus | Planifié | LAB-045 |
+| 17 | MB-VIS-TINKERCAD-047 | Audit comparatif MYBlab ↔ Tinkercad et gate de niveau 1 | Jalon | QA-046 |
 
-Préparer, à long terme et sous contrôle architectural, l'évolution vers un laboratoire électronique virtuel réaliste et immersif : représentation physique avancée, instrumentation, observation des phénomènes, interactions spatiales et, lorsque les ADR et l'architecture le permettront, représentation 3D.
+### 7.2.3 — Périmètre de la nouvelle séquence
+
+Les tickets `031` à `036` traitent les composants encore présents dans le catalogue réel mais dont le renderer n'a pas encore adopté le backend raster de référence. Le dépôt réel contient notamment `BuzzerPart`, `PotentiometerPart`, `RgbLedPart`, `NpnTransistorPart`, `ServoPart` et `ArduinoPart`; ils constituent donc une base concrète pour cette vague. La séquence ne suppose pas que chacun doit obligatoirement être rasterisé si un audit ciblé démontre qu'une autre représentation est supérieure, mais toute décision doit respecter le contrat visuel et le CSA GO.
+
+Les tickets `037` à `045` passent ensuite des composants individuels aux capacités transversales : contacts, fils, breadboard, canvas, états et cohérence globale.
+
+Le ticket `046` verrouille la non-régression visuelle et le ticket `047` constitue le gate de décision du Niveau 1.
+
+### 7.2.4 — Règle de non-duplication
+
+Un composant déjà validé techniquement et visuellement ne doit pas être réouvert uniquement parce qu'il apparaît encore dans la séquence historique V1→V22. Une réouverture exige un écart observable, une nouvelle exigence de qualité ou une décision CSA explicitement tracée.
+
+---
 
 ### 7.3 Règles spécifiques de progression visuelle
 
-1. **Audit avant implémentation** — l'ordre détaillé des Tickets EXP3 doit être confirmé ou ajusté par un audit du dépôt à la clôture du ticket précédent.
-2. **Amélioration visible** — chaque ticket visuel doit produire une amélioration observable de la qualité de restitution ou de l'expérience, sans sacrifier les invariants du Core.
-3. **Réalisme compatible** — le réalisme doit rester compatible avec les performances, la maintenabilité et l'architecture React/SVG retenue ; aucune architecture 3D n'est présupposée par EXP3.
-4. **Contrats canoniques** — les dimensions, pins, états et autres métadonnées déclaratives existants doivent être réutilisés plutôt que dupliqués.
-5. **Qualité de référence** — les critères de comparaison avec Tinkercad portent sur la perception utilisateur, la cohérence, les proportions, le comportement visuel et la qualité d'interaction, pas sur une copie de code ou de mécanismes propriétaires.
-6. **Gate de niveau 1** — MB-VIS-TINKERCAD-030 constitue le jalon de décision : le passage au niveau 2 doit être explicitement validé et tracé.
-7. **Réévaluation avant reprise composant-par-composant** — la progression composant-par-composant d'EXP3 (séquence §7.2, entrées V2 à V12) est suspendue après un premier lot expérimental et ne reprend qu'après la trajectoire décrite en **§7.4**. Voir l'amendement `docs/roadmaps/amendments/2026-08-31-MB-VIS-physical-visual-engine.md`.
+1. **Audit global initial, puis contrôles ciblés** — un audit EXP3 complet est réalisé au démarrage de la nouvelle séquence et aux checkpoints majeurs. La clôture d'un ticket individuel utilise un contrôle de conformité ciblé et ne déclenche pas automatiquement un nouvel audit architectural complet.
+2. **Audit anticipé si nécessaire** — un nouvel audit complet est déclenché uniquement lorsqu'un ticket révèle une divergence susceptible de modifier la séquence, le périmètre, les invariants ou la technologie de rendu.
+3. **Amélioration visible** — chaque ticket visuel doit produire une amélioration observable de la qualité de restitution ou de l'expérience, sans sacrifier les invariants du Core.
+4. **Réalisme compatible** — le réalisme doit rester compatible avec les performances, la maintenabilité et l'architecture retenue ; aucune architecture 3D n'est présupposée par EXP3.
+5. **Contrats canoniques** — les dimensions, pins, états et autres métadonnées déclaratives existants doivent être réutilisés plutôt que dupliqués.
+6. **Séparation fonctionnel / visuel** — la géométrie fonctionnelle, les identités de pins, connexions, hitboxes, sélection, drag, câblage et simulation restent des sources de vérité du Core/Presentation existant. Une amélioration visuelle ne doit pas modifier ces responsabilités pour obtenir un meilleur rendu.
+7. **Qualité de référence** — les critères de comparaison avec Tinkercad portent sur la perception utilisateur, la cohérence, les proportions, le comportement visuel et la qualité d'interaction, pas sur une copie de code ou de mécanismes propriétaires.
+8. **Contrat assets** — les nouveaux assets doivent respecter le contrat industriel déjà adopté : transparence, sujet isolé, variantes explicites lorsque nécessaires, formats et densités cohérents, poids maîtrisé, manifeste/intégrité lorsque requis par le protocole, et validation visuelle avant intégration.
+9. **Tests et preuve navigateur** — chaque ticket visuel doit fournir les tests ciblés, le build/typecheck, `git diff --check` et une preuve navigateur reproductible couvrant les états pertinents, le zoom et la cohabitation avec le canvas/breadboard lorsque pertinent.
+10. **CSA Visual GO** — aucun ticket visuel n'est considéré comme prêt à versionner tant que le CSA n'a pas validé le résultat visuel et la conformité au périmètre.
+11. **Gate de niveau 1** — `MB-VIS-TINKERCAD-047` constitue le jalon de décision : le passage au niveau 2 doit être explicitement validé et tracé.
+12. **Séquence opérationnelle de référence** — la table §7.2.2 remplace la séquence historique comme ordre de travail. L'historique reste conservé pour la traçabilité et ne doit pas être interprété comme une obligation de recréer des travaux déjà réalisés.
 
-### 7.4 — Réévaluation de la trajectoire visuelle : MYBlab Physical/Realistic Visual Engine
+### 7.4 — Capitalisation de la trajectoire visuelle : MYBlab Physical/Realistic Visual Engine
 
-Cette sous-section précise l'exécution d'EXP3 ; elle ne remplace ni §7.2, ni §7.3, ni le jalon J7.
+Cette sous-section capitalise les enseignements des travaux visuels antérieurs et définit la continuité technologique d'EXP3 → EXP5. Elle ne constitue pas une autorisation d'introduire une technologie nouvelle sans validation CSA.
 
-**Base expérimentale (PHASE V0).** Un premier lot de renderers a été porté à un langage « volumétrique SVG » (gradients namespacés par `uid`, pattes métalliques, profondeur, déterminisme), un renderer par Ticket PMO sous CSA GO :
+**Base expérimentale.** Un premier lot de renderers a été porté à un langage volumétrique SVG, puis plusieurs composants ont été migrés vers un backend raster réaliste. Ces travaux sont des étapes historiques valides et ne doivent pas être réécrits uniquement pour uniformiser les numéros de tickets.
 
-| Ticket | Composant | Commit |
-| --- | --- | --- |
-| MB-VIS-LED-010 | RESISTOR | `b964a86` |
-| MB-VIS-COMP-011 | CAPACITOR | `697f50e` |
-| MB-VIS-LED-012 | DIODE | `43db4ef` |
-| MB-VIS-LED-013 | LDR | `f31ef3b` |
-| MB-VIS-LED-014 | THERMISTOR | `6c2b5f1` |
+**État réel actuellement capitalisé.** Le backend déclaratif raster est désormais utilisé par plusieurs composants : LED, RESISTOR, DIODE, CAPACITOR, LDR, THERMISTOR, DC_MOTOR, BUTTON et BUTTON_LATCHING. Les assets correspondants sont présents dans `frontend/public/assets/components/` et suivent le contrat de production établi. Le registre de présentation reste déclaratif : les composants déclarent leur backend visuel via `visual.backend`, sans logique centrale spécifique par type.
 
-Ce lot est **valide techniquement** mais constitue une **base expérimentale**, pas le standard visuel final. Ses commits ne sont ni réécrits, ni annulés, ni déplacés.
+**Nouvelle référence d'ambition.** Une référence visuelle de laboratoire électronique réaliste fournie par le CSA constitue la référence d'ambition artistique d'EXP3 → EXP5 : les composants doivent tendre à être perçus comme de véritables objets physiques (silhouettes crédibles, volume, matériaux différenciés, leads et connecteurs physiques, profondeur, ombres et éclairage cohérents, contact avec la surface, cohérence inter-composants et avec la breadboard). Comme Tinkercad, c'est un **benchmark d'ambition**, pas une spécification à reproduire pixel par pixel.
 
-**Nouvelle référence d'ambition.** Une référence visuelle de laboratoire électronique réaliste fournie par le CSA devient la référence d'ambition artistique d'EXP3 → EXP5 : les composants doivent tendre à être perçus comme de véritables objets physiques (silhouettes crédibles, volume réel, matériaux différenciés — métal, plastique, céramique, verre, PCB —, leads et connecteurs physiques, profondeur, ombres et éclairage cohérents, contact avec la surface, cohérence inter-composants et avec la breadboard). Comme Tinkercad (R8), c'est un **benchmark d'ambition**, pas une spécification à reproduire pixel par pixel. Cible de maturité : niveau 4 (« objet réaliste ») au minimum pour les composants importants, avec possibilité de niveau 5 pour les objets complexes.
+**Principe architectural absolu.** La géométrie fonctionnelle (position, dimensions canoniques, pins et leur identité, connexions, hitbox, sélection, drag, câblage, simulation) reste la source de vérité unique et ne doit pas être modifiée pour un objectif de rendu. La représentation visuelle doit pouvoir évoluer indépendamment.
 
-**Principe architectural absolu.** La géométrie fonctionnelle (position, dimensions canoniques, pins et leur identité, connexions, hitbox, sélection, drag, câblage, simulation) reste la source de vérité unique et ne doit pas être modifiée pour un objectif de rendu. La représentation visuelle (volume, matériaux, détails, éclairage, ombres, profondeur, 2.5D/3D) doit pouvoir évoluer indépendamment.
-
-**Trajectoire obligatoire.**
+**Trajectoire actuelle.**
 
 ```text
-PHASE V0 — Baseline (premier lot volumétrique SVG)
+Travaux historiques / baseline
     ↓
-MB-VIS-REVIEW-001 — Global Renderer & Visual Architecture Audit (lecture seule)
+Industrialisation du backend visuel déclaratif
     ↓
-Technology Review — SVG enrichi / SVG+raster / 2.5D / Canvas 2D / WebGL / Three.js / RTF / hybride
+Vague composants restants : 031 → 036
     ↓
-MB-VIS-RENDER-010 — Physical Component Visual Contract (nouveau contrat visuel)
+Contacts / fils : 037 → 039
     ↓
-MB-VIS-PROTOTYPE-001/002/003 — RESISTOR + LED + SERVO ou DC MOTOR
+Breadboard : 040 → 041
     ↓
-CSA Visual GO — validation du langage visuel ET de la technologie de rendu
+Canvas : 042 → 043
     ↓
-MB-VIS-INDUSTRIAL-001 — Industrialisation du renderer visuel
+États + cohérence : 044 → 045
     ↓
-Tickets composants restants (re-séquencés) → EXP3 poursuivi → J7 (gate Tinkercad)
+Visual regression : 046
     ↓
-EXP4 / EXP5 — dépassement du benchmark puis laboratoire virtuel immersif
+MB-VIS-TINKERCAD-047 — Gate Niveau 1
+    ↓
+EXP4 — Dépasser Tinkercad
+    ↓
+EXP5 — Laboratoire virtuel avancé et immersif
 ```
 
-**Règle de gouvernance.** Aucun nouveau Ticket PMO d'amélioration visuelle composant-par-composant ne doit être lancé avant la validation CSA explicite de `MB-VIS-RENDER-010` (nouveau langage visuel) et de la technologie de rendu retenue. Les entrées V13 et suivantes de §7.2 (fils, breadboard, canvas, états, cohérence globale, QA visuelle, gate Tinkercad) restent valides et sont re-priorisées à la sortie de `MB-VIS-REVIEW-001`.
+**Règle de technologie.** La technologie de rendu peut évoluer si les contraintes de qualité, performance, maintenabilité ou réalisme le justifient, mais aucun basculement architectural majeur n'est implicite dans les tickets `031` à `047`. Une décision de technologie nouvelle relève d'une analyse et, si nécessaire, d'une ADR avant intégration.
 
-**Éclatement historique de `MB-VIS-PROTOTYPE-001` (RESISTOR) et capitalisation.** Le prototype RESISTOR a été réalisé en plusieurs étapes : `001A` (feuille de production + harnais, `8ef285f`) → `CSA-AMENDMENT-001` (cible durcie, `6759e18`) → production externe → `001B` (validation raster, CSA VISUAL GO) → `001C` (intégration raster) → `001C.1` (audit wrapper) → `001C.2` (suppression du chrome wrapper) → `001C.4` (neutralisation des marqueurs de pin) → **état visuel validé par le CSA**, versionné par `MB-VIS-RESISTOR-CONSOLIDATION-001`. Les enseignements sont capitalisés dans :
-- `docs/pmo/standards/VISUAL-COMPONENT-PROTOCOL.md` — **protocole visuel standard en 12 phases** (0 Audit renderer → 1 Référence → 2 Asset → 3 Validation pixel → 4 Validation géométrique → 5 Intégration → 6 Artefacts wrapper → 7 Pin/câblage → 8 Breadboard → 9 Zoom → 10 Tests/tsc/build → 11 CSA VISUAL GO → 12 Versionnage), checklist « zéro perte de temps », familles de composants ;
-- `docs/pmo/repository-knowledge-base/KNOWN-BROKEN-STATE.md` — commande de test canonique, build `Breadboard.css` rouge pré-existant, 16 tests FAIL historiques, distinction FAIL pré-existant / régression ;
-- `docs/pmo/delivery-reports/MB-VIS-RESISTOR-CONSOLIDATED.md` — chronologie, validations, erreurs capitalisées ;
-- `docs/pmo/tickets/MB-VIS-PROTOTYPE-001{B,C,C.1,C.2,C.4}-resistor.md` — tickets historiques reconstitués.
-
-Ces enseignements et ce protocole sont **obligatoires** pour tous les composants visuels suivants.
-
-**`MB-VIS-INDUSTRIAL-001` avant DIODE.** Avant de traiter le composant suivant, `MB-VIS-INDUSTRIAL-001` doit **généraliser le backend déclaratif** : branchement de `resolveBackend()` + du champ `visual.backend` dans le `RendererRegistry` ; remplacement des règles CSS spécifiques `:has(.part-resistor)` (chrome du wrapper `.circuit-component__body` et marqueur `.myblab-pin`) par un attribut déclaratif `[data-backend="raster"]` / un flag `markerless` (aucun `type === "…"` ni `:has(.part-<kebab>)` par composant) ; helper générique des gardes de test raster ; budget de test raster (`RENDER_BUDGET.raster`) ; correctif `Breadboard.css` pré-existant. Séquence recommandée : **CAPITALISATION → `MB-VIS-INDUSTRIAL-001` → DIODE → LED → CAPACITOR → LDR / THERMISTOR → DC_MOTOR → suite** (§7.2 re-séquencée).
+**Capitalisation obligatoire.** Les enseignements du protocole visuel existant restent obligatoires pour tous les composants suivants, notamment les phases d'audit, référence, asset, validation pixel, validation géométrique, intégration, suppression des artefacts wrapper, pins/câblage, breadboard, zoom, tests/build, CSA Visual GO et versionnage.
 
 ---
 
@@ -438,7 +464,7 @@ EMB1 - Runtime firmware réel
 
 EXP1 ───────────────────── EXP2 ───── EXP3 ───── EXP4 ───── EXP5
                               │
-                              └── MB-VIS-RENDER-009 → … → MB-VIS-TINKERCAD-030
+                              └── séquence opérationnelle §7.2.2 → MB-VIS-TINKERCAD-047
 ```
 
 Ce graphe ne signifie pas que chaque Épic doit attendre la clôture complète de toutes ses dépendances pour commencer.
@@ -572,10 +598,10 @@ Résultats attendus :
 
 Résultats attendus :
 
-* EXP3 réalisé selon la séquence PMO validée et ajustée par audits successifs ;
+* EXP3 réalisé selon la séquence opérationnelle §7.2.2 et les contrôles de conformité ;
 * composants usuels, fils, breadboard, cartes et canvas atteignent un niveau de référence cohérent ;
 * visual regression et critères de qualité visuelle verrouillés ;
-* **MB-VIS-TINKERCAD-030** exécuté comme gate comparatif ;
+* **MB-VIS-TINKERCAD-047** exécuté comme gate comparatif ;
 * décision explicite de passage au Niveau 2 — Dépasser Tinkercad.
 
 J7 est un jalon Experience. Il ne modifie pas à lui seul les responsabilités architecturales du Tome II.
@@ -616,6 +642,14 @@ Les priorités et jalons peuvent évoluer lorsque l'état réel du dépôt, une 
 
 Les Tickets EXP3 peuvent utiliser Tinkercad comme référence de qualité perçue et d'expérience, mais ne doivent pas copier son code, ses mécanismes propriétaires ou présumer une architecture identique. Le benchmark sert à mesurer un niveau cible ; l'architecture de MYBlab reste gouvernée par le Tome II et les ADR.
 
+### R9 — Audit lourd initial, contrôle léger ensuite
+
+Après un audit EXP3 global validé, les tickets individuels sont contrôlés par rapport à la matrice, au Blueprint, aux invariants, aux tests et aux preuves de livraison. Un nouvel audit global n'est requis qu'en cas de divergence significative ou à un checkpoint explicitement défini.
+
+### R10 — Le dépôt réel est la source de vérité opérationnelle
+
+La roadmap ne doit jamais imposer la répétition d'un travail déjà réalisé et validé dans le dépôt réel. Les identifiants historiques sont conservés pour la traçabilité, tandis que la séquence opérationnelle est recalée sur l'état réel du code, des assets, des tests et des artefacts PMO.
+
 ---
 
 # 16. Traçabilité
@@ -647,7 +681,7 @@ Implémentation
 Delivery Report
         │
         ▼
-Audit architectural
+Audit architectural / contrôle de conformité
 ```
 
 La roadmap constitue ainsi le niveau intermédiaire entre la décision stratégique, l'architecture permanente et l'exécution opérationnelle.
@@ -658,18 +692,20 @@ Elle ne doit ni descendre jusqu'au détail du code, ni remonter jusqu'à redéfi
 
 # 17. État de référence
 
-Cette première version de ROADMAP_PLATFORM.md constitue la roadmap stratégique de référence du Programme Platform.
+Cette version de ROADMAP_PLATFORM.md constitue la roadmap stratégique de référence du Programme Platform après recalage de l'EXP3 sur l'état réel du dépôt.
 
-Elle reflète l'état du dépôt observé lors de sa construction et les décisions architecturales établies dans les Tomes I et II.
+Le recalage conserve les identifiants historiques pour assurer la traçabilité, mais établit une nouvelle séquence opérationnelle explicite `MB-VIS-COMP-031` → `MB-VIS-TINKERCAD-047`.
 
-Les états « réalisé », « partiel », « planifié » ou « non commencé » ne constituent pas des décisions de clôture PMO. La clôture opérationnelle d'un travail relève du cycle PMO et de ses mécanismes de vérification.
+Les travaux déjà réalisés — notamment LED, RESISTOR, DIODE, CAPACITOR, LDR, THERMISTOR, DC_MOTOR, BUTTON et BUTTON_LATCHING — ne doivent pas être recréés uniquement pour satisfaire l'ancienne numérotation. Le catalogue réel de présentation confirme également l'existence des renderers encore candidats à la vague suivante, notamment Buzzer, Potentiometer, RGB LED, NPN Transistor, Servo et Arduino.
 
-Toute évolution future de cette roadmap doit préserver la traçabilité :
+La nouvelle règle de pilotage est :
 
-**Vision → Architecture → Programme → Épic → PMO → Implémentation → Vérification.**
+**Audit global initial → séquence stabilisée → ticket → contrôle ciblé → ticket suivant → checkpoint → audit global uniquement si nécessaire.**
 
-La trajectoire stratégique définie en §1.1 fait désormais partie intégrante de cette référence : **atteindre le niveau Tinkercad, dépasser ce benchmark, puis tendre vers un laboratoire électronique virtuel MYBlab avancé.** Elle ne doit pas être perdue ou implicitement abandonnée au fil des tickets futurs ; toute évolution significative de cette ambition doit être explicitement décidée et tracée dans la roadmap et les documents de gouvernance appropriés.
+Chaque ticket visuel conserve les exigences de Blueprint, invariants, limites de périmètre, tests, preuve navigateur et CSA Visual GO. Une modification architecturale ou technologique majeure reste soumise au Tome II et aux ADR appropriées.
 
-La séquence EXP3 `MB-VIS-RENDER-009` → `MB-VIS-TINKERCAD-030` est désormais inscrite comme trajectoire indicative du premier seuil visuel. Elle reste révisable après audit de chaque étape et ne constitue pas une autorisation d'implémentation anticipée.
+La trajectoire stratégique demeure :
 
-Sa progression composant-par-composant est suspendue après un premier lot expérimental (`MB-VIS-LED-010` … `MB-VIS-LED-014`) : la reprise passe par la trajectoire de réévaluation visuelle décrite en §7.4 (`MB-VIS-REVIEW-001` → `MB-VIS-RENDER-010` → prototypes → CSA Visual GO), tracée par l'amendement `docs/roadmaps/amendments/2026-08-31-MB-VIS-physical-visual-engine.md`.
+**Atteindre le niveau Tinkercad → Dépasser Tinkercad → Tendre vers un laboratoire virtuel MYBlab avancé, réaliste, immersif et extensible.**
+
+Le prochain ticket opérationnel de la séquence EXP3 est désormais **`MB-VIS-COMP-031 — Buzzer réaliste`**, sous réserve du CSA GO spécifique qui précédera son implémentation.
