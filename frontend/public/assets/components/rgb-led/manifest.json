@@ -3,294 +3,44 @@
   "component": "RGB_LED",
   "backend": "raster",
   "state": "multi",
-  "states": [
-    "off",
-    "red",
-    "green",
-    "blue",
-    "yellow",
-    "magenta",
-    "cyan",
-    "white"
-  ],
+  "states": ["off", "red", "green", "blue", "yellow", "magenta", "cyan", "white"],
   "canonical": {
     "width": 90,
     "height": 56,
-    "pins": {
-      "R": [
-        12,
-        56
-      ],
-      "common": [
-        34,
-        56
-      ],
-      "G": [
-        56,
-        56
-      ],
-      "B": [
-        78,
-        56
-      ]
-    }
+    "pins": {"R": [19, 56], "common": [35, 56], "G": [53, 56], "B": [71, 56]}
   },
   "assets": [
-    {
-      "file": "rgb-led.off.1x.webp",
-      "state": "off",
-      "scale": 1,
-      "format": "webp",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.off.1x.png",
-      "state": "off",
-      "scale": 1,
-      "format": "png",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.off.3x.webp",
-      "state": "off",
-      "scale": 3,
-      "format": "webp",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.off.3x.png",
-      "state": "off",
-      "scale": 3,
-      "format": "png",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.red.1x.webp",
-      "state": "red",
-      "scale": 1,
-      "format": "webp",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.red.1x.png",
-      "state": "red",
-      "scale": 1,
-      "format": "png",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.red.3x.webp",
-      "state": "red",
-      "scale": 3,
-      "format": "webp",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.red.3x.png",
-      "state": "red",
-      "scale": 3,
-      "format": "png",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.green.1x.webp",
-      "state": "green",
-      "scale": 1,
-      "format": "webp",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.green.1x.png",
-      "state": "green",
-      "scale": 1,
-      "format": "png",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.green.3x.webp",
-      "state": "green",
-      "scale": 3,
-      "format": "webp",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.green.3x.png",
-      "state": "green",
-      "scale": 3,
-      "format": "png",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.blue.1x.webp",
-      "state": "blue",
-      "scale": 1,
-      "format": "webp",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.blue.1x.png",
-      "state": "blue",
-      "scale": 1,
-      "format": "png",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.blue.3x.webp",
-      "state": "blue",
-      "scale": 3,
-      "format": "webp",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.blue.3x.png",
-      "state": "blue",
-      "scale": 3,
-      "format": "png",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.yellow.1x.webp",
-      "state": "yellow",
-      "scale": 1,
-      "format": "webp",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.yellow.1x.png",
-      "state": "yellow",
-      "scale": 1,
-      "format": "png",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.yellow.3x.webp",
-      "state": "yellow",
-      "scale": 3,
-      "format": "webp",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.yellow.3x.png",
-      "state": "yellow",
-      "scale": 3,
-      "format": "png",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.magenta.1x.webp",
-      "state": "magenta",
-      "scale": 1,
-      "format": "webp",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.magenta.1x.png",
-      "state": "magenta",
-      "scale": 1,
-      "format": "png",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.magenta.3x.webp",
-      "state": "magenta",
-      "scale": 3,
-      "format": "webp",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.magenta.3x.png",
-      "state": "magenta",
-      "scale": 3,
-      "format": "png",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.cyan.1x.webp",
-      "state": "cyan",
-      "scale": 1,
-      "format": "webp",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.cyan.1x.png",
-      "state": "cyan",
-      "scale": 1,
-      "format": "png",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.cyan.3x.webp",
-      "state": "cyan",
-      "scale": 3,
-      "format": "webp",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.cyan.3x.png",
-      "state": "cyan",
-      "scale": 3,
-      "format": "png",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.white.1x.webp",
-      "state": "white",
-      "scale": 1,
-      "format": "webp",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.white.1x.png",
-      "state": "white",
-      "scale": 1,
-      "format": "png",
-      "width": 90,
-      "height": 56
-    },
-    {
-      "file": "rgb-led.white.3x.webp",
-      "state": "white",
-      "scale": 3,
-      "format": "webp",
-      "width": 270,
-      "height": 168
-    },
-    {
-      "file": "rgb-led.white.3x.png",
-      "state": "white",
-      "scale": 3,
-      "format": "png",
-      "width": 270,
-      "height": 168
-    }
+    {"file":"rgb-led.off.1x.webp","state":"off","scale":1,"format":"webp","width":90,"height":56},
+    {"file":"rgb-led.off.1x.png","state":"off","scale":1,"format":"png","width":90,"height":56},
+    {"file":"rgb-led.off.3x.webp","state":"off","scale":3,"format":"webp","width":270,"height":168},
+    {"file":"rgb-led.off.3x.png","state":"off","scale":3,"format":"png","width":270,"height":168},
+    {"file":"rgb-led.red.1x.webp","state":"red","scale":1,"format":"webp","width":90,"height":56},
+    {"file":"rgb-led.red.1x.png","state":"red","scale":1,"format":"png","width":90,"height":56},
+    {"file":"rgb-led.red.3x.webp","state":"red","scale":3,"format":"webp","width":270,"height":168},
+    {"file":"rgb-led.red.3x.png","state":"red","scale":3,"format":"png","width":270,"height":168},
+    {"file":"rgb-led.green.1x.webp","state":"green","scale":1,"format":"webp","width":90,"height":56},
+    {"file":"rgb-led.green.1x.png","state":"green","scale":1,"format":"png","width":90,"height":56},
+    {"file":"rgb-led.green.3x.webp","state":"green","scale":3,"format":"webp","width":270,"height":168},
+    {"file":"rgb-led.green.3x.png","state":"green","scale":3,"format":"png","width":270,"height":168},
+    {"file":"rgb-led.blue.1x.webp","state":"blue","scale":1,"format":"webp","width":90,"height":56},
+    {"file":"rgb-led.blue.1x.png","state":"blue","scale":1,"format":"png","width":90,"height":56},
+    {"file":"rgb-led.blue.3x.webp","state":"blue","scale":3,"format":"webp","width":270,"height":168},
+    {"file":"rgb-led.blue.3x.png","state":"blue","scale":3,"format":"png","width":270,"height":168},
+    {"file":"rgb-led.yellow.1x.webp","state":"yellow","scale":1,"format":"webp","width":90,"height":56},
+    {"file":"rgb-led.yellow.1x.png","state":"yellow","scale":1,"format":"png","width":90,"height":56},
+    {"file":"rgb-led.yellow.3x.webp","state":"yellow","scale":3,"format":"webp","width":270,"height":168},
+    {"file":"rgb-led.yellow.3x.png","state":"yellow","scale":3,"format":"png","width":270,"height":168},
+    {"file":"rgb-led.magenta.1x.webp","state":"magenta","scale":1,"format":"webp","width":90,"height":56},
+    {"file":"rgb-led.magenta.1x.png","state":"magenta","scale":1,"format":"png","width":90,"height":56},
+    {"file":"rgb-led.magenta.3x.webp","state":"magenta","scale":3,"format":"webp","width":270,"height":168},
+    {"file":"rgb-led.magenta.3x.png","state":"magenta","scale":3,"format":"png","width":270,"height":168},
+    {"file":"rgb-led.cyan.1x.webp","state":"cyan","scale":1,"format":"webp","width":90,"height":56},
+    {"file":"rgb-led.cyan.1x.png","state":"cyan","scale":1,"format":"png","width":90,"height":56},
+    {"file":"rgb-led.cyan.3x.webp","state":"cyan","scale":3,"format":"webp","width":270,"height":168},
+    {"file":"rgb-led.cyan.3x.png","state":"cyan","scale":3,"format":"png","width":270,"height":168},
+    {"file":"rgb-led.white.1x.webp","state":"white","scale":1,"format":"webp","width":90,"height":56},
+    {"file":"rgb-led.white.1x.png","state":"white","scale":1,"format":"png","width":90,"height":56},
+    {"file":"rgb-led.white.3x.webp","state":"white","scale":3,"format":"webp","width":270,"height":168},
+    {"file":"rgb-led.white.3x.png","state":"white","scale":3,"format":"png","width":270,"height":168}
   ]
 }
