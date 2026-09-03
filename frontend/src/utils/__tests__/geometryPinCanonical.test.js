@@ -132,19 +132,20 @@ describe("MB-VIS-COMP-005 — getPinPosition() : fonction géométrique canoniqu
   })
 
   it("TEST 10 — régression : RESISTOR/LED/CAPACITOR/BUTTON/BUTTON_LATCHING/POTENTIOMETER conservent leurs positions de pins existantes", () => {
-    // Valeurs figées ici depuis componentDefinitions.js AVANT ce ticket —
-    // aucune n'a été modifiée par MB-VIS-COMP-005 (ce ticket ne touche pas
-    // componentDefinitions.js). Sert de garde-fou de non-régression : si
-    // une future modification de la définition change ces valeurs, ce
-    // test échouera intentionnellement (comportement attendu, pas un
-    // défaut de ce ticket).
+    // Valeurs figées ici depuis componentDefinitions.js. Sert de garde-fou de
+    // non-régression : si une future modification de la définition change ces
+    // valeurs, ce test échoue intentionnellement (comportement attendu).
+    // MB-VIS-COMP-032 §8 : la PRÉSENTATION visuelle du WIPER du POTENTIOMETER
+    // passe de (45,0) à (45,50) pour aligner les 3 contacts sur le bord bas de
+    // l'asset raster réaliste — changement de présentation autorisé par le
+    // ticket (IDs, rôles, modèle électrique, canonicalRegistry inchangés).
     const expected = {
       RESISTOR: [{ id: "A", dx: 0, dy: 14 }, { id: "B", dx: 84, dy: 14 }],
       LED: [{ id: "anode", dx: 28, dy: 62 }, { id: "cathode", dx: 52, dy: 62 }],
       CAPACITOR: [{ id: "pinA", dx: 0, dy: 20 }, { id: "pinB", dx: 70, dy: 20 }],
       BUTTON: [{ id: "pin1", dx: 0, dy: 30 }, { id: "pin2", dx: 60, dy: 30 }],
       BUTTON_LATCHING: [{ id: "pin1", dx: 0, dy: 30 }, { id: "pin2", dx: 60, dy: 30 }],
-      POTENTIOMETER: [{ id: "left", dx: 10, dy: 50 }, { id: "wiper", dx: 45, dy: 0 }, { id: "right", dx: 80, dy: 50 }],
+      POTENTIOMETER: [{ id: "left", dx: 10, dy: 50 }, { id: "wiper", dx: 45, dy: 50 }, { id: "right", dx: 80, dy: 50 }],
     }
 
     const component = { x: 500, y: 300 }

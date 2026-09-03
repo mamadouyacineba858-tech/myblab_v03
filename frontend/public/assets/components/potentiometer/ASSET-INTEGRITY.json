@@ -1,0 +1,27 @@
+[
+  {
+    "file": "manifest.json",
+    "bytes": 1051,
+    "sha256": "45ee10bbbea70cb06b5d4e8629297850d663a1f97c3ab7a5c2b412464d087693"
+  },
+  {
+    "file": "potentiometer.default.1x.png",
+    "bytes": 5097,
+    "sha256": "aa1d615158c48bcbda40d3ba922a1ccbbdaf8859f467cc8ba44ea2c205a0234f"
+  },
+  {
+    "file": "potentiometer.default.1x.webp",
+    "bytes": 4144,
+    "sha256": "61e498814de2c21cfc903e98551448c5a405f0b2bf70b72e932dbf2c030e3afa"
+  },
+  {
+    "file": "potentiometer.default.3x.png",
+    "bytes": 28625,
+    "sha256": "aa3d806d1ae6ce9dfffbcc8b4ab4ad7088822f5144f9fc0c81a6766359ff4890"
+  },
+  {
+    "file": "potentiometer.default.3x.webp",
+    "bytes": 19720,
+    "sha256": "a2635173dc4c0a981a4e5473bd4decc1fa6791ba8a75c7f515676a52658d04f5"
+  }
+]

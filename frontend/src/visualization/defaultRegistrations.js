@@ -82,7 +82,13 @@ export const DEFAULT_REGISTRATIONS = [
   // dérivés, même mécanisme déclaratif que RESISTOR / DIODE / LED / … —
   // aucun code central spécifique.
   { type: 'BUZZER', component: BuzzerPart, visual: { backend: 'raster' } },
-  { type: 'POTENTIOMETER', component: PotentiometerPart },
+  // POTENTIOMETER : porté au backend raster (asset réaliste validé
+  // MB-VIS-COMP-032, état unique `default`, 3 contacts LEFT / WIPER / RIGHT).
+  // raster => bareBody + markerless dérivés, même mécanisme déclaratif que
+  // RESISTOR / DIODE / LED / … — aucun code central spécifique. Modèle
+  // électrique inchangé (canonicalRegistry : left/passive, wiper/output,
+  // right/passive).
+  { type: 'POTENTIOMETER', component: PotentiometerPart, visual: { backend: 'raster' } },
   // LDR : cinquième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-005, état unique `default`). raster => bareBody +
   // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /

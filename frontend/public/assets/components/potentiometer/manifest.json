@@ -1,0 +1,61 @@
+{
+  "component": "POTENTIOMETER",
+  "backend": "raster",
+  "state": "default",
+  "states": [
+    "default"
+  ],
+  "canonical": {
+    "width": 90,
+    "height": 50,
+    "pins": {
+      "left": [
+        10,
+        50
+      ],
+      "wiper": [
+        45,
+        50
+      ],
+      "right": [
+        80,
+        50
+      ]
+    }
+  },
+  "assets": [
+    {
+      "file": "potentiometer.default.1x.png",
+      "state": "default",
+      "scale": "1x",
+      "format": "png",
+      "width": 90,
+      "height": 50
+    },
+    {
+      "file": "potentiometer.default.1x.webp",
+      "state": "default",
+      "scale": "1x",
+      "format": "webp",
+      "width": 90,
+      "height": 50
+    },
+    {
+      "file": "potentiometer.default.3x.png",
+      "state": "default",
+      "scale": "3x",
+      "format": "png",
+      "width": 270,
+      "height": 150
+    },
+    {
+      "file": "potentiometer.default.3x.webp",
+      "state": "default",
+      "scale": "3x",
+      "format": "webp",
+      "width": 270,
+      "height": 150
+    }
+  ],
+  "version": "1.0.0"
+}

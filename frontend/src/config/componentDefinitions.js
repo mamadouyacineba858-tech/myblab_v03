@@ -42,8 +42,13 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "minus", label: "-", dx: 60, dy: 50 },
   ],
   POTENTIOMETER: [
+    // MB-VIS-COMP-032 §8 — présentation visuelle des 3 contacts alignée sur
+    // l'asset raster réaliste : LEFT / WIPER / RIGHT sont tous situés sur le
+    // bord bas du composant (dy=50). Changement de PRÉSENTATION uniquement —
+    // IDs, rôles, résistance, position, modèle électrique et canonicalRegistry
+    // strictement inchangés.
     { id: "left", label: "L", dx: 10, dy: 50 },
-    { id: "wiper", label: "W", dx: 45, dy: 0 },
+    { id: "wiper", label: "W", dx: 45, dy: 50 },
     { id: "right", label: "R", dx: 80, dy: 50 },
   ],
   LDR: [
