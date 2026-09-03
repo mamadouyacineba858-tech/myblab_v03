@@ -1,0 +1,47 @@
+[
+  {
+    "file": "buzzer.default.1x.png",
+    "bytes": 1609,
+    "sha256": "96b30d7bcd5f652576cc1a367832b08a9fb5f8034da82a333c4138c928f4228c"
+  },
+  {
+    "file": "buzzer.default.1x.webp",
+    "bytes": 844,
+    "sha256": "69d423f0f029267bad5e97761f7dbeec2f78b74309a2e18fbe1e64ccaea1ee2c"
+  },
+  {
+    "file": "buzzer.default.3x.png",
+    "bytes": 5212,
+    "sha256": "549d6d0d41829bff4183e64a6064133bd36ae0220c9059581657d42185f924d6"
+  },
+  {
+    "file": "buzzer.default.3x.webp",
+    "bytes": 2910,
+    "sha256": "172716ee8c4ffa24157fe4100b1685ec9774d32c293e7b4563989b0bb1ab87fc"
+  },
+  {
+    "file": "buzzer.on.1x.png",
+    "bytes": 3147,
+    "sha256": "ef4e3d94c8bfd6eb549e6251dc8e7bad8371f540155c573514ecb05b0d9e5715"
+  },
+  {
+    "file": "buzzer.on.1x.webp",
+    "bytes": 2320,
+    "sha256": "09dfd50b8e2a13365f060e0afbe51af41a11f1df660f63a45905d7f968dacf0d"
+  },
+  {
+    "file": "buzzer.on.3x.png",
+    "bytes": 12083,
+    "sha256": "bee47487bcfa4f499f682c31b09aaad395dfae98c32d9efebab25cd099c91cd9"
+  },
+  {
+    "file": "buzzer.on.3x.webp",
+    "bytes": 7992,
+    "sha256": "e160d985ce44e589d6c0deef669792f7758a7fe404bc02704997a7277d23f2f5"
+  },
+  {
+    "file": "manifest.json",
+    "bytes": 1925,
+    "sha256": "8cc8cc8c9317d6238b9ec216c9b4c0c9d01085ed662fa52317d4dee67345a62b"
+  }
+]

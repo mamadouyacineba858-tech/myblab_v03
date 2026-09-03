@@ -1,0 +1,92 @@
+{
+  "version": "1.0.0",
+  "component": "BUZZER",
+  "backend": "raster",
+  "assetFamily": "buzzer",
+  "canonical": {
+    "width": 70,
+    "height": 50,
+    "pins": {
+      "plus": [
+        10,
+        50
+      ],
+      "minus": [
+        60,
+        50
+      ]
+    }
+  },
+  "states": [
+    "default",
+    "on"
+  ],
+  "visualReference": "Through-hole piezo/magnetic buzzer, black cylindrical plastic case, central membrane opening, two metal legs, discrete + mark.",
+  "note": "Renderer (MB-VIS-COMP-031) uses only the \"default\" state; \"on\" assets are shipped for a later ticket that wires an electrical state without Core/Simulation changes.",
+  "variants": [
+    {
+      "file": "buzzer.default.1x.png",
+      "state": "default",
+      "scale": "1x",
+      "format": "png",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "buzzer.default.1x.webp",
+      "state": "default",
+      "scale": "1x",
+      "format": "webp",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "buzzer.default.3x.png",
+      "state": "default",
+      "scale": "3x",
+      "format": "png",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "buzzer.default.3x.webp",
+      "state": "default",
+      "scale": "3x",
+      "format": "webp",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "buzzer.on.1x.png",
+      "state": "on",
+      "scale": "1x",
+      "format": "png",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "buzzer.on.1x.webp",
+      "state": "on",
+      "scale": "1x",
+      "format": "webp",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "buzzer.on.3x.png",
+      "state": "on",
+      "scale": "3x",
+      "format": "png",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "buzzer.on.3x.webp",
+      "state": "on",
+      "scale": "3x",
+      "format": "webp",
+      "width": 180,
+      "height": 180
+    }
+  ]
+}

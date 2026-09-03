@@ -120,9 +120,9 @@ describe("MB-VIS-INDUSTRIAL-001 — application au rendu réel (attributs décla
     for (const p of container.querySelectorAll(".myblab-pin")) expect(p.style.opacity).toBe("0")
   })
 
-  it("BUZZER (aucune déclaration visual) : data-backend=svg, PAS de data-bare-body, marqueurs visibles (opacity 1)", () => {
-    expect(getComponentPresentation("BUZZER")).toMatchObject({ backend: "svg", bareBody: false, markerless: false })
-    const { container } = mountType("BUZZER")
+  it("POWER (aucune déclaration visual) : data-backend=svg, PAS de data-bare-body, marqueurs visibles (opacity 1)", () => {
+    expect(getComponentPresentation("POWER")).toMatchObject({ backend: "svg", bareBody: false, markerless: false })
+    const { container } = mountType("POWER")
     expect(container.querySelector(".circuit-component").getAttribute("data-backend")).toBe("svg")
     expect(container.querySelector(".circuit-component__body").hasAttribute("data-bare-body")).toBe(false)
     const pins = [...container.querySelectorAll(".myblab-pin")]

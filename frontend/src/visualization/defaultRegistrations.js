@@ -76,7 +76,12 @@ export const DEFAULT_REGISTRATIONS = [
   // MB-VIS-PROTOTYPE-004, état unique `default`). raster => bareBody +
   // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE / LED.
   { type: 'CAPACITOR', component: CapacitorPart, visual: { backend: 'raster' } },
-  { type: 'BUZZER', component: BuzzerPart },
+  // BUZZER : porté au backend raster (asset réaliste validé MB-VIS-COMP-031,
+  // état unique `default` — le pipeline n'expose aucun état électrique
+  // exploitable, cf. BuzzerPart.jsx §11). raster => bareBody + markerless
+  // dérivés, même mécanisme déclaratif que RESISTOR / DIODE / LED / … —
+  // aucun code central spécifique.
+  { type: 'BUZZER', component: BuzzerPart, visual: { backend: 'raster' } },
   { type: 'POTENTIOMETER', component: PotentiometerPart },
   // LDR : cinquième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-005, état unique `default`). raster => bareBody +
