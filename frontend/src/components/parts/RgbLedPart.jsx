@@ -25,13 +25,14 @@ function stateFor(r, g, b) {
   return 'off'
 }
 
-// The committed raster package predates the physical-reference correction.
-// Compose its unchanged body and leg crops at the corrected physical positions.
+// The committed raster package keeps the physical LED body/legs in their original
+// source columns. Crop only the four real leg strips, then place their visible
+// centers at the corrected physical positions required by the RGB_LED definition.
 const LEG_CROPS = [
-  { sourceX: 19, width: 9, targetX: 15 },
-  { sourceX: 36, width: 9, targetX: 31 },
-  { sourceX: 54, width: 8, targetX: 49 },
-  { sourceX: 71, width: 8, targetX: 67 },
+  { sourceX: 8, width: 9, targetX: 15 },
+  { sourceX: 30, width: 9, targetX: 31 },
+  { sourceX: 52, width: 9, targetX: 49 },
+  { sourceX: 74, width: 9, targetX: 67 },
 ]
 
 export function RgbLedPart({ r, g, b } = {}) {
