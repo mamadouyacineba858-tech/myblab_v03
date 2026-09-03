@@ -4,45 +4,12 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
 /**
  * Rendu visuel LED RGB — backend RASTER (MB-VIS-COMP-033).
  *
- * Remplace l'ancien rendu SVG schématique (MB-COMPONENT-LIBRARY-002 :
- * `<line>`×4 pattes + `<rect>` flange + `<path>` dôme + `<circle>`×3 puces
- * pilotées par des classes `.part-rgb-led__chip--on` + `filter: drop-shadow`
- * CSS pour le glow) par le paquet d'assets raster réaliste validé pour
- * MB-VIS-COMP-033 (probe : 32 fichiers, 8 états × 1x 90×56 / 3x 270×168,
- * WebP + PNG, RGBA, fond transparent, coins transparents, 3x = 3×1x,
- * pattes ancrées à x=12/34/56/78 ±0.5 px). Intégré via le mécanisme
- * déclaratif de MB-VIS-INDUSTRIAL-001 (`defaultRegistrations` →
- * `visual: { backend: 'raster' }` → `getComponentPresentation('RGB_LED')` →
- * wrapper `data-bare-body` + pins `markerless`, sans aucun
- * `type === "RGB_LED"` ni règle CSS spécifique dans le renderer central).
+ * Asset réaliste corrigé d'après la LED RGB réelle de référence : dôme clair,
+ * quatre pattes métalliques épaisses et rapprochées sous le corps. Les pattes
+ * sont ancrées à x=19/35/53/71 ±0.5 px dans la boîte canonique 90×56.
  *
- * Patron identique à `LedPart.jsx` (premier composant raster à états
- * discrets) : `frontend/public/` est servi à la racine web →
- * `/assets/components/rgb-led/…`, priorité WebP via `<picture>`, fallback
- * PNG, aucune logique JS de sélection d'écran/densité (1x/3x natif via
- * `srcSet`).
- *
- * États — le mélange et l'illumination sont CUITS dans les assets (aucun
- * `box-shadow` / `filter` / pseudo-élément / glow CSS ici) :
- *  - le contrat de props est STRICTEMENT inchangé : `r`, `g`, `b`
- *    (boolean | undefined), fournis par le Visual State Registry existant
- *    (`defaultVisualStateRegistrations.js` → `getRgbLedState`) via
- *    `PartRenderer.jsx` — aucune logique de simulation déplacée ici ;
- *  - le renderer se contente de mapper la combinaison `r/g/b` vers l'un des
- *    8 états d'asset, exactement les 8 combinaisons booléennes existantes,
- *    aucune combinaison inventée :
- *      000 → off   100 → red    010 → green  001 → blue
- *      110 → yellow 101 → magenta 011 → cyan  111 → white
- *
- * Contrat inchangé :
- *  - dimensions dérivées de `getComponentDef("RGB_LED")` (90×56) — aucune
- *    valeur recopiée, `componentDefinitions.js` NON modifié ;
- *  - pins R(12,56) / common(34,56) / G(56,56) / B(78,56) : produits par
- *    CircuitComponent/Pin, jamais dessinés ici ni dans l'asset ;
- *  - l'`<img>` ne porte AUCUN gestionnaire, `draggable={false}`,
- *    `pointer-events: none` → drag / sélection / câblage / hit-test / zoom
- *    restent la responsabilité du wrapper `.circuit-component` ;
- *  - mêmes props → même HTML (rendu déterministe, aucun id).
+ * Le renderer reste purement visuel : aucune logique de simulation déplacée ici.
+ * Les 8 combinaisons booléennes r/g/b sélectionnent les 8 états raster existants.
  */
 const ASSET_DIR = '/assets/components/rgb-led'
 const STATES = ['off', 'red', 'green', 'blue', 'yellow', 'magenta', 'cyan', 'white']
@@ -54,7 +21,6 @@ const ASSET_SOURCES = Object.fromEntries(
   }]),
 )
 
-/** Combinaison booléenne r/g/b → nom d'état d'asset (les 8 combinaisons existantes). */
 function stateFor(r, g, b) {
   const R = r === true
   const G = g === true
