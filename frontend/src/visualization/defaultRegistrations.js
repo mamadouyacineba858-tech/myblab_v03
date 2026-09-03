@@ -103,7 +103,13 @@ export const DEFAULT_REGISTRATIONS = [
   // MB-VIS-PROTOTYPE-002). raster => bareBody + markerless dérivés, via le
   // même mécanisme déclaratif que RESISTOR — aucun code central spécifique.
   { type: 'DIODE', component: DiodePart, visual: { backend: 'raster' } },
-  { type: 'RGB_LED', component: RgbLedPart },
+  // RGB_LED : porté au backend raster (asset validé MB-VIS-COMP-033 v4,
+  // 8 états visuels off/red/green/blue/yellow/magenta/cyan/white — mélange
+  // et illumination cuits dans les assets). L'état provient du Visual State
+  // Registry existant (r/g/b) ; le renderer se contente de mapper r/g/b vers
+  // l'état d'asset. raster => bareBody + markerless dérivés, même mécanisme
+  // déclaratif que LED — aucun code central spécifique.
+  { type: 'RGB_LED', component: RgbLedPart, visual: { backend: 'raster' } },
   { type: 'NPN_TRANSISTOR', component: NpnTransistorPart },
   { type: 'SERVO', component: ServoPart },
   // DC_MOTOR : septième composant à backend raster (asset validé

@@ -40,7 +40,7 @@ describe('MB-VIS-COMP-002 — PartRenderer → Visual State Registry (TEST 3, TE
     expect(root.getAttribute('aria-label')).toBe('LED éteinte')
   })
 
-  it('TEST 4 — RGB_LED : canal rouge actif dérivé de pinSignals réels (common LOW, R HIGH)', () => {
+  it('TEST 4 — RGB_LED : état visuel "red" dérivé de pinSignals réels (common LOW, R HIGH) — MB-VIS-COMP-033 raster', () => {
     const signals = new Map([
       ['rgb-1:common', Signal.LOW],
       ['rgb-1:R', Signal.HIGH],
@@ -48,9 +48,20 @@ describe('MB-VIS-COMP-002 — PartRenderer → Visual State Registry (TEST 3, TE
       ['rgb-1:B', Signal.LOW],
     ])
     const { container } = render(<PartRenderer type="RGB_LED" uid="rgb-1" pinSignals={signals} />)
-    expect(container.querySelector('.part-rgb-led__chip--r').getAttribute('class')).toMatch(/part-rgb-led__chip--on/)
-    expect(container.querySelector('.part-rgb-led__chip--g').getAttribute('class')).not.toMatch(/part-rgb-led__chip--on/)
-    expect(container.querySelector('.part-rgb-led__chip--b').getAttribute('class')).not.toMatch(/part-rgb-led__chip--on/)
+    expect(container.querySelector('svg')).toBeNull()
+    expect(container.querySelector('.part-rgb-led').getAttribute('data-state')).toBe('red')
+    expect(container.querySelector('img').getAttribute('src')).toContain('/assets/components/rgb-led/rgb-led.red.')
+  })
+
+  it('TEST 4b — RGB_LED : common LOW, R+G HIGH → état visuel "yellow" (mélange dérivé de r/g/b réels)', () => {
+    const signals = new Map([
+      ['rgb-2:common', Signal.LOW],
+      ['rgb-2:R', Signal.HIGH],
+      ['rgb-2:G', Signal.HIGH],
+      ['rgb-2:B', Signal.LOW],
+    ])
+    const { container } = render(<PartRenderer type="RGB_LED" uid="rgb-2" pinSignals={signals} />)
+    expect(container.querySelector('.part-rgb-led').getAttribute('data-state')).toBe('yellow')
   })
 
   it('TEST 9 (complément) — la résolution via PartRenderer ne modifie pas le Map de signaux fourni', () => {

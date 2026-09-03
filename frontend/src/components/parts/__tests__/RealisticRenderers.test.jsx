@@ -275,22 +275,43 @@ describe('MB-COMPONENT-LIBRARY-002 — BUTTON_LATCHING : état on/off préservé
   })
 })
 
-describe('MB-COMPONENT-LIBRARY-002 — RGB_LED : états dynamiques r/g/b préservés (VIS-TEST-08, LOCK-19)', () => {
-  it('r=g=b=undefined : aucun canal actif (part-rgb-led__chip--on absent des 3 puces)', () => {
-    const { container } = render(<RgbLedPart />)
-    expect(container.querySelectorAll('.part-rgb-led__chip--on').length).toBe(0)
+describe('MB-VIS-COMP-033 — RGB_LED : backend raster + 8 états visuels dérivés de r/g/b', () => {
+  // Les 8 combinaisons booléennes existantes (contrat de props inchangé)
+  // sélectionnent l'asset d'état correspondant. Aucune combinaison inventée.
+  const CASES = [
+    [{}, 'off'],
+    [{ r: true }, 'red'],
+    [{ g: true }, 'green'],
+    [{ b: true }, 'blue'],
+    [{ r: true, g: true }, 'yellow'],
+    [{ r: true, b: true }, 'magenta'],
+    [{ g: true, b: true }, 'cyan'],
+    [{ r: true, g: true, b: true }, 'white'],
+  ]
+
+  it.each(CASES)('props %j → état "%s" : <img> vers l\'asset, aucun <svg>', (props, state) => {
+    const { container } = render(<RgbLedPart {...props} />)
+    expect(container.querySelector('svg')).toBeNull()
+    const img = container.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(container.querySelector('.part-rgb-led').getAttribute('data-state')).toBe(state)
+    expect(img.getAttribute('src')).toContain(`/assets/components/rgb-led/rgb-led.${state}.`)
+    const source = container.querySelector('picture > source[type="image/webp"]')
+    expect(source.getAttribute('srcset')).toContain(`rgb-led.${state}.1x.webp`)
+    expect(source.getAttribute('srcset')).toContain(`rgb-led.${state}.3x.webp`)
   })
 
-  it('r=true seul : uniquement la puce rouge porte part-rgb-led__chip--on', () => {
-    const { container } = render(<RgbLedPart r={true} g={false} b={false} />)
-    expect(container.querySelector('.part-rgb-led__chip--r').getAttribute('class')).toMatch(/part-rgb-led__chip--on/)
-    expect(container.querySelector('.part-rgb-led__chip--g').getAttribute('class')).not.toMatch(/part-rgb-led__chip--on/)
-    expect(container.querySelector('.part-rgb-led__chip--b').getAttribute('class')).not.toMatch(/part-rgb-led__chip--on/)
+  it('r ou g ou b === false (non undefined) : traité comme "off" (aucun canal actif)', () => {
+    const { container } = render(<RgbLedPart r={false} g={false} b={false} />)
+    expect(container.querySelector('.part-rgb-led').getAttribute('data-state')).toBe('off')
   })
 
-  it('r=g=b=true : les 3 puces portent part-rgb-led__chip--on', () => {
-    const { container } = render(<RgbLedPart r={true} g={true} b={true} />)
-    expect(container.querySelectorAll('.part-rgb-led__chip--on').length).toBe(3)
+  it('mêmes props → HTML strictement identique (déterministe)', () => {
+    const a = render(<RgbLedPart r={true} g={true} />)
+    const html = a.container.innerHTML
+    a.unmount()
+    const b = render(<RgbLedPart r={true} g={true} />)
+    expect(b.container.innerHTML).toBe(html)
   })
 })
 

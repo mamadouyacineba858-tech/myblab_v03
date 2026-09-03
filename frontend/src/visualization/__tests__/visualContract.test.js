@@ -225,6 +225,7 @@ describe('G — Backend Contract', () => {
     expect(manager.getBackend('BUTTON_LATCHING')).toBe('raster')
     expect(manager.getBackend('BUZZER')).toBe('raster')
     expect(manager.getBackend('POTENTIOMETER')).toBe('raster')
+    expect(manager.getBackend('RGB_LED')).toBe('raster')
     expect(manager.getBackend('POWER')).toBe('svg')
     expect(manager.getPresentation('RESISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('LED')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
@@ -236,6 +237,7 @@ describe('G — Backend Contract', () => {
     expect(manager.getPresentation('BUTTON_LATCHING')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('BUZZER')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('POTENTIOMETER')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
+    expect(manager.getPresentation('RGB_LED')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('POWER')).toEqual({ backend: 'svg', bareBody: false, markerless: false })
   })
 
@@ -246,11 +248,11 @@ describe('G — Backend Contract', () => {
     }
   })
 
-  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + CAPACITOR (004) + LDR (005) + THERMISTOR (006) + DC_MOTOR (007) + BUTTON + BUTTON_LATCHING (008) + BUZZER (031) + POTENTIOMETER (032) ; tous les autres restent svg par défaut', () => {
+  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + CAPACITOR (004) + LDR (005) + THERMISTOR (006) + DC_MOTOR (007) + BUTTON + BUTTON_LATCHING (008) + BUZZER (031) + POTENTIOMETER (032) + RGB_LED (033) ; tous les autres restent svg par défaut', () => {
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes.slice().sort()).toEqual(['BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'POTENTIOMETER', 'RESISTOR', 'THERMISTOR'])
+    expect(rasterTypes.slice().sort()).toEqual(['BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'POTENTIOMETER', 'RESISTOR', 'RGB_LED', 'THERMISTOR'])
     const rasterSet = new Set(rasterTypes)
     for (const { type } of DEFAULT_REGISTRATIONS) {
       if (rasterSet.has(type)) continue

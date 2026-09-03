@@ -1,0 +1,167 @@
+[
+  {
+    "file": "manifest.json",
+    "bytes": 5453,
+    "sha256": "15449f69213b2ac5ce8b0e69e50f08c0b4fe8a53ce5e46e1d9b05090ab70186d"
+  },
+  {
+    "file": "rgb-led.blue.1x.png",
+    "bytes": 7329,
+    "sha256": "cda154699ad85142878b5d05e1beb9b5f69cb4e887aa2ea9d03dc1a1becd7ff6"
+  },
+  {
+    "file": "rgb-led.blue.1x.webp",
+    "bytes": 3510,
+    "sha256": "c7009ed3e1c890890d77a6e75837ffeead8a8d7105e591327e365e3e68cdfccf"
+  },
+  {
+    "file": "rgb-led.blue.3x.png",
+    "bytes": 42430,
+    "sha256": "06992bdf741c213436c84bace99b5000429c01b8bd4a0f3c35e932ced62e1da2"
+  },
+  {
+    "file": "rgb-led.blue.3x.webp",
+    "bytes": 13544,
+    "sha256": "59073887b629b5f25f0a898adc2e37fc440b06ce2c50c0b26c801b9eaca2c6c0"
+  },
+  {
+    "file": "rgb-led.cyan.1x.png",
+    "bytes": 7101,
+    "sha256": "3b9861e1d34860e3b5ce89d236c540e93b57c23b991c45d93963b04ea091b47a"
+  },
+  {
+    "file": "rgb-led.cyan.1x.webp",
+    "bytes": 3474,
+    "sha256": "610c3f2faf1b814e87691f77c58bb2aca2a34ae8b9b0a01ec9fb6fd321270215"
+  },
+  {
+    "file": "rgb-led.cyan.3x.png",
+    "bytes": 41008,
+    "sha256": "75ddfee03556e61b082f456d3a9b9f72e76696fe68f1a0b0f8233805fe208995"
+  },
+  {
+    "file": "rgb-led.cyan.3x.webp",
+    "bytes": 12964,
+    "sha256": "09909d5ca7d56afeaa404a2c5f2bc5a79e749df9bec4b4c8214648b4d217511f"
+  },
+  {
+    "file": "rgb-led.green.1x.png",
+    "bytes": 7076,
+    "sha256": "ee69f5cab7507abcad94b61b03e34543e541482237781de85c61df5430587690"
+  },
+  {
+    "file": "rgb-led.green.1x.webp",
+    "bytes": 3508,
+    "sha256": "b2545423120f322fa231a588b5b8cc4bcc9404d5107017f622a67c9d806f9abb"
+  },
+  {
+    "file": "rgb-led.green.3x.png",
+    "bytes": 40421,
+    "sha256": "f516940918792c9401b2bdd978e751aab09d70730f9dedfb239e375f660e742f"
+  },
+  {
+    "file": "rgb-led.green.3x.webp",
+    "bytes": 13584,
+    "sha256": "be58c95d4866752cc5dfd746855c39b26a6e2f9ea57caa9ca5c53bd2ced3b318"
+  },
+  {
+    "file": "rgb-led.magenta.1x.png",
+    "bytes": 7293,
+    "sha256": "9cf185fd626c0fa058dfa107701e4631a20a1f5e9599a91e4f615dae3eb89867"
+  },
+  {
+    "file": "rgb-led.magenta.1x.webp",
+    "bytes": 3524,
+    "sha256": "2debdfa40c3fefcdb0a4035569b9db764239f5da3018f536a2beee5571116890"
+  },
+  {
+    "file": "rgb-led.magenta.3x.png",
+    "bytes": 42341,
+    "sha256": "f921998cef7fb8cd5991a2d4572bd32da4775d72efe319d936c3aa6377c87181"
+  },
+  {
+    "file": "rgb-led.magenta.3x.webp",
+    "bytes": 13368,
+    "sha256": "f2ffd5d913de9b0c8205d0614a68080dadee95687b07893cb3cd8fedfdc5c819"
+  },
+  {
+    "file": "rgb-led.off.1x.png",
+    "bytes": 6949,
+    "sha256": "037423ae0cec4cb36051139a4b32d7e468b038afc4b50884f7f3881379b72ae2"
+  },
+  {
+    "file": "rgb-led.off.1x.webp",
+    "bytes": 3342,
+    "sha256": "9bbfc95ccf257b2add52abf23a019f77258c0d38419cfd24f4d3d41eb3560ab5"
+  },
+  {
+    "file": "rgb-led.off.3x.png",
+    "bytes": 38688,
+    "sha256": "5b6fbbd4d519fb8e258006d6fd1549517a554d0167226f33a3d72dd5ff0e3629"
+  },
+  {
+    "file": "rgb-led.off.3x.webp",
+    "bytes": 12560,
+    "sha256": "663c87497d56b0df32a75684684183fb627f4242c5c5e6c5657b2bc3af936eb9"
+  },
+  {
+    "file": "rgb-led.red.1x.png",
+    "bytes": 7146,
+    "sha256": "47505c3d093a3ccc8a5a19cb03b1332b0d52726477f91bcdfbd479ff11cc30ab"
+  },
+  {
+    "file": "rgb-led.red.1x.webp",
+    "bytes": 3412,
+    "sha256": "d7a16a88d64bcbbaea12423c9d6d5041622d9cf292788db7eed8c05f9d214a67"
+  },
+  {
+    "file": "rgb-led.red.3x.png",
+    "bytes": 40843,
+    "sha256": "72797c667c432aaf2f86bc97890e08878948aa31aeff77d2501dac92073b5a04"
+  },
+  {
+    "file": "rgb-led.red.3x.webp",
+    "bytes": 13168,
+    "sha256": "10034b59f093286c9e499c430a55dd9397ba475b35fdf1c59541601adfa2ca3d"
+  },
+  {
+    "file": "rgb-led.white.1x.png",
+    "bytes": 7007,
+    "sha256": "444a107549e8518f80919a60c095f509efbda58e61dd6c361e6187efd223b2cb"
+  },
+  {
+    "file": "rgb-led.white.1x.webp",
+    "bytes": 3356,
+    "sha256": "67052fcb27795d99122383cd8c901690db95a59ab60ebce9c4be53112f0c3fd0"
+  },
+  {
+    "file": "rgb-led.white.3x.png",
+    "bytes": 39691,
+    "sha256": "20f31929a69d70800d78be38857963d11a665357f96a994ff44a2b80a5b6c01a"
+  },
+  {
+    "file": "rgb-led.white.3x.webp",
+    "bytes": 12148,
+    "sha256": "84fe01a3b1981e6df741f58c1f5ff7a0840e7af9ccf1fa4d7ddf850a1980210a"
+  },
+  {
+    "file": "rgb-led.yellow.1x.png",
+    "bytes": 7193,
+    "sha256": "15e577ad61ba875c39dd01a3990092ee0a9c464b10401c63083e763d9f1a5b0b"
+  },
+  {
+    "file": "rgb-led.yellow.1x.webp",
+    "bytes": 3514,
+    "sha256": "4f065b7074f6be113c6572b32f00c6f2c9aff41d6cb93238ab53337d422f26f3"
+  },
+  {
+    "file": "rgb-led.yellow.3x.png",
+    "bytes": 41407,
+    "sha256": "b3446e18dcf3c192e10e052b5c20bb09a60eb881f326617d58c69cad0e679f4c"
+  },
+  {
+    "file": "rgb-led.yellow.3x.webp",
+    "bytes": 13102,
+    "sha256": "5e75336e6eb2908ec1be842e043d735a0145c273ca430045ec6f6348279b7c50"
+  }
+]
