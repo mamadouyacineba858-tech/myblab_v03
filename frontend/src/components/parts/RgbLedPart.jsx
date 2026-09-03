@@ -25,47 +25,29 @@ function stateFor(r, g, b) {
   return 'off'
 }
 
-// The committed raster package keeps the physical LED body/legs in their original
-// source columns. Crop only the four real leg strips, then place their visible
-// centers at the corrected physical positions required by the RGB_LED definition.
-const LEG_CROPS = [
-  { sourceX: 8, width: 9, targetX: 15 },
-  { sourceX: 30, width: 9, targetX: 31 },
-  { sourceX: 52, width: 9, targetX: 49 },
-  { sourceX: 74, width: 9, targetX: 67 },
-]
-
 export function RgbLedPart({ r, g, b } = {}) {
   const def = getComponentDef('RGB_LED')
   const width = def?.width ?? 90
   const height = def?.height ?? 56
   const state = stateFor(r, g, b)
   const source = ASSET_SOURCES[state]
-  const imgProps = {
-    width,
-    height,
-    draggable: false,
-    alt: '',
-    'aria-hidden': true,
-    style: { position: 'absolute', width: '100%', height: '100%', display: 'block', pointerEvents: 'none' },
-  }
 
   return (
     <div className="part-rgb-led" aria-label="LED RGB" data-state={state} style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: 39, overflow: 'hidden' }}>
-        <picture>
-          <source type="image/webp" srcSet={source.webp} />
-          <img className="part-rgb-led__img" src={source.fallback} srcSet={source.png} {...imgProps} />
-        </picture>
-      </div>
-      {LEG_CROPS.map(({ sourceX, width: cropWidth, targetX }) => (
-        <div key={`${sourceX}-${targetX}`} style={{ position: 'absolute', left: targetX, top: 39, width: cropWidth, height: height - 39, overflow: 'hidden', pointerEvents: 'none' }}>
-          <picture>
-            <source type="image/webp" srcSet={source.webp} />
-            <img className="part-rgb-led__img" src={source.fallback} srcSet={source.png} {...imgProps} style={{ ...imgProps.style, left: -sourceX, top: -39 }} />
-          </picture>
-        </div>
-      ))}
+      <picture>
+        <source type="image/webp" srcSet={source.webp} />
+        <img
+          className="part-rgb-led__img"
+          src={source.fallback}
+          srcSet={source.png}
+          width={width}
+          height={height}
+          draggable={false}
+          alt=""
+          aria-hidden="true"
+          style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
+        />
+      </picture>
     </div>
   )
 }
