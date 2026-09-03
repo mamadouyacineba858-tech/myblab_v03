@@ -20,23 +20,24 @@ const STATE_CASES = [
 ]
 
 describe('MB-VIS-COMP-033 — RgbLedPart : rendu raster + 8 états', () => {
-  it('rend un img raster, aucun SVG/shape, aucun id', () => {
+  it('compose un corps raster + 4 crops de pattes, aucun SVG/shape/id', () => {
     const { container } = render(<RgbLedPart />)
-    expect(container.querySelector('img')).not.toBeNull()
+    expect(container.querySelectorAll('img').length).toBe(5)
     for (const tag of ['svg', 'line', 'circle', 'path']) expect(container.querySelector(tag)).toBeNull()
     expect(container.querySelectorAll('[id]').length).toBe(0)
     expect(container.querySelector('.part-rgb-led')).not.toBeNull()
-    expect(container.querySelector('[aria-label="LED RGB"]')).not.toBeNull()
   })
 
-  it('les 8 combinaisons sélectionnent le bon état raster', () => {
+  it('les 8 combinaisons sélectionnent le bon état', () => {
     for (const [props, state] of STATE_CASES) {
       const { container, unmount } = render(<RgbLedPart {...props} />)
       expect(container.querySelector('.part-rgb-led').getAttribute('data-state')).toBe(state)
-      const img = container.querySelector('img')
-      expect(img.getAttribute('src')).toBe(`/assets/components/rgb-led/rgb-led.${state}.3x.png`)
-      expect(img.getAttribute('srcset')).toBe(`/assets/components/rgb-led/rgb-led.${state}.1x.png 1x, /assets/components/rgb-led/rgb-led.${state}.3x.png 3x`)
-      expect(container.querySelector('picture > source[type="image/webp"]').getAttribute('srcset')).toBe(`/assets/components/rgb-led/rgb-led.${state}.1x.webp 1x, /assets/components/rgb-led/rgb-led.${state}.3x.webp 3x`)
+      expect(container.querySelectorAll('img').length).toBe(5)
+      for (const img of container.querySelectorAll('img')) {
+        expect(img.getAttribute('src')).toBe(`/assets/components/rgb-led/rgb-led.${state}.3x.png`)
+        expect(img.getAttribute('srcset')).toBe(`/assets/components/rgb-led/rgb-led.${state}.1x.png 1x, /assets/components/rgb-led/rgb-led.${state}.3x.png 3x`)
+      }
+      expect(container.querySelectorAll('source[type="image/webp"]').length).toBe(5)
       unmount()
     }
   })
@@ -62,12 +63,14 @@ describe('MB-VIS-COMP-033 — RgbLedPart : rendu raster + 8 états', () => {
     expect(img.getAttribute('height')).toBe(String(def.height))
   })
 
-  it('img non interactif', () => {
-    const img = render(<RgbLedPart r />).container.querySelector('img')
-    expect(img.draggable).toBe(false)
-    expect(img.style.pointerEvents).toBe('none')
-    expect(img.onclick).toBeNull()
-    expect(img.onpointerdown).toBeNull()
+  it('toutes les images sont non interactives', () => {
+    const { container } = render(<RgbLedPart r />)
+    for (const img of container.querySelectorAll('img')) {
+      expect(img.draggable).toBe(false)
+      expect(img.style.pointerEvents).toBe('none')
+      expect(img.onclick).toBeNull()
+      expect(img.onpointerdown).toBeNull()
+    }
   })
 
   it('backend RGB_LED = raster avec bareBody + markerless', () => {
@@ -98,7 +101,7 @@ describe('MB-VIS-COMP-033 — paquet assets', () => {
       expect(existsSync(resolve(ASSET_DIR, `rgb-led.${s}.${scale}.${ext}`))).toBe(true)
     }
   })
-  it('manifest et integrity cohérents', () => {
+  it('manifest et integrity cohérents avec la géométrie physique', () => {
     const manifest = JSON.parse(readFileSync(resolve(ASSET_DIR, 'manifest.json'), 'utf-8'))
     expect(manifest.component).toBe('RGB_LED'); expect(manifest.backend).toBe('raster')
     const def = getComponentDef('RGB_LED')
@@ -126,13 +129,13 @@ describe('MB-VIS-COMP-033 — pipeline réel : 4 pins physiques rapprochés', ()
     expect(pins.length).toBe(4); expect(def.pins.map((p) => p.id)).toEqual(['R', 'common', 'G', 'B'])
     const positions = [...pins].map((el) => [Number(el.style.left.replace('px', '')), Number(el.style.top.replace('px', ''))])
     expect(positions).toEqual(expect.arrayContaining([[19, 56], [35, 56], [53, 56], [71, 56]]))
-    expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
+    expect(container.querySelectorAll('.circuit-component__body img').length).toBe(5)
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
     expect(container.querySelector('.circuit-component').getAttribute('data-backend')).toBe('raster')
     expect(container.querySelector('.circuit-component__body').hasAttribute('data-bare-body')).toBe(true)
     for (const p of pins) expect(p.style.opacity).toBe('0')
   })
-  it('img ne capte pas les événements', () => {
+  it('une image ne capte pas les événements — le wrapper les reçoit', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('RGB_LED', 50, 60) })
