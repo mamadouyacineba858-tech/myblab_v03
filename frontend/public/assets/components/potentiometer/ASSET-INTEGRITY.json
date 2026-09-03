@@ -6,22 +6,22 @@
   },
   {
     "file": "potentiometer.default.1x.png",
-    "bytes": 5097,
-    "sha256": "aa1d615158c48bcbda40d3ba922a1ccbbdaf8859f467cc8ba44ea2c205a0234f"
+    "bytes": 4647,
+    "sha256": "e043b54ae27645f7b82858a2cb40759d6cf1d5ce0e959c9de9e5eb281a631d54"
   },
   {
     "file": "potentiometer.default.1x.webp",
-    "bytes": 4144,
-    "sha256": "61e498814de2c21cfc903e98551448c5a405f0b2bf70b72e932dbf2c030e3afa"
+    "bytes": 2766,
+    "sha256": "44a5c1272957e7122c7a70913643ebc8eb6f70d57e881e7f6e05381b92da9c1f"
   },
   {
     "file": "potentiometer.default.3x.png",
-    "bytes": 28625,
-    "sha256": "aa3d806d1ae6ce9dfffbcc8b4ab4ad7088822f5144f9fc0c81a6766359ff4890"
+    "bytes": 28902,
+    "sha256": "acba4740e9c1d8be2cc4ae511b4086f761b30642efdf91f1fc3a5abb1ce476c4"
   },
   {
     "file": "potentiometer.default.3x.webp",
-    "bytes": 19720,
-    "sha256": "a2635173dc4c0a981a4e5473bd4decc1fa6791ba8a75c7f515676a52658d04f5"
+    "bytes": 8986,
+    "sha256": "4cdcd7b981c74b2352afd6d432713f3b39a73e6acbb1565a9e8b039b33da0cb7"
   }
 ]
