@@ -120,13 +120,15 @@ describe("MB-VIS-INDUSTRIAL-001 — application au rendu réel (attributs décla
     for (const p of container.querySelectorAll(".myblab-pin")) expect(p.style.opacity).toBe("0")
   })
 
-  it("POWER (aucune déclaration visual) : data-backend=svg, PAS de data-bare-body, marqueurs visibles (opacity 1)", () => {
-    expect(getComponentPresentation("POWER")).toMatchObject({ backend: "svg", bareBody: false, markerless: false })
+  it("POWER (backend raster, MB-VIS-COMP-036) : data-backend=raster, data-bare-body présent, asset <img>, marqueurs masqués", () => {
+    expect(getComponentPresentation("POWER")).toMatchObject({ backend: "raster", bareBody: true, markerless: true })
     const { container } = mountType("POWER")
-    expect(container.querySelector(".circuit-component").getAttribute("data-backend")).toBe("svg")
-    expect(container.querySelector(".circuit-component__body").hasAttribute("data-bare-body")).toBe(false)
+    expect(container.querySelector(".circuit-component").getAttribute("data-backend")).toBe("raster")
+    expect(container.querySelector(".circuit-component__body").hasAttribute("data-bare-body")).toBe(true)
     const pins = [...container.querySelectorAll(".myblab-pin")]
     expect(pins.length).toBeGreaterThan(0)
-    for (const p of pins) expect(p.style.opacity).toBe("1")
+    for (const p of pins) expect(p.style.opacity).toBe("0")
+    expect(container.querySelector(".circuit-component__body img")).not.toBeNull()
+    expect(container.querySelector(".circuit-component__body svg")).toBeNull()
   })
 })

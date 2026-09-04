@@ -228,7 +228,7 @@ describe('G — Backend Contract', () => {
     expect(manager.getBackend('RGB_LED')).toBe('raster')
     expect(manager.getBackend('NPN_TRANSISTOR')).toBe('raster')
     expect(manager.getBackend('SERVO')).toBe('raster')
-    expect(manager.getBackend('POWER')).toBe('svg')
+    expect(manager.getBackend('POWER')).toBe('raster')
     expect(manager.getPresentation('RESISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('LED')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('CAPACITOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
@@ -242,7 +242,7 @@ describe('G — Backend Contract', () => {
     expect(manager.getPresentation('RGB_LED')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('NPN_TRANSISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('SERVO')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
-    expect(manager.getPresentation('POWER')).toEqual({ backend: 'svg', bareBody: false, markerless: false })
+    expect(manager.getPresentation('POWER')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
   })
 
   it('MB-VIS-INDUSTRIAL-001 — accesseur statique getComponentPresentation == manager (même source, même résultat)', () => {
@@ -252,11 +252,11 @@ describe('G — Backend Contract', () => {
     }
   })
 
-  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + CAPACITOR (004) + LDR (005) + THERMISTOR (006) + DC_MOTOR (007) + BUTTON + BUTTON_LATCHING (008) + BUZZER (031) + POTENTIOMETER (032) + RGB_LED (033) + NPN_TRANSISTOR (034) + SERVO (035) ; tous les autres restent svg par défaut', () => {
+  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + CAPACITOR (004) + LDR (005) + THERMISTOR (006) + DC_MOTOR (007) + BUTTON + BUTTON_LATCHING (008) + BUZZER (031) + POTENTIOMETER (032) + RGB_LED (033) + NPN_TRANSISTOR (034) + SERVO (035) + POWER (036) ; ARDUINO reste seul en svg', () => {
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes.slice().sort()).toEqual(['BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POTENTIOMETER', 'RESISTOR', 'RGB_LED', 'SERVO', 'THERMISTOR'])
+    expect(rasterTypes.slice().sort()).toEqual(['BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'THERMISTOR'])
     const rasterSet = new Set(rasterTypes)
     for (const { type } of DEFAULT_REGISTRATIONS) {
       if (rasterSet.has(type)) continue

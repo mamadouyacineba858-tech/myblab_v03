@@ -42,6 +42,23 @@ const NPN_TRANSISTOR_VISUAL_PINS = {
 }
 
 /**
+ * [MB-VIS-COMP-036] Projection de présentation de l'alimentation POWER
+ * (boîtier raster benchtop DC lab supply). Les 2 pins électriques
+ * canoniques — 5V (70,37), GND (58,25) — sont DESSINÉS sur les 2 bornes
+ * réelles du raster (rouge/noire), en bas du composant. Décision de
+ * présentation uniquement (même statut que LED_VISUAL_PINS /
+ * NPN_TRANSISTOR_VISUAL_PINS) : la position électrique retournée par
+ * getPinPosition() n'est jamais déplacée ; seul l'endroit où un connecteur /
+ * un fil est dessiné change. La borne verte EARTH visible sur l'asset est
+ * purement décorative — elle n'a pas d'entrée ici, ce n'est pas un pin
+ * logique. Projection V2 validée CSA : GND=(22,67) 5V=(35,67).
+ */
+const POWER_VISUAL_PINS = {
+  GND: { x: 22, y: 67 },
+  '5V': { x: 35, y: 67 },
+}
+
+/**
  * Resolve the presentation coordinate of a component pin.
  * Falls back to the canonical electrical coordinate (getPinPosition(),
  * geometry.js) for every component and every pin that has no presentation
@@ -60,6 +77,14 @@ export function getPinPresentationPosition(component, pinDef) {
 
   if (component.type === "NPN_TRANSISTOR" && NPN_TRANSISTOR_VISUAL_PINS[pinDef.id]) {
     const visual = NPN_TRANSISTOR_VISUAL_PINS[pinDef.id]
+    const x = component.x + visual.x
+    const y = component.y + visual.y
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null
+    return { x, y }
+  }
+
+  if (component.type === "POWER" && POWER_VISUAL_PINS[pinDef.id]) {
+    const visual = POWER_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y
     if (!Number.isFinite(x) || !Number.isFinite(y)) return null

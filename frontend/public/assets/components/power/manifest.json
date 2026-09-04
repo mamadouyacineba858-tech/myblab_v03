@@ -1,0 +1,79 @@
+{
+  "component": "POWER",
+  "version": "2.0.0",
+  "backend": "raster",
+  "states": [
+    "default"
+  ],
+  "formats": [
+    "webp",
+    "png"
+  ],
+  "scales": [
+    "1x",
+    "3x"
+  ],
+  "dimensions": {
+    "1x": {
+      "width": 70,
+      "height": 90
+    },
+    "3x": {
+      "width": 210,
+      "height": 270
+    }
+  },
+  "canonical": {
+    "width": 70,
+    "height": 90,
+    "origin": "top-left",
+    "pins": {
+      "5V": [
+        70,
+        37
+      ],
+      "GND": [
+        58,
+        25
+      ]
+    }
+  },
+  "variants": [
+    {
+      "file": "power.default.1x.png",
+      "state": "default",
+      "scale": "1x",
+      "format": "png",
+      "width": 70,
+      "height": 90
+    },
+    {
+      "file": "power.default.1x.webp",
+      "state": "default",
+      "scale": "1x",
+      "format": "webp",
+      "width": 70,
+      "height": 90
+    },
+    {
+      "file": "power.default.3x.png",
+      "state": "default",
+      "scale": "3x",
+      "format": "png",
+      "width": 210,
+      "height": 270
+    },
+    {
+      "file": "power.default.3x.webp",
+      "state": "default",
+      "scale": "3x",
+      "format": "webp",
+      "width": 210,
+      "height": 270
+    }
+  ],
+  "description": "Photorealistic benchtop DC laboratory power supply, front-facing raster asset.",
+  "background": "transparent",
+  "hashAlgorithm": "sha256",
+  "complexity": "complex"
+}

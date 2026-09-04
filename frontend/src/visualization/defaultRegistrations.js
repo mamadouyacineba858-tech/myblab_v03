@@ -71,7 +71,17 @@ export const DEFAULT_REGISTRATIONS = [
   // deux assets). raster => bareBody + markerless dérivés, même mécanisme
   // déclaratif que les autres composants raster.
   { type: 'BUTTON_LATCHING', component: LatchingButtonPart, visual: { backend: 'raster' } },
-  { type: 'POWER', component: PowerPart },
+  // POWER : porté au backend raster (asset réaliste validé MB-VIS-COMP-036
+  // V2-complex, alimentation DC de laboratoire benchtop, état unique
+  // `default`, manifeste `complexity: "complex"` — budget de poids
+  // RENDER_BUDGET.raster.maxWeightKbPerVariantComplex). raster => bareBody +
+  // markerless dérivés, même mécanisme déclaratif que LED / BUZZER / SERVO /
+  // NPN_TRANSISTOR — aucun code central spécifique. Coordonnées électriques
+  // 5V dx=70/dy=37 et GND dx=58/dy=25 inchangées ; projection visuelle des
+  // pins sur les 2 bornes du raster déclarée dans
+  // utils/pinPresentationGeometry.js (la borne verte EARTH visible sur
+  // l'asset reste purement décorative, aucun nouveau pin logique).
+  { type: 'POWER', component: PowerPart, visual: { backend: 'raster' } },
   // CAPACITOR : quatrième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-004, état unique `default`). raster => bareBody +
   // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE / LED.

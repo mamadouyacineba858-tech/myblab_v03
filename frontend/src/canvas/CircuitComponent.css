@@ -155,56 +155,23 @@
 }
 
 /* =========================================================
-   MB-COMPONENT-LIBRARY-002 — POWER (alimentation)
+   MB-COMPONENT-LIBRARY-002 / MB-VIS-COMP-036 — POWER (alimentation)
    ========================================================= */
 
+/* MB-VIS-COMP-036 — POWER porté au backend raster : le renderer rend un
+   asset `<picture>/<img>` transparent (état unique `default`, alimentation
+   DC de laboratoire benchtop). `.part-power` est conservée et réduite au
+   centrage, comme `.part-resistor` / `.part-diode` / `.part-led` /
+   `.part-capacitor` / `.part-buzzer` / `.part-potentiometer` / `.part-ldr` /
+   `.part-thermistor` / `.part-dc-motor` / `.part-servo`. Les anciennes
+   règles `.part-power__lead/body/cell/label` ciblaient des primitives SVG
+   qui n'existent plus. */
 .part-power {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.part-power__lead {
-  stroke: #9ca3af;
-  stroke-width: 2.5;
-}
-
-.part-power__lead--plus {
-  stroke: #ef4444;
-}
-
-.part-power__body {
-  fill: #1f2937;
-  stroke: #374151;
-  stroke-width: 1.5;
-}
-
-.part-power__cell {
-  stroke: #e5e7eb;
-}
-
-.part-power__cell--long {
-  stroke-width: 2.5;
-}
-
-.part-power__cell--short {
-  stroke-width: 4.5;
-}
-
-.part-power__label {
-  font-size: 10px;
-  font-weight: 600;
-  text-anchor: middle;
-}
-
-.part-power__label--plus {
-  fill: #ef4444;
-}
-
-.part-power__label--gnd {
-  fill: #94a3b8;
 }
 
 /* MB-VIS-PROTOTYPE-004 — CAPACITOR portée au backend raster : le renderer

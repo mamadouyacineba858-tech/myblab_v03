@@ -1,0 +1,33 @@
+{
+  "component": "POWER",
+  "version": "2.0.0",
+  "generatedAt": "2026-09-04T18:50:47.178288Z",
+  "hashAlgorithm": "sha256",
+  "files": [
+    {
+      "file": "power.default.1x.png",
+      "sha256": "2a8840ebea5560ceb6c3a21e6ea381e65e50d464e25845dbd79cb009815b6417",
+      "bytes": 8928
+    },
+    {
+      "file": "power.default.1x.webp",
+      "sha256": "8d52a3ef0e972b4335d11d4c925ca08297a98bdfe568355e800ca8bfb220822c",
+      "bytes": 6200
+    },
+    {
+      "file": "power.default.3x.png",
+      "sha256": "d51d1551a5cdb8b44da4b4cb177b249f215ba1b0a5d2c68d74ea8334c6d9b515",
+      "bytes": 50253
+    },
+    {
+      "file": "power.default.3x.webp",
+      "sha256": "32d74beb0b9de130c6788f5b7a689e645b7c872330991d69dbfcd535381b5117",
+      "bytes": 33678
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "0438d5ea4839aca4f0cb82f27039776442e9b0119a90a5d1f4b95a598e5b3d44",
+      "bytes": 1368
+    }
+  ]
+}
