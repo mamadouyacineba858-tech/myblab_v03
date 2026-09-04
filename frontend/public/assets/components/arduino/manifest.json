@@ -1,0 +1,87 @@
+{
+  "component": "ARDUINO",
+  "version": "1.0.0",
+  "backend": "raster",
+  "complexity": "complex",
+  "states": [
+    "default"
+  ],
+  "formats": [
+    "webp",
+    "png"
+  ],
+  "scales": [
+    "1x",
+    "3x"
+  ],
+  "dimensions": {
+    "1x": {
+      "width": 120,
+      "height": 140
+    },
+    "3x": {
+      "width": 360,
+      "height": 420
+    }
+  },
+  "canonical": {
+    "width": 120,
+    "height": 140,
+    "origin": "top-left",
+    "pins": {
+      "D2": [
+        0,
+        50
+      ],
+      "D3": [
+        0,
+        75
+      ],
+      "GND": [
+        0,
+        110
+      ],
+      "5V": [
+        120,
+        50
+      ]
+    }
+  },
+  "variants": [
+    {
+      "file": "arduino.default.1x.png",
+      "state": "default",
+      "scale": "1x",
+      "format": "png",
+      "width": 120,
+      "height": 140
+    },
+    {
+      "file": "arduino.default.1x.webp",
+      "state": "default",
+      "scale": "1x",
+      "format": "webp",
+      "width": 120,
+      "height": 140
+    },
+    {
+      "file": "arduino.default.3x.png",
+      "state": "default",
+      "scale": "3x",
+      "format": "png",
+      "width": 360,
+      "height": 420
+    },
+    {
+      "file": "arduino.default.3x.webp",
+      "state": "default",
+      "scale": "3x",
+      "format": "webp",
+      "width": 360,
+      "height": 420
+    }
+  ],
+  "description": "Photorealistic Arduino UNO R3 top-down raster asset.",
+  "background": "transparent",
+  "hashAlgorithm": "sha256"
+}

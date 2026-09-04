@@ -38,6 +38,7 @@ import { DcMotorPart } from '../DcMotorPart.jsx'
 import { DEFAULT_REGISTRATIONS, getComponentByType, getComponentPresentation } from '../../../visualization/defaultRegistrations.js'
 import { createDefaultVisualizationManager } from '../../../visualization/factory.js'
 import { getComponentDef } from '../../../config/componentDefinitions.js'
+import { getPinPresentationPosition } from '../../../utils/pinPresentationGeometry.js'
 import { CircuitProvider } from '../../../context/CircuitContext.jsx'
 import { useCircuit } from '../../../context/useCircuit.js'
 import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
@@ -316,7 +317,7 @@ describe('MB-VIS-COMP-033 — RGB_LED : backend raster + 8 états visuels dériv
 })
 
 describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRenderer (VIS-TEST-02/03, AC-04/AC-05/AC-06)', () => {
-  it('ARDUINO (4 pins) : les 4 pins existants restent rendus aux positions dx/dy exactes de componentDefinitions.js', () => {
+  it('ARDUINO (4 pins) : les 4 pins existants restent rendus aux positions de PRÉSENTATION (MB-VIS-COMP-037 : projection sur le silhouette réel de la carte, cf. ARDUINO_VISUAL_PINS)', () => {
     let circuitApi = null
     render(
       <CanvasHarness onReady={(api) => { circuitApi = api }} />,
@@ -328,13 +329,15 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
     })
 
     const def = getComponentDef('ARDUINO')
+    const component = { type: 'ARDUINO', x: 0, y: 0 }
     const pinButtons = document.querySelectorAll('.myblab-pin')
     expect(pinButtons.length).toBe(def.pins.length)
     def.pins.forEach((pin) => {
+      const expected = getPinPresentationPosition(component, pin)
       const match = Array.from(pinButtons).find(
-        (el) => el.style.left === `${pin.dx}px` && el.style.top === `${pin.dy}px`
+        (el) => el.style.left === `${expected.x}px` && el.style.top === `${expected.y}px`
       )
-      expect(match, `pin ${pin.id} (dx=${pin.dx}, dy=${pin.dy})`).toBeTruthy()
+      expect(match, `pin ${pin.id} (présentation ${expected.x},${expected.y})`).toBeTruthy()
     })
   })
 

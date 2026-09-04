@@ -60,7 +60,18 @@ export const DEFAULT_REGISTRATIONS = [
   // RESISTOR : premier composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-001B). raster => bareBody + markerless dérivés.
   { type: 'RESISTOR', component: ResistorPart, visual: { backend: 'raster' } },
-  { type: 'ARDUINO', component: ArduinoPart },
+  // ARDUINO : porté au backend raster (asset réaliste validé MB-VIS-COMP-037,
+  // Arduino UNO R3 vue de dessus, état unique `default`, manifeste
+  // `complexity: "complex"` — budget de poids
+  // RENDER_BUDGET.raster.maxWeightKbPerVariantComplex). 16ᵉ et DERNIER
+  // composant du catalogue porté au raster. raster => bareBody + markerless
+  // dérivés, même mécanisme déclaratif que LED / BUZZER / SERVO / POWER —
+  // aucun code central spécifique. Coordonnées électriques D2 dx=0/dy=50,
+  // D3 dx=0/dy=75, GND dx=0/dy=110, 5V dx=120/dy=50 inchangées ; projection
+  // visuelle des pins sur les bords réels de la carte photographiée
+  // déclarée dans utils/pinPresentationGeometry.js (déterminée par
+  // pixel-probe, cf. commentaire ARDUINO_VISUAL_PINS).
+  { type: 'ARDUINO', component: ArduinoPart, visual: { backend: 'raster' } },
   // BUTTON : huitième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-008, états `released` / `pressed`). raster => bareBody +
   // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /

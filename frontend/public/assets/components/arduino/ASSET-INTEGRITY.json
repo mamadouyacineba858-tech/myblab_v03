@@ -1,0 +1,33 @@
+{
+  "component": "ARDUINO",
+  "version": "1.0.0",
+  "generatedAt": "2026-09-04T20:05:03.768056Z",
+  "hashAlgorithm": "sha256",
+  "files": [
+    {
+      "file": "arduino.default.1x.png",
+      "sha256": "1e24b2b105368ace62de324870bd8ee44a0b92bb61d48420bc0f67d3ef5beddd",
+      "bytes": 21767
+    },
+    {
+      "file": "arduino.default.1x.webp",
+      "sha256": "3635a9ef5d56e2daf55e373ab89b61c824806d4a54fc5189a85e99ca5519a43b",
+      "bytes": 16666
+    },
+    {
+      "file": "arduino.default.3x.png",
+      "sha256": "50fde1d0f0f9c42818681118cd4d60fea23491ce3e9653880cf3bb05c22489d6",
+      "bytes": 48791
+    },
+    {
+      "file": "arduino.default.3x.webp",
+      "sha256": "01ea8f55626829f880c5468572251a94db0460b2840308c4e10e4d78d7b12c7f",
+      "bytes": 89622
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "928bbf551c6cd8a3aa57f82ea4b73c8a95729232617793bf46a88c1e09a1fe00",
+      "bytes": 1451
+    }
+  ]
+}
