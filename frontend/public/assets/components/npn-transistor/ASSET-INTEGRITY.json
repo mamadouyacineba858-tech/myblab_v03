@@ -1,0 +1,27 @@
+[
+  {
+    "file": "manifest.json",
+    "bytes": 1214,
+    "sha256": "df21bed668d127b7a814e0e004eedc4697d33276608d860c63882145cdce148f"
+  },
+  {
+    "file": "npn-transistor.default.1x.png",
+    "bytes": 4514,
+    "sha256": "2ed35a50a0eddb95767cbf35c59ab17ee34614a5b2392bf2ca7cf7245880ad33"
+  },
+  {
+    "file": "npn-transistor.default.1x.webp",
+    "bytes": 3834,
+    "sha256": "789057584344f2faf7f18637bb48087a4519f848eb744c136c7c926fa31a2692"
+  },
+  {
+    "file": "npn-transistor.default.3x.png",
+    "bytes": 26808,
+    "sha256": "4406878b8f9faeada46450bbc832c1463cdba9ef069c6c5434ebf26e2feebe67"
+  },
+  {
+    "file": "npn-transistor.default.3x.webp",
+    "bytes": 18404,
+    "sha256": "b83c4b31b4456aa58fc8297659ee4e66f7f59115488f9cdceea293689aab9aea"
+  }
+]

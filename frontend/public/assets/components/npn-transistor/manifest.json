@@ -1,0 +1,72 @@
+{
+  "component": "NPN_TRANSISTOR",
+  "backend": "raster",
+  "state": "default",
+  "canonical": {
+    "width": 90,
+    "height": 60,
+    "pins": {
+      "collector": [
+        45,
+        0
+      ],
+      "base": [
+        0,
+        45
+      ],
+      "emitter": [
+        90,
+        45
+      ]
+    },
+    "visualPinProjection": {
+      "base": [
+        32,
+        60
+      ],
+      "collector": [
+        42,
+        60
+      ],
+      "emitter": [
+        51,
+        60
+      ]
+    }
+  },
+  "assets": [
+    {
+      "file": "npn-transistor.default.1x.png",
+      "state": "default",
+      "scale": "1x",
+      "format": "png",
+      "width": 90,
+      "height": 60
+    },
+    {
+      "file": "npn-transistor.default.1x.webp",
+      "state": "default",
+      "scale": "1x",
+      "format": "webp",
+      "width": 90,
+      "height": 60
+    },
+    {
+      "file": "npn-transistor.default.3x.png",
+      "state": "default",
+      "scale": "3x",
+      "format": "png",
+      "width": 270,
+      "height": 180
+    },
+    {
+      "file": "npn-transistor.default.3x.webp",
+      "state": "default",
+      "scale": "3x",
+      "format": "webp",
+      "width": 270,
+      "height": 180
+    }
+  ],
+  "version": "5.0.0"
+}

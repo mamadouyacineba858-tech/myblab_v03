@@ -110,7 +110,13 @@ export const DEFAULT_REGISTRATIONS = [
   // l'état d'asset. raster => bareBody + markerless dérivés, même mécanisme
   // déclaratif que LED — aucun code central spécifique.
   { type: 'RGB_LED', component: RgbLedPart, visual: { backend: 'raster' } },
-  { type: 'NPN_TRANSISTOR', component: NpnTransistorPart },
+  // NPN_TRANSISTOR : porté au backend raster (asset réaliste validé
+  // MB-VIS-COMP-034 V5, boîtier 2N2222 TO-92, état unique `default`).
+  // raster => bareBody + markerless dérivés, même mécanisme déclaratif que
+  // LED / BUZZER — aucun code central spécifique. Coordonnées électriques
+  // C(45,0)/B(0,45)/E(90,45) inchangées ; projection visuelle des pins sur
+  // les 3 pattes du raster déclarée dans utils/pinPresentationGeometry.js.
+  { type: 'NPN_TRANSISTOR', component: NpnTransistorPart, visual: { backend: 'raster' } },
   { type: 'SERVO', component: ServoPart },
   // DC_MOTOR : septième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-007 v5, état unique `default`). raster => bareBody +
