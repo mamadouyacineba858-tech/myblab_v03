@@ -417,50 +417,22 @@
 }
 
 /* =========================================================
-   MB-COMPONENT-LIBRARY-002 — SERVO
+   MB-COMPONENT-LIBRARY-002 / MB-VIS-COMP-035 — SERVO
    ========================================================= */
 
+/* MB-VIS-COMP-035 — SERVO porté au backend raster : le renderer rend un
+   asset `<picture>/<img>` transparent (état unique `default`, Tower Pro
+   SG90). `.part-servo` est conservée et réduite au centrage, comme
+   `.part-resistor` / `.part-diode` / `.part-led` / `.part-capacitor` /
+   `.part-buzzer` / `.part-potentiometer` / `.part-ldr` / `.part-thermistor`
+   / `.part-dc-motor`. Les anciennes règles `.part-servo__lead/case/hub/horn`
+   ciblaient des primitives SVG qui n'existent plus. */
 .part-servo {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.part-servo__lead {
-  stroke: #9ca3af;
-  stroke-width: 2.5;
-}
-
-.part-servo__lead--signal {
-  stroke: #fbbf24;
-}
-
-.part-servo__lead--vcc {
-  stroke: #ef4444;
-}
-
-.part-servo__lead--gnd {
-  stroke: #1f2937;
-}
-
-.part-servo__case {
-  fill: #1e40af;
-  stroke: #60a5fa;
-  stroke-width: 1.5;
-}
-
-.part-servo__hub {
-  fill: #0f172a;
-  stroke: #60a5fa;
-  stroke-width: 1;
-}
-
-.part-servo__horn {
-  stroke: #e2e8f0;
-  stroke-width: 3;
-  stroke-linecap: round;
 }
 
 .circuit-component {

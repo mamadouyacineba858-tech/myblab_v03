@@ -1,0 +1,66 @@
+{
+  "component": "SERVO",
+  "backend": "raster",
+  "state": "default",
+  "complexity": "complex",
+  "canonical": {
+    "width": 90,
+    "height": 70,
+    "pins": {
+      "signal": [
+        90,
+        20
+      ],
+      "vcc": [
+        90,
+        35
+      ],
+      "gnd": [
+        90,
+        50
+      ]
+    }
+  },
+  "assets": [
+    {
+      "file": "servo.default.1x.png",
+      "state": "default",
+      "scale": 1,
+      "format": "png",
+      "width": 90,
+      "height": 70,
+      "bytes": 11979,
+      "sha256": "7b8aebfccd43fd52beb48a0286436c007373d0de3c810f3d27398fe3d49e272e"
+    },
+    {
+      "file": "servo.default.1x.webp",
+      "state": "default",
+      "scale": 1,
+      "format": "webp",
+      "width": 90,
+      "height": 70,
+      "bytes": 9912,
+      "sha256": "3b76f923a4e70e305fbb38e323db996a47242111dc7aa561daae230a4adb78c3"
+    },
+    {
+      "file": "servo.default.3x.png",
+      "state": "default",
+      "scale": 3,
+      "format": "png",
+      "width": 270,
+      "height": 210,
+      "bytes": 75678,
+      "sha256": "2a53a7084ec6c6434912075588210545254e23a29d125b18c813230cf8bd831f"
+    },
+    {
+      "file": "servo.default.3x.webp",
+      "state": "default",
+      "scale": 3,
+      "format": "webp",
+      "width": 270,
+      "height": 210,
+      "bytes": 58226,
+      "sha256": "b15a3774a5dba6c8ecb0bd2b0c4193b114a008d1d49cad3e50adc1e9cad6a4d6"
+    }
+  ]
+}

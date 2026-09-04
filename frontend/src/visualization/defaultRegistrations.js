@@ -117,7 +117,16 @@ export const DEFAULT_REGISTRATIONS = [
   // C(45,0)/B(0,45)/E(90,45) inchangées ; projection visuelle des pins sur
   // les 3 pattes du raster déclarée dans utils/pinPresentationGeometry.js.
   { type: 'NPN_TRANSISTOR', component: NpnTransistorPart, visual: { backend: 'raster' } },
-  { type: 'SERVO', component: ServoPart },
+  // SERVO : porté au backend raster (asset réaliste validé MB-VIS-COMP-035,
+  // Tower Pro SG90, état unique `default`, manifeste `complexity: "complex"`
+  // — budget de poids RENDER_BUDGET.raster.maxWeightKbPerVariantComplex).
+  // raster => bareBody + markerless dérivés, même mécanisme déclaratif que
+  // LED / BUZZER / NPN_TRANSISTOR — aucun code central spécifique.
+  // Coordonnées électriques signal(90,20)/vcc(90,35)/gnd(90,50) inchangées ;
+  // AUCUNE projection visuelle dédiée dans pinPresentationGeometry.js pour
+  // ce ticket (décision CSA) — les pins restent dessinés à leur position
+  // électrique canonique.
+  { type: 'SERVO', component: ServoPart, visual: { backend: 'raster' } },
   // DC_MOTOR : septième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-007 v5, état unique `default`). raster => bareBody +
   // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
