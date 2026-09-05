@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useRef } from "react"
+// MB-VIS-CANVAS-052 (correction disclosed, même raison que CircuitComponent.jsx/
+// WiresLayer.jsx/Breadboard.jsx) : import React explicite requis par la config
+// vitest secondaire (frontend/src/simulator/vitest.config.ts, sans
+// @vitejs/plugin-react) pour tout fichier .jsx rendu sous cette config.
+// SimulationCanvas.jsx n'avait jamais été rendu directement sous cette config
+// avant les tests de molette scopée au focus ajoutés par ce ticket
+// (ComponentFocusLocalZoom.integration.test.jsx). Aucun changement de
+// comportement : ajout d'import pur.
+import React, { useCallback, useEffect, useRef } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { GridBackground } from "./GridBackground.jsx"
@@ -144,12 +152,19 @@ export function SimulationCanvas() {
   // que `clientToCanvas`. `deltaY < 0` (molette vers le haut/avant) zoome
   // avant, conforme à la convention usuelle des outils de CAO/design.
   //
-  // MB-VIS-CANVAS-052 (D3 du Blueprint) : lorsqu'un composant est focalisé,
-  // la MÊME molette pilote désormais l'échelle visuelle LOCALE de ce
-  // composant (pas de second listener, pas de second geste) — hors focus,
-  // elle conserve strictement son rôle de zoom global 050. Les deux restent
-  // mutuellement exclusifs par construction (un seul `if` avec `return`,
-  // jamais les deux appliqués au même événement).
+  // MB-VIS-CANVAS-052 (D3 du Blueprint, corrigé — CSA NO-GO du relevé
+  // initial) : la MÊME molette pilote l'échelle visuelle LOCALE du
+  // composant focalisé UNIQUEMENT quand le pointeur est physiquement
+  // au-dessus de ce composant (`e.target.closest('.circuit-component
+  // [data-focused]')`, DOM réel — jamais une coordonnée recalculée à la
+  // main). Première version livrée : la seule condition était
+  // `focusedComponentId` (n'importe où sur le Canvas), ce qui empêchait
+  // tout zoom global pendant qu'un composant restait focalisé — contraire
+  // au contrat exact de l'Authority (« molette AU-DESSUS du composant
+  // focalisé » / « la molette hors focus conserve son rôle de zoom
+  // global »). Hors de cette zone précise — y compris avec un focus actif
+  // — la molette conserve strictement son rôle de zoom global 050. Pas de
+  // second listener, pas de second geste : un seul `if` avec `return`.
   //
   // Attaché en listener NATIF (useEffect + addEventListener, jamais
   // `onWheel` JSX) avec `{ passive: false }` : React attache son propre
@@ -168,8 +183,19 @@ export function SimulationCanvas() {
     const handleWheel = (e) => {
       e.preventDefault()
       if (focusedComponentId) {
-        adjustLocalScale(e.deltaY < 0 ? LOCAL_SCALE_STEP : -LOCAL_SCALE_STEP)
-        return
+        // MB-VIS-CANVAS-052 (correctif CSA) : `e.target` est l'élément DOM
+        // réel sous le pointeur au moment de l'événement wheel natif — la
+        // même primitive que `closest('.circuit-component')` déjà utilisée
+        // par handleCanvasPointerDown ci-dessus, jamais une seconde
+        // géométrie/heuristique de survol. Le composant focalisé porte
+        // `data-focused` (CircuitComponent.jsx) uniquement lui-même — un
+        // survol d'un AUTRE composant, focalisé ou non, ne matche pas ce
+        // sélecteur et retombe donc sur le zoom global ci-dessous.
+        const overFocusedComponent = e.target?.closest?.('.circuit-component[data-focused]')
+        if (overFocusedComponent) {
+          adjustLocalScale(e.deltaY < 0 ? LOCAL_SCALE_STEP : -LOCAL_SCALE_STEP)
+          return
+        }
       }
       const rect = node.getBoundingClientRect()
       const screenX = e.clientX - rect.left

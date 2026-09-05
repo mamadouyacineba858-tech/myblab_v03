@@ -26,6 +26,7 @@ import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
 import { CircuitComponent } from "../canvas/CircuitComponent.jsx"
+import { SimulationCanvas } from "../canvas/SimulationCanvas.jsx"
 import { WiresLayer } from "../wires/WiresLayer.jsx"
 import { getComponentDef, COMPONENT_TYPES } from "../config/componentDefinitions.js"
 import {
@@ -476,5 +477,108 @@ describe("MB-VIS-CANVAS-052 — Focus de composant + échelle visuelle locale", 
     expect(othersRerendered).toBe(0)
     // Le composant focalisé, lui, a bien réagi à chaque pas de molette.
     expect(renderCounts.get(target.uid)).toBeGreaterThan(mountCounts.get(target.uid))
+  })
+})
+
+/**
+ * MB-VIS-CANVAS-052 — correctif CSA (relevé du commit 5821199) : la molette
+ * ne doit piloter l'échelle locale que lorsqu'elle survole RÉELLEMENT le
+ * composant focalisé (`e.target` du DOM natif, jamais une heuristique basée
+ * uniquement sur `focusedComponentId`) ; ailleurs sur le Canvas — même avec
+ * un focus actif — elle doit conserver son rôle de zoom global 050. Ces
+ * tests rendent SimulationCanvas.jsx en entier (le VRAI listener `wheel`
+ * natif y est attaché) et dispatchent de VRAIS `WheelEvent` avec un `target`
+ * DOM réel — jamais un appel direct à `adjustLocalScale()`/
+ * `zoomByFactorAtScreenPoint()`.
+ */
+function renderSimulationCanvasHarness() {
+  const canvasNode = { current: null }
+  let api = null
+  function Harness() {
+    const circuit = useCircuit()
+    const interaction = useCircuitInteraction()
+    api = { ...circuit, ...interaction }
+    return <SimulationCanvas />
+  }
+  const wrapper = ({ children }) => (
+    <CircuitProvider canvasRef={canvasNode}>{children}</CircuitProvider>
+  )
+  const utils = render(<Harness />, { wrapper })
+  return { ...utils, getApi: () => api, canvasNode }
+}
+
+function dispatchWheel(target, deltaY) {
+  act(() => {
+    target.dispatchEvent(new WheelEvent("wheel", { deltaY, bubbles: true, cancelable: true }))
+  })
+}
+
+describe("MB-VIS-CANVAS-052 — correctif CSA : molette scopée au composant focalisé (DOM réel)", () => {
+  it("A/B — focus actif + wheel sur le composant focalisé -> localScale change, le viewport global reste inchangé", () => {
+    const { getApi, container } = renderSimulationCanvasHarness()
+    act(() => { getApi().addComponent("LED", 100, 100) })
+    const [led] = getApi().components
+    act(() => { getApi().focusComponent(led.uid) })
+    const zoomBefore = getApi().viewport.zoom
+    const scaleBefore = getApi().localScale
+
+    const focusedNode = container.querySelector('.circuit-component[data-focused]')
+    expect(focusedNode).toBeTruthy()
+
+    dispatchWheel(focusedNode, -100) // deltaY < 0 -> agrandir
+    expect(getApi().localScale).toBeCloseTo(scaleBefore + LOCAL_SCALE_STEP, 10)
+    expect(getApi().viewport.zoom).toBe(zoomBefore)
+  })
+
+  it("C/D — focus actif + wheel AILLEURS sur le Canvas -> localScale inchangé, comportement global (zoom) attendu", () => {
+    const { getApi, canvasNode } = renderSimulationCanvasHarness()
+    act(() => { getApi().addComponent("LED", 100, 100) })
+    const [led] = getApi().components
+    act(() => { getApi().focusComponent(led.uid) })
+    const scaleBefore = getApi().localScale
+    const zoomBefore = getApi().viewport.zoom
+
+    // Survol du FOND du canvas (l'élément racine lui-même, pas un descendant
+    // de .circuit-component) : `e.target.closest('.circuit-component
+    // [data-focused]')` doit être `null`.
+    dispatchWheel(canvasNode.current, -100)
+
+    expect(getApi().localScale).toBe(scaleBefore)
+    expect(getApi().viewport.zoom).toBeGreaterThan(zoomBefore)
+  })
+
+  it("E/F — aucun focus + wheel sur le Canvas -> zoom global 050 inchangé (non-régression)", () => {
+    const { getApi, canvasNode } = renderSimulationCanvasHarness()
+    act(() => { getApi().addComponent("LED", 100, 100) })
+    expect(getApi().focusedComponentId).toBe(null)
+    const zoomBefore = getApi().viewport.zoom
+
+    dispatchWheel(canvasNode.current, -100)
+
+    expect(getApi().viewport.zoom).toBeGreaterThan(zoomBefore)
+    expect(getApi().localScale).toBe(LOCAL_SCALE_DEFAULT)
+  })
+
+  it("wheel sur le composant focalisé lui-même reste scopé même si un AUTRE composant existe sur le Canvas", () => {
+    const { getApi, container } = renderSimulationCanvasHarness()
+    act(() => {
+      getApi().addComponent("LED", 0, 0)
+      getApi().addComponent("RESISTOR", 400, 0)
+    })
+    const [led] = getApi().components
+    act(() => { getApi().focusComponent(led.uid) })
+    const zoomBefore = getApi().viewport.zoom
+
+    const nodes = [...container.querySelectorAll(".circuit-component")]
+    const otherNode = nodes.find((n) => n.getAttribute("data-focused") !== "")
+    expect(otherNode).toBeTruthy()
+
+    // Survol du composant NON focalisé (RESISTOR) pendant que la LED est
+    // focalisée : ne matche pas `[data-focused]` -> zoom global, jamais
+    // l'échelle locale de la LED.
+    const scaleBefore = getApi().localScale
+    dispatchWheel(otherNode, -100)
+    expect(getApi().localScale).toBe(scaleBefore)
+    expect(getApi().viewport.zoom).toBeGreaterThan(zoomBefore)
   })
 })
