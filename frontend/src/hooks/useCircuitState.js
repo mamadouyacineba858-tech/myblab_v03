@@ -245,7 +245,14 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
       return
     }
     const rect = canvasRef.current.getBoundingClientRect()
-    const point = clientToCanvas({ clientX, clientY }, rect, viewport.zoom, viewport.translateX, viewport.translateY)
+    // MB-VIS-CANVAS-051 (D3) : lecture via viewportRef (jamais `viewport`
+    // directement) — cette fonction est appelée à chaque `dragover` HTML5
+    // natif (potentiellement aussi fréquent qu'un pointermove) ; dépendre de
+    // `viewport` lui ferait changer d'identité à chaque pixel de pan, sans
+    // aucun bénéfice puisque seule la valeur AU MOMENT DE L'APPEL compte ici
+    // (aucune closure de longue durée, contrairement au gros effect
+    // pointermove qui, lui, a un besoin réel de stabilité de listener).
+    const point = clientToCanvas({ clientX, clientY }, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
     const x = point.x - GRID_SIZE * 2
     const y = point.y - GRID_SIZE
     const placement = computeBreadboardPlacement(currentBreadboard, session.type, { x, y }, componentsRef.current)
@@ -257,7 +264,7 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
       .filter((h) => h.column !== null && h.row !== null)
       .map((h) => ({ column: h.column, row: h.row }))
     setBreadboardInsertPreview({ holes, valid: placement.valid })
-  }, [canvasRef, viewport])
+  }, [canvasRef])
 
   // MB-BREADBOARD-008 (I-P10, même garde que dragPreview/breadboardFeedback
   // existants) : nettoyage systématique — appelé au drop réel
@@ -476,6 +483,20 @@ const adapted = toEngineInput(coreDoc);
   useEffect(() => {
     viewportRef.current = viewport
   }, [viewport])
+
+  // MB-VIS-CANVAS-051 : référence synchrone équivalente pour `wirePaths`,
+  // consommée UNIQUEMENT par endMarquee ci-dessous. `wirePaths` change à
+  // chaque frame d'un drag de composant/waypoint (D5 du Blueprint : la
+  // géométrie des fils suit volontairement le preview) — sans cette ref,
+  // endMarquee (qui n'en a besoin qu'au relâchement du marquee, jamais en
+  // continu) devrait dépendre de `wirePaths` et changerait donc d'identité à
+  // chaque pixel d'un drag, désabonnant/réabonnant inutilement les listeners
+  // `window` du gros effect pointermove/up/cancel/blur (même raisonnement que
+  // viewportRef pour le pan).
+  const wirePathsRef = useRef(wirePaths)
+  useEffect(() => {
+    wirePathsRef.current = wirePaths
+  }, [wirePaths])
 
   // =========================================================================
   // FIN MB-004.5
@@ -850,7 +871,8 @@ const adapted = toEngineInput(coreDoc);
     event.stopPropagation()
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
+    // MB-VIS-CANVAS-051 (D3) : viewportRef — lu une seule fois au pointerdown.
+    const pointer = clientToCanvas(event, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
     const baseWaypoints = wire.waypoints.map((wp) => ({ ...wp }))
 
     waypointDragSessionRef.current = {
@@ -863,7 +885,7 @@ const adapted = toEngineInput(coreDoc);
     setWaypointPreview({ wireId, waypoints: baseWaypoints })
 
     event.preventDefault()
-  }, [canvasRef, pendingPin, viewport])
+  }, [canvasRef, pendingPin])
   // =========================================================================
   // FIN MB-VIS-005 (Phase E — déplacement de waypoint)
   // =========================================================================
@@ -1165,7 +1187,11 @@ if (import.meta.env.DEV) {
     const idsToDrag = selectedIds.has(uid) ? selectedIds : new Set([uid])
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
+    // MB-VIS-CANVAS-051 (D3) : viewportRef (jamais `viewport`) — startDrag ne
+    // lit le viewport qu'à l'instant du pointerdown (jamais en continu) ;
+    // dépendre de `viewport` ferait changer l'identité de startDrag à chaque
+    // pixel de pan, sans aucun bénéfice fonctionnel.
+    const pointer = clientToCanvas(event, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
 
     const componentMap = new Map(components.map(c => [c.uid, c]))
 
@@ -1195,7 +1221,7 @@ if (import.meta.env.DEV) {
     }
 
     event.preventDefault()
-  }, [canvasRef, getSelectedComponentIds, components, pendingPin, viewport])
+  }, [canvasRef, getSelectedComponentIds, components, pendingPin])
 
   // =========================================================================
   // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : drag du breadboard.
@@ -1222,7 +1248,8 @@ if (import.meta.env.DEV) {
     event.stopPropagation()
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
+    // MB-VIS-CANVAS-051 (D3) : viewportRef, même raisonnement que startDrag.
+    const pointer = clientToCanvas(event, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
 
     const solidaryIds = resolveSolidaryComponentIds(currentBreadboard, componentsRef.current)
     const componentsStart = new Map()
@@ -1242,7 +1269,7 @@ if (import.meta.env.DEV) {
     }
 
     event.preventDefault()
-  }, [canvasRef, pendingPin, viewport])
+  }, [canvasRef, pendingPin])
   // =========================================================================
   // FIN MB-BREADBOARD-006 (startBreadboardDrag)
   // =========================================================================
@@ -1260,7 +1287,8 @@ if (import.meta.env.DEV) {
     if (pendingPin !== null) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
+    // MB-VIS-CANVAS-051 (D3) : viewportRef — lu une seule fois au pointerdown.
+    const pointer = clientToCanvas(event, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
 
     marqueeSessionRef.current = {
       start: { x: pointer.x, y: pointer.y },
@@ -1272,15 +1300,25 @@ if (import.meta.env.DEV) {
       start: { x: pointer.x, y: pointer.y },
       current: { x: pointer.x, y: pointer.y }
     })
-  }, [canvasRef, pendingPin, viewport])
+  }, [canvasRef, pendingPin])
 
+  // MB-VIS-CANVAS-051 (D3, correction du bug de désabonnement identifié en
+  // C4/D2 du Blueprint) : `viewport` retiré des dépendances — updateMarquee
+  // est appelé à chaque pointermove d'un marquee actif, jamais pendant un pan
+  // (garde I-M1, mutuellement exclusifs), mais figurait comme dépendance du
+  // gros effect pointermove/up/cancel/blur ci-dessous. Avant ce correctif,
+  // `viewport` changeant à chaque pixel de PAN forçait cet effect à
+  // désabonner/réabonner ses 4 listeners `window` à chaque pixel de pan (même
+  // si aucun marquee n'était en cours) — coût mesuré par ce ticket (voir
+  // Delivery Report §Mesure). viewportRef élimine ce coût sans stale closure,
+  // même patron que handlePointerMove plus bas dans ce fichier.
   const updateMarquee = useCallback((event) => {
     const session = marqueeSessionRef.current
     if (!session) return
     if (!canvasRef?.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
+    const pointer = clientToCanvas(event, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
 
     session.current = { x: pointer.x, y: pointer.y }
 
@@ -1288,7 +1326,7 @@ if (import.meta.env.DEV) {
       start: session.start,
       current: { x: pointer.x, y: pointer.y }
     })
-  }, [canvasRef, viewport])
+  }, [canvasRef])
 
   const endMarquee = useCallback(() => {
     const session = marqueeSessionRef.current
@@ -1326,8 +1364,18 @@ if (import.meta.env.DEV) {
       }
     })
 
+    // MB-VIS-CANVAS-051 (D3, correction du bug de désabonnement identifié en
+    // C4/C5/D2 du Blueprint) : wirePathsRef (jamais `wirePaths` directement)
+    // — wirePaths change à chaque frame d'un drag de composant/waypoint (D5 :
+    // la géométrie des fils suit volontairement le preview), mais endMarquee
+    // n'en a besoin qu'AU RELÂCHEMENT du marquee. `wirePaths` figurait comme
+    // dépendance directe d'endMarquee, elle-même dépendance du gros effect
+    // pointermove/up/cancel/blur ci-dessous : cela désabonnait/réabonnait les
+    // 4 listeners `window` à CHAQUE PIXEL d'un drag de composant (même sans
+    // aucun marquee en cours) — coût mesuré par ce ticket (voir Delivery
+    // Report §Mesure).
     const wireIds = new Set()
-    wirePaths.forEach((path) => {
+    wirePathsRef.current.forEach((path) => {
       if (!path || !path.d) return
       const points = extractPointsFromPathData(path.d)
       if (points.length < 2) return
@@ -1387,7 +1435,7 @@ if (import.meta.env.DEV) {
     if (hadSelection) {
       justFinishedMarqueeWithSelectionRef.current = true
     }
-  }, [components, wirePaths, selectMarquee, clearSelection])
+  }, [components, selectMarquee, clearSelection])
 
   const cancelMarquee = useCallback(() => {
     if (marqueeSessionRef.current !== null) {
@@ -1422,14 +1470,16 @@ if (import.meta.env.DEV) {
     if (waypointDragSessionRef.current !== null) return
     if (pendingPin !== null) return
 
+    // MB-VIS-CANVAS-051 (D3) : viewportRef — lu une seule fois au pointerdown
+    // (jamais en continu), même raisonnement que startDrag/startMarquee.
     panSessionRef.current = {
       pointerStart: { x: event.clientX, y: event.clientY },
-      translateStart: { x: viewport.translateX, y: viewport.translateY },
+      translateStart: { x: viewportRef.current.translateX, y: viewportRef.current.translateY },
     }
 
     event.preventDefault?.()
     event.stopPropagation?.()
-  }, [pendingPin, viewport])
+  }, [pendingPin])
 
   // =========================================================================
   // MB-VIS-CANVAS-050 : zoom orienté curseur (D4). `screenX`/`screenY` sont

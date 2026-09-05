@@ -17,6 +17,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
+import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 
 const wrapper = ({ children }) => (
     <CircuitProvider>{children}</CircuitProvider>
@@ -27,7 +28,7 @@ describe('MB-004.6 — Intégration DeleteCommand (réel)', () => {
     // TEST 1 — Suppression simple avec Undo/Redo
     // ============================================
     it('TEST 1: Delete → Undo → Redo avec composant + wire connecté', async () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         // 1. Créer deux composants
         act(() => {
@@ -87,7 +88,7 @@ describe('MB-004.6 — Intégration DeleteCommand (réel)', () => {
     // Vérifie qu'une suppression groupée crée UNE seule commande
     // ============================================
     it('TEST 2: Suppression groupée — une seule commande', async () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         // 1. Créer A, B, C
         act(() => {
@@ -146,7 +147,7 @@ describe('MB-004.6 — Intégration DeleteCommand (réel)', () => {
     // TEST 3 — Wire seul
     // ============================================
     it('TEST 3: Suppression d\'un wire seul', async () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)
@@ -198,7 +199,7 @@ describe('MB-004.6 — Intégration DeleteCommand (réel)', () => {
     // Vérifie qu'un wire sélectionné ET connecté n'est pas capturé deux fois
     // ============================================
     it('TEST 4: Wire déjà sélectionné + connecté = pas de duplication', async () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)
@@ -268,7 +269,7 @@ describe('MB-004.6 — Intégration DeleteCommand (réel)', () => {
             </CircuitProvider>
         )
 
-        const { result } = renderHook(() => useCircuit(), {
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), {
             wrapper: wrapperWithCanvas,
         })
 

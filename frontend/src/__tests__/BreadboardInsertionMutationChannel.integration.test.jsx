@@ -32,6 +32,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
+import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 import { getLedState } from '../simulator/engine.js'
 
 function renderWithCanvas() {
@@ -41,7 +42,7 @@ function renderWithCanvas() {
       <div ref={(node) => { canvasRef.current = node }}>{children}</div>
     </CircuitProvider>
   )
-  return renderHook(() => useCircuit(), { wrapper })
+  return renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 }
 
 // Même patron que MoveComponentMutationChannel.integration.test.jsx : le

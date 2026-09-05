@@ -21,6 +21,7 @@ import { ResistorPart } from '../ResistorPart.jsx'
 import { getComponentDef } from '../../../config/componentDefinitions.js'
 import { CircuitProvider } from '../../../context/CircuitContext.jsx'
 import { useCircuit } from '../../../context/useCircuit.js'
+import { useCircuitInteraction } from '../../../context/useCircuitInteraction.js'
 import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
 
 const ASSET_RE = /^\/assets\/components\/resistor\/resistor\.default\.(1x|3x)\.(webp|png)( \dx)?$/
@@ -94,8 +95,13 @@ describe('001C — pipeline réel : pins et interactions inchangés', () => {
   const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
   function Harness({ onReady }) {
     const c = useCircuit()
-    onReady(c)
-    return <>{c.components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
+    // MB-VIS-CANVAS-051 : `components` (componentsForRender) est désormais
+    // exposé par useCircuitInteraction() (state haute fréquence) — fusionné
+    // dans l'objet transmis à onReady() pour que les assertions existantes
+    // (api.components...) restent inchangées.
+    const { components } = useCircuitInteraction()
+    onReady({ ...c, components })
+    return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
   it('7 — CircuitComponent produit les 2 pins RESISTOR à A(0,14) / B(84,14)', () => {

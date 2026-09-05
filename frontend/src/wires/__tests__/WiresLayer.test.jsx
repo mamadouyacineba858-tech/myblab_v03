@@ -18,7 +18,7 @@ import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/react'
 import { WiresLayer } from '../WiresLayer.jsx'
-import { CircuitContext } from '../../context/CircuitContext.js'
+import { CircuitContext, CircuitInteractionContext } from '../../context/CircuitContext.js'
 import { Signal } from '../../simulator/signals.js'
 
 const WIRE = { id: 'wire-1', fromUid: 'A', fromPin: 'anode', toUid: 'B', toPin: 'A' }
@@ -34,6 +34,7 @@ function renderWithContext({
   canvasRef,
   updateWireWaypoints,
   startWaypointDrag,
+  viewport,
 } = {}) {
   const value = {
     isSelected,
@@ -45,9 +46,16 @@ function renderWithContext({
     updateWireWaypoints,
     startWaypointDrag,
   }
+  // MB-VIS-CANVAS-051 : WiresLayer lit désormais `viewport` via un second
+  // contexte dédié (useCircuitInteraction(), state haute fréquence) — voir
+  // context/CircuitContext.jsx. `viewport` reste optionnel ici (undefined),
+  // exactement comme avant ce ticket (aucun test de ce fichier ne fournissait
+  // déjà `viewport` dans le contexte unique).
   const utils = render(
     <CircuitContext.Provider value={value}>
-      <WiresLayer wirePaths={wirePaths} />
+      <CircuitInteractionContext.Provider value={{ viewport }}>
+        <WiresLayer wirePaths={wirePaths} />
+      </CircuitInteractionContext.Provider>
     </CircuitContext.Provider>
   )
   const visiblePath = utils.container.querySelector('[aria-label="wire-1"]')

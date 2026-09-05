@@ -16,7 +16,25 @@ import { getComponentPresentation } from "../visualization/defaultRegistrations.
 import { getPinPresentationPosition } from "../utils/pinPresentationGeometry.js"
 import "./CircuitComponent.css"
 
-export function CircuitComponent({ component }) {
+// MB-VIS-CANVAS-051 (Blueprint C3/D4) : React.memo — SimulationCanvas.jsx
+// (qui consomme le state haute fréquence via useCircuitInteraction()) re-rend
+// à chaque frame de drag/pan/marquee et reconstruit `componentsForRender`
+// (useCircuitState.js) par un nouveau `.map()`, mais préserve la RÉFÉRENCE de
+// chaque objet composant non concerné par le preview courant (retourné tel
+// quel — `c`, jamais `{...c}` — quand `dragPreview.get(c.uid)` est absent).
+// Combiné à cette mémoïsation (comparaison par défaut, shallow, sur la seule
+// prop `component`), les instances de CircuitComponent dont le composant
+// Document réel n'a pas bougé sautent leur re-rendu, même si leur parent se
+// re-rend — condition nécessaire pour que le fan-out sur un circuit à 100+
+// composants ne dépende plus du nombre total de composants mais du nombre de
+// composants réellement affectés par l'interaction en cours. Ce composant ne
+// lit lui-même QUE le state stable (useCircuit(), jamais
+// useCircuitInteraction()) : voir CircuitContext.jsx pour la répartition —
+// c'est cette combinaison (contexte stable + mémoïsation) qui élimine le
+// re-rendu, la mémoïsation seule ne suffisant pas face à un Context consommé
+// directement (React re-rend tout consommateur d'un Context dont la valeur
+// change, quel que soit React.memo).
+function CircuitComponentImpl({ component }) {
   const {
     startDrag,
     onPinClick,
@@ -211,3 +229,5 @@ export function CircuitComponent({ component }) {
     </div>
   )
 }
+
+export const CircuitComponent = React.memo(CircuitComponentImpl)

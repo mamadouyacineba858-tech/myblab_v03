@@ -26,11 +26,12 @@ import { describe, it, expect } from "vitest"
 import { renderHook, act } from "@testing-library/react"
 import { CircuitProvider } from "../../context/CircuitContext.jsx"
 import { useCircuit } from "../../context/useCircuit.js"
+import { useCircuitInteraction } from "../../context/useCircuitInteraction.js"
 import { COMPONENT_TYPES } from "../../config/componentDefinitions.js"
 
 function renderCircuit() {
   const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
-  return renderHook(() => useCircuit(), { wrapper })
+  return renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 }
 
 function withSwappedCapability(type, { interaction, initialState }, callback) {

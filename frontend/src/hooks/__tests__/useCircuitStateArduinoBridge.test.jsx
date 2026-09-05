@@ -28,6 +28,7 @@ import { describe, it, expect } from "vitest"
 import { renderHook, act } from "@testing-library/react"
 import { CircuitProvider } from "../../context/CircuitContext.jsx"
 import { useCircuit } from "../../context/useCircuit.js"
+import { useCircuitInteraction } from "../../context/useCircuitInteraction.js"
 import { getLedState } from "../../simulator/engine.js"
 import { Signal } from "../../simulator/signals.js"
 
@@ -36,7 +37,7 @@ function buildArduinoLedCircuit() {
   const wrapper = ({ children }) => (
     <CircuitProvider orchestrators={orchestrators}>{children}</CircuitProvider>
   )
-  const { result } = renderHook(() => useCircuit(), { wrapper })
+  const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
   act(() => {
     result.current.addComponent("ARDUINO", 0, 0)
@@ -80,7 +81,7 @@ describe("MB-ARDUINO-BRIDGE-001 — TEST-01 : circuit sans Arduino (GATE 0)", ()
     const wrapper = ({ children }) => (
       <CircuitProvider orchestrators={orchestrators}>{children}</CircuitProvider>
     )
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addComponent("POWER", 0, 0)

@@ -99,11 +99,12 @@ vi.mock("../../utils/circuitModel.js", async (importOriginal) => {
 
 const { CircuitProvider } = await import("../../context/CircuitContext.jsx")
 const { useCircuit } = await import("../../context/useCircuit.js")
+const { useCircuitInteraction } = await import("../../context/useCircuitInteraction.js")
 const { COMPONENT_TYPES } = await import("../../config/componentDefinitions.js")
 
 function renderCircuit() {
   const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
-  return renderHook(() => useCircuit(), { wrapper })
+  return renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 }
 
 /** Échange temporairement `interaction` d'un type RÉEL déjà canoniquement

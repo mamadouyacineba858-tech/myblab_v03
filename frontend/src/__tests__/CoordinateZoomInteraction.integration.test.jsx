@@ -28,6 +28,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
+import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 import { GRID_SIZE } from '../utils/grid.js'
 import { BREADBOARD_PITCH } from '../utils/breadboardGeometry.js'
 
@@ -38,7 +39,7 @@ function renderWithCanvas() {
       <div ref={(node) => { canvasRef.current = node }}>{children}</div>
     </CircuitProvider>
   )
-  return renderHook(() => useCircuit(), { wrapper })
+  return renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 }
 
 let _result = null

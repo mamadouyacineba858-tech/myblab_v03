@@ -22,6 +22,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
+import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 import { BREADBOARD_PITCH } from '../utils/breadboardGeometry.js'
 
 const wrapper = ({ children }) => (
@@ -30,7 +31,7 @@ const wrapper = ({ children }) => (
 
 describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => {
     it('TEST 1 : addBreadboard (canal CommandBus) pose document.breadboard et le state React le reflète (régression corrigée)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         expect(result.current.breadboard).toBe(null)
 
@@ -47,7 +48,7 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
     })
 
     it('TEST 2 (LOCK-01) : un second addBreadboard() sur un Document qui en possède déjà un est refusé (breadboard inchangé)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addBreadboard(120, 180)
@@ -63,7 +64,7 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
     })
 
     it('TEST 3 : addBreadboard est historisé — Undo retire le breadboard posé, Redo le restaure', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addBreadboard(120, 180)
@@ -86,7 +87,7 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
     })
 
     it('TEST 4 (INV round-trip) : addBreadboard puis addComponent (round-trip Core complet) ne perd pas le breadboard déjà posé', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addBreadboard(120, 180)
@@ -106,7 +107,7 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
     })
 
     it("TEST 5 : deux addBreadboard() consécutifs dans le même batch React n'entraînent qu'une seule pose (le second est refusé par LOCK-01, pas d'écrasement silencieux)", () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addBreadboard(120, 180)
@@ -125,7 +126,7 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
     // ticket la rend explicitement in-scope).
     // =========================================================================
     it('TEST 6 (AC-23) : exportCircuit() inclut document.breadboard', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addBreadboard(120, 180)
@@ -139,13 +140,13 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
     })
 
     it('TEST 7 (AC-23) : exportCircuit() sans breadboard posé exporte breadboard: null (non-régression)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         const exported = result.current.exportCircuit()
         expect(exported.breadboard).toBe(null)
     })
 
     it('TEST 8 (AC-23, UI-15) : importCircuit() restaure document.breadboard (round-trip export -> import)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addBreadboard(120, 180)
@@ -155,7 +156,7 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
         expect(exported.breadboard).not.toBe(null)
 
         // Nouvelle session (hook réinitialisé) : plus aucun breadboard.
-        const { result: fresh } = renderHook(() => useCircuit(), { wrapper })
+        const { result: fresh } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         expect(fresh.current.breadboard).toBe(null)
 
         act(() => {
@@ -168,7 +169,7 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
     })
 
     it("TEST 9 (AC-23) : importCircuit() d'un document sans breadboard réinitialise à null (pas de résidu d'une session précédente)", () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addBreadboard(120, 180)

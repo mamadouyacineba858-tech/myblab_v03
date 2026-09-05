@@ -30,6 +30,7 @@ import { getComponentDef } from '../../../config/componentDefinitions.js'
 import { getComponentPresentation } from '../../../visualization/defaultRegistrations.js'
 import { CircuitProvider } from '../../../context/CircuitContext.jsx'
 import { useCircuit } from '../../../context/useCircuit.js'
+import { useCircuitInteraction } from '../../../context/useCircuitInteraction.js'
 import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -125,8 +126,13 @@ describe('MB-VIS-COMP-031 — pipeline réel : pins logiques et interactions inc
   const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
   function Harness({ onReady }) {
     const c = useCircuit()
-    onReady(c)
-    return <>{c.components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
+    // MB-VIS-CANVAS-051 : `components` (componentsForRender) est désormais
+    // exposé par useCircuitInteraction() (state haute fréquence) — fusionné
+    // dans l'objet transmis à onReady() pour que les assertions existantes
+    // (api.components...) restent inchangées.
+    const { components } = useCircuitInteraction()
+    onReady({ ...c, components })
+    return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
   it('13 — CircuitComponent produit exactement les 2 pins logiques BUZZER plus(10,50) / minus(60,50) ; asset raster dans le wrapper', () => {

@@ -9,6 +9,7 @@
 import React, { useCallback, useMemo, useState } from "react"
 import "./WiresLayer.css"
 import { useCircuit } from "../context/useCircuit.js"
+import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { getWireStrokeColor, getWireStateClassName } from "./wirePath.js"
 import { getWireLogicalState, Signal } from "./wireState.js"
 import { clientToCanvas, extractPointsFromPathData } from "../utils/geometry.js"
@@ -131,8 +132,11 @@ export function WiresLayer({ wirePaths = [] }) {
     canvasRef,
     updateWireWaypoints,
     startWaypointDrag,
-    viewport,
   } = useCircuit()
+  // MB-VIS-CANVAS-051 : `viewport` seul relève du state haute fréquence —
+  // isolé dans son propre contexte pour ne pas forcer WiresLayer à dépendre
+  // du même Context que CircuitComponent.jsx (qui n'en a, lui, jamais besoin).
+  const { viewport } = useCircuitInteraction()
 
   // Jointure géométrie (wirePaths: {id, d}, géométrie pure — cf. circuitSelectors.js)
   // ↔ topologie (wires: {id, fromUid, fromPin, toUid, toPin, waypoints}), par id.

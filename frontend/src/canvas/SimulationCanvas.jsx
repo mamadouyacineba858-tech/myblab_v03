@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react"
 import { useCircuit } from "../context/useCircuit.js"
+import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { GridBackground } from "./GridBackground.jsx"
 import { Breadboard } from "./Breadboard.jsx"
 import { BreadboardWireEndpoints } from "./BreadboardWireEndpoints.jsx"
@@ -14,11 +15,10 @@ import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
 
 export function SimulationCanvas() {
   const {
-    components, breadboard, breadboardFeedback, breadboardInsertPreview, wirePaths, isWiringActive, cancelWiring, addComponent,
-    canvasRef, viewport, showGrid,
+    isWiringActive, cancelWiring, addComponent,
+    canvasRef, showGrid,
     activeItem, clearSelection,
     startMarquee,
-    marqueeRect,
     // MB-BREADBOARD-008 (O2/O5/O6) : aperçu de placement en direct pendant
     // un drag HTML5 natif depuis la Sidebar.
     updateSidebarComponentDragPosition,
@@ -27,6 +27,16 @@ export function SimulationCanvas() {
     startPan,
     zoomByFactorAtScreenPoint,
   } = useCircuit()
+
+  // MB-VIS-CANVAS-051 : state haute fréquence — SimulationCanvas est la
+  // racine du rendu Canvas, il doit re-rendre à chaque frame de drag/pan/
+  // marquee (aucune régression attendue ici). L'isolation vient du fait que
+  // ses enfants (CircuitComponent, via React.memo + stableValue inchangé)
+  // n'ont, eux, plus besoin de re-rendre pour les composants non concernés.
+  const {
+    components, breadboard, breadboardFeedback, breadboardInsertPreview,
+    wirePaths, viewport, marqueeRect,
+  } = useCircuitInteraction()
 
   // Référence pour savoir si le marquee est actif
   const isMarqueeActiveRef = useRef(false)

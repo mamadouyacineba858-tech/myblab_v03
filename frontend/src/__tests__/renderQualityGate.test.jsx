@@ -31,6 +31,7 @@ import { DEFAULT_REGISTRATIONS, getComponentByType, getComponentPresentation } f
 import { RENDER_BUDGET } from "../visualization/visualContract.js"
 import { CircuitProvider } from "../context/CircuitContext.jsx"
 import { useCircuit } from "../context/useCircuit.js"
+import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { CircuitComponent } from "../canvas/CircuitComponent.jsx"
 import { getPinPresentationPosition } from "../utils/pinPresentationGeometry.js"
 
@@ -75,8 +76,13 @@ describe("MB-VIS-RENDER-009 — TEST T2/T3 : cohérence dimensions/pins au nivea
 
   function Harness({ type, onReady }) {
     const circuit = useCircuit()
-    onReady(circuit)
-    return <>{circuit.components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
+    // MB-VIS-CANVAS-051 : `components` (componentsForRender) est désormais
+    // exposé par useCircuitInteraction() (state haute fréquence) — fusionné
+    // dans l'objet transmis à onReady() pour que les assertions existantes
+    // (circuit.components...) restent inchangées.
+    const { components } = useCircuitInteraction()
+    onReady({ ...circuit, components })
+    return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
   for (const type of ALL_TYPES) {

@@ -41,6 +41,7 @@ import { getPinPosition } from '../../../utils/geometry.js'
 import { getCanonicalEntry } from '../../../simulator/canonicalRegistry.js'
 import { CircuitProvider } from '../../../context/CircuitContext.jsx'
 import { useCircuit } from '../../../context/useCircuit.js'
+import { useCircuitInteraction } from '../../../context/useCircuitInteraction.js'
 import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -182,8 +183,13 @@ describe('MB-VIS-COMP-035 — pipeline réel : 3 pins aux positions électriques
   const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
   function Harness({ onReady }) {
     const c = useCircuit()
-    onReady(c)
-    return <>{c.components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
+    // MB-VIS-CANVAS-051 : `components` (componentsForRender) est désormais
+    // exposé par useCircuitInteraction() (state haute fréquence) — fusionné
+    // dans l'objet transmis à onReady() pour que les assertions existantes
+    // (api.components...) restent inchangées.
+    const { components } = useCircuitInteraction()
+    onReady({ ...c, components })
+    return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
   it('CircuitComponent rend 3 pins aux positions (90,20)/(90,35)/(90,50) relatives au composant ; asset raster, markerless', () => {

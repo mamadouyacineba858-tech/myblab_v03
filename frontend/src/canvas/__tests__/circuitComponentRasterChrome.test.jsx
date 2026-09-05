@@ -26,6 +26,7 @@ import { dirname, resolve } from "node:path"
 
 import { CircuitProvider } from "../../context/CircuitContext.jsx"
 import { useCircuit } from "../../context/useCircuit.js"
+import { useCircuitInteraction } from "../../context/useCircuitInteraction.js"
 import { CircuitComponent } from "../CircuitComponent.jsx"
 import { getComponentPresentation } from "../../visualization/defaultRegistrations.js"
 
@@ -44,8 +45,13 @@ const jsx = readFileSync(JSX_PATH, "utf-8")
 const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
 function Harness({ onReady }) {
   const c = useCircuit()
-  onReady(c)
-  return <>{c.components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
+  // MB-VIS-CANVAS-051 : `components` (componentsForRender) est désormais
+  // exposé par useCircuitInteraction() (state haute fréquence) — fusionné
+  // dans l'objet transmis à onReady() pour que les assertions existantes
+  // (api.components...) restent inchangées.
+  const { components } = useCircuitInteraction()
+  onReady({ ...c, components })
+  return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
 }
 function mountType(type) {
   let api

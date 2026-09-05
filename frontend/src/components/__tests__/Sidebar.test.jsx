@@ -21,6 +21,7 @@ import { Sidebar } from '../Sidebar.jsx'
 import { PALETTE_ITEMS } from '../../config/componentDefinitions.js'
 import { CircuitProvider } from '../../context/CircuitContext.jsx'
 import { useCircuit } from '../../context/useCircuit.js'
+import { useCircuitInteraction } from '../../context/useCircuitInteraction.js'
 
 const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
 
@@ -28,7 +29,11 @@ const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
 function renderSidebar() {
   let api
   function Probe() {
-    api = useCircuit()
+    // MB-VIS-CANVAS-051 : `components` (componentsForRender) est désormais
+    // exposé par useCircuitInteraction() (state haute fréquence) — fusionné
+    // dans l'objet exposé par getApi() pour que les assertions existantes
+    // (getApi().components...) restent inchangées.
+    api = { ...useCircuit(), ...useCircuitInteraction() }
     return <Sidebar />
   }
   const utils = render(<Probe />, { wrapper })

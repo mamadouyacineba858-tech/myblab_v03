@@ -20,6 +20,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
+import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 import { clientToCanvas } from '../utils/geometry.js'
 
 function renderWithCanvasSize(width = 800, height = 600) {
@@ -40,7 +41,7 @@ function renderWithCanvasSize(width = 800, height = 600) {
       </div>
     </CircuitProvider>
   )
-  return renderHook(() => useCircuit(), { wrapper })
+  return renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 }
 
 let _result = null

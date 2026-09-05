@@ -21,6 +21,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
+import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 
 const wrapper = ({ children }) => (
     <CircuitProvider>{children}</CircuitProvider>
@@ -28,7 +29,7 @@ const wrapper = ({ children }) => (
 
 describe('MB-CF3-001 (GATE 4) — canal de mutation cible : addComponent', () => {
     it('TEST 1 : addComponent (canal CommandBus) crée un composant valide, au bon type et à la bonne position', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 140, 220)
@@ -44,7 +45,7 @@ describe('MB-CF3-001 (GATE 4) — canal de mutation cible : addComponent', () =>
     })
 
     it("TEST 2 : deux addComponent() consécutifs dans le même batch React ne s'écrasent pas mutuellement (régression corrigée)", () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)
@@ -61,7 +62,7 @@ describe('MB-CF3-001 (GATE 4) — canal de mutation cible : addComponent', () =>
     })
 
     it('TEST 3 : addComponent est historisé — Undo retire le composant ajouté, Redo le restaure', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('RESISTOR', 160, 160)
@@ -85,7 +86,7 @@ describe('MB-CF3-001 (GATE 4) — canal de mutation cible : addComponent', () =>
     })
 
     it('TEST 4 : addComponent partage la même pile Undo/Redo que le canal legacy (DeleteCommand)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         // 1. Ajout via le nouveau canal (CommandBus)
         act(() => {
@@ -119,7 +120,7 @@ describe('MB-CF3-001 (GATE 4) — canal de mutation cible : addComponent', () =>
     })
 
     it("TEST 5 (I-H5) : une nouvelle action après Undo invalide le redoStack", () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)
@@ -138,7 +139,7 @@ describe('MB-CF3-001 (GATE 4) — canal de mutation cible : addComponent', () =>
     })
 
     it('TEST 6 (INV-CF3-006) : conservation des données par round-trip — Undo restaure exactement les données persistantes préexistantes', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         // Document initial avec des composants et un wire, construits par le
         // canal existant (createComponent/addWire), pour vérifier que le
@@ -185,7 +186,7 @@ describe('MB-CF3-001 (GATE 4) — canal de mutation cible : addComponent', () =>
     })
 
     it('TEST 7 : un type de composant inconnu ne dispatche rien (comportement préservé, aucune commande fantôme dans l\'historique)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('NOT_A_REAL_TYPE', 100, 100)

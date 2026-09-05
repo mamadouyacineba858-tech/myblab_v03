@@ -41,6 +41,7 @@ import { getComponentDef } from '../../../config/componentDefinitions.js'
 import { getPinPresentationPosition } from '../../../utils/pinPresentationGeometry.js'
 import { CircuitProvider } from '../../../context/CircuitContext.jsx'
 import { useCircuit } from '../../../context/useCircuit.js'
+import { useCircuitInteraction } from '../../../context/useCircuitInteraction.js'
 import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
 
 const LOT = [
@@ -83,10 +84,15 @@ const circuitWrapper = ({ children }) => <CircuitProvider>{children}</CircuitPro
  */
 function CanvasHarness({ onReady }) {
   const circuit = useCircuit()
-  onReady(circuit)
+  // MB-VIS-CANVAS-051 : `components` (componentsForRender) est désormais
+  // exposé par useCircuitInteraction() (state haute fréquence) — fusionné
+  // dans l'objet transmis à onReady() pour que les assertions existantes
+  // (circuitApi.components...) restent inchangées.
+  const { components } = useCircuitInteraction()
+  onReady({ ...circuit, components })
   return (
     <>
-      {circuit.components.map((comp) => (
+      {components.map((comp) => (
         <CircuitComponent key={comp.uid} component={comp} />
       ))}
     </>

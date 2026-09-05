@@ -20,16 +20,22 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { render, fireEvent, act, cleanup } from '@testing-library/react'
 import { CircuitProvider } from '../../context/CircuitContext.jsx'
 import { useCircuit } from '../../context/useCircuit.js'
+import { useCircuitInteraction } from '../../context/useCircuitInteraction.js'
 import { CircuitComponent } from '../CircuitComponent.jsx'
 
 const circuitWrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
 
 function CanvasHarness({ onReady }) {
   const circuit = useCircuit()
-  onReady(circuit)
+  // MB-VIS-CANVAS-051 : `components` (componentsForRender) est désormais
+  // exposé par useCircuitInteraction() (state haute fréquence) — fusionné
+  // dans l'objet transmis à onReady() pour que les assertions existantes
+  // (circuitApi.components...) restent inchangées.
+  const { components } = useCircuitInteraction()
+  onReady({ ...circuit, components })
   return (
     <>
-      {circuit.components.map((comp) => (
+      {components.map((comp) => (
         <CircuitComponent key={comp.uid} component={comp} />
       ))}
     </>

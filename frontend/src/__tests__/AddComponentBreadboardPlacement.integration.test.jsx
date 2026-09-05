@@ -24,6 +24,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
+import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 
 const wrapper = ({ children }) => (
   <CircuitProvider>{children}</CircuitProvider>
@@ -31,7 +32,7 @@ const wrapper = ({ children }) => (
 
 describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dépôt initial (ADD_COMPONENT)', () => {
   it('TEST 1 : sans breadboard, ADD_COMPONENT conserve le snap global existant (non-régression)', () => {
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addComponent('RESISTOR', 145, 103)
@@ -44,7 +45,7 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
   })
 
   it('TEST 2 : avec breadboard + composant 2-pins compatible, ADD_COMPONENT utilise la position retournée par computeBreadboardPlacement()', () => {
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addBreadboard(120, 180)
@@ -64,7 +65,7 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
   })
 
   it("TEST 3 (point de régression principal) : la position issue de computeBreadboardPlacement() n'est PAS repassée dans snapToGrid()", () => {
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addBreadboard(120, 180)
@@ -91,7 +92,7 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
   // "compatible" et engage la MÊME logique de placement breadboard que
   // RESISTOR ci-dessus (TEST 2/3).
   it('TEST 4 (MB-BREADBOARD-008, remplace l\'ancien "type incompatible") : avec breadboard + composant >2 pins (ARDUINO), ADD_COMPONENT engage désormais computeBreadboardPlacement() au lieu du repli snap-to-grid', () => {
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addBreadboard(120, 180)
@@ -119,7 +120,7 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
   })
 
   it("TEST 5 : un composant déjà présent occupant le trou cible est bien pris en compte comme collision (STR-007), sans que le nouveau composant ne se compte lui-même", () => {
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addBreadboard(120, 180)
@@ -144,7 +145,7 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
   })
 
   it('TEST 6 : ADD_COMPONENT avec placement breadboard reste historisé via CommandBus -> AddComponentHandler -> HistoryService', () => {
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addBreadboard(120, 180)
@@ -160,7 +161,7 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
   })
 
   it('TEST 7 : Undo/Redo d\'un ADD_COMPONENT placé sur breadboard fonctionne toujours, et restaure exactement la même position', () => {
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addBreadboard(120, 180)
@@ -205,7 +206,7 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
   // exact de BREADBOARD_PITCH=12, elle préserve colonne/rangée à
   // l'identique (vérifié par exécution réelle, pas supposé).
   it('TEST 8 (MISSION INTÉGRATION LED) : avec breadboard + LED (pins écart 80px, non multiple de BREADBOARD_PITCH), ADD_COMPONENT utilise la position retournée par computeBreadboardPlacement() — non-régression de la couverture existante RESISTOR/ARDUINO', () => {
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addBreadboard(120, 180)
@@ -226,7 +227,7 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
   })
 
   it('TEST 9 (MISSION INTÉGRATION LED) : Undo/Redo d\'un ADD_COMPONENT LED placé sur breadboard fonctionne, et restaure exactement la même position', () => {
-    const { result } = renderHook(() => useCircuit(), { wrapper })
+    const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
       result.current.addBreadboard(120, 180)

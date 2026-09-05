@@ -17,6 +17,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
+import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 
 const wrapper = ({ children }) => (
     <CircuitProvider>{children}</CircuitProvider>
@@ -24,7 +25,7 @@ const wrapper = ({ children }) => (
 
 describe('MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) — canal de mutation cible : addWire', () => {
     it('TEST 1 : addWire (canal CommandBus) crée un fil valide entre les deux pins demandées', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)
@@ -48,7 +49,7 @@ describe('MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) — canal de mutation cib
     })
 
     it('TEST 2 : addWire est historisé — Undo retire le fil ajouté, Redo le restaure', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)
@@ -80,7 +81,7 @@ describe('MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) — canal de mutation cib
     })
 
     it('TEST 3 : addWire partage la même pile Undo/Redo que addComponent (CommandBus) et deleteSelection (canal legacy)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         // 1. Deux composants via le canal CommandBus (ADD_COMPONENT)
         act(() => {
@@ -129,7 +130,7 @@ describe('MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) — canal de mutation cib
     })
 
     it("TEST 4 (I-H5) : une nouvelle action après Undo invalide le redoStack", () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)
@@ -155,7 +156,7 @@ describe('MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) — canal de mutation cib
     })
 
     it('TEST 5 : wireAlreadyExists (garde UI, non déplacée vers le Core) bloque toujours la création d\'un doublon — aucune commande fantôme dans l\'historique', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)
@@ -186,7 +187,7 @@ describe('MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) — canal de mutation cib
     })
 
     it('TEST 6 : une auto-connexion (même pin sur le même composant) ne dispatche rien (garde préservée, comportement inchangé)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)
@@ -206,7 +207,7 @@ describe('MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) — canal de mutation cib
     })
 
     it('TEST 7 (round-trip) : conservation des données préexistantes — Undo restaure exactement les composants et fils persistants', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 111, 222)
@@ -247,7 +248,7 @@ describe('MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) — canal de mutation cib
     })
 
     it('TEST 8 : des arguments incomplets ne dispatchent rien (garde préservée, comportement inchangé)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
             result.current.addComponent('LED', 100, 100)

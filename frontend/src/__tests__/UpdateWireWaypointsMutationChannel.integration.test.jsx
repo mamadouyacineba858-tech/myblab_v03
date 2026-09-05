@@ -23,6 +23,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
+import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 
 const wrapper = ({ children }) => (
     <CircuitProvider>{children}</CircuitProvider>
@@ -45,7 +46,7 @@ function addTwoComponentsAndWire(result) {
 
 describe('MB-VIS-005 (CSA RULING du 2026-08-21) — canal de mutation cible réel : updateWireWaypoints', () => {
     it('TEST 1 : updateWireWaypoints (canal CommandBus de production) remplace atomiquement le tableau waypoints du wire ciblé', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         const { wire } = addTwoComponentsAndWire(result)
 
         expect(wire.waypoints).toEqual([])
@@ -62,7 +63,7 @@ describe('MB-VIS-005 (CSA RULING du 2026-08-21) — canal de mutation cible rée
     })
 
     it('TEST 2 : updateWireWaypoints est historisé — Undo restaure le tableau précédent, Redo le tableau suivant', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         const { wire } = addTwoComponentsAndWire(result)
 
         act(() => {
@@ -84,7 +85,7 @@ describe('MB-VIS-005 (CSA RULING du 2026-08-21) — canal de mutation cible rée
     })
 
     it('TEST 3 : updateWireWaypoints partage la même pile Undo/Redo que addComponent/addWire (CommandBus) et deleteSelection (canal legacy)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         const { wire } = addTwoComponentsAndWire(result)
 
         // 1. Une mutation de waypoints (canal CommandBus, UPDATE_WIRE_WAYPOINTS)
@@ -125,7 +126,7 @@ describe('MB-VIS-005 (CSA RULING du 2026-08-21) — canal de mutation cible rée
     })
 
     it("TEST 4 (I-H5) : une nouvelle mutation après Undo invalide le redoStack", () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         const { wire } = addTwoComponentsAndWire(result)
 
         act(() => {
@@ -144,7 +145,7 @@ describe('MB-VIS-005 (CSA RULING du 2026-08-21) — canal de mutation cible rée
     })
 
     it('TEST 5 : un wireId inconnu ne dispatche rien (garde côté hook) — aucune commande fantôme dans l\'historique', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         addTwoComponentsAndWire(result)
         const undoCountBefore = result.current.getUndoCount()
 
@@ -157,7 +158,7 @@ describe('MB-VIS-005 (CSA RULING du 2026-08-21) — canal de mutation cible rée
     })
 
     it('TEST 6 : des arguments incomplets ne dispatchent rien (wireId manquant, waypoints non-tableau)', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         const { wire } = addTwoComponentsAndWire(result)
         const undoCountBefore = result.current.getUndoCount()
 
@@ -173,7 +174,7 @@ describe('MB-VIS-005 (CSA RULING du 2026-08-21) — canal de mutation cible rée
     })
 
     it('TEST 7 : une structure de waypoint invalide (STR-006) est rejetée par ValidationEngine — aucune mutation, aucune entrée d\'historique', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         const { wire } = addTwoComponentsAndWire(result)
         const undoCountBefore = result.current.getUndoCount()
 
@@ -186,7 +187,7 @@ describe('MB-VIS-005 (CSA RULING du 2026-08-21) — canal de mutation cible rée
     })
 
     it('TEST 8 (round-trip) : conservation des données préexistantes — Undo restaure exactement composants et fils, waypoints inclus', () => {
-        const { result } = renderHook(() => useCircuit(), { wrapper })
+        const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         const { wire } = addTwoComponentsAndWire(result)
 
         act(() => {
