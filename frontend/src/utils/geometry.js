@@ -62,15 +62,28 @@ export function getPinPosition(component, pinDef) {
  * finie ou nulle retombe sur `1` plutôt que de produire une division par
  * zéro ou un résultat non fini.
  *
+ * [MB-VIS-CANVAS-050] `translateX`/`translateY` étendent cette même fonction
+ * (et non une seconde formule) pour intégrer le pan : la relation complète
+ * viewport est `screen = translation + document * zoom` (Décision CSA D2 du
+ * Blueprint CANVAS-050), dont voici l'inverse. Défauts `0` : tout appelant
+ * existant (049) qui n'en fournit aucun garde un comportement strictement
+ * inchangé. `utils/viewport.js` (calcul du nouveau viewport lors d'un zoom
+ * orienté curseur) appelle cette même fonction plutôt que de redériver la
+ * conversion — un seul oracle screen→Document dans tout le repository.
+ *
  * @param {MouseEvent | { clientX: number, clientY: number }} event
  * @param {DOMRect} canvasRect
  * @param {number} [zoom=1]
+ * @param {number} [translateX=0]
+ * @param {number} [translateY=0]
  */
-export function clientToCanvas(event, canvasRect, zoom = 1) {
+export function clientToCanvas(event, canvasRect, zoom = 1, translateX = 0, translateY = 0) {
   const z = Number.isFinite(zoom) && zoom !== 0 ? zoom : 1
+  const tx = Number.isFinite(translateX) ? translateX : 0
+  const ty = Number.isFinite(translateY) ? translateY : 0
   return {
-    x: (event.clientX - canvasRect.left) / z,
-    y: (event.clientY - canvasRect.top) / z,
+    x: (event.clientX - canvasRect.left - tx) / z,
+    y: (event.clientY - canvasRect.top - ty) / z,
   }
 }
 

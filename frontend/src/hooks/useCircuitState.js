@@ -15,6 +15,17 @@ import {
   extractPointsFromPathData
 } from "../utils/geometry.js"
 import { normalizeComponent, normalizeWire } from "../utils/circuitModel.js"
+// MB-VIS-CANVAS-050 : modèle de viewport (zoom + pan) et calcul de bounds de
+// scène — fonctions pures, aucune duplication de la conversion screen→Document
+// (clientToCanvas reste l'unique oracle, consommé PAR ces utilitaires).
+import {
+  createDefaultViewport,
+  zoomViewportAtScreenPoint,
+  centerOnRect,
+  centerOnPoint,
+  fitViewportToBounds,
+} from "../utils/viewport.js"
+import { computeSceneBounds } from "../utils/sceneBounds.js"
 import {
   buildConnectedPinsSet,
   buildWirePaths,
@@ -100,12 +111,25 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   const [activeItem, setActiveItem] = useState(null)
 
   const [simulationActive, setSimulationActive] = useState(false)
-  const [zoom, setZoom] = useState(1)
+  // MB-VIS-CANVAS-050 : `viewport` remplace l'ancien état `zoom` isolé —
+  // SEUL modèle de state pour zoom+pan (Décision CSA D1/D4, contrainte non
+  // négociable #4 : « un seul modèle screen↔Document »). `zoom` reste exposé
+  // plus bas dans la valeur de retour comme alias dérivé (`viewport.zoom`),
+  // pour compatibilité avec tout consommateur existant (049) qui lit
+  // `zoom` directement — ce n'est jamais une seconde source d'état.
+  const [viewport, setViewport] = useState(createDefaultViewport)
   const [showGrid, setShowGrid] = useState(true)
   const [theme, setTheme] = useState("dark")
 
   const dragSessionRef = useRef(null)
   const marqueeSessionRef = useRef(null)
+  // MB-VIS-CANVAS-050 : session de pan — même patron que dragSessionRef/
+  // marqueeSessionRef (ref, pas de state : aucun re-rendu requis pour la
+  // session elle-même, seul `viewport` déclenche le re-rendu). Le pan ne
+  // touche jamais le Document ni HistoryManager (contrainte #8) : la
+  // translation vive EST l'état final, il n'y a pas de « preview vs commit »
+  // distinct comme pour un drag de composant.
+  const panSessionRef = useRef(null)
   const [marqueeRect, setMarqueeRect] = useState(null)
   const justFinishedMarqueeWithSelectionRef = useRef(false)
 
@@ -221,7 +245,7 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
       return
     }
     const rect = canvasRef.current.getBoundingClientRect()
-    const point = clientToCanvas({ clientX, clientY }, rect, zoom)
+    const point = clientToCanvas({ clientX, clientY }, rect, viewport.zoom, viewport.translateX, viewport.translateY)
     const x = point.x - GRID_SIZE * 2
     const y = point.y - GRID_SIZE
     const placement = computeBreadboardPlacement(currentBreadboard, session.type, { x, y }, componentsRef.current)
@@ -233,7 +257,7 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
       .filter((h) => h.column !== null && h.row !== null)
       .map((h) => ({ column: h.column, row: h.row }))
     setBreadboardInsertPreview({ holes, valid: placement.valid })
-  }, [canvasRef, zoom])
+  }, [canvasRef, viewport])
 
   // MB-BREADBOARD-008 (I-P10, même garde que dragPreview/breadboardFeedback
   // existants) : nettoyage systématique — appelé au drop réel
@@ -437,6 +461,21 @@ const adapted = toEngineInput(coreDoc);
   useEffect(() => {
     breadboardRef.current = breadboard
   }, [breadboard])
+
+  // MB-VIS-CANVAS-050 : référence synchrone équivalente pour `viewport`,
+  // consommée UNIQUEMENT par le gros effect pointermove/up/cancel/blur
+  // ci-dessous. Contrairement à `zoom` (049 — changements discrets, quelques
+  // fois par session via zoomIn/zoomOut), `viewport` change en continu à
+  // chaque pixel pendant un pan actif : le lire depuis une ref plutôt que de
+  // l'ajouter au tableau de dépendances de cet effect évite de désabonner/
+  // réabonner les listeners `window` à chaque `pointermove` d'un pan (la
+  // navigation doit « rester fluide », Ticket CANVAS-050 §Performances) —
+  // sans réintroduire de stale closure, exactement le même raisonnement que
+  // componentsRef/wiresRef/breadboardRef ci-dessus.
+  const viewportRef = useRef(viewport)
+  useEffect(() => {
+    viewportRef.current = viewport
+  }, [viewport])
 
   // =========================================================================
   // FIN MB-004.5
@@ -797,9 +836,12 @@ const adapted = toEngineInput(coreDoc);
     if (!wireId || !Number.isInteger(index) || !canvasRef?.current) return
 
     // Garde I-M1 (même principe que startDrag/startMarquee) : aucune autre
-    // interaction de pointeur active simultanément.
+    // interaction de pointeur active simultanément. MB-VIS-CANVAS-050 :
+    // ajout de panSessionRef (contrainte #6 — une seule interaction pointer
+    // active à la fois, étendue au pan).
     if (dragSessionRef.current !== null) return
     if (marqueeSessionRef.current !== null) return
+    if (panSessionRef.current !== null) return
     if (pendingPin !== null) return
 
     const wire = wiresRef.current.find((w) => w.id === wireId)
@@ -808,7 +850,7 @@ const adapted = toEngineInput(coreDoc);
     event.stopPropagation()
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, zoom)
+    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
     const baseWaypoints = wire.waypoints.map((wp) => ({ ...wp }))
 
     waypointDragSessionRef.current = {
@@ -821,7 +863,7 @@ const adapted = toEngineInput(coreDoc);
     setWaypointPreview({ wireId, waypoints: baseWaypoints })
 
     event.preventDefault()
-  }, [canvasRef, pendingPin, zoom])
+  }, [canvasRef, pendingPin, viewport])
   // =========================================================================
   // FIN MB-VIS-005 (Phase E — déplacement de waypoint)
   // =========================================================================
@@ -834,6 +876,7 @@ const adapted = toEngineInput(coreDoc);
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (dragSessionRef.current !== null) return
     if (marqueeSessionRef.current !== null) return
+    if (panSessionRef.current !== null) return
 
     const current = { uid, pinId }
     if (!pendingPin) { setPendingPin(current); return }
@@ -1111,6 +1154,7 @@ if (import.meta.env.DEV) {
 
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (marqueeSessionRef.current !== null) return
+    if (panSessionRef.current !== null) return
     if (pendingPin !== null) return
 
     event.stopPropagation()
@@ -1121,7 +1165,7 @@ if (import.meta.env.DEV) {
     const idsToDrag = selectedIds.has(uid) ? selectedIds : new Set([uid])
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, zoom)
+    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
 
     const componentMap = new Map(components.map(c => [c.uid, c]))
 
@@ -1151,7 +1195,7 @@ if (import.meta.env.DEV) {
     }
 
     event.preventDefault()
-  }, [canvasRef, getSelectedComponentIds, components, pendingPin, zoom])
+  }, [canvasRef, getSelectedComponentIds, components, pendingPin, viewport])
 
   // =========================================================================
   // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : drag du breadboard.
@@ -1172,12 +1216,13 @@ if (import.meta.env.DEV) {
 
     // Garde I-M1 : aucune autre interaction active.
     if (marqueeSessionRef.current !== null) return
+    if (panSessionRef.current !== null) return
     if (pendingPin !== null) return
 
     event.stopPropagation()
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, zoom)
+    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
 
     const solidaryIds = resolveSolidaryComponentIds(currentBreadboard, componentsRef.current)
     const componentsStart = new Map()
@@ -1197,7 +1242,7 @@ if (import.meta.env.DEV) {
     }
 
     event.preventDefault()
-  }, [canvasRef, pendingPin, zoom])
+  }, [canvasRef, pendingPin, viewport])
   // =========================================================================
   // FIN MB-BREADBOARD-006 (startBreadboardDrag)
   // =========================================================================
@@ -1211,10 +1256,11 @@ if (import.meta.env.DEV) {
 
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (dragSessionRef.current !== null) return
+    if (panSessionRef.current !== null) return
     if (pendingPin !== null) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, zoom)
+    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
 
     marqueeSessionRef.current = {
       start: { x: pointer.x, y: pointer.y },
@@ -1226,7 +1272,7 @@ if (import.meta.env.DEV) {
       start: { x: pointer.x, y: pointer.y },
       current: { x: pointer.x, y: pointer.y }
     })
-  }, [canvasRef, pendingPin, zoom])
+  }, [canvasRef, pendingPin, viewport])
 
   const updateMarquee = useCallback((event) => {
     const session = marqueeSessionRef.current
@@ -1234,7 +1280,7 @@ if (import.meta.env.DEV) {
     if (!canvasRef?.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect, zoom)
+    const pointer = clientToCanvas(event, rect, viewport.zoom, viewport.translateX, viewport.translateY)
 
     session.current = { x: pointer.x, y: pointer.y }
 
@@ -1242,7 +1288,7 @@ if (import.meta.env.DEV) {
       start: session.start,
       current: { x: pointer.x, y: pointer.y }
     })
-  }, [canvasRef, zoom])
+  }, [canvasRef, viewport])
 
   const endMarquee = useCallback(() => {
     const session = marqueeSessionRef.current
@@ -1358,11 +1404,134 @@ if (import.meta.env.DEV) {
   }, [])
 
   // =========================================================================
+  // MB-VIS-CANVAS-050 : Pan du viewport. Geste dédié — clic MOLETTE
+  // (event.button === 1), jamais le clic gauche déjà utilisé par le marquee
+  // ni le clic droit (réservé). Ce choix évite par construction toute
+  // concurrence avec drag/marquee/waypoint/Breadboard/câblage (contrainte
+  // #6/#7) sans avoir à suivre un état clavier supplémentaire. La
+  // translation est exprimée en pixels ÉCRAN bruts (pointerStart/
+  // translateStart, jamais convertis via clientToCanvas) — conforme à D1 :
+  // le pan ne dépend jamais du zoom courant. Aucune mutation du Document,
+  // aucun HistoryManager impliqué (contrainte #2/#8) : `viewport` est mis à
+  // jour directement, sans aperçu séparé (contrairement à dragPreview).
+  // =========================================================================
+  const startPan = useCallback((event) => {
+    // Garde I-M1 : aucune autre interaction pointer active.
+    if (dragSessionRef.current !== null) return
+    if (marqueeSessionRef.current !== null) return
+    if (waypointDragSessionRef.current !== null) return
+    if (pendingPin !== null) return
+
+    panSessionRef.current = {
+      pointerStart: { x: event.clientX, y: event.clientY },
+      translateStart: { x: viewport.translateX, y: viewport.translateY },
+    }
+
+    event.preventDefault?.()
+    event.stopPropagation?.()
+  }, [pendingPin, viewport])
+
+  // =========================================================================
+  // MB-VIS-CANVAS-050 : zoom orienté curseur (D4). `screenX`/`screenY` sont
+  // relatifs au coin haut-gauche du Canvas — même repère que `clientToCanvas`
+  // (l'appelant, SimulationCanvas.jsx, les calcule identiquement via
+  // canvasRef.current.getBoundingClientRect()).
+  // =========================================================================
+  const zoomAtScreenPoint = useCallback((screenX, screenY, nextZoom) => {
+    setViewport((v) => zoomViewportAtScreenPoint(v, screenX, screenY, nextZoom))
+  }, [])
+
+  // MB-VIS-CANVAS-050 : variante relative (molette) — le zoom cible est
+  // `zoom courant * factor`, résolu à l'INTÉRIEUR du updater `setViewport`
+  // (donc toujours contre la valeur `viewport.zoom` la plus fraîche, jamais
+  // celle capturée par la fermeture du gestionnaire `wheel` appelant). Cette
+  // fonction reste stable (deps `[]`) : SimulationCanvas.jsx l'utilise depuis
+  // un listener natif attaché une seule fois au montage (nécessaire pour
+  // pouvoir appeler `preventDefault()` — React attache `onWheel` en
+  // `passive`), qui ne doit donc pas dépendre de `viewport.zoom`.
+  const zoomByFactorAtScreenPoint = useCallback((screenX, screenY, factor) => {
+    setViewport((v) => zoomViewportAtScreenPoint(v, screenX, screenY, v.zoom * factor))
+  }, [])
+
+  // MB-VIS-CANVAS-050 (D6) : viewport neutre déterministe.
+  const resetViewport = useCallback(() => {
+    setViewport(createDefaultViewport())
+  }, [])
+
+  // MB-VIS-CANVAS-050 (D7) : ajuste le viewport pour faire tenir l'ensemble
+  // de la scène (composants + waypoints de fils + breadboard) — no-op sûr
+  // (aucun setViewport) si le canvas n'est pas mesurable ou la scène vide.
+  const fitToContent = useCallback(() => {
+    const rect = canvasRef?.current?.getBoundingClientRect()
+    if (!rect) return
+    const bounds = computeSceneBounds(componentsRef.current, wiresRef.current, breadboardRef.current)
+    const next = fitViewportToBounds(bounds, { width: rect.width, height: rect.height })
+    if (next) setViewport(next)
+  }, [canvasRef])
+
+  // MB-VIS-CANVAS-050 (D8) : idem, restreint aux éléments sélectionnés —
+  // no-op sûr si aucune sélection exploitable (aucun composant/wire
+  // sélectionné, ou bounds non calculables) n'existe.
+  const fitToSelection = useCallback(() => {
+    const rect = canvasRef?.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const selectedComponentIds = new Set()
+    const selectedWireIds = new Set()
+    selection.forEach((key) => {
+      const parsed = parseSelectionKey(key)
+      if (parsed.type === 'component') selectedComponentIds.add(parsed.id)
+      if (parsed.type === 'wire') selectedWireIds.add(parsed.id)
+    })
+    if (selectedComponentIds.size === 0 && selectedWireIds.size === 0) return
+
+    const selectedComponents = componentsRef.current.filter((c) => selectedComponentIds.has(c.uid))
+    const selectedWires = wiresRef.current.filter((w) => selectedWireIds.has(w.id))
+    const bounds = computeSceneBounds(selectedComponents, selectedWires, null)
+    const next = fitViewportToBounds(bounds, { width: rect.width, height: rect.height })
+    if (next) setViewport(next)
+  }, [canvasRef, selection])
+
+  // MB-VIS-CANVAS-050 (D9) : primitive générique de centrage, réutilisable
+  // par un futur focus composant (052) sans que ce ticket n'implémente lui-
+  // même le focus/local zoom (hors périmètre explicite). `zoomOverride`
+  // optionnel — omis, le zoom courant est conservé (recentrage pur).
+  const centerViewportOnRect = useCallback((rectDoc, zoomOverride) => {
+    const rect = canvasRef?.current?.getBoundingClientRect()
+    if (!rect) return
+    const next = centerOnRect(rectDoc, { width: rect.width, height: rect.height }, zoomOverride ?? viewport.zoom)
+    if (next) setViewport(next)
+  }, [canvasRef, viewport.zoom])
+
+  const centerViewportOnPoint = useCallback((pointDoc, zoomOverride) => {
+    const rect = canvasRef?.current?.getBoundingClientRect()
+    if (!rect) return
+    const next = centerOnPoint(pointDoc, { width: rect.width, height: rect.height }, zoomOverride ?? viewport.zoom)
+    if (next) setViewport(next)
+  }, [canvasRef, viewport.zoom])
+
+  // =========================================================================
   // POINTER INTERACTION SYSTEM  Gestion des événements (useEffect)
   // =========================================================================
 
   useEffect(() => {
     const handlePointerMove = (event) => {
+      // MB-VIS-CANVAS-050 : pan — translation écran brute, jamais convertie
+      // via clientToCanvas (D1 : le pan ne dépend pas du zoom). Traité en
+      // premier, comme marqueeSessionRef, car il exclut mutuellement toutes
+      // les autres interactions (garde I-M1 posée dans startPan).
+      const panSession = panSessionRef.current
+      if (panSession) {
+        const deltaX = event.clientX - panSession.pointerStart.x
+        const deltaY = event.clientY - panSession.pointerStart.y
+        setViewport((v) => ({
+          ...v,
+          translateX: panSession.translateStart.x + deltaX,
+          translateY: panSession.translateStart.y + deltaY,
+        }))
+        return
+      }
+
       if (marqueeSessionRef.current !== null) {
         updateMarquee(event)
         return
@@ -1374,7 +1543,7 @@ if (import.meta.env.DEV) {
       const waypointSession = waypointDragSessionRef.current
       if (waypointSession && canvasRef?.current) {
         const rect = canvasRef.current.getBoundingClientRect()
-        const pointer = clientToCanvas(event, rect, zoom)
+        const pointer = clientToCanvas(event, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
         const deltaX = pointer.x - waypointSession.pointerStart.x
         const deltaY = pointer.y - waypointSession.pointerStart.y
 
@@ -1392,7 +1561,7 @@ if (import.meta.env.DEV) {
       if (!session || !canvasRef?.current) return
 
       const rect = canvasRef.current.getBoundingClientRect()
-      const pointer = clientToCanvas(event, rect, zoom)
+      const pointer = clientToCanvas(event, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
       const deltaX = pointer.x - session.pointerStart.x
       const deltaY = pointer.y - session.pointerStart.y
 
@@ -1481,6 +1650,13 @@ if (import.meta.env.DEV) {
     }
 
     const handlePointerUp = () => {
+      // MB-VIS-CANVAS-050 : fin de pan — aucun commit, `viewport` est déjà
+      // l'état final (contrainte #8 : aucune entrée Undo/Redo).
+      if (panSessionRef.current !== null) {
+        panSessionRef.current = null
+        return
+      }
+
       if (marqueeSessionRef.current !== null) {
         endMarquee()
         return
@@ -1597,6 +1773,12 @@ if (import.meta.env.DEV) {
     }
 
     const handlePointerCancel = () => {
+      // MB-VIS-CANVAS-050 : I-P10 — pan annulé sans effet (déjà l'état final,
+      // aucun commit à annuler).
+      if (panSessionRef.current !== null) {
+        panSessionRef.current = null
+        return
+      }
       if (marqueeSessionRef.current !== null) {
         marqueeSessionRef.current = null
         setMarqueeRect(null)
@@ -1618,6 +1800,11 @@ if (import.meta.env.DEV) {
     }
 
     const handleBlur = () => {
+      // MB-VIS-CANVAS-050 : I-P10 — même repli que handlePointerCancel.
+      if (panSessionRef.current !== null) {
+        panSessionRef.current = null
+        return
+      }
       if (marqueeSessionRef.current !== null) {
         marqueeSessionRef.current = null
         setMarqueeRect(null)
@@ -1649,12 +1836,18 @@ if (import.meta.env.DEV) {
       window.removeEventListener("pointercancel", handlePointerCancel)
       window.removeEventListener("blur", handleBlur)
     }
-    // MB-VIS-CANVAS-049 : `zoom` est désormais lu par `handlePointerMove`
-    // (via `clientToCanvas(event, rect, zoom)`, drag composant/breadboard et
-    // waypoint) — sans cette dépendance, la fermeture de l'effet capturerait
-    // une valeur de `zoom` figée au montage (ou au dernier changement d'une
-    // autre dépendance) au lieu de la valeur courante à chaque interaction.
-  }, [canvasRef, updateMarquee, endMarquee, documentApi, updateWireWaypoints, zoom])
+    // MB-VIS-CANVAS-050 : `viewport` n'est PAS dans ce tableau de dépendances
+    // — `handlePointerMove` (drag composant/breadboard, waypoint) lit
+    // `viewportRef.current` (ref synchrone, cf. déclaration plus haut),
+    // jamais la valeur `viewport` capturée par la fermeture de cet effect.
+    // Sans cette ref, `viewport` devrait figurer ici (même raisonnement que
+    // MB-VIS-CANVAS-049 pour `zoom`) — mais `viewport` change désormais en
+    // continu à chaque pixel pendant un pan actif, ce qui désabonnerait/
+    // réabonnerait les listeners `window` à chaque `pointermove` (contraire
+    // à l'exigence de fluidité du Ticket §Performances). La ref élimine ce
+    // coût sans réintroduire de stale closure : `viewportRef.current` est
+    // toujours à jour, quel que soit le moment de création de la fermeture.
+  }, [canvasRef, updateMarquee, endMarquee, documentApi, updateWireWaypoints])
 
   // =========================================================================
   // WRAPPERS DE COMPATIBILITé
@@ -1719,8 +1912,27 @@ if (import.meta.env.DEV) {
 
   const startSimulation = useCallback(() => setSimulationActive(true), [])
   const stopSimulation = useCallback(() => setSimulationActive(false), [])
-  const zoomIn = useCallback(() => setZoom((z) => Math.min(2, +(z + 0.1).toFixed(2))), [])
-  const zoomOut = useCallback(() => setZoom((z) => Math.max(0.5, +(z - 0.1).toFixed(2))), [])
+  // MB-VIS-CANVAS-050 : zoomIn/zoomOut restent des pas fixes de 0.1 borné
+  // [0.5,2] (comportement 049 strictement préservé — mêmes tests), mais
+  // ancrent désormais le zoom au CENTRE du Canvas plutôt que de laisser le
+  // coin (0,0) fixe implicitement (ancien comportement quand seul `zoom`
+  // existait) — ancrage déterministe requis par D4 pour un bouton (pas de
+  // position de curseur pertinente ici, contrairement à la molette). Dans
+  // l'environnement de test (jsdom, `getBoundingClientRect()` renvoie un
+  // rect nul), l'ancre retombe sur (0,0) : translateX/Y restent à 0, seul
+  // `zoom` change — comportement numériquement identique à avant ce ticket.
+  const zoomIn = useCallback(() => {
+    const rect = canvasRef?.current?.getBoundingClientRect()
+    const anchorX = rect ? rect.width / 2 : 0
+    const anchorY = rect ? rect.height / 2 : 0
+    setViewport((v) => zoomViewportAtScreenPoint(v, anchorX, anchorY, +(v.zoom + 0.1).toFixed(2)))
+  }, [canvasRef])
+  const zoomOut = useCallback(() => {
+    const rect = canvasRef?.current?.getBoundingClientRect()
+    const anchorX = rect ? rect.width / 2 : 0
+    const anchorY = rect ? rect.height / 2 : 0
+    setViewport((v) => zoomViewportAtScreenPoint(v, anchorX, anchorY, +(v.zoom - 0.1).toFixed(2)))
+  }, [canvasRef])
   const toggleGrid = useCallback(() => setShowGrid((v) => !v), [])
   // MB-VIS-COMP-003 : la garde ne teste plus littéralement le type concret
   // ("BUTTON") mais la capacité déclarative interaction.type === "momentary"
@@ -1797,7 +2009,12 @@ if (import.meta.env.DEV) {
   activeItem,
 
   simulationActive,
-  zoom,
+  // MB-VIS-CANVAS-050 : `viewport` est désormais le SEUL état de zoom/pan —
+  // `zoom` reste exposé comme alias dérivé (`viewport.zoom`) pour tout
+  // consommateur/test existant (049) qui le lit directement, jamais une
+  // seconde source de vérité.
+  viewport,
+  zoom: viewport.zoom,
   showGrid,
   theme,
 
@@ -1832,6 +2049,18 @@ if (import.meta.env.DEV) {
   stopSimulation,
   zoomIn,
   zoomOut,
+  // MB-VIS-CANVAS-050 : navigation de viewport — pan (geste dédié, consommé
+  // par SimulationCanvas.jsx), zoom orienté curseur (molette), reset,
+  // fit-to-content/sélection et primitive générique de centrage (D9,
+  // réutilisable par un futur focus composant — non implémenté ici).
+  startPan,
+  zoomAtScreenPoint,
+  zoomByFactorAtScreenPoint,
+  resetViewport,
+  fitToContent,
+  fitToSelection,
+  centerViewportOnRect,
+  centerViewportOnPoint,
   exportCircuit,
   importCircuit,
   toggleGrid,
@@ -1885,7 +2114,7 @@ if (import.meta.env.DEV) {
   activeItem,
 
   simulationActive,
-  zoom,
+  viewport,
   showGrid,
   theme,
 
@@ -1911,6 +2140,14 @@ if (import.meta.env.DEV) {
   stopSimulation,
   zoomIn,
   zoomOut,
+  startPan,
+  zoomAtScreenPoint,
+  zoomByFactorAtScreenPoint,
+  resetViewport,
+  fitToContent,
+  fitToSelection,
+  centerViewportOnRect,
+  centerViewportOnPoint,
   exportCircuit,
   importCircuit,
   toggleGrid,

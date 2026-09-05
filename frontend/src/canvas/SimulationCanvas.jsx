@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { GridBackground } from "./GridBackground.jsx"
 import { Breadboard } from "./Breadboard.jsx"
@@ -15,7 +15,7 @@ import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
 export function SimulationCanvas() {
   const {
     components, breadboard, breadboardFeedback, breadboardInsertPreview, wirePaths, isWiringActive, cancelWiring, addComponent,
-    canvasRef, zoom, showGrid,
+    canvasRef, viewport, showGrid,
     activeItem, clearSelection,
     startMarquee,
     marqueeRect,
@@ -23,6 +23,9 @@ export function SimulationCanvas() {
     // un drag HTML5 natif depuis la Sidebar.
     updateSidebarComponentDragPosition,
     endSidebarComponentDrag,
+    // MB-VIS-CANVAS-050 : pan (clic molette) et zoom orienté curseur (molette).
+    startPan,
+    zoomByFactorAtScreenPoint,
   } = useCircuit()
 
   // Référence pour savoir si le marquee est actif
@@ -35,6 +38,18 @@ export function SimulationCanvas() {
   }, [canvasRef])
 
   const handleCanvasPointerDown = useCallback((e) => {
+    // MB-VIS-CANVAS-050 : pan — clic MOLETTE, n'importe où sur le Canvas
+    // (composants inclus, comme dans la plupart des outils de CAO/design :
+    // Figma, Blender), jamais concurrent du marquee (clic gauche) ni d'un
+    // futur menu contextuel (clic droit, non utilisé aujourd'hui). Le
+    // navigateur déclenche par défaut un « auto-scroll » sur le clic
+    // molette — preventDefault() le supprime.
+    if (e.button === 1) {
+      e.preventDefault()
+      startPan(e)
+      return
+    }
+
     // Vérifier que le clic est sur le fond du canvas
     const target = e.target
     const isCanvasBackground =
@@ -66,7 +81,7 @@ export function SimulationCanvas() {
     // Démarrer le marquee
     isMarqueeActiveRef.current = true
     startMarquee(e)
-  }, [canvasRef, isWiringActive, startMarquee])
+  }, [canvasRef, isWiringActive, startMarquee, startPan])
 
  const handleCanvasClick = useCallback(() => {
     // Si un marquee vient de se terminer avec sélection, ignorer le clic
@@ -93,14 +108,43 @@ export function SimulationCanvas() {
     if (!type) return
     const rect = canvasRef?.current?.getBoundingClientRect()
     if (!rect) return
-    // [MB-VIS-CANVAS-049] point de conversion centralisé unique
+    // [MB-VIS-CANVAS-049/050] point de conversion centralisé unique
     // (clientToCanvas), partagé avec drag/marquee/waypoint/Breadboard —
-    // plus de formule inline concurrente pour ce chemin.
-    const point = clientToCanvas(e, rect, zoom)
+    // plus de formule inline concurrente pour ce chemin. Intègre désormais
+    // le pan (viewport.translateX/Y) en plus du zoom.
+    const point = clientToCanvas(e, rect, viewport.zoom, viewport.translateX, viewport.translateY)
     const x = point.x - GRID_SIZE * 2
     const y = point.y - GRID_SIZE
     addComponent(type, x, y)
-  }, [canvasRef, addComponent, zoom, endSidebarComponentDrag])
+  }, [canvasRef, addComponent, viewport, endSidebarComponentDrag])
+
+  // MB-VIS-CANVAS-050 (D4) : zoom orienté curseur — molette sur le Canvas.
+  // `screenX`/`screenY` relatifs au coin haut-gauche du Canvas, même repère
+  // que `clientToCanvas`. `deltaY < 0` (molette vers le haut/avant) zoome
+  // avant, conforme à la convention usuelle des outils de CAO/design.
+  //
+  // Attaché en listener NATIF (useEffect + addEventListener, jamais
+  // `onWheel` JSX) avec `{ passive: false }` : React attache son propre
+  // listener délégué pour `wheel` en mode passif, ce qui rend
+  // `e.preventDefault()` inopérant (avertissement navigateur « Unable to
+  // preventDefault inside passive event listener invocation », vérifié
+  // empiriquement — sans quoi la molette zoome ET fait défiler la page sous
+  // le Canvas). `zoomByFactorAtScreenPoint` est stable (deps `[]`,
+  // useCircuitState.js) : cet effect ne s'attache qu'au montage.
+  useEffect(() => {
+    const node = canvasRef?.current
+    if (!node) return
+    const handleWheel = (e) => {
+      const rect = node.getBoundingClientRect()
+      e.preventDefault()
+      const screenX = e.clientX - rect.left
+      const screenY = e.clientY - rect.top
+      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1
+      zoomByFactorAtScreenPoint(screenX, screenY, factor)
+    }
+    node.addEventListener("wheel", handleWheel, { passive: false })
+    return () => node.removeEventListener("wheel", handleWheel)
+  }, [canvasRef, zoomByFactorAtScreenPoint])
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault()
@@ -135,7 +179,16 @@ export function SimulationCanvas() {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
     >
-      <div className="simulation-canvas__zoom-layer" style={{ transform: `scale(${zoom})` }}>
+      {/* MB-VIS-CANVAS-050 (D2) : un seul point d'application du viewport —
+          `translate(...) scale(...)` réalise `screen = translation +
+          document * zoom` (les fonctions CSS s'appliquent de l'interne vers
+          l'externe : scale d'abord, translate ensuite). Aucun objet enfant
+          (composant, fil, breadboard) ne reçoit sa propre transformation
+          indépendante (contrainte #5/#7). */}
+      <div
+        className="simulation-canvas__zoom-layer"
+        style={{ transform: `translate(${viewport.translateX}px, ${viewport.translateY}px) scale(${viewport.zoom})` }}
+      >
         {showGrid && <GridBackground />}
         <Breadboard
           breadboard={breadboard}

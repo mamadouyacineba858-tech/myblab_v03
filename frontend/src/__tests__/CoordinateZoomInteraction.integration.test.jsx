@@ -84,6 +84,20 @@ function pointerUp() {
   })
 }
 
+// MB-VIS-CANVAS-050 : pan via clic MOLETTE (button:1) — geste dédié, jamais
+// concurrent des gestes ci-dessus (I-M1). `panBy` encapsule le cycle complet
+// pointerdown/pointermove/pointerup pour composer un pan avant une autre
+// interaction dans les tests ci-dessous (§G7 du Blueprint : « 049 non-
+// régression » + nouveaux cas combinés pan+zoom).
+function panBy(deltaX, deltaY) {
+  const start = { button: 1, clientX: 1000, clientY: 1000, preventDefault: () => {}, stopPropagation: () => {} }
+  act(() => { lastResult().startPan(start) })
+  act(() => {
+    window.dispatchEvent(new PointerEvent('pointermove', { clientX: 1000 + deltaX, clientY: 1000 + deltaY }))
+  })
+  pointerUp()
+}
+
 describe('MB-VIS-CANVAS-049 — Coordinate & Interaction Foundation (zoom != 1)', () => {
   // ==========================================================================
   // DRAG COMPOSANT
@@ -397,6 +411,170 @@ describe('MB-VIS-CANVAS-049 — Coordinate & Interaction Foundation (zoom != 1)'
       }).not.toThrow()
       act(() => { result.current.endSidebarComponentDrag() })
       expect(result.current.breadboardInsertPreview).toBeNull()
+    })
+  })
+
+  // ==========================================================================
+  // MB-VIS-CANVAS-050 — PAN + ZOOM COMBINÉS (Blueprint §G7 : « 049 non-
+  // régression » + nouveaux cas où pan et zoom sont TOUS LES DEUX != neutre)
+  // ==========================================================================
+  describe('MB-VIS-CANVAS-050 — pan + zoom combinés (drag/marquee/waypoint/Breadboard/Sidebar)', () => {
+    it('drag composant après un pan pur (zoom=1) : le delta écran reste appliqué 1:1 (translation sans effet sur un delta relatif)', () => {
+      const { result } = renderWithCanvas()
+      _result = result
+
+      act(() => { result.current.addComponent('LED', 100, 100) })
+      const component = result.current.components[0]
+
+      panBy(500, -300)
+
+      pointerDown(component.x + 10, component.y + 10, component.uid)
+      pointerMove(component.x + 10 + 60, component.y + 10)
+      pointerUp()
+
+      const moved = result.current.components.find((c) => c.uid === component.uid)
+      // Le pan a déplacé l'AFFICHAGE, jamais component.x/y — un drag lancé
+      // depuis les coordonnées Document du composant (pointerDown reçoit un
+      // clientX/clientY déjà en repère Document ici, comme 049) applique
+      // donc toujours le même delta relatif, quel que soit translateX/Y.
+      expect(moved.x).toBe(160)
+      expect(moved.y).toBe(component.y)
+    })
+
+    it('drag composant après pan + zoom combinés (zoom=2.0, pan=(500,-300)) : le delta Document reste delta écran / zoom', () => {
+      const { result } = renderWithCanvas()
+      _result = result
+
+      act(() => { result.current.addComponent('LED', 100, 100) })
+      const component = result.current.components[0]
+      setZoom(2.0)
+      panBy(500, -300)
+
+      pointerDown(component.x + 10, component.y + 10, component.uid)
+      pointerMove(component.x + 10 + 240, component.y + 10)
+      pointerUp()
+
+      const moved = result.current.components.find((c) => c.uid === component.uid)
+      // Identique au cas 049 pur (zoom=2.0 seul) : 100 + (240/2.0) = 220 — le
+      // pan ne doit JAMAIS entrer dans le calcul du delta (D1 : la
+      // translation ne concurrence pas la conversion d'un delta relatif).
+      expect(moved.x).toBe(220)
+    })
+
+    it('marquee après pan + zoom combinés sélectionne toujours le composant visé à l\'écran', () => {
+      const { result } = renderWithCanvas()
+      _result = result
+
+      act(() => { result.current.addComponent('LED', 100, 100) })
+      const component = result.current.components[0]
+      setZoom(2.0)
+      panBy(40, 40)
+
+      // Composant Document (100,100)-(180,140) (boîte marquee 80x40,
+      // endMarquee) ; à zoom=2/pan=(40,40) — screen = translate + doc*zoom —
+      // apparaît écran entre (240,240) et (400,280). Le rectangle tracé
+      // ci-dessous l'englobe largement (marge de tolérance généreuse).
+      act(() => {
+        result.current.startMarquee({
+          clientX: 230, clientY: 230, ctrlKey: false, metaKey: false,
+          preventDefault: () => {}, stopPropagation: () => {},
+        })
+      })
+      act(() => {
+        window.dispatchEvent(new PointerEvent('pointermove', { clientX: 410, clientY: 380 }))
+      })
+      pointerUp()
+
+      expect(result.current.isSelected({ type: 'component', id: component.uid })).toBe(true)
+    })
+
+    it('drag de waypoint après pan + zoom combinés applique le delta Document correct (delta écran / zoom, pan sans effet)', () => {
+      const { result } = renderWithCanvas()
+      _result = result
+
+      act(() => {
+        result.current.addComponent('LED', 100, 100)
+        result.current.addComponent('RESISTOR', 400, 100)
+      })
+      const [led, resistor] = result.current.components
+      act(() => { result.current.addWire(led.uid, 'anode', resistor.uid, 'A') })
+      const wireId = result.current.wires[0].id
+      act(() => { result.current.updateWireWaypoints(wireId, [{ x: 200, y: 150 }]) })
+
+      setZoom(2.0)
+      panBy(-70, 90)
+
+      act(() => {
+        result.current.startWaypointDrag(
+          { clientX: 300, clientY: 300, preventDefault: () => {}, stopPropagation: () => {} },
+          wireId,
+          0
+        )
+      })
+      act(() => {
+        window.dispatchEvent(new PointerEvent('pointermove', { clientX: 300 + 240, clientY: 300 }))
+      })
+      pointerUp()
+
+      const waypoint = result.current.wires.find((w) => w.id === wireId).waypoints[0]
+      expect(waypoint.x).toBe(320)
+      expect(waypoint.y).toBe(150)
+    })
+
+    it('drag Breadboard après pan + zoom combinés applique le delta Document correct (pas de BREADBOARD_PITCH)', () => {
+      const { result } = renderWithCanvas()
+      _result = result
+
+      act(() => { result.current.addBreadboard(120, 180) })
+      const breadboardBefore = result.current.breadboard
+      setZoom(2.0)
+      panBy(15, -60)
+
+      act(() => {
+        result.current.selectOnly({ type: 'breadboard', id: breadboardBefore.id })
+        result.current.startBreadboardDrag({
+          clientX: 300, clientY: 300, preventDefault: () => {}, stopPropagation: () => {},
+        })
+      })
+      act(() => {
+        window.dispatchEvent(new PointerEvent('pointermove', { clientX: 300 + 240, clientY: 300 }))
+      })
+      pointerUp()
+
+      const breadboardAfter = result.current.breadboard
+      expect(breadboardAfter.position.x).toBe(breadboardBefore.position.x + 120)
+      expect(breadboardAfter.position.x % BREADBOARD_PITCH).toBe(0)
+    })
+
+    it('Sidebar drop/preview reste opérationnel après pan + zoom combinés (aucune formule concurrente)', () => {
+      const { result } = renderWithCanvas()
+      _result = result
+
+      act(() => { result.current.addBreadboard(0, 0) })
+      setZoom(2.0)
+      panBy(30, 30)
+
+      act(() => { result.current.startSidebarComponentDrag('RESISTOR') })
+      expect(() => {
+        act(() => { result.current.updateSidebarComponentDragPosition(200, 200) })
+      }).not.toThrow()
+      act(() => { result.current.endSidebarComponentDrag() })
+      expect(result.current.breadboardInsertPreview).toBeNull()
+    })
+
+    it('pan + zoom combinés ne créent aucune entrée Undo/Redo (contrainte #8) — seul le drag/wire commit une entrée', () => {
+      const { result } = renderWithCanvas()
+      _result = result
+
+      act(() => { result.current.addComponent('LED', 100, 100) })
+      const undoCountBefore = result.current.getUndoCount()
+
+      setZoom(1.5)
+      panBy(80, -40)
+      act(() => { result.current.resetViewport() })
+      act(() => { result.current.fitToContent() })
+
+      expect(result.current.getUndoCount()).toBe(undoCountBefore)
     })
   })
 })

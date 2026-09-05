@@ -58,3 +58,39 @@ describe('MB-VIS-CANVAS-049 — clientToCanvas() zoom-aware', () => {
     expect(clientToCanvas({ clientX: 42, clientY: 24 }, RECT, 1)).toEqual({ x: 42, y: 24 })
   })
 })
+
+/**
+ * MB-VIS-CANVAS-050 : extension de la même fonction (D3 — un seul oracle
+ * screen→Document) pour intégrer le pan, exprimé en pixels ÉCRAN
+ * (translateX/translateY), en plus du zoom déjà géré ci-dessus. Relation :
+ * `xDocument = (xScreen - translateX) / zoom`.
+ */
+describe('MB-VIS-CANVAS-050 — clientToCanvas() intègre translateX/translateY (pan)', () => {
+  it('translateX/translateY par défaut (non fournis) : comportement 049 strictement inchangé', () => {
+    expect(clientToCanvas({ clientX: 240, clientY: 180 }, RECT, 2)).toEqual({ x: 120, y: 90 })
+  })
+
+  it('translation pure (zoom=1) : la translation est soustraite avant conversion, aucune division', () => {
+    expect(clientToCanvas({ clientX: 240, clientY: 180 }, RECT, 1, 40, 20)).toEqual({ x: 200, y: 160 })
+  })
+
+  it('pan + zoom combinés (zoom=2, translate=(40,20)) : la translation est soustraite AVANT la division par zoom', () => {
+    // (240-40)/2 = 100 ; (180-20)/2 = 80. Une translation appliquée APRÈS la
+    // division (bug potentiel) donnerait (120-40)=80 ; (90-20)=70 — valeurs
+    // différentes, ce test distingue donc sans ambiguïté les deux ordres.
+    expect(clientToCanvas({ clientX: 240, clientY: 180 }, RECT, 2, 40, 20)).toEqual({ x: 100, y: 80 })
+  })
+
+  it('translation négative (pan vers le haut/la gauche) : addition, pas soustraction inversée', () => {
+    expect(clientToCanvas({ clientX: 100, clientY: 100 }, RECT, 1, -50, -30)).toEqual({ x: 150, y: 130 })
+  })
+
+  it('translateX/translateY défensifs : NaN/undefined/Infinity retombent sur 0 plutôt que de propager un résultat non fini', () => {
+    for (const bogus of [NaN, undefined]) {
+      expect(clientToCanvas({ clientX: 100, clientY: 100 }, RECT, 1, bogus, bogus)).toEqual({ x: 100, y: 100 })
+    }
+    const result = clientToCanvas({ clientX: 100, clientY: 100 }, RECT, 1, Infinity, Infinity)
+    expect(Number.isFinite(result.x)).toBe(true)
+    expect(Number.isFinite(result.y)).toBe(true)
+  })
+})

@@ -9,6 +9,10 @@ export function Navbar() {
     stopSimulation,
     zoomIn,
     zoomOut,
+    // MB-VIS-CANVAS-050 : navigation de viewport.
+    resetViewport,
+    fitToContent,
+    fitToSelection,
     exportCircuit,
     importCircuit,
     clearCircuit,
@@ -126,6 +130,15 @@ const [settingsOpen, setSettingsOpen] = useState(false);
 
         <button onClick={zoomIn}>＋</button>
         <button onClick={zoomOut}>－</button>
+
+        <div className="separator"></div>
+
+        {/* MB-VIS-CANVAS-050 : navigation de viewport (pan lui-même se
+            déclenche au clic molette directement sur le Canvas, sans bouton
+            dédié — voir SimulationCanvas.jsx). */}
+        <button onClick={resetViewport} title="Réinitialiser la vue">⤾ Vue</button>
+        <button onClick={fitToContent} title="Ajuster au contenu">⛶ Contenu</button>
+        <button onClick={fitToSelection} title="Ajuster à la sélection">⛶ Sélection</button>
 
         <div className="separator"></div>
 
