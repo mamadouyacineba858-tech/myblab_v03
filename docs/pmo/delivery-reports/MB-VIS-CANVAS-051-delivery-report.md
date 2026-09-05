@@ -1,7 +1,7 @@
 # MB-VIS-CANVAS-051 — Delivery Report
 ## Canvas Performance Isolation
 
-Statut : **Implémentation livrée sous autorisation CSA « mode direct » (`docs/pmo/delivery-reports/MB-VIS-CANVAS-051-authority.md`) — commit + push directs à exécuter à la suite de ce rapport, sous cette même autorisation.**
+Statut : **Implémentation livrée sous autorisation CSA « mode direct » (`docs/pmo/delivery-reports/MB-VIS-CANVAS-051-authority.md`) — commit d'implémentation et Delivery Report déjà committés et poussés sous cette même autorisation.**
 
 ---
 
@@ -138,7 +138,8 @@ Aucune modification de : géométrie électrique canonique, `componentDefinition
 
 - Branche : `feat/MB-VIS-LED-V16-leads-thicker-realistic`
 - HEAD avant implémentation : `1fbabaa6cc4351731aa88c68df9548698bff68a8` (fast-forward incluant les 3 artefacts PMO MB-VIS-CANVAS-051)
-- Commit d'implémentation : à produire à la suite de ce rapport (mode direct, Authority §E)
+- Commit d'implémentation : `65230b104240396af1882b3923cfef933d51e74a`
+- Commit du Delivery Report (preuve distincte) : `7034e96b51249530456360680da49d95d50072e3`
 
 ## 12. Suite
 
