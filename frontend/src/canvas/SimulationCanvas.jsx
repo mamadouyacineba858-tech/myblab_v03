@@ -10,6 +10,7 @@ import { BreadboardWiresLayer } from "../wires/BreadboardWiresLayer.jsx"
 import { MarqueeOverlay } from "./MarqueeOverlay.jsx"
 import { GRID_SIZE } from "../utils/grid.js"
 import { clientToCanvas } from "../utils/geometry.js"
+import { LOCAL_SCALE_STEP } from "../utils/localScale.js"
 import "./SimulationCanvas.css"
 import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
 
@@ -26,6 +27,13 @@ export function SimulationCanvas() {
     // MB-VIS-CANVAS-050 : pan (clic molette) et zoom orienté curseur (molette).
     startPan,
     zoomByFactorAtScreenPoint,
+    // MB-VIS-CANVAS-052 : focus de composant (state stable, bas débit — voir
+    // context/CircuitContext.jsx) et action de variation de l'échelle
+    // locale (référence stable, appelée à haute fréquence par la molette
+    // sans jamais changer elle-même, même précédent que
+    // zoomByFactorAtScreenPoint ci-dessus).
+    focusedComponentId,
+    adjustLocalScale,
   } = useCircuit()
 
   // MB-VIS-CANVAS-051 : state haute fréquence — SimulationCanvas est la
@@ -33,9 +41,12 @@ export function SimulationCanvas() {
   // marquee (aucune régression attendue ici). L'isolation vient du fait que
   // ses enfants (CircuitComponent, via React.memo + stableValue inchangé)
   // n'ont, eux, plus besoin de re-rendre pour les composants non concernés.
+  // MB-VIS-CANVAS-052 : `localScale` (nouveau) rejoint ce même state haute
+  // fréquence — transmis en PROP à la SEULE instance CircuitComponent
+  // focalisée ci-dessous, jamais lu par les autres (D6 du Blueprint 052).
   const {
     components, breadboard, breadboardFeedback, breadboardInsertPreview,
-    wirePaths, viewport, marqueeRect,
+    wirePaths, viewport, marqueeRect, localScale,
   } = useCircuitInteraction()
 
   // Référence pour savoir si le marquee est actif
@@ -133,20 +144,34 @@ export function SimulationCanvas() {
   // que `clientToCanvas`. `deltaY < 0` (molette vers le haut/avant) zoome
   // avant, conforme à la convention usuelle des outils de CAO/design.
   //
+  // MB-VIS-CANVAS-052 (D3 du Blueprint) : lorsqu'un composant est focalisé,
+  // la MÊME molette pilote désormais l'échelle visuelle LOCALE de ce
+  // composant (pas de second listener, pas de second geste) — hors focus,
+  // elle conserve strictement son rôle de zoom global 050. Les deux restent
+  // mutuellement exclusifs par construction (un seul `if` avec `return`,
+  // jamais les deux appliqués au même événement).
+  //
   // Attaché en listener NATIF (useEffect + addEventListener, jamais
   // `onWheel` JSX) avec `{ passive: false }` : React attache son propre
   // listener délégué pour `wheel` en mode passif, ce qui rend
   // `e.preventDefault()` inopérant (avertissement navigateur « Unable to
   // preventDefault inside passive event listener invocation », vérifié
   // empiriquement — sans quoi la molette zoome ET fait défiler la page sous
-  // le Canvas). `zoomByFactorAtScreenPoint` est stable (deps `[]`,
-  // useCircuitState.js) : cet effect ne s'attache qu'au montage.
+  // le Canvas). `zoomByFactorAtScreenPoint`/`adjustLocalScale` sont stables
+  // (useCircuitState.js) : `focusedComponentId` (dépendance ci-dessous)
+  // change à basse fréquence (Enter/Escape) — cet effect ne se réattache
+  // donc jamais à chaque pas de molette, seulement à l'entrée/sortie de
+  // focus (même raisonnement de fluidité que MB-VIS-CANVAS-051 §D3).
   useEffect(() => {
     const node = canvasRef?.current
     if (!node) return
     const handleWheel = (e) => {
-      const rect = node.getBoundingClientRect()
       e.preventDefault()
+      if (focusedComponentId) {
+        adjustLocalScale(e.deltaY < 0 ? LOCAL_SCALE_STEP : -LOCAL_SCALE_STEP)
+        return
+      }
+      const rect = node.getBoundingClientRect()
       const screenX = e.clientX - rect.left
       const screenY = e.clientY - rect.top
       const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1
@@ -154,7 +179,7 @@ export function SimulationCanvas() {
     }
     node.addEventListener("wheel", handleWheel, { passive: false })
     return () => node.removeEventListener("wheel", handleWheel)
-  }, [canvasRef, zoomByFactorAtScreenPoint])
+  }, [canvasRef, zoomByFactorAtScreenPoint, focusedComponentId, adjustLocalScale])
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault()
@@ -211,7 +236,20 @@ export function SimulationCanvas() {
         <BreadboardWireEndpoints breadboard={breadboard} />
         <div className="simulation-canvas__components">
           {components.map((comp) => (
-            <CircuitComponent key={comp.uid} component={comp} />
+            <CircuitComponent
+              key={comp.uid}
+              component={comp}
+              // MB-VIS-CANVAS-052 : `focused`/`localScale` en PROPS, jamais
+              // via un Context — pour les 119+ composants NON focalisés,
+              // ces deux valeurs restent `false`/`1` à l'identique à chaque
+              // pas de molette (égalité par valeur, `Object.is`), donc
+              // React.memo les saute ; seule l'instance dont le uid
+              // correspond à `focusedComponentId` reçoit une prop qui
+              // change réellement (même mécanisme, déjà prouvé par
+              // MB-VIS-CANVAS-051, que `component` pendant un drag).
+              focused={comp.uid === focusedComponentId}
+              localScale={comp.uid === focusedComponentId ? localScale : 1}
+            />
           ))}
         </div>
         <MarqueeOverlay rect={marqueeRect} />

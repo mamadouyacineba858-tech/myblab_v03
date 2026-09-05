@@ -19,6 +19,25 @@
  * jamais la géométrie électrique.
  */
 import { getPinPosition } from "./geometry.js"
+import { getComponentDef } from "../config/componentDefinitions.js"
+import { scalePointAroundCenter } from "./localScale.js"
+
+// [MB-VIS-CANVAS-052] Paramètre optionnel `{ scale }` de
+// getPinPresentationPosition() (déclaration plus bas) : présentation du
+// focus/local zoom, jamais une seconde géométrie électrique. `scale` vaut
+// `1` par défaut (comportement strictement inchangé pour tout appelant
+// existant qui ne le fournit pas — non-régression totale, LED-V5/wire
+// endpoints). Quand `scale` diffère de `1`, la position de présentation
+// déjà résolue (canonique ou projection par type) est reprojetée autour du
+// CENTRE du composant (`component.x/y` + moitié des dimensions de
+// componentDefinitions.js) par scalePointAroundCenter() — exactement la
+// même formule que l'effet visuel d'un `transform: scale(scale)` posé sur
+// le wrapper `.circuit-component` (CircuitComponent.jsx) avec
+// `transform-origin: center center`. Seul circuitSelectors.js::buildWirePaths()
+// passe `scale !== 1` (pour l'extrémité de fil du composant focalisé) ;
+// CircuitComponent.jsx ne recalcule jamais la position DOM de son <Pin>,
+// qui hérite déjà de la mise à l'échelle par héritage CSS naturel (enfant
+// du wrapper transformé) — voir Delivery Report MB-VIS-CANVAS-052 §Design.
 
 const LED_VISUAL_PINS = {
   anode: { x: 28, y: 62 },
@@ -92,42 +111,47 @@ const ARDUINO_VISUAL_PINS = {
  * geometry.js) for every component and every pin that has no presentation
  * override.
  */
-export function getPinPresentationPosition(component, pinDef) {
+export function getPinPresentationPosition(component, pinDef, { scale = 1 } = {}) {
   if (!component || !pinDef) return null
+
+  let basePos = null
 
   if (component.type === "LED" && LED_VISUAL_PINS[pinDef.id]) {
     const visual = LED_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y
-    if (!Number.isFinite(x) || !Number.isFinite(y)) return null
-    return { x, y }
-  }
-
-  if (component.type === "NPN_TRANSISTOR" && NPN_TRANSISTOR_VISUAL_PINS[pinDef.id]) {
+    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+  } else if (component.type === "NPN_TRANSISTOR" && NPN_TRANSISTOR_VISUAL_PINS[pinDef.id]) {
     const visual = NPN_TRANSISTOR_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y
-    if (!Number.isFinite(x) || !Number.isFinite(y)) return null
-    return { x, y }
-  }
-
-  if (component.type === "POWER" && POWER_VISUAL_PINS[pinDef.id]) {
+    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+  } else if (component.type === "POWER" && POWER_VISUAL_PINS[pinDef.id]) {
     const visual = POWER_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y
-    if (!Number.isFinite(x) || !Number.isFinite(y)) return null
-    return { x, y }
-  }
-
-  if (component.type === "ARDUINO" && ARDUINO_VISUAL_PINS[pinDef.id]) {
+    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+  } else if (component.type === "ARDUINO" && ARDUINO_VISUAL_PINS[pinDef.id]) {
     const visual = ARDUINO_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y
-    if (!Number.isFinite(x) || !Number.isFinite(y)) return null
-    return { x, y }
+    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+  } else {
+    basePos = getPinPosition(component, pinDef)
   }
 
-  return getPinPosition(component, pinDef)
+  if (!basePos) return null
+  if (!Number.isFinite(scale) || scale === 1) return basePos
+
+  // [MB-VIS-CANVAS-052] Centre de mise à l'échelle : dérivé des dimensions
+  // canoniques de componentDefinitions.js (jamais d'un getBoundingClientRect
+  // déjà transformé — Blueprint H). Un type inconnu/dimensions absentes
+  // retombe sur 0 (aucun décalage) plutôt que de produire NaN.
+  const def = getComponentDef(component.type)
+  const width = def?.width ?? 0
+  const height = def?.height ?? 0
+  const center = { x: component.x + width / 2, y: component.y + height / 2 }
+  return scalePointAroundCenter(basePos, center, scale)
 }
 
 export function getLedVisualPinPosition(pinId) {

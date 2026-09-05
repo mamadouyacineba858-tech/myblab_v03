@@ -36,11 +36,21 @@ export function buildConnectedPinsSet(wires) {
  * présentation peut toutefois projeter le point d'arrivée d'un composant
  * vers sa géométrie physique via getPinPresentationPosition().
  *
+ * [MB-VIS-CANVAS-052] `focusInfo` optionnel — `{ uid, scale }` du composant
+ * actuellement focalisé (au plus un). Jamais une seconde géométrie
+ * électrique : uniquement transmis à `getPinPresentationPosition()` pour
+ * que l'extrémité de fil dessinée corresponde exactement à la position
+ * visuelle du pin une fois le composant agrandi localement (même formule
+ * que le `transform: scale()` CSS posé par CircuitComponent.jsx — voir
+ * pinPresentationGeometry.js). Omis (ou `null`), comportement strictement
+ * inchangé — tout appelant existant à 2 arguments n'est pas affecté.
+ *
  * @param {Array<{ uid, type, x, y }>} components
  * @param {Array<{ id, fromUid, fromPin, toUid, toPin, waypoints? }>} wires waypoints (MB-VIS-005, ADR-008 amendé) : points intermédiaires persistants optionnels, consommés dans leur ordre par buildWirePath().
+ * @param {{ uid: string, scale: number } | null} [focusInfo]
  * @returns {Array<{ id: string, d: string }>}
  */
-export function buildWirePaths(components, wires) {
+export function buildWirePaths(components, wires, focusInfo) {
   if (!Array.isArray(components) || !Array.isArray(wires)) return []
 
   const byUid = new Map(
@@ -69,8 +79,10 @@ export function buildWirePaths(components, wires) {
     // projection such as the LED's physical lead endpoints.
     const fromElectricalPos = getPinPosition(fromComp, fromPinDef)
     const toElectricalPos = getPinPosition(toComp, toPinDef)
-    const fromPos = getPinPresentationPosition(fromComp, fromPinDef) ?? fromElectricalPos
-    const toPos = getPinPresentationPosition(toComp, toPinDef) ?? toElectricalPos
+    const fromScale = focusInfo && focusInfo.uid === fromComp.uid ? focusInfo.scale : 1
+    const toScale = focusInfo && focusInfo.uid === toComp.uid ? focusInfo.scale : 1
+    const fromPos = getPinPresentationPosition(fromComp, fromPinDef, { scale: fromScale }) ?? fromElectricalPos
+    const toPos = getPinPresentationPosition(toComp, toPinDef, { scale: toScale }) ?? toElectricalPos
     if (!fromPos || !toPos) continue
 
     const d = buildWirePath(fromPos, toPos, wire.waypoints)

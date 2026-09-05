@@ -55,6 +55,21 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     simulationActive: state.simulationActive,
     showGrid: state.showGrid,
     theme: state.theme,
+    // MB-VIS-CANVAS-052 : `focusedComponentId` change à basse fréquence
+    // (Enter/Escape/suppression du composant focalisé) — expose-le ici,
+    // jamais dans interactionValue, pour que focaliser/quitter le focus ne
+    // fasse pas re-rendre inutilement SimulationCanvas.jsx/WiresLayer.jsx à
+    // chaque pas de molette (`localScale`, lui, change à haute fréquence et
+    // reste dans interactionValue ci-dessous). `focusComponent`/`exitFocus`
+    // sont des actions, comme `startDrag`/`selectOnly` ci-dessus.
+    focusedComponentId: state.focusedComponentId,
+    focusComponent: state.focusComponent,
+    exitFocus: state.exitFocus,
+    // `adjustLocalScale` est une ACTION (référence stable, deps
+    // [focusedComponentId] côté useCircuitState.js) — même précédent que
+    // `zoomByFactorAtScreenPoint` ci-dessous, elle aussi appelée à haute
+    // fréquence par la molette sans jamais changer de référence elle-même.
+    adjustLocalScale: state.adjustLocalScale,
     addComponent: state.addComponent,
     addWire: state.addWire,
     addBreadboard: state.addBreadboard,
@@ -113,6 +128,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     state.canvasRef, state.wires, state.connectedPins, state.pinSignals,
     state.pendingPin, state.isWiringActive, state.selection, state.activeItem,
     state.simulationActive, state.showGrid, state.theme,
+    state.focusedComponentId, state.focusComponent, state.exitFocus, state.adjustLocalScale,
     state.addComponent, state.addWire, state.addBreadboard, state.clearCircuit,
     state.onPinClick, state.cancelWiring, state.isPinPending, state.isPinConnected,
     state.startSidebarComponentDrag, state.updateSidebarComponentDragPosition, state.endSidebarComponentDrag,
@@ -148,9 +164,16 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     viewport: state.viewport,
     zoom: state.zoom,
     marqueeRect: state.marqueeRect,
+    // MB-VIS-CANVAS-052 : `localScale` change à chaque pas de molette
+    // pendant un focus actif — state haute fréquence par construction
+    // (Blueprint D6). SimulationCanvas.jsx (seul lecteur direct) le
+    // transmet en PROP à la seule instance CircuitComponent focalisée,
+    // jamais via un Context que CircuitComponent.jsx consommerait — voir
+    // SimulationCanvas.jsx/CircuitComponent.jsx pour le mécanisme complet.
+    localScale: state.localScale,
   }), [
     state.components, state.breadboard, state.breadboardFeedback, state.breadboardInsertPreview,
-    state.wirePaths, state.viewport, state.zoom, state.marqueeRect,
+    state.wirePaths, state.viewport, state.zoom, state.marqueeRect, state.localScale,
   ])
 
   return (

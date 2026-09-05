@@ -4,7 +4,8 @@ import { useCircuit } from "../context/useCircuit.js"
 /**
  * Hook pour la gestion des raccourcis clavier.
  * Gère :
- * - Escape : annulation du marquee, du câblage, ou désélection
+ * - Enter : entrée en focus du composant sélectionné (MB-VIS-CANVAS-052)
+ * - Escape : sortie du focus, puis annulation du marquee, du câblage, ou désélection
  * - Delete : suppression de la sélection (si implémenté)
  */
 export function useKeyboardSystem() {
@@ -19,31 +20,59 @@ export function useKeyboardSystem() {
     redo,
     canUndo,
     canRedo,
+    // MB-VIS-CANVAS-052 : entrée/sortie du focus de composant (D3 du
+    // Blueprint — « sélectionner un composant + Enter » / « Escape »).
+    focusedComponentId,
+    focusComponent,
+    exitFocus,
 } = useCircuit()
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // Échap : priorité au marquee
+            // MB-VIS-CANVAS-052 : Enter — focalise le composant actuellement
+            // sélectionné (sélection métier inchangée, le focus ne la
+            // remplace pas — Blueprint G). No-op si la sélection active
+            // n'est pas un composant (ex. un wire), ou depuis un champ de
+            // saisie (même garde que Delete/Backspace ci-dessous).
+            if (e.key === 'Enter') {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return
+                }
+                if (activeItem?.type === 'component') {
+                    focusComponent(activeItem.id)
+                    e.preventDefault()
+                }
+                return
+            }
+
+            // Échap : priorité à la sortie du focus (MB-VIS-CANVAS-052),
+            // puis au marquee, comportement 049 inchangé pour le reste.
             if (e.key === 'Escape') {
+                if (focusedComponentId) {
+                    exitFocus()
+                    e.preventDefault()
+                    return
+                }
+
                 const marqueeCancelled = cancelMarquee()
                 if (marqueeCancelled) {
                     e.preventDefault()
                     return
                 }
-                
+
                 // Si pas de marquee, comportement existant
                 if (isWiringActive) {
                     cancelWiring()
                     e.preventDefault()
                     return
                 }
-                
+
                 if (activeItem) {
                     clearSelection()
                     e.preventDefault()
                     return
                 }
-                
+
                 return
             }
 // Ctrl+Z / Cmd+Z : Undo
@@ -102,6 +131,9 @@ if (
     canUndo,
     canRedo,
     undo,
+    focusedComponentId,
+    focusComponent,
+    exitFocus,
     redo,
 ])
 }

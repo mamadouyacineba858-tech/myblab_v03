@@ -34,7 +34,15 @@ import "./CircuitComponent.css"
 // re-rendu, la mémoïsation seule ne suffisant pas face à un Context consommé
 // directement (React re-rend tout consommateur d'un Context dont la valeur
 // change, quel que soit React.memo).
-function CircuitComponentImpl({ component }) {
+// MB-VIS-CANVAS-052 : `focused`/`localScale` arrivent en PROPS (jamais via un
+// Context) — voir SimulationCanvas.jsx. Pour toute instance dont
+// `component.uid !== focusedComponentId`, ces deux props restent `false`/`1`
+// à l'identique à chaque pas de molette (égalité par valeur), donc le
+// React.memo ci-dessous les saute exactement comme il saute déjà `component`
+// pour un composant non déplacé pendant un drag (MB-VIS-CANVAS-051) : ce
+// fichier ne devient PAS un consommateur du state haute fréquence, seule
+// l'échelle locale de l'instance réellement focalisée change.
+function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
   const {
     startDrag,
     onPinClick,
@@ -169,10 +177,30 @@ function CircuitComponentImpl({ component }) {
 
   const pins = def.pins ?? []
 
+  // MB-VIS-CANVAS-052 (D5 du Blueprint) : un unique `transform: scale()`
+  // posé sur CE wrapper — jamais sur le corps ou les pins isolément — scale
+  // en un seul geste CSS l'asset (`.circuit-component__body`, enfant), les
+  // pins (`<Pin>`, enfants, positionnés en `left/top` NON recalculés
+  // ci-dessous — leur agrandissement/déplacement visuel vient UNIQUEMENT de
+  // l'héritage de ce transform, jamais d'un second calcul) et la zone de hit
+  // du wrapper lui-même (les navigateurs hit-testent la boîte transformée) —
+  // asset/pins/hit target restent donc coherents PAR CONSTRUCTION, sans
+  // branche par type (§E/§9 du Blueprint). `transform-origin: center` :
+  // le centre visuel ne bouge pas, exactement le centre utilisé par
+  // getPinPresentationPosition()/buildWirePaths() (pinPresentationGeometry.js,
+  // circuitSelectors.js) pour prédire, côté WiresLayer (hors de ce
+  // sous-arbre DOM), où ce même pin apparaît visuellement une fois agrandi —
+  // c'est cette formule commune qui garde l'extrémité de fil synchronisée
+  // avec le pin sans recalculer sa position DOM ici. Ne participe JAMAIS au
+  // calcul du drag (clientToCanvas/Document, useCircuitState.js) : purement
+  // un effet visuel appliqué au-dessus d'un `left/top` inchangé.
+  const appliedScale = focused ? localScale : 1
+
   return (
     <div
       className="circuit-component"
       data-backend={presentation.backend}
+      data-focused={focused ? "" : undefined}
       style={{
         left: x,
         top: y,
@@ -180,6 +208,9 @@ function CircuitComponentImpl({ component }) {
         height: def.height ?? 40,
         outline: selected ? '2px solid #22c55e' : 'none',
         outlineOffset: '2px',
+        transform: appliedScale !== 1 ? `scale(${appliedScale})` : undefined,
+        transformOrigin: 'center center',
+        zIndex: focused ? 20 : undefined,
       }}
       onMouseDown={handleBodyMouseDown}
       onClick={(e) => e.stopPropagation()}

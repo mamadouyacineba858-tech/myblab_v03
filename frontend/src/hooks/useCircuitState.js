@@ -26,6 +26,14 @@ import {
   fitViewportToBounds,
 } from "../utils/viewport.js"
 import { computeSceneBounds } from "../utils/sceneBounds.js"
+// MB-VIS-CANVAS-052 : focus de composant + échelle visuelle locale —
+// présentation pure (jamais un second viewport, jamais une géométrie
+// électrique). Constantes/clamp/formule de mise à l'échelle centralisées
+// dans utils/localScale.js, même patron que clampZoom (utils/viewport.js).
+import {
+  LOCAL_SCALE_DEFAULT,
+  clampLocalScale,
+} from "../utils/localScale.js"
 import {
   buildConnectedPinsSet,
   buildWirePaths,
@@ -120,6 +128,25 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   const [viewport, setViewport] = useState(createDefaultViewport)
   const [showGrid, setShowGrid] = useState(true)
   const [theme, setTheme] = useState("dark")
+
+  // =========================================================================
+  // MB-VIS-CANVAS-052 : focus de composant + échelle visuelle locale.
+  // `focusedComponentId` (uid | null, au plus un composant) est un état de
+  // PRÉSENTATION/NAVIGATION — jamais un champ du Document, jamais passé au
+  // CommandBus/HistoryManager (Blueprint D1/D8). Change à basse fréquence
+  // (Enter/Escape/suppression du composant focalisé uniquement) : exposé via
+  // le state STABLE (CircuitContext.jsx), comme `selection`/`activeItem`
+  // (Blueprint D6 : « Le focus ID peut être exposé via le state stable
+  // puisqu'il ne varie pas à chaque pas de zoom local »).
+  // `localScale` change à HAUTE fréquence (molette) : exposé via le state
+  // haute fréquence (CircuitInteractionContext, MB-VIS-CANVAS-051), jamais
+  // lu par CircuitComponent.jsx (qui le reçoit en PROP, uniquement pour
+  // l'instance focalisée — voir SimulationCanvas.jsx) afin de ne jamais
+  // réveiller les composants non focalisés à chaque pas de molette
+  // (Blueprint D6, contrainte non négociable #12 de l'Authority).
+  // =========================================================================
+  const [focusedComponentId, setFocusedComponentId] = useState(null)
+  const [localScale, setLocalScale] = useState(LOCAL_SCALE_DEFAULT)
 
   const dragSessionRef = useRef(null)
   const marqueeSessionRef = useRef(null)
@@ -399,7 +426,17 @@ const getUndoCount = useCallback(() => {
   // MB-CF3-003 : componentsForRender (et non plus safeComponents) alimente la
   // géométrie visuelle des wires, afin que les wires suivent visuellement
   // l'aperçu de drag — le Document réel (safeComponents) n'est pas concerné.
-  const wirePaths = useMemo(() => buildWirePaths(componentsForRender, wiresForGeometry), [componentsForRender, wiresForGeometry])
+  // MB-VIS-CANVAS-052 : `focusInfo` propage l'échelle visuelle locale du
+  // SEUL composant focalisé jusqu'à l'extrémité de fil dessinée
+  // (buildWirePaths -> getPinPresentationPosition), afin qu'elle reste
+  // synchronisée avec le `transform: scale()` CSS appliqué par
+  // CircuitComponent.jsx sur ce même composant (Blueprint D5/E). `null` en
+  // dehors de tout focus — comportement 2-arguments strictement inchangé.
+  const focusInfo = useMemo(
+    () => (focusedComponentId ? { uid: focusedComponentId, scale: localScale } : null),
+    [focusedComponentId, localScale]
+  )
+  const wirePaths = useMemo(() => buildWirePaths(componentsForRender, wiresForGeometry, focusInfo), [componentsForRender, wiresForGeometry, focusInfo])
   const connectedPins = useMemo(() => buildConnectedPinsSet(safeWires), [safeWires])
 
   const pinSignals = useMemo(() => {
@@ -518,6 +555,22 @@ const adapted = toEngineInput(coreDoc);
       if (!liveArduinoUids.has(uid)) orchestrators.delete(uid)
     }
   }, [safeComponents, orchestrators])
+
+  // =========================================================================
+  // MB-VIS-CANVAS-052 : un composant focalisé qui disparaît du Document
+  // (suppression, Undo d'un ADD_COMPONENT, import d'un nouveau circuit) ne
+  // doit jamais laisser `focusedComponentId` pointer vers un uid inexistant
+  // (Blueprint G : « L'entrée en focus est autorisée uniquement pour un
+  // composant existant »). N'écrit jamais dans components/wires/Document/
+  // HistoryManager — purge purement défensive, même filet de sécurité que
+  // la purge des orchestrators Arduino ci-dessus.
+  // =========================================================================
+  useEffect(() => {
+    if (focusedComponentId && !safeComponents.some((c) => c.uid === focusedComponentId)) {
+      setFocusedComponentId(null)
+      setLocalScale(LOCAL_SCALE_DEFAULT)
+    }
+  }, [safeComponents, focusedComponentId])
   // =========================================================================
   // FIN MB-ARDUINO-BRIDGE-001 (purge)
   // =========================================================================
@@ -1561,6 +1614,63 @@ if (import.meta.env.DEV) {
   }, [canvasRef, viewport.zoom])
 
   // =========================================================================
+  // MB-VIS-CANVAS-052 : Focus de composant + échelle visuelle locale.
+  //
+  // `focusComponent(uid)` calcule les bounds du composant EN ESPACE DOCUMENT
+  // (position `x/y` + dimensions de componentDefinitions.js, jamais un
+  // getBoundingClientRect() déjà transformé par le viewport ou le local
+  // scale — Blueprint H) puis réutilise `centerViewportOnRect()` (primitive
+  // MB-VIS-CANVAS-050 existante, D9) — aucune seconde caméra, aucun second
+  // modèle screen↔Document (contraintes non négociables #6/#7 de
+  // l'Authority). Le zoom global courant est conservé (`zoomOverride` omis) :
+  // seul le centrage change, jamais le niveau de zoom global — ce ticket
+  // n'invente pas de comportement de type « fit ». Au plus un focus actif :
+  // focaliser un nouveau composant remplace silencieusement l'ancien (§G du
+  // Blueprint), sans mutation Document ni entrée HistoryManager.
+  // =========================================================================
+  const focusComponent = useCallback((uid) => {
+    if (!uid) return
+    const comp = componentsRef.current.find((c) => c.uid === uid)
+    if (!comp) return
+    const def = getComponentDef(comp.type)
+    if (def) {
+      const rect = {
+        minX: comp.x,
+        minY: comp.y,
+        maxX: comp.x + def.width,
+        maxY: comp.y + def.height,
+      }
+      centerViewportOnRect(rect)
+    }
+    setFocusedComponentId(uid)
+    setLocalScale(LOCAL_SCALE_DEFAULT)
+  }, [centerViewportOnRect])
+
+  // Sortie fiable du focus (Escape) : conserve le viewport courant tel quel
+  // (Blueprint G — « aucune restauration automatique d'une ancienne caméra
+  // n'est demandée »), aucune mutation Document, aucune entrée History.
+  const exitFocus = useCallback(() => {
+    setFocusedComponentId(null)
+    setLocalScale(LOCAL_SCALE_DEFAULT)
+  }, [])
+
+  // Variation de l'échelle locale par pas fixe (molette au-dessus du
+  // composant focalisé, SimulationCanvas.jsx) — no-op si aucun focus actif.
+  // `deltaSteps` est déjà signé (+LOCAL_SCALE_STEP / -LOCAL_SCALE_STEP) par
+  // l'appelant ; clampLocalScale() borne et sécurise (jamais NaN/infini,
+  // Blueprint D2). Mise à jour fonctionnelle (`prev =>`) : stable (deps
+  // `[]`), donc n'entraîne jamais le désabonnement/réabonnement d'un
+  // listener qui en dépendrait (même précédent que zoomByFactorAtScreenPoint,
+  // MB-VIS-CANVAS-050).
+  const adjustLocalScale = useCallback((deltaSteps) => {
+    if (!focusedComponentId) return
+    setLocalScale((prev) => clampLocalScale(prev + deltaSteps))
+  }, [focusedComponentId])
+  // =========================================================================
+  // FIN MB-VIS-CANVAS-052 (focus + local scale)
+  // =========================================================================
+
+  // =========================================================================
   // POINTER INTERACTION SYSTEM  Gestion des événements (useEffect)
   // =========================================================================
 
@@ -1920,6 +2030,10 @@ if (import.meta.env.DEV) {
     setMarqueeRect(null)
     justFinishedMarqueeWithSelectionRef.current = false
     historyManagerRef.current.clear()
+    // MB-VIS-CANVAS-052 : un nouveau Document (vide) ne conserve jamais le
+    // focus/l'échelle locale du circuit précédent.
+    setFocusedComponentId(null)
+    setLocalScale(LOCAL_SCALE_DEFAULT)
     // MB-ARDUINO-BRIDGE-001 (§5/§17 du Blueprint) : un nouveau Document (vide)
     // ne doit jamais hériter de l'état runtime d'un circuit précédent.
     orchestrators.clear()
@@ -1955,6 +2069,10 @@ if (import.meta.env.DEV) {
     setMarqueeRect(null)
     justFinishedMarqueeWithSelectionRef.current = false
     historyManagerRef.current.clear()
+    // MB-VIS-CANVAS-052 : un Document importé ne conserve jamais le focus/
+    // l'échelle locale du circuit précédemment chargé.
+    setFocusedComponentId(null)
+    setLocalScale(LOCAL_SCALE_DEFAULT)
     // MB-ARDUINO-BRIDGE-001 (§5/§17 du Blueprint) : un Document importé ne
     // doit jamais hériter de l'état runtime du circuit précédemment chargé.
     orchestrators.clear()
@@ -2068,6 +2186,16 @@ if (import.meta.env.DEV) {
   showGrid,
   theme,
 
+  // MB-VIS-CANVAS-052 : focus de composant (state stable, bas débit) +
+  // échelle visuelle locale (state haute fréquence — voir CircuitContext.jsx
+  // pour la répartition exacte entre CircuitContext et
+  // CircuitInteractionContext, même patron que `viewport`/MB-VIS-CANVAS-051).
+  focusedComponentId,
+  localScale,
+  focusComponent,
+  exitFocus,
+  adjustLocalScale,
+
   addComponent,
   addWire,
   addBreadboard,
@@ -2167,6 +2295,12 @@ if (import.meta.env.DEV) {
   viewport,
   showGrid,
   theme,
+
+  focusedComponentId,
+  localScale,
+  focusComponent,
+  exitFocus,
+  adjustLocalScale,
 
   addComponent,
   addWire,

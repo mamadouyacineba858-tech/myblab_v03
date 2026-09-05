@@ -62,3 +62,55 @@ describe('MB-VIS-LED-V5 — wire endpoint projection', () => {
     expect(paths[0].d.startsWith('M 184 14')).toBe(true)
   })
 })
+
+describe('MB-VIS-CANVAS-052 — buildWirePaths(components, wires, focusInfo)', () => {
+  // Deux RESISTOR (84x28), jamais LED : évite toute dépendance à la
+  // projection visuelle LED (hors périmètre de ce ticket, non touchée).
+  const resA = { uid: 'res-a', type: 'RESISTOR', x: 0, y: 0 }
+  const resB = { uid: 'res-b', type: 'RESISTOR', x: 300, y: 0 }
+  const wireAB = { id: 'wire-ab', fromUid: 'res-a', fromPin: 'B', toUid: 'res-b', toPin: 'A' }
+
+  it('focusInfo omis (2 arguments) reste identique au comportement existant', () => {
+    const withoutFocus = buildWirePaths([resA, resB], [wireAB])
+    const withNullFocus = buildWirePaths([resA, resB], [wireAB], null)
+    expect(withoutFocus).toEqual(withNullFocus)
+    // res-a.B canonique : (0+84, 0+14) = (84,14).
+    expect(withoutFocus[0].d.startsWith('M 84 14')).toBe(true)
+  })
+
+  it('focusInfo sur un composant NON connecté par ce wire ne change rien', () => {
+    const irrelevant = buildWirePaths([resA, resB], [wireAB], { uid: 'res-does-not-exist', scale: 2 })
+    const baseline = buildWirePaths([resA, resB], [wireAB], null)
+    expect(irrelevant).toEqual(baseline)
+  })
+
+  it('focusInfo sur le composant SOURCE (res-a) déplace UNIQUEMENT cette extrémité, autour de son propre centre', () => {
+    const paths = buildWirePaths([resA, resB], [wireAB], { uid: 'res-a', scale: 2 })
+    // res-a centre (42,14) ; pin B canonique (84,14), delta (+42,0) -> scale 2 : (42+84,14) = (126,14).
+    expect(paths[0].d.startsWith('M 126 14')).toBe(true)
+    // L'extrémité res-b (non focalisé) reste canonique : (300+0, 0+14) = (300,14).
+    expect(paths[0].d).toContain('L 300 14')
+  })
+
+  it('focusInfo sur le composant CIBLE (res-b) déplace uniquement cette extrémité', () => {
+    const paths = buildWirePaths([resA, resB], [wireAB], { uid: 'res-b', scale: 2 })
+    // res-a (non focalisé) : extrémité canonique (84,14), inchangée.
+    expect(paths[0].d.startsWith('M 84 14')).toBe(true)
+    // res-b centre (300+42,14)=(342,14) ; pin A canonique (300,14), delta (-42,0) -> scale 2 : (342-84,14)=(258,14).
+    expect(paths[0].d).toContain('L 258 14')
+  })
+
+  it('scale=1 explicite via focusInfo est un no-op strict (non-régression)', () => {
+    const scaled1 = buildWirePaths([resA, resB], [wireAB], { uid: 'res-a', scale: 1 })
+    const baseline = buildWirePaths([resA, resB], [wireAB], null)
+    expect(scaled1).toEqual(baseline)
+  })
+
+  it('ne mute jamais les objets composants passés en entrée (Document = source de vérité)', () => {
+    const snapshotA = { ...resA }
+    const snapshotB = { ...resB }
+    buildWirePaths([resA, resB], [wireAB], { uid: 'res-a', scale: 2.7 })
+    expect(resA).toEqual(snapshotA)
+    expect(resB).toEqual(snapshotB)
+  })
+})
