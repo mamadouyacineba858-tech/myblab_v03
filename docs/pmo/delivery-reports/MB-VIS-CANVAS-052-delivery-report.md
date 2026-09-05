@@ -1,7 +1,7 @@
 # MB-VIS-CANVAS-052 — Delivery Report
 ## Component Focus & Local Visual Zoom
 
-Statut : **Implémentation livrée sous autorisation CSA « mode direct » (`docs/pmo/delivery-reports/MB-VIS-CANVAS-052-authority.md`) — commit d'implémentation et Delivery Report committés et poussés sous cette même autorisation.**
+Statut : **Implémentation livrée sous autorisation CSA « mode direct » (`docs/pmo/delivery-reports/MB-VIS-CANVAS-052-authority.md`) — commit d'implémentation, Delivery Report, puis correctif CSA (§11, molette scopée au composant focalisé) tous committés et poussés sous cette même autorisation.**
 
 ---
 
@@ -121,8 +121,59 @@ FAIT MESURÉ (test dédié, comptage exact d'exécutions de rendu via `React.mem
 - Branche : `feat/MB-VIS-LED-V16-leads-thicker-realistic`
 - HEAD avant implémentation : `5f506e30a2896143fb4624ae6ae8f0fd3b172d38` (« docs: authorize MB-VIS-CANVAS-052 implementation »)
 - Commit d'implémentation : `5821199f560fcb8fdbeaa57d3df89b73909349d5`
-- Commit du Delivery Report : ce commit (voir SHA distant final ci-dessous une fois poussé)
+- Commit du Delivery Report initial : `ee5c539904a892267a0cb5f910f40ba92fce86a9`
+- Commit correctif (§11) : `aa7ddf6` — `fix(canvas): scope local zoom wheel to focused component`
+- Commit de cette mise à jour du Delivery Report : voir SHA distant final ci-dessous une fois poussé
 
 ## 10. Suite
 
 Conformément à l'Authority (`docs/pmo/delivery-reports/MB-VIS-CANVAS-052-authority.md`) : **STOP** après commit/push et vérification HEAD local = HEAD distant. Aucun travail sur MB-VIS-CANVAS-053, aucune clôture PMO, aucune déclaration de CSA Technical/Visual GO. Le CSA effectue la validation technique et visuelle finale.
+
+## 11. Correction post-livraison (CSA NO-GO temporaire, résolu)
+
+### 11.1 Problème détecté par le CSA
+
+Après audit du commit `5821199` sur GitHub, le CSA a relevé une divergence UX précise par rapport au contrat exact de l'Authority (§D3 : « molette au-dessus du composant focalisé » pour l'échelle locale, « la molette hors focus conserve son rôle de zoom global »). Le code livré branchait le listener `wheel` de `SimulationCanvas.jsx` **uniquement** sur `focusedComponentId` — donc, dès qu'un composant était focalisé, une molette n'importe où sur le Canvas pilotait son échelle locale, rendant le zoom global 050 injoignable tant que le focus restait actif (`Escape` requis). Le §5 de ce rapport documentait d'ailleurs cette limite comme un comportement voulu au moment de la livraison initiale — le CSA a corrigé cette interprétation avant tout Technical/Visual GO.
+
+### 11.2 Correction appliquée
+
+`frontend/src/canvas/SimulationCanvas.jsx` — le handler `wheel` vérifie désormais, lorsque `focusedComponentId` est défini, si `e.target.closest('.circuit-component[data-focused]')` résout un élément réel (le composant focalisé porte l'attribut `data-focused`, posé par `CircuitComponent.jsx` depuis la livraison initiale) avant d'appeler `adjustLocalScale()`. Si la molette survole n'importe quel autre point du Canvas — y compris un AUTRE composant non focalisé — ou qu'aucun composant n'est focalisé, le comportement retombe strictement sur `zoomByFactorAtScreenPoint()` (050, inchangé). Aucun second listener, aucun second viewport, `clientToCanvas()` non touché, aucune géométrie électrique/pins/wires/asset modifiée, aucun paramètre CSA (`LOCAL_SCALE_MIN/MAX/STEP/DEFAULT`) modifié.
+
+Rendre `SimulationCanvas.jsx` directement (nécessaire pour dispatcher un vrai `WheelEvent` avec un `target` DOM réel, cf. §11.3) a révélé, sous la config vitest secondaire, deux corrections disclosed **sans rapport fonctionnel** avec le correctif lui-même : `GridBackground.jsx` et `MarqueeOverlay.jsx` (enfants de `SimulationCanvas.jsx`, jamais rendus directement sous cette config avant ce ticket) nécessitaient l'import React explicite déjà appliqué à `CircuitComponent.jsx`/`WiresLayer.jsx`/`Breadboard.jsx`/`SimulationCanvas.jsx` — ajouté, aucun changement de comportement (import pur). `SimulationCanvas.jsx` lui-même avait déjà reçu cet import lors de la livraison initiale.
+
+### 11.3 Tests ajoutés
+
+Nouveau describe block dans `ComponentFocusLocalZoom.integration.test.jsx` : **« correctif CSA : molette scopée au composant focalisé (DOM réel) »**, 4 tests, rendant `SimulationCanvas.jsx` en entier (le vrai listener `wheel` natif) et dispatchant de vrais `WheelEvent` (`target.dispatchEvent(new WheelEvent(...))`, jamais un appel direct à `adjustLocalScale()`/`zoomByFactorAtScreenPoint()`) :
+
+1. **A/B** — focus actif + wheel dispatché sur le nœud DOM du composant focalisé (`container.querySelector('.circuit-component[data-focused]')`) → `localScale` change du pas exact, `viewport.zoom` inchangé.
+2. **C/D** — focus actif + wheel dispatché sur le nœud racine du Canvas (hors de tout composant) → `localScale` inchangé, `viewport.zoom` change (comportement global).
+3. **E/F** — aucun focus + wheel sur le Canvas → `viewport.zoom` change comme avant ce ticket (non-régression 050), `localScale` reste à `LOCAL_SCALE_DEFAULT`.
+4. Wheel dispatché sur un **second** composant non focalisé (présent à côté du composant focalisé) → toujours scopé au zoom global, jamais à l'échelle locale du composant focalisé ailleurs sur le Canvas.
+
+### 11.4 Résultats des vérifications
+
+- **`ComponentFocusLocalZoom.integration.test.jsx`** : **22/22 verts** (18 tests précédents + 4 nouveaux).
+- **Suite complète** (`npm run test:ci`) : **1934/1953 verts (19 échecs / 11 fichiers)** — exactement la même baseline pré-existante (identique à celle documentée en §4 avant ce correctif, +4 tests neufs tous verts). **0 régression nouvelle.**
+- **`tsc -b`** : exit 0.
+- **`npm run build`** : exit 0, vert.
+- **`git diff --check`** : exit 0.
+- **`git status --short`** (après commit) : propre hors `.claude/`.
+
+### 11.5 Fichiers touchés par ce correctif (exclusivement)
+
+| Fichier | Nature |
+|---|---|
+| `frontend/src/canvas/SimulationCanvas.jsx` | modifié — condition `e.target.closest('.circuit-component[data-focused]')` |
+| `frontend/src/canvas/GridBackground.jsx` | modifié — import React explicite (disclosed, aucun changement de comportement) |
+| `frontend/src/canvas/MarqueeOverlay.jsx` | modifié — import React explicite (disclosed, aucun changement de comportement) |
+| `frontend/src/__tests__/ComponentFocusLocalZoom.integration.test.jsx` | modifié — +4 tests (DOM réel, `WheelEvent`) |
+
+Aucun autre fichier touché. Aucun asset modifié. Aucune géométrie électrique/pins/wires/paramètre CSA modifié. Aucun travail sur MB-VIS-CANVAS-053.
+
+### 11.6 Traçabilité Git de ce correctif
+
+- Commit : `aa7ddf6` — `fix(canvas): scope local zoom wheel to focused component`
+- Branche : `feat/MB-VIS-LED-V16-leads-thicker-realistic`
+- HEAD local et HEAD distant vérifiés identiques après push (voir résultat de commande dans la réponse accompagnant ce rapport).
+
+**STOP** après commit/push de ce correctif et de cette mise à jour du Delivery Report. Aucune déclaration de CSA Technical/Visual GO, aucune clôture PMO, aucun travail sur MB-VIS-CANVAS-053 — le CSA effectue la validation finale.
