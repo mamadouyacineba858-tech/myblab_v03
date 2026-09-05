@@ -13,9 +13,11 @@ describe("A2 - Latching Button Model", () => {
       expect(button.x).toBe(100)
       expect(button.y).toBe(100)
 
+      // MB-VIS-CONTACT-FOUNDATION-001 : dx corrigés depuis 0/60 vers les
+      // valeurs mesurées par pixel-probe (voir componentDefinitions.js).
       expect(button.pins).toEqual([
-        { id: "pin1", label: "1", dx: 0, dy: 30, role: "switch" },
-        { id: "pin2", label: "2", dx: 60, dy: 30, role: "switch" },
+        { id: "pin1", label: "1", dx: 7, dy: 30, role: "switch" },
+        { id: "pin2", label: "2", dx: 52, dy: 30, role: "switch" },
       ])
 
       expect(button.state).toBe("off")

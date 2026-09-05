@@ -21,13 +21,31 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "GND", label: "GND", dx: 0, dy: 110 },
     { id: "5V", label: "5V", dx: 120, dy: 50 },
   ],
+  // [MB-VIS-CONTACT-FOUNDATION-001] Corrigé depuis dx:0/dx:60 (bord gauche/
+  // droit de la boîte canonique). Audit réel (pixel-probe navigateur,
+  // canvas.getImageData sur button.released.1x.png/3x.png, alpha>=32,
+  // cohérent entre 1x et 3x) : contrairement aux passifs axiaux (RESISTOR/
+  // LDR/THERMISTOR/DIODE/CAPACITOR/DC_MOTOR), dont les FILS métalliques
+  // s'étendent bien jusqu'au bord de la boîte, BUTTON est un composant
+  // BOXED (fillFactor 0.9, visualContract.js) : ses deux pattes métalliques
+  // sortent de la base du boîtier, en retrait du bord — dx=0/60 supposait à
+  // tort la convention "fil jusqu'au bord", jamais vérifiée contre l'asset
+  // réel livré. Delta mesuré avant correction : ~8-9 unités canvas (tolérance
+  // cible 0.75, visualContract.js LEAD_ANCHORING) ; delta après correction :
+  // < 1 unité canvas, cohérent 1x/3x. Voir Delivery Report
+  // MB-VIS-CONTACT-FOUNDATION-001 (cause commune §Phase 4, tableau §Phase 12).
   BUTTON: [
-    { id: "pin1", label: "1", dx: 0, dy: 30 },
-    { id: "pin2", label: "2", dx: 60, dy: 30 },
+    { id: "pin1", label: "1", dx: 8, dy: 30 },
+    { id: "pin2", label: "2", dx: 51, dy: 30 },
   ],
+  // [MB-VIS-CONTACT-FOUNDATION-001] Même correction, même cause (BOXED,
+  // fillFactor 0.9), mesurée séparément sur button-latching.off.1x/3x.png —
+  // valeurs légèrement différentes de BUTTON car l'asset (rocker plus large)
+  // diffère physiquement, pas une coïncidence à réutiliser entre les deux
+  // types.
   BUTTON_LATCHING: [
-    { id: "pin1", label: "1", dx: 0, dy: 30 },
-    { id: "pin2", label: "2", dx: 60, dy: 30 },
+    { id: "pin1", label: "1", dx: 7, dy: 30 },
+    { id: "pin2", label: "2", dx: 52, dy: 30 },
   ],
   POWER: [
     { id: "5V", label: "+5V", dx: 70, dy: 37 },

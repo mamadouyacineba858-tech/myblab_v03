@@ -17,10 +17,11 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
 import {
-  deriveComponentAssetSpec, validateComponentAsset, integrationImgAttrs,
+  deriveComponentAssetSpec, validateComponentAsset, validateLeadAnchors, integrationImgAttrs,
   typeToKebab, RESISTOR_ASSET_SPEC,
 } from '../componentAssetValidation.js'
 import { getComponentDef } from '../../../config/componentDefinitions.js'
+import { getPinPresentationPosition } from '../../../utils/pinPresentationGeometry.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const MODULE_PATH = resolve(__dirname, '../componentAssetValidation.js')
@@ -239,6 +240,71 @@ describe('001A — PREUVE DOM de la forme d\'intégration (sans CircuitComponent
     expect(wrapper.querySelectorAll('.myblab-pin').length).toBe(0)
     expect(wrapper.querySelectorAll('button').length).toBe(0)
     cleanup()
+  })
+})
+
+describe('MB-VIS-CONTACT-FOUNDATION-001 — pinAnchors dérivé de getPinPresentationPosition() (jamais p.dx/p.dy brut)', () => {
+  it('RESISTOR (aucun override) : pinAnchors inchangé — non-régression totale', () => {
+    const spec = deriveComponentAssetSpec('RESISTOR', { fillFactorKey: 'AXIAL_LEADED' })
+    expect(spec.pinAnchors).toEqual([
+      { id: 'A', x: 0, y: 14 },
+      { id: 'B', x: 84, y: 14 },
+    ])
+  })
+
+  it('LED (override pinPresentationGeometry.js) : pinAnchors reflète la position RÉELLEMENT rendue (28,62)/(52,62), jamais le dx/dy canonique inutilisé (0,20)/(80,20)', () => {
+    const spec = deriveComponentAssetSpec('LED')
+    expect(spec.pinAnchors).toEqual([
+      { id: 'anode', x: 28, y: 62 },
+      { id: 'cathode', x: 52, y: 62 },
+    ])
+    // Confirme que ces valeurs sont bien celles que CircuitComponent.jsx/
+    // WiresLayer.jsx utilisent réellement en production (même fonction).
+    const rendered = getPinPresentationPosition({ type: 'LED', x: 0, y: 0 }, getComponentDef('LED').pins[0])
+    expect(spec.pinAnchors[0]).toEqual({ id: 'anode', x: rendered.x, y: rendered.y })
+  })
+
+  it('POWER (override) : pinAnchors = (35,67)/(22,67), pas les coordonnées électriques canoniques (70,37)/(58,25)', () => {
+    const spec = deriveComponentAssetSpec('POWER')
+    const byId = Object.fromEntries(spec.pinAnchors.map((a) => [a.id, a]))
+    expect(byId['5V']).toEqual({ id: '5V', x: 35, y: 67 })
+    expect(byId.GND).toEqual({ id: 'GND', x: 22, y: 67 })
+  })
+})
+
+describe('MB-VIS-CONTACT-FOUNDATION-001 — validateLeadAnchors : garde-fou générique (Phase 6)', () => {
+  const spec = deriveComponentAssetSpec('RESISTOR', { fillFactorKey: 'AXIAL_LEADED' })
+
+  it('mesure exacte -> ok:true, delta=0 pour chaque pin', () => {
+    const r = validateLeadAnchors(spec, { A: { x: 0, y: 14 }, B: { x: 84, y: 14 } })
+    expect(r.ok).toBe(true)
+    expect(r.deltas.every((d) => d.delta === 0)).toBe(true)
+  })
+
+  it('mesure dans la tolérance (0.75) -> ok:true', () => {
+    const r = validateLeadAnchors(spec, { A: { x: 0.5, y: 14.5 }, B: { x: 84, y: 14 } })
+    expect(r.ok).toBe(true)
+  })
+
+  it('mesure hors tolérance -> ok:false, détail nomme le pin et le delta', () => {
+    const r = validateLeadAnchors(spec, { A: { x: 8, y: 14 }, B: { x: 84, y: 14 } })
+    expect(r.ok).toBe(false)
+    const n = r.checks.find((c) => c.id === 'N')
+    expect(n.ok).toBe(false)
+    expect(n.detail).toMatch(/A:/)
+  })
+
+  it('pin non mesuré -> check M échoue explicitement (jamais une valeur inventée)', () => {
+    const r = validateLeadAnchors(spec, { A: { x: 0, y: 14 } })
+    const m = r.checks.find((c) => c.id === 'M')
+    expect(m.ok).toBe(false)
+    expect(m.detail).toMatch(/B/)
+  })
+
+  it('ne définit jamais la coordonnée attendue : spec.pinAnchors reste celui dérivé de componentDefinitions.js, quel que soit measuredPins', () => {
+    validateLeadAnchors(spec, { A: { x: 999, y: 999 }, B: { x: -50, y: -50 } })
+    // La spec elle-même (source de vérité) n'a pas bougé.
+    expect(spec.pinAnchors).toEqual([{ id: 'A', x: 0, y: 14 }, { id: 'B', x: 84, y: 14 }])
   })
 })
 

@@ -139,12 +139,17 @@ describe("MB-VIS-COMP-005 — getPinPosition() : fonction géométrique canoniqu
     // passe de (45,0) à (45,50) pour aligner les 3 contacts sur le bord bas de
     // l'asset raster réaliste — changement de présentation autorisé par le
     // ticket (IDs, rôles, modèle électrique, canonicalRegistry inchangés).
+    // MB-VIS-CONTACT-FOUNDATION-001 : BUTTON/BUTTON_LATCHING dx corrigés
+    // depuis 0/60 (bord de boîte, jamais vérifié contre l'asset réel) vers
+    // les valeurs mesurées par pixel-probe (button.released.*.png /
+    // button-latching.off.*.png, cohérentes 1x/3x, delta < 1 unité canvas
+    // après correction — voir componentDefinitions.js et Delivery Report).
     const expected = {
       RESISTOR: [{ id: "A", dx: 0, dy: 14 }, { id: "B", dx: 84, dy: 14 }],
       LED: [{ id: "anode", dx: 28, dy: 62 }, { id: "cathode", dx: 52, dy: 62 }],
       CAPACITOR: [{ id: "pinA", dx: 0, dy: 20 }, { id: "pinB", dx: 70, dy: 20 }],
-      BUTTON: [{ id: "pin1", dx: 0, dy: 30 }, { id: "pin2", dx: 60, dy: 30 }],
-      BUTTON_LATCHING: [{ id: "pin1", dx: 0, dy: 30 }, { id: "pin2", dx: 60, dy: 30 }],
+      BUTTON: [{ id: "pin1", dx: 8, dy: 30 }, { id: "pin2", dx: 51, dy: 30 }],
+      BUTTON_LATCHING: [{ id: "pin1", dx: 7, dy: 30 }, { id: "pin2", dx: 52, dy: 30 }],
       POTENTIOMETER: [{ id: "left", dx: 10, dy: 50 }, { id: "wiper", dx: 45, dy: 50 }, { id: "right", dx: 80, dy: 50 }],
     }
 

@@ -164,13 +164,16 @@ describe("MB-VIS-PROTOTYPE-008 — BUTTON rend le paquet d'assets raster validé
     expect(getComponentPresentation('BUTTON')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
   })
 
-  it('9 — géométrie canonique inchangée : 60×60, pins pin1(0,30)/pin2(60,30)', () => {
+  // MB-VIS-CONTACT-FOUNDATION-001 : dx corrigés depuis 0/60 (bord de boîte,
+  // jamais vérifié contre l'asset raster réel) vers 8/51, mesurés par
+  // pixel-probe sur button.released.1x/3x.png (voir componentDefinitions.js).
+  it('9 — géométrie canonique inchangée : 60×60, pins pin1(8,30)/pin2(51,30)', () => {
     const def = getComponentDef('BUTTON')
     expect(def.width).toBe(60)
     expect(def.height).toBe(60)
     const byId = Object.fromEntries(def.pins.map((p) => [p.id, [p.dx, p.dy]]))
-    expect(byId.pin1).toEqual([0, 30])
-    expect(byId.pin2).toEqual([60, 30])
+    expect(byId.pin1).toEqual([8, 30])
+    expect(byId.pin2).toEqual([51, 30])
   })
 
   it('déterminisme — deux rendus produisent un HTML strictement identique (released puis pressed)', () => {
@@ -199,7 +202,11 @@ describe('MB-VIS-PROTOTYPE-008 — pipeline réel : pins et interactions BUTTON 
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('10 — CircuitComponent produit les 2 pins BUTTON à pin1(0,30)/pin2(60,30) ; asset raster dans le wrapper, chrome neutralisé', () => {
+  // MB-VIS-CONTACT-FOUNDATION-001 : positions attendues dérivées de
+  // getComponentDef (dx corrigés 8/51), jamais réécrites en dur — ce test
+  // reste donc automatiquement à jour si la présentation est ajustée à
+  // nouveau par un futur ticket documenté.
+  it('10 — CircuitComponent produit les 2 pins BUTTON à leur position de présentation ; asset raster dans le wrapper, chrome neutralisé', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('BUTTON', 50, 60) })
@@ -213,7 +220,7 @@ describe('MB-VIS-PROTOTYPE-008 — pipeline réel : pins et interactions BUTTON 
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining([[0, 30], [60, 30]]))
+    expect(positions).toEqual(expect.arrayContaining(def.pins.map((p) => [p.dx, p.dy])))
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()

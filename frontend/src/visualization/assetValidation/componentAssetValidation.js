@@ -12,11 +12,19 @@
  * — et fournit une fonction PURE `validateComponentAsset(spec, probe)` qui
  * juge un `probe` (mesures d'un asset réel, fournies par 001B).
  *
+ * [MB-VIS-CONTACT-FOUNDATION-001] Ajoute `validateLeadAnchors(spec,
+ * measuredPins)` — garde-fou générique pour tout futur asset : compare la
+ * position PHYSIQUE réellement mesurée d'un pin (fournie par une sonde
+ * externe, ex. `frontend/scripts/lead-anchor-probe.md`) à `spec.pinAnchors`,
+ * lui-même dérivé de `getPinPresentationPosition()` — jamais l'inverse. Le
+ * probe mesure ; il ne définit jamais les coordonnées attendues.
+ *
  * Il n'importe rien de `simulator/`, `CircuitComponent.jsx`, `Pin.jsx`,
  * `registry.js`, `PartRenderer.jsx`. Il ne crée ni renderer, ni registre,
  * ni seconde source de vérité.
  */
 import { getComponentDef } from '../../config/componentDefinitions.js'
+import { getPinPresentationPosition } from '../../utils/pinPresentationGeometry.js'
 import {
   ASSET_CONTRACT, RENDER_BUDGET, FILL_FACTOR, LIGHTING, CONTACT_SHADOW, CAPTURE,
 } from '../visualContract.js'
@@ -59,12 +67,25 @@ export function deriveComponentAssetSpec(type, opts = {}) {
     }
   }
 
-  // Ancrage des leads : pour les types hors-LED, la position de présentation
-  // du pin coïncide avec ses offsets dx/dy dans la boîte canonique
-  // (getPinPresentationPosition() = cas générique). Source : getComponentDef.
-  const pinAnchors = (def.pins || []).map((p) => Object.freeze({
-    id: p.id, x: p.dx ?? 0, y: p.dy ?? 0,
-  }))
+  // [MB-VIS-CONTACT-FOUNDATION-001] Ancrage des leads dérivé de
+  // getPinPresentationPosition() — la MÊME résolution que celle
+  // effectivement utilisée en production (CircuitComponent.jsx pour le
+  // <Pin>, circuitSelectors.js::buildWirePaths() pour l'extrémité de fil) —
+  // plutôt que de relire p.dx/p.dy directement. Pour les 12 types sans
+  // override de présentation, le résultat est identique (cas générique de
+  // getPinPresentationPosition() = p.dx/p.dy, non-régression totale). Pour
+  // LED/NPN_TRANSISTOR/POWER/ARDUINO (override par type dans
+  // pinPresentationGeometry.js), ce spec compare désormais la mesure réelle
+  // à la position RÉELLEMENT rendue, jamais à un dx/dy canonique inutilisé —
+  // corrige une divergence latente de ce harnais (jamais exploitée avant ce
+  // ticket, faute de sonde d'ancrage — voir validateLeadAnchors ci-dessous).
+  // `{ x: 0, y: 0 }` : composant hypothétique à l'origine, pour que le
+  // résultat reste exprimé dans le même repère boîte canonique que dx/dy.
+  const originComponent = Object.freeze({ uid: '__spec-probe__', type, x: 0, y: 0 })
+  const pinAnchors = (def.pins || []).map((p) => {
+    const pos = getPinPresentationPosition(originComponent, p) ?? { x: p.dx ?? 0, y: p.dy ?? 0 }
+    return Object.freeze({ id: p.id, x: pos.x, y: pos.y })
+  })
 
   return Object.freeze({
     type,
@@ -195,6 +216,53 @@ export function validateComponentAsset(spec, probe) {
 }
 
 /**
+ * [MB-VIS-CONTACT-FOUNDATION-001] Garde-fou générique : un pin de
+ * présentation coïncide-t-il avec le point de contact PHYSIQUE réel de
+ * l'asset livré ? Fonction PURE — elle ne mesure rien elle-même (aucun
+ * décodage d'image, aucun accès fichier, aucune dépendance canvas/DOM
+ * ajoutée à ce module) : elle juge un `measuredPins` déjà mesuré par une
+ * sonde externe (ex. le pixel-probe navigateur documenté dans
+ * `frontend/scripts/lead-anchor-probe.md`, ou tout futur outil de mesure
+ * équivalent) contre `spec.pinAnchors`, lui-même dérivé UNIQUEMENT de
+ * `getComponentDef()`/`getPinPresentationPosition()` (déjà appliqué par
+ * `deriveComponentAssetSpec` ci-dessus). Ce module ne devient donc jamais
+ * une troisième source de vérité géométrique (ADR-014, INV-PIN-007) : les
+ * coordonnées ATTENDUES restent exclusivement celles de
+ * `componentDefinitions.js` ; le probe ne fait que MESURER, jamais DÉFINIR.
+ *
+ * @param {object} spec  résultat de deriveComponentAssetSpec() — utilise spec.pinAnchors et spec.leadAnchorTolerancePx
+ * @param {Record<string, {x:number, y:number}>} measuredPins  position mesurée réelle (espace boîte canonique), par pin.id
+ * @returns {{ ok:boolean, checks:Array<{id,name,ok,detail}> }}
+ */
+export function validateLeadAnchors(spec, measuredPins) {
+  const checks = []
+  const measured = measuredPins || {}
+  const tolerance = spec.leadAnchorTolerancePx ?? 0.75
+
+  const missing = spec.pinAnchors.filter((a) => !measured[a.id])
+  checks.push(check('M', 'mesure fournie pour chaque pin de présentation', missing.length === 0,
+    missing.length ? `pins non mesurés: ${missing.map((a) => a.id).join(', ')}` : `${spec.pinAnchors.length} pins mesurés`))
+
+  const deltas = spec.pinAnchors
+    .filter((a) => measured[a.id])
+    .map((a) => {
+      const m = measured[a.id]
+      const dx = m.x - a.x, dy = m.y - a.y
+      return { id: a.id, expected: { x: a.x, y: a.y }, measured: { x: m.x, y: m.y }, delta: Math.sqrt(dx * dx + dy * dy) }
+    })
+
+  const overTolerance = deltas.filter((d) => d.delta > tolerance)
+  checks.push(check('N', `écart contact physique ↔ pin de présentation ≤ ${tolerance} unité(s) canvas`,
+    overTolerance.length === 0,
+    overTolerance.length
+      ? overTolerance.map((d) => `${d.id}: Δ=${d.delta.toFixed(3)} (attendu ${d.expected.x},${d.expected.y} — mesuré ${d.measured.x},${d.measured.y})`).join(' ; ')
+      : deltas.map((d) => `${d.id}: Δ=${d.delta.toFixed(3)}`).join(', ')))
+
+  const ok = checks.every((c) => c.ok)
+  return { ok, checks, deltas }
+}
+
+/**
  * Attributs DOM cibles de l'<img> d'intégration expérimentale (§16 du ticket).
  * Le renderer réel les appliquera ; ici on les DÉRIVE pour la preuve DOM,
  * sans rien rendre ni modifier.
@@ -213,4 +281,4 @@ export function integrationImgAttrs(spec, { src = '', srcset = '' } = {}) {
 
 export const RESISTOR_ASSET_SPEC = deriveComponentAssetSpec('RESISTOR', { fillFactorKey: 'AXIAL_LEADED' })
 
-export default { deriveComponentAssetSpec, validateComponentAsset, integrationImgAttrs, typeToKebab, RESISTOR_ASSET_SPEC }
+export default { deriveComponentAssetSpec, validateComponentAsset, validateLeadAnchors, integrationImgAttrs, typeToKebab, RESISTOR_ASSET_SPEC }
