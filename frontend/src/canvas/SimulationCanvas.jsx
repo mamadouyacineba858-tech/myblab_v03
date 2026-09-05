@@ -8,6 +8,7 @@ import { WiresLayer } from "../wires/WiresLayer.jsx"
 import { BreadboardWiresLayer } from "../wires/BreadboardWiresLayer.jsx"
 import { MarqueeOverlay } from "./MarqueeOverlay.jsx"
 import { GRID_SIZE } from "../utils/grid.js"
+import { clientToCanvas } from "../utils/geometry.js"
 import "./SimulationCanvas.css"
 import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
 
@@ -92,8 +93,12 @@ export function SimulationCanvas() {
     if (!type) return
     const rect = canvasRef?.current?.getBoundingClientRect()
     if (!rect) return
-    const x = (e.clientX - rect.left) / zoom - GRID_SIZE * 2
-    const y = (e.clientY - rect.top) / zoom - GRID_SIZE
+    // [MB-VIS-CANVAS-049] point de conversion centralisé unique
+    // (clientToCanvas), partagé avec drag/marquee/waypoint/Breadboard —
+    // plus de formule inline concurrente pour ce chemin.
+    const point = clientToCanvas(e, rect, zoom)
+    const x = point.x - GRID_SIZE * 2
+    const y = point.y - GRID_SIZE
     addComponent(type, x, y)
   }, [canvasRef, addComponent, zoom, endSidebarComponentDrag])
 

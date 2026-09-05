@@ -202,10 +202,13 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   // aucune réimplémentation de géométrie ici, R1/R7 du CSA) — et publie
   // uniquement les trous concernés + la validité globale, pour un rendu
   // vert/rouge par Breadboard.jsx (O5). `clientX`/`clientY` sont convertis
-  // en coordonnées Document avec EXACTEMENT la même formule que handleDrop()
-  // (SimulationCanvas.jsx, non dupliquée différemment) : l'aperçu affiché
-  // doit correspondre à la position où le composant atterrira réellement au
-  // relâchement, sous peine d'un feedback trompeur.
+  // en coordonnées Document via `clientToCanvas()` — [MB-VIS-CANVAS-049]
+  // même point de conversion centralisé que toutes les autres interactions
+  // pointeur (drag, marquee, waypoint, Breadboard), plutôt qu'une seconde
+  // formule inline concurrente — puis recentrées (offset `GRID_SIZE`) avec
+  // EXACTEMENT la même logique que handleDrop() (SimulationCanvas.jsx) :
+  // l'aperçu affiché doit correspondre à la position où le composant
+  // atterrira réellement au relâchement, sous peine d'un feedback trompeur.
   const updateSidebarComponentDragPosition = useCallback((clientX, clientY) => {
     const session = sidebarDragRef.current
     if (!session || !canvasRef?.current) {
@@ -218,8 +221,9 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
       return
     }
     const rect = canvasRef.current.getBoundingClientRect()
-    const x = (clientX - rect.left) / zoom - GRID_SIZE * 2
-    const y = (clientY - rect.top) / zoom - GRID_SIZE
+    const point = clientToCanvas({ clientX, clientY }, rect, zoom)
+    const x = point.x - GRID_SIZE * 2
+    const y = point.y - GRID_SIZE
     const placement = computeBreadboardPlacement(currentBreadboard, session.type, { x, y }, componentsRef.current)
     if (!placement.breadboardActive) {
       setBreadboardInsertPreview(null)
@@ -804,7 +808,7 @@ const adapted = toEngineInput(coreDoc);
     event.stopPropagation()
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect)
+    const pointer = clientToCanvas(event, rect, zoom)
     const baseWaypoints = wire.waypoints.map((wp) => ({ ...wp }))
 
     waypointDragSessionRef.current = {
@@ -817,7 +821,7 @@ const adapted = toEngineInput(coreDoc);
     setWaypointPreview({ wireId, waypoints: baseWaypoints })
 
     event.preventDefault()
-  }, [canvasRef, pendingPin])
+  }, [canvasRef, pendingPin, zoom])
   // =========================================================================
   // FIN MB-VIS-005 (Phase E — déplacement de waypoint)
   // =========================================================================
@@ -1117,7 +1121,7 @@ if (import.meta.env.DEV) {
     const idsToDrag = selectedIds.has(uid) ? selectedIds : new Set([uid])
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect)
+    const pointer = clientToCanvas(event, rect, zoom)
 
     const componentMap = new Map(components.map(c => [c.uid, c]))
 
@@ -1147,7 +1151,7 @@ if (import.meta.env.DEV) {
     }
 
     event.preventDefault()
-  }, [canvasRef, getSelectedComponentIds, components, pendingPin])
+  }, [canvasRef, getSelectedComponentIds, components, pendingPin, zoom])
 
   // =========================================================================
   // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : drag du breadboard.
@@ -1173,7 +1177,7 @@ if (import.meta.env.DEV) {
     event.stopPropagation()
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect)
+    const pointer = clientToCanvas(event, rect, zoom)
 
     const solidaryIds = resolveSolidaryComponentIds(currentBreadboard, componentsRef.current)
     const componentsStart = new Map()
@@ -1193,7 +1197,7 @@ if (import.meta.env.DEV) {
     }
 
     event.preventDefault()
-  }, [canvasRef, pendingPin])
+  }, [canvasRef, pendingPin, zoom])
   // =========================================================================
   // FIN MB-BREADBOARD-006 (startBreadboardDrag)
   // =========================================================================
@@ -1210,7 +1214,7 @@ if (import.meta.env.DEV) {
     if (pendingPin !== null) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect)
+    const pointer = clientToCanvas(event, rect, zoom)
 
     marqueeSessionRef.current = {
       start: { x: pointer.x, y: pointer.y },
@@ -1222,7 +1226,7 @@ if (import.meta.env.DEV) {
       start: { x: pointer.x, y: pointer.y },
       current: { x: pointer.x, y: pointer.y }
     })
-  }, [canvasRef, pendingPin])
+  }, [canvasRef, pendingPin, zoom])
 
   const updateMarquee = useCallback((event) => {
     const session = marqueeSessionRef.current
@@ -1230,7 +1234,7 @@ if (import.meta.env.DEV) {
     if (!canvasRef?.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const pointer = clientToCanvas(event, rect)
+    const pointer = clientToCanvas(event, rect, zoom)
 
     session.current = { x: pointer.x, y: pointer.y }
 
@@ -1238,7 +1242,7 @@ if (import.meta.env.DEV) {
       start: session.start,
       current: { x: pointer.x, y: pointer.y }
     })
-  }, [canvasRef])
+  }, [canvasRef, zoom])
 
   const endMarquee = useCallback(() => {
     const session = marqueeSessionRef.current
@@ -1370,7 +1374,7 @@ if (import.meta.env.DEV) {
       const waypointSession = waypointDragSessionRef.current
       if (waypointSession && canvasRef?.current) {
         const rect = canvasRef.current.getBoundingClientRect()
-        const pointer = clientToCanvas(event, rect)
+        const pointer = clientToCanvas(event, rect, zoom)
         const deltaX = pointer.x - waypointSession.pointerStart.x
         const deltaY = pointer.y - waypointSession.pointerStart.y
 
@@ -1388,7 +1392,7 @@ if (import.meta.env.DEV) {
       if (!session || !canvasRef?.current) return
 
       const rect = canvasRef.current.getBoundingClientRect()
-      const pointer = clientToCanvas(event, rect)
+      const pointer = clientToCanvas(event, rect, zoom)
       const deltaX = pointer.x - session.pointerStart.x
       const deltaY = pointer.y - session.pointerStart.y
 
@@ -1645,7 +1649,12 @@ if (import.meta.env.DEV) {
       window.removeEventListener("pointercancel", handlePointerCancel)
       window.removeEventListener("blur", handleBlur)
     }
-  }, [canvasRef, updateMarquee, endMarquee, documentApi, updateWireWaypoints])
+    // MB-VIS-CANVAS-049 : `zoom` est désormais lu par `handlePointerMove`
+    // (via `clientToCanvas(event, rect, zoom)`, drag composant/breadboard et
+    // waypoint) — sans cette dépendance, la fermeture de l'effet capturerait
+    // une valeur de `zoom` figée au montage (ou au dernier changement d'une
+    // autre dépendance) au lieu de la valeur courante à chaque interaction.
+  }, [canvasRef, updateMarquee, endMarquee, documentApi, updateWireWaypoints, zoom])
 
   // =========================================================================
   // WRAPPERS DE COMPATIBILITé

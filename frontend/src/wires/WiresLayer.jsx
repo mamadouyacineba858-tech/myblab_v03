@@ -131,6 +131,7 @@ export function WiresLayer({ wirePaths = [] }) {
     canvasRef,
     updateWireWaypoints,
     startWaypointDrag,
+    zoom,
   } = useCircuit()
 
   // Jointure géométrie (wirePaths: {id, d}, géométrie pure — cf. circuitSelectors.js)
@@ -202,7 +203,7 @@ export function WiresLayer({ wirePaths = [] }) {
       if (typeof updateWireWaypoints !== 'function') return
       if (!canvasRef?.current) return
       const rect = canvasRef.current.getBoundingClientRect()
-      const clickPoint = clientToCanvas(event, rect)
+      const clickPoint = clientToCanvas(event, rect, zoom)
       const points = extractPointsFromPathData(pathD)
       const wire = wiresById.get(wireId)
       const waypoints = Array.isArray(wire?.waypoints) ? wire.waypoints : []
@@ -211,7 +212,7 @@ export function WiresLayer({ wirePaths = [] }) {
       next.splice(insertIndex, 0, { x: clickPoint.x, y: clickPoint.y })
       updateWireWaypoints(wireId, next)
     },
-    [updateWireWaypoints, wiresById, canvasRef]
+    [updateWireWaypoints, wiresById, canvasRef, zoom]
   )
 
   return (

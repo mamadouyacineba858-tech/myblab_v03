@@ -36,14 +36,41 @@ export function getPinPosition(component, pinDef) {
 }
 
 /**
- * Convertit des coordonnées client (souris) en coordonnées canvas locales.
- * @param {MouseEvent} event
+ * Convertit des coordonnées client (souris/pointeur) en coordonnées
+ * Document/Canvas — le seul repère dans lequel vivent `component.x/y`,
+ * `pin.dx/dy`, le snapping et le rectangle de marquee.
+ *
+ * [MB-VIS-CANVAS-049] Point d'entrée UNIQUE de la conversion écran→document
+ * pour toutes les interactions pointeur (drag composant, marquee, drag/
+ * insertion de waypoint, drag Breadboard, dépôt/aperçu Sidebar). `canvasRect`
+ * provient de `canvasRef.current.getBoundingClientRect()` — le conteneur
+ * `.simulation-canvas`, jamais transformé — alors que son contenu (grille,
+ * composants, fils, breadboard, marquee) vit dans `.simulation-canvas__zoom-layer`,
+ * mis à l'échelle par un unique `transform: scale(zoom)` (SimulationCanvas.jsx).
+ * Un pixel écran ne vaut donc plus un pixel Document dès que `zoom !== 1` :
+ * `zoom` doit être fourni par l'appelant et la conversion divise par cette
+ * valeur — un facteur de projection Document→écran, jamais l'inverse. Ceci
+ * ne réintroduit AUCUN recalcul de zoom dans le renderer (interdit par
+ * `visualContract.js`) : cette fonction ne dessine rien, elle ne fait que
+ * transformer une coordonnée pointeur avant qu'elle n'alimente la géométrie
+ * Document — exactement le rôle que la Décision CSA du Blueprint
+ * MB-VIS-CANVAS-049 lui assigne ("Le zoom est un facteur de projection entre
+ * Document et écran ; il ne modifie jamais les coordonnées du Document.").
+ *
+ * `zoom` est optionnel (défaut `1`, comportement strictement inchangé pour
+ * tout appelant qui ne le fournit pas encore) et défensif : une valeur non
+ * finie ou nulle retombe sur `1` plutôt que de produire une division par
+ * zéro ou un résultat non fini.
+ *
+ * @param {MouseEvent | { clientX: number, clientY: number }} event
  * @param {DOMRect} canvasRect
+ * @param {number} [zoom=1]
  */
-export function clientToCanvas(event, canvasRect) {
+export function clientToCanvas(event, canvasRect, zoom = 1) {
+  const z = Number.isFinite(zoom) && zoom !== 0 ? zoom : 1
   return {
-    x: event.clientX - canvasRect.left,
-    y: event.clientY - canvasRect.top,
+    x: (event.clientX - canvasRect.left) / z,
+    y: (event.clientY - canvasRect.top) / z,
   }
 }
 
