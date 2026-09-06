@@ -123,9 +123,10 @@ Aucune décision de correction n'a été prise unilatéralement sur les points 3
 ## Git
 
 - `git status --short` avant commit : 29 fichiers modifiés (20 assets, 1 code applicatif, 8 tests), tous dans le périmètre autorisé ; `.claude/` non suivi non inclus.
-- Commit : `feat(button): simplify button visuals to tinkercad style`
+- Commit : `feat(button): simplify button visuals to tinkercad style` — SHA : `91d24ce107bac13c8818853353f289294b41a468`
 - Branche : `feat/MB-VIS-LED-V16-leads-thicker-realistic`
-- SHA commit / push : *(complétés ci-dessous après exécution)*
+- Push confirmé : `origin/feat/MB-VIS-LED-V16-leads-thicker-realistic` identique (`91d24ce107bac13c8818853353f289294b41a468`)
+- État final : `git status --short` propre (seul `.claude/` non suivi, préexistant, non lié à ce ticket, non touché)
 
 ## STOP
 
