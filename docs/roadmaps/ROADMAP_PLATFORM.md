@@ -212,7 +212,7 @@ La trajectoire stratégique de l'expérience est définie en §1.1 : **atteindre
 | --- | --- | --- |
 | EXP1 | Formalisation et clôture de MB-VIS-001 | Réalisé techniquement |
 | EXP2 | Visualisation des fils | Non commencé |
-| EXP3 | Parité visuelle composants & expérience — seuil Tinkercad | En cours |
+| EXP3 | Parité visuelle composants & expérience — seuil Tinkercad | En cours — **FAST TRACK actif** |
 | EXP4 | Dépassement du benchmark Tinkercad | Futur |
 | EXP5 | Laboratoire virtuel avancé et immersif | Vision long terme |
 
@@ -244,7 +244,7 @@ La séquence historique V1→V22 ci-dessous est conservée à des fins de traça
 | V8 | MB-VIS-COMP-016 | Potentiomètres et capteurs | Potentiomètre, LDR et thermistor réalisés |
 | V9 | MB-VIS-COMP-017 | Buzzer, moteur et servo | Buzzer, moteur et servo réalisés |
 | V10 | MB-VIS-COMP-018 | RGB LED et variantes LED | RGB LED réalisée |
-| V11 | MB-VIS-COMP-019 | Arduino et cartes — rendu réaliste | À traiter |
+| V11 | MB-VIS-COMP-019 | Arduino et cartes — rendu réaliste | Réalisé / capitalisé |
 | V12 | MB-VIS-COMP-020 | Pins, contacts et précision d'ancrage | À traiter transversalement |
 | V13 | MB-VIS-WIRE-021 | Fils — géométrie, épaisseur, routage et jonctions | À traiter |
 | V14 | MB-VIS-WIRE-022 | États électriques et restitution dynamique des fils | À traiter |
@@ -259,99 +259,128 @@ La séquence historique V1→V22 ci-dessous est conservée à des fins de traça
 
 Cette table est un **historique de planification**, pas une liste de tickets à relancer. Un travail déjà réalisé ne doit pas être recréé sous un autre identifiant uniquement pour respecter l'ancienne numérotation.
 
-### 7.2.2 — Nouvelle séquence opérationnelle EXP3
+### 7.2.2 — Séquence opérationnelle EXP3 — FAST TRACK TINKERCAD
 
-La séquence suivante constitue désormais la référence de planification opérationnelle pour le seuil Tinkercad. Elle est recalée sur l'état réel du dépôt après clôture de COMP-035.
+Le dépôt réel établit désormais que les **16 composants sur 16 du catalogue visuel de la vague sont rasterisés**, POWER et ARDUINO inclus. Les identifiants `031` à `048` sont conservés pour la traçabilité PMO, mais l'exécution opérationnelle n'est plus pilotée ticket par ticket. Elle est regroupée en quatre **Capability Gates** afin de réduire les boucles administratives et d'atteindre le seuil Tinkercad plus rapidement sans réduire les exigences architecturales.
 
-| Ordre | Ticket opérationnel | Objet | État | Dépendance principale |
-| ---: | --- | --- | --- | --- |
-| 0 | AUDIT-EXP3-001 | Audit global initial et recalage de la séquence | Réalisé | — |
-| 1 | MB-VIS-COMP-031 | Buzzer réaliste | **RÉALISÉ** | Baseline visuelle existante |
-| 2 | MB-VIS-COMP-032 | Potentiomètre réaliste | **RÉALISÉ** | COMP-031 |
-| 3 | MB-VIS-COMP-033 | RGB LED réaliste et états | **RÉALISÉ** | COMP-032 |
-| 4 | MB-VIS-COMP-034 | Transistor NPN réaliste | **RÉALISÉ** | COMP-033 |
-| 5 | MB-VIS-COMP-035 | Servo réaliste | **RÉALISÉ** | COMP-034 |
-| 6 | MB-VIS-COMP-036 | POWER — alimentation réaliste | **PROCHAIN** | COMP-035 |
-| 7 | MB-VIS-COMP-037 | Arduino / carte réaliste | Planifié | COMP-036 |
-| 8 | MB-VIS-CONTACT-038 | Pins, contacts et précision d'ancrage | Planifié | Composants principaux stabilisés |
-| 9 | MB-VIS-WIRE-039 | Fils — géométrie, épaisseur, routage et jonctions | Planifié | CONTACT-038 |
-| 10 | MB-VIS-WIRE-040 | Fils — états électriques et restitution dynamique | Planifié | WIRE-039 + états disponibles |
-| 11 | MB-VIS-BREAD-041 | Breadboard — restitution visuelle de référence | Planifié | CONTACT-038 + WIRE-039 |
-| 12 | MB-VIS-BREAD-042 | Breadboard — insertion, alignement et assemblage | Planifié | BREAD-041 |
-| 13 | MB-VIS-CANVAS-043 | Canvas — grille, zoom, sélection, déplacement, snapping | Planifié | BREAD-042 |
-| 14 | MB-VIS-CANVAS-044 | Canvas — profondeur, ombres, feedback d'interaction | Planifié | CANVAS-043 |
-| 15 | MB-VIS-STATE-045 | Système visuel des états de simulation | Planifié | WIRE-040 + composants à états |
-| 16 | MB-VIS-LAB-046 | Cohérence visuelle globale du laboratoire | Planifié | 031–045 |
-| 17 | MB-VIS-QA-047 | Visual regression suite et verrouillage des rendus | Planifié | LAB-046 |
-| 18 | MB-VIS-TINKERCAD-048 | Audit comparatif MYBlab ↔ Tinkercad et gate de niveau 1 | Jalon | QA-047 |
+| Gate | Tickets / travaux capitalisés | Objectif de capacité | Critère de sortie |
+| --- | --- | --- | --- |
+| **FT-A — Component Completion** | 031–037 + clôture des anomalies d'interaction ouvertes, dont MB-VIS-BUTTON-INTERACTION-008 | Qualifier les 16 composants comme objets réellement utilisables | Visuel + sélection + drag + pins + wire + déplacement câblé + zoom/localScale + états interactifs pertinents + non-régression |
+| **FT-B — Physical Connectivity** | MB-VIS-CONTACT-038 + MB-VIS-WIRE-039 + MB-VIS-WIRE-040 | Établir un contrat transversal unique de connectivité physique | Contact physique visible = hit target = pin de présentation = endpoint wire, relié à l'identité électrique canonique ; cohérence validée sur les 16 composants |
+| **FT-C — Assembly Experience** | MB-VIS-BREAD-041 + 042 + MB-VIS-CANVAS-043 + 044 + MB-VIS-STATE-045 | Rendre la construction d'un circuit fluide de bout en bout | Déposer → aligner/snaper → câbler → déplacer → zoomer → sélectionner → undo/redo → simuler → observer, sans rupture d'expérience |
+| **FT-D — Tinkercad Qualification** | MB-VIS-LAB-046 + MB-VIS-QA-047 + MB-VIS-TINKERCAD-048 | Qualifier officiellement le Niveau 1 | Cohérence du laboratoire + QA globale + comparaison MYBlab↔Tinkercad ; aucun écart P0/P1 empêchant le passage au Niveau 2 |
 
-### 7.2.3 — Périmètre de la nouvelle séquence
+#### FT-A — Component Completion Gate
 
-La vague composants a déjà porté `MB-VIS-COMP-031` à `MB-VIS-COMP-035` au backend raster réaliste. Avec les composants raster déjà capitalisés auparavant, **14 composants sur 16 du catalogue visuel de cette vague sont désormais rasterisés**. Les deux composants restant à traiter avant le passage aux capacités transversales sont **POWER**, prochain ticket `MB-VIS-COMP-036`, puis **ARDUINO**, ticket `MB-VIS-COMP-037`.
+FT-A ne constitue pas une nouvelle campagne de rasterisation. La production des assets est **terminée pour 16/16 composants**. FT-A construit une matrice de capacité transversale et ne corrige que les cases réellement déficientes. Un composant est qualifié lorsque ses invariants d'usage essentiels sont cohérents : rendu, sélection, drag, pins, câblage, déplacement câblé, zoom/localScale et états interactifs pertinents.
 
-Cette séquence ne suppose pas qu'un composant doive être rasterisé au prix d'une régression fonctionnelle : toute intégration reste soumise au contrat visuel, aux invariants canoniques et au CSA GO.
+La première unité d'exécution Fast Track est :
 
-Les tickets `038` à `046` passent ensuite des composants individuels aux capacités transversales : contacts, fils, breadboard, canvas, états et cohérence globale.
+**`FT-A-001 — 16/16 Component Capability Matrix & Gap Closure`.**
 
-Le ticket `047` verrouille la non-régression visuelle et le ticket `048` constitue le gate de décision du Niveau 1.
+#### FT-B — Physical Connectivity
 
-### 7.2.4 — Règle de non-duplication
+FT-B absorbe les travaux `038–040` dans un contrat transversal. Le contrat cible est :
 
-Un composant déjà validé techniquement et visuellement ne doit pas être réouvert uniquement parce qu'il apparaît encore dans la séquence historique V1→V22. Une réouverture exige un écart observable, une nouvelle exigence de qualité ou une décision CSA explicitement tracée.
+```text
+CONTACT PHYSIQUE VISIBLE
+          =
+POINT CLIQUABLE / HIT TARGET
+          =
+PIN DE PRÉSENTATION
+          =
+ENDPOINT DU FIL
+          ↕
+IDENTITÉ ÉLECTRIQUE CANONIQUE
+```
+
+La séparation Registry / Presentation et la jointure par `pin.id` restent gouvernées par l'architecture et les ADR. FT-B doit notamment auditer et résorber les éventuelles divergences de source de vérité de présentation au lieu d'ajouter une troisième source concurrente.
+
+#### FT-C — Assembly Experience
+
+FT-C regroupe `041–045` parce que le benchmark utilisateur ne perçoit pas breadboard, canvas, snapping, wire et états comme cinq produits séparés. La qualification s'effectue par scénarios end-to-end, par exemple :
+
+```text
+POWER → breadboard → RESISTOR → LED → GND
+
+placer → aligner → câbler → déplacer → zoomer → sélectionner
+→ undo/redo → simuler → observer
+```
+
+La réussite d'un scénario doit prouver simultanément la cohérence des sous-systèmes concernés.
+
+#### FT-D — Tinkercad Qualification
+
+FT-D regroupe `046–048`. `MB-VIS-TINKERCAD-048` reste le **gate officiel du Niveau 1**, mais la grille comparative doit être alimentée progressivement dès FT-A afin d'éviter de découvrir tardivement un écart essentiel. Le gate final compare au minimum : placement, drag, câblage, routage, breadboard, zoom/pan, sélection, undo/redo, valeurs de composants, états interactifs, simulation pertinente, Arduino, instrumentation disponible, feedback électrique et qualité visuelle.
+
+### 7.2.3 — Classification des écarts Fast Track
+
+Tout écart découvert pendant FT-A, FT-B, FT-C ou FT-D est classé :
+
+* **P0** — crash, corruption, perte de données ou rupture architecturale : correction immédiate et possibilité de ticket séparé ;
+* **P1** — empêche une capacité essentielle du seuil Tinkercad : correction obligatoire dans le gate courant ;
+* **P2** — défaut UX/visuel gênant mais capacité encore utilisable : backlog du gate, à fermer avant sa sortie ;
+* **P3** — perfectionnement non nécessaire à la parité : report vers EXP4 sauf décision CSA contraire.
+
+Une anomalie interne à un Capability Gate **ne crée pas automatiquement un nouveau micro-ticket**. Un ticket distinct n'est justifié que par un P0, une violation architecturale, un changement de responsabilité ou une exigence de traçabilité explicitement décidée par le CSA.
+
+### 7.2.4 — Mode d'exécution Fast Track
+
+Pour chaque Capability Gate, la boucle nominale devient :
+
+**1 audit CSA ciblé → 1 mission principale d'implémentation → tests ciblés pendant le développement → 1 suite complète finale → review/red-team ciblée si risque élevé → 1 QA CSA/Product → 1 commit/push de livraison.**
+
+Claude Code est l'agent principal d'implémentation lorsque disponible. Codex est utilisé en priorité comme vérificateur/red-team ciblé ou comme implémenteur de secours sur un périmètre précisément borné. Les agents n'obtiennent aucune autorité architecturale ou d'intégration par défaut.
+
+La mesure de progression principale n'est plus le nombre de tickets fermés, mais le nombre de **capacités Tinkercad complètes validées de bout en bout**.
+
+### 7.2.5 — Règle de non-duplication
+
+Un composant déjà validé techniquement et visuellement ne doit pas être réouvert uniquement parce qu'il apparaît encore dans une séquence historique. Une réouverture exige un écart observable dans la matrice de capacité, une nouvelle exigence de qualité ou une décision CSA explicitement tracée.
 
 ---
 
 ### 7.3 Règles spécifiques de progression visuelle
 
-1. **Audit global initial, puis contrôles ciblés** — un audit EXP3 complet est réalisé au démarrage de la nouvelle séquence et aux checkpoints majeurs. La clôture d'un ticket individuel utilise un contrôle de conformité ciblé et ne déclenche pas automatiquement un nouvel audit architectural complet.
-2. **Audit anticipé si nécessaire** — un nouvel audit complet est déclenché uniquement lorsqu'un ticket révèle une divergence susceptible de modifier la séquence, le périmètre, les invariants ou la technologie de rendu.
-3. **Amélioration visible** — chaque ticket visuel doit produire une amélioration observable de la qualité de restitution ou de l'expérience, sans sacrifier les invariants du Core.
+1. **Audit global initial, puis contrôles ciblés** — un audit EXP3 complet est réalisé au démarrage et aux checkpoints majeurs. La clôture d'une capacité utilise un contrôle de conformité ciblé et ne déclenche pas automatiquement un nouvel audit architectural complet.
+2. **Audit anticipé si nécessaire** — un nouvel audit complet est déclenché uniquement lorsqu'un travail révèle une divergence susceptible de modifier la séquence, le périmètre, les invariants ou la technologie de rendu.
+3. **Amélioration visible** — chaque travail visuel doit produire une amélioration observable de la qualité de restitution ou de l'expérience, sans sacrifier les invariants du Core.
 4. **Réalisme compatible** — le réalisme doit rester compatible avec les performances, la maintenabilité et l'architecture retenue ; aucune architecture 3D n'est présupposée par EXP3.
 5. **Contrats canoniques** — les dimensions, pins, états et autres métadonnées déclaratives existants doivent être réutilisés plutôt que dupliqués.
-6. **Séparation fonctionnel / visuel** — la géométrie fonctionnelle, les identités de pins, connexions, hitboxes, sélection, drag, câblage et simulation restent des sources de vérité du Core/Presentation existant. Une amélioration visuelle ne doit pas modifier ces responsabilités pour obtenir un meilleur rendu.
+6. **Séparation fonctionnel / visuel** — la géométrie fonctionnelle, les identités de pins, connexions, hitboxes, sélection, drag, câblage et simulation restent gouvernées par les responsabilités architecturales existantes. Une amélioration visuelle ne doit pas déplacer ces responsabilités.
 7. **Qualité de référence** — les critères de comparaison avec Tinkercad portent sur la perception utilisateur, la cohérence, les proportions, le comportement visuel et la qualité d'interaction, pas sur une copie de code ou de mécanismes propriétaires.
-8. **Contrat assets** — les nouveaux assets doivent respecter le contrat industriel déjà adopté : transparence, sujet isolé, variantes explicites lorsque nécessaires, formats et densités cohérents, poids maîtrisé, manifeste/intégrité lorsque requis par le protocole, et validation visuelle avant intégration.
-9. **Tests et preuve navigateur** — chaque ticket visuel doit fournir les tests ciblés, le build/typecheck, `git diff --check` et une preuve navigateur reproductible couvrant les états pertinents, le zoom et la cohabitation avec le canvas/breadboard lorsque pertinent.
-10. **CSA Visual GO** — aucun ticket visuel n'est considéré comme prêt à versionner tant que le CSA n'a pas validé le résultat visuel et la conformité au périmètre.
-11. **Gate de niveau 1** — `MB-VIS-TINKERCAD-048` constitue le jalon de décision : le passage au niveau 2 doit être explicitement validé et tracé.
-12. **Séquence opérationnelle de référence** — la table §7.2.2 remplace la séquence historique comme ordre de travail. L'historique reste conservé pour la traçabilité et ne doit pas être interprété comme une obligation de recréer des travaux déjà réalisés.
+8. **Contrat assets** — les nouveaux assets éventuels doivent respecter le contrat industriel adopté : transparence, sujet isolé, variantes explicites lorsque nécessaires, formats et densités cohérents, poids maîtrisé, manifeste/intégrité lorsque requis, et validation visuelle avant intégration.
+9. **Tests et preuve navigateur** — chaque Capability Gate fournit tests ciblés, build/typecheck, `git diff --check`, une suite complète finale et une preuve navigateur reproductible couvrant les scénarios pertinents.
+10. **CSA Visual/Technical GO** — aucun gate n'est considéré prêt à versionner tant que le CSA n'a pas validé le résultat et la conformité au périmètre.
+11. **Gate de niveau 1** — `MB-VIS-TINKERCAD-048`, intégré à FT-D, constitue le jalon de décision : le passage au niveau 2 doit être explicitement validé et tracé.
+12. **FAST TRACK comme ordre opérationnel de référence** — les Capability Gates §7.2.2 remplacent l'exécution séquentielle ticket-par-ticket pour EXP3. Les identifiants 031–048 restent conservés pour la traçabilité.
 
 ### 7.4 — Capitalisation de la trajectoire visuelle : MYBlab Physical/Realistic Visual Engine
 
 Cette sous-section capitalise les enseignements des travaux visuels antérieurs et définit la continuité technologique d'EXP3 → EXP5. Elle ne constitue pas une autorisation d'introduire une technologie nouvelle sans validation CSA.
 
-**Base expérimentale.** Un premier lot de renderers a été porté à un langage volumétrique SVG, puis plusieurs composants ont été migrés vers un backend raster réaliste. Ces travaux sont des étapes historiques valides et ne doivent pas être réécrits uniquement pour uniformiser les numéros de tickets.
+**Base expérimentale.** Un premier lot de renderers a été porté à un langage volumétrique SVG, puis les composants de la vague visuelle ont été migrés vers un backend raster réaliste. Ces travaux sont des étapes historiques valides et ne doivent pas être réécrits uniquement pour uniformiser les numéros de tickets.
 
-**État réel actuellement capitalisé.** Le backend déclaratif raster est désormais utilisé par **14 composants sur 16** de la vague visuelle : LED, RESISTOR, DIODE, CAPACITOR, LDR, THERMISTOR, DC_MOTOR, BUTTON, BUTTON_LATCHING, BUZZER, POTENTIOMETER, RGB_LED, NPN_TRANSISTOR et SERVO. Les assets correspondants suivent le contrat de production établi. Le registre de présentation reste déclaratif : les composants déclarent leur backend visuel via `visual.backend`, sans logique centrale spécifique par type. Les deux composants restant avant la phase transversale sont POWER puis ARDUINO.
+**État réel actuellement capitalisé.** Le backend déclaratif raster est désormais utilisé par **16 composants sur 16** de la vague visuelle : LED, RESISTOR, DIODE, CAPACITOR, LDR, THERMISTOR, DC_MOTOR, BUTTON, BUTTON_LATCHING, BUZZER, POTENTIOMETER, RGB_LED, NPN_TRANSISTOR, SERVO, POWER et ARDUINO. La phase de rasterisation du catalogue de cette vague est donc **terminée**. Les assets correspondants suivent le contrat de production établi et les composants déclarent leur backend visuel via les mécanismes de présentation existants.
 
-**Capitalisation post-COMP-031→035.** La vague `COMP-031` à `COMP-035` confirme comme référence durable le pipeline suivant : production d'un asset physique réaliste → package raster transparent 1x/3x en WebP + PNG → manifeste et intégrité compatibles avec le gate de qualité → probe pixel/géométrique lorsque les contacts physiques doivent coïncider avec les pins canoniques → intégration déclarative du backend raster → validation navigateur aux zooms pertinents → tests/build → CSA Visual GO → commit/push. Les corrections d'asset et de metadata doivent être résolues avant de déplacer les contrats fonctionnels ; la géométrie canonique ne doit jamais être ajustée pour masquer un défaut du raster.
+**Capitalisation du pipeline.** La vague visuelle confirme comme référence durable le pipeline suivant lorsqu'un nouvel asset est réellement nécessaire : production d'un asset physique réaliste → package raster transparent 1x/3x en WebP + PNG → manifeste et intégrité compatibles avec le gate de qualité → probe pixel/géométrique lorsque les contacts physiques doivent coïncider avec les pins → intégration déclarative du backend raster → validation navigateur aux zooms pertinents → tests/build → CSA Visual GO → versionnage. Les corrections d'asset et de metadata doivent être résolues avant de déplacer les contrats fonctionnels ; la géométrie canonique ne doit jamais être ajustée uniquement pour masquer un défaut du raster.
 
 **Nouvelle référence d'ambition.** Une référence visuelle de laboratoire électronique réaliste fournie par le CSA constitue la référence d'ambition artistique d'EXP3 → EXP5 : les composants doivent tendre à être perçus comme de véritables objets physiques (silhouettes crédibles, volume, matériaux différenciés, leads et connecteurs physiques, profondeur, ombres et éclairage cohérents, contact avec la surface, cohérence inter-composants et avec la breadboard). Comme Tinkercad, c'est un **benchmark d'ambition**, pas une spécification à reproduire pixel par pixel.
 
-**Principe architectural absolu.** La géométrie fonctionnelle (position, dimensions canoniques, pins et leur identité, connexions, hitbox, sélection, drag, câblage, simulation) reste la source de vérité unique et ne doit pas être modifiée pour un objectif de rendu. La représentation visuelle doit pouvoir évoluer indépendamment.
+**Principe architectural absolu.** La géométrie fonctionnelle, l'identité des pins, les connexions, la hitbox, la sélection, le drag, le câblage et la simulation restent gouvernés par leurs sources de vérité architecturales. La représentation visuelle doit pouvoir évoluer sans déplacer les responsabilités du Core.
 
 **Trajectoire actuelle.**
 
 ```text
-Travaux historiques / baseline
+16/16 composants rasterisés
     ↓
-Industrialisation du backend visuel déclaratif
+FT-A — Component Completion
     ↓
-COMP-031 → COMP-035 : réalisés
+FT-B — Physical Connectivity (038–040)
     ↓
-COMP-036 POWER : prochain
+FT-C — Assembly Experience (041–045)
     ↓
-COMP-037 ARDUINO
-    ↓
-Contacts / fils : 038 → 040
-    ↓
-Breadboard : 041 → 042
-    ↓
-Canvas : 043 → 044
-    ↓
-États + cohérence : 045 → 046
-    ↓
-Visual regression : 047
+FT-D — Tinkercad Qualification (046–048)
     ↓
 MB-VIS-TINKERCAD-048 — Gate Niveau 1
     ↓
@@ -360,9 +389,9 @@ EXP4 — Dépasser Tinkercad
 EXP5 — Laboratoire virtuel avancé et immersif
 ```
 
-**Règle de technologie.** La technologie de rendu peut évoluer si les contraintes de qualité, performance, maintenabilité ou réalisme le justifient, mais aucun basculement architectural majeur n'est implicite dans les tickets `031` à `048`. Une décision de technologie nouvelle relève d'une analyse et, si nécessaire, d'une ADR avant intégration.
+**Règle de technologie.** La technologie de rendu peut évoluer si les contraintes de qualité, performance, maintenabilité ou réalisme le justifient, mais aucun basculement architectural majeur n'est implicite dans le Fast Track. Une décision de technologie nouvelle relève d'une analyse et, si nécessaire, d'une ADR avant intégration.
 
-**Capitalisation obligatoire.** Les enseignements du protocole visuel existant restent obligatoires pour tous les composants suivants, notamment les phases d'audit, référence, asset, validation pixel, validation géométrique, intégration, suppression des artefacts wrapper, pins/câblage, breadboard, zoom, tests/build, CSA Visual GO et versionnage.
+**Capitalisation obligatoire.** Les enseignements du protocole visuel existant restent obligatoires : audit, référence, validation pixel/géométrique lorsque pertinente, pins/câblage, breadboard, zoom, tests/build, CSA Visual/Technical GO et versionnage contrôlé.
 
 ---
 
@@ -473,7 +502,10 @@ EMB1 - Runtime firmware réel
 
 EXP1 ───────────────────── EXP2 ───── EXP3 ───── EXP4 ───── EXP5
                               │
-                              └── séquence opérationnelle §7.2.2 → MB-VIS-TINKERCAD-048
+                              └── FAST TRACK §7.2.2
+                                  FT-A → FT-B → FT-C → FT-D
+                                             ↓
+                                  MB-VIS-TINKERCAD-048
 ```
 
 Ce graphe ne signifie pas que chaque Épic doit attendre la clôture complète de toutes ses dépendances pour commencer.
@@ -530,7 +562,7 @@ Les priorités sont établies selon six critères :
 | **P1 parallèle** | Simulation | Exploiter l'avance existante sans attendre inutilement la totalité du Core |
 | **P2** | Embedded Systems | Prolonger la simulation vers l'exécution embarquée réelle |
 | **P3** | Knowledge & Learning | Introduire la compréhension et l'adaptation pédagogique |
-| **P4** | Experience | Poursuivre la restitution après consolidation des fondations |
+| **P4 / Fast Track actif** | Experience | Atteindre le seuil Tinkercad par capacités complètes de bout en bout |
 | **P5** | Ecosystem | Construire l'extensibilité sur un Registry stabilisé |
 | **P6** | Collaboration | Construire la collaboration sur Document et Mutation stabilisés |
 
@@ -603,14 +635,16 @@ Résultats attendus :
 * EXP2 traité selon les capacités stabilisées du Core et de l'Execution ;
 * cohérence globale de la restitution vérifiée.
 
-## J7 — Seuil visuel Tinkercad
+## J7 — Seuil Tinkercad
 
 Résultats attendus :
 
-* EXP3 réalisé selon la séquence opérationnelle §7.2.2 et les contrôles de conformité ;
-* composants usuels, fils, breadboard, cartes et canvas atteignent un niveau de référence cohérent ;
-* visual regression et critères de qualité visuelle verrouillés ;
+* **16/16 composants rasterisés** et qualifiés par FT-A ;
+* contrat physique de connectivité validé par FT-B ;
+* scénarios d'assemblage de bout en bout validés par FT-C ;
+* cohérence du laboratoire et visual regression verrouillées par FT-D ;
 * **MB-VIS-TINKERCAD-048** exécuté comme gate comparatif ;
+* aucun écart P0/P1 empêchant la parité de Niveau 1 ;
 * décision explicite de passage au Niveau 2 — Dépasser Tinkercad.
 
 J7 est un jalon Experience. Il ne modifie pas à lui seul les responsabilités architecturales du Tome II.
@@ -649,15 +683,27 @@ Les priorités et jalons peuvent évoluer lorsque l'état réel du dépôt, une 
 
 ### R8 — La trajectoire Tinkercad est un benchmark, pas une spécification
 
-Les Tickets EXP3 peuvent utiliser Tinkercad comme référence de qualité perçue et d'expérience, mais ne doivent pas copier son code, ses mécanismes propriétaires ou présumer une architecture identique. Le benchmark sert à mesurer un niveau cible ; l'architecture de MYBlab reste gouvernée par le Tome II et les ADR.
+Les travaux EXP3 peuvent utiliser Tinkercad comme référence de qualité perçue et d'expérience, mais ne doivent pas copier son code, ses mécanismes propriétaires ou présumer une architecture identique. Le benchmark sert à mesurer un niveau cible ; l'architecture de MYBlab reste gouvernée par le Tome II et les ADR.
 
 ### R9 — Audit lourd initial, contrôle léger ensuite
 
-Après un audit EXP3 global validé, les tickets individuels sont contrôlés par rapport à la matrice, au Blueprint, aux invariants, aux tests et aux preuves de livraison. Un nouvel audit global n'est requis qu'en cas de divergence significative ou à un checkpoint explicitement défini.
+Après un audit EXP3 global validé, les travaux sont contrôlés par rapport à la matrice de capacité, au Blueprint, aux invariants, aux tests et aux preuves de livraison. Un nouvel audit global n'est requis qu'en cas de divergence significative ou à un checkpoint explicitement défini.
 
 ### R10 — Le dépôt réel est la source de vérité opérationnelle
 
 La roadmap ne doit jamais imposer la répétition d'un travail déjà réalisé et validé dans le dépôt réel. Les identifiants historiques sont conservés pour la traçabilité, tandis que la séquence opérationnelle est recalée sur l'état réel du code, des assets, des tests et des artefacts PMO.
+
+### R11 — Pilotage par capacité, pas par micro-ticket
+
+Pendant EXP3 Fast Track, une anomalie qui reste dans le périmètre d'un Capability Gate est corrigée dans ce gate sans créer automatiquement un nouveau ticket. Seuls un P0, une violation architecturale, un changement de responsabilité ou une décision explicite de traçabilité justifient une unité PMO séparée.
+
+### R12 — Deux gates de validation par capacité
+
+Une Capability Fast Track possède deux niveaux de sortie : **Gate ingénieur** (tests ciblés, suite complète finale, build/typecheck, diff-check) puis **Gate CSA/Product** (contrôle d'architecture, preuves et validation navigateur/visuelle lorsque pertinente). Les suites complètes ne doivent pas être répétées inutilement à chaque micro-correction interne.
+
+### R13 — Répartition des rôles IA Fast Track
+
+Le CSA conserve la responsabilité de l'architecture, du séquencement, des invariants et des GO/STOP. Claude Code est l'implémenteur principal lorsque disponible. Codex est prioritairement utilisé comme red-team/reviewer ciblé ou implémenteur de secours. Aucun agent n'a d'autorité d'intégration implicite.
 
 ---
 
@@ -675,10 +721,10 @@ PLATFORM_ARCHITECTURE.md
 ROADMAP_PLATFORM.md
         │
         ▼
-Épic
+Épic / Capability Gate
         │
         ▼
-Ticket PMO
+Ticket PMO ou unité d'exécution Fast Track
         │
         ▼
 Execution Blueprint
@@ -701,20 +747,22 @@ Elle ne doit ni descendre jusqu'au détail du code, ni remonter jusqu'à redéfi
 
 # 17. État de référence
 
-Cette version de ROADMAP_PLATFORM.md constitue la roadmap stratégique de référence du Programme Platform après capitalisation de la vague `MB-VIS-COMP-031` → `MB-VIS-COMP-035`.
+Cette version de ROADMAP_PLATFORM.md constitue la roadmap stratégique de référence du Programme Platform après capitalisation complète de la vague raster EXP3.
 
-Le recalage conserve les identifiants historiques pour assurer la traçabilité et établit la séquence opérationnelle actualisée jusqu'à `MB-VIS-TINKERCAD-048`.
+Le recalage conserve les identifiants historiques `031` à `048` pour assurer la traçabilité, mais remplace leur exécution séquentielle par le **FAST TRACK TINKERCAD FT-A → FT-B → FT-C → FT-D**.
 
-Les travaux déjà réalisés — LED, RESISTOR, DIODE, CAPACITOR, LDR, THERMISTOR, DC_MOTOR, BUTTON, BUTTON_LATCHING, BUZZER, POTENTIOMETER, RGB_LED, NPN_TRANSISTOR et SERVO — ne doivent pas être recréés uniquement pour satisfaire l'ancienne numérotation. **14 composants sur 16** de la vague visuelle sont désormais capitalisés en raster. Les deux composants restant avant la phase transversale sont POWER puis ARDUINO.
+Les **16 composants sur 16** du catalogue de la vague visuelle sont désormais capitalisés en raster : LED, RESISTOR, DIODE, CAPACITOR, LDR, THERMISTOR, DC_MOTOR, BUTTON, BUTTON_LATCHING, BUZZER, POTENTIOMETER, RGB_LED, NPN_TRANSISTOR, SERVO, POWER et ARDUINO. Il ne reste donc plus de campagne de rasterisation POWER/ARDUINO à ouvrir.
 
-La nouvelle règle de pilotage est :
+La règle de pilotage opérationnelle devient :
 
-**Audit global initial → séquence stabilisée → ticket → contrôle ciblé → ticket suivant → checkpoint → audit global uniquement si nécessaire.**
+**Capability Gate → audit ciblé → implémentation principale → tests ciblés → une suite complète finale → review ciblée si nécessaire → QA CSA/Product → versionnage.**
 
-Chaque ticket visuel conserve les exigences de Blueprint, invariants, limites de périmètre, tests, preuve navigateur et CSA Visual GO. Une modification architecturale ou technologique majeure reste soumise au Tome II et aux ADR appropriées.
+Chaque Capability Gate conserve les exigences de Blueprint, invariants, limites de périmètre, tests, preuve navigateur lorsque pertinente et CSA Visual/Technical GO. Une modification architecturale ou technologique majeure reste soumise au Tome II et aux ADR appropriées.
 
 La trajectoire stratégique demeure :
 
 **Atteindre le niveau Tinkercad → Dépasser Tinkercad → Tendre vers un laboratoire virtuel MYBlab avancé, réaliste, immersif et extensible.**
 
-Le prochain ticket opérationnel de la séquence EXP3 est désormais **`MB-VIS-COMP-036 — POWER — alimentation réaliste`**. Conformément à la règle de travail actuelle, la préparation du ticket suivant se limite d'abord à la **production et validation de l'asset** ; le Blueprint, le ticket d'implémentation et le CSA GO ne sont émis qu'après clôture du ticket en cours et validation de l'étape asset correspondante.
+La prochaine unité opérationnelle après clôture de `MB-VIS-BUTTON-INTERACTION-008` est désormais :
+
+**`FT-A-001 — 16/16 Component Capability Matrix & Gap Closure`.**
