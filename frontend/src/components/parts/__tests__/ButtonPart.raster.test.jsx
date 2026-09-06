@@ -16,8 +16,12 @@
  *     classe `.part-button--pressed` et jeu d'assets basculent ensemble,
  *     sans <svg> ;
  *  6. les gestionnaires onPointerDown/onPointerUp/onPointerCancel/
- *     onLostPointerCapture/onMouseDown restent attachés à l'élément racine
- *     (contrat de props strictement inchangé, LOCK-19/VIS-TEST-08) ;
+ *     onLostPointerCapture restent attachés à l'élément racine (LOCK-19/
+ *     VIS-TEST-08). `onMouseDown` a été retiré du contrat de props par
+ *     MB-VIS-BUTTON-INTERACTION-003 : il interceptait le `mousedown` de
+ *     compatibilité destiné à `.circuit-component` (wrapper), empêchant
+ *     toute sélection/déplacement de BUTTON en cliquant sur son corps
+ *     (cause confirmée par MB-VIS-CONTACT-AUDIT-002) ;
  *  7. l'<img> ne porte aucun gestionnaire, draggable=false,
  *     pointer-events:none (le hit-test reste sur le wrapper) ;
  *  8. le backend résolu pour BUTTON est bien 'raster' (via
@@ -129,7 +133,7 @@ describe("MB-VIS-PROTOTYPE-008 — BUTTON rend le paquet d'assets raster validé
     expect(container.querySelector('img').getAttribute('src')).toContain('button.pressed.')
   })
 
-  it('6 — les gestionnaires onPointerDown/onPointerUp/onPointerCancel/onLostPointerCapture/onMouseDown restent attachés à la racine', () => {
+  it('6 — les gestionnaires onPointerDown/onPointerUp/onPointerCancel/onLostPointerCapture restent attachés à la racine', () => {
     const calls = []
     const { container } = render(
       <ButtonPart
@@ -138,7 +142,6 @@ describe("MB-VIS-PROTOTYPE-008 — BUTTON rend le paquet d'assets raster validé
         onPointerUp={() => calls.push('up')}
         onPointerCancel={() => calls.push('cancel')}
         onLostPointerCapture={() => calls.push('lost')}
-        onMouseDown={() => calls.push('mouse')}
       />
     )
     const root = container.querySelector('.part-button')
@@ -146,8 +149,24 @@ describe("MB-VIS-PROTOTYPE-008 — BUTTON rend le paquet d'assets raster validé
     fireEvent.pointerUp(root)
     fireEvent.pointerCancel(root)
     fireEvent.lostPointerCapture(root)
+    expect(calls).toEqual(['down', 'up', 'cancel', 'lost'])
+  })
+
+  // MB-VIS-BUTTON-INTERACTION-003 : `onMouseDown` n'est plus un prop du
+  // contrat de ButtonPart — un `mousedown` réel sur la racine doit
+  // atteindre l'appelant (bulle nativement), jamais être intercepté ici,
+  // pour que le wrapper `.circuit-component` (CircuitComponent.jsx) puisse
+  // le recevoir et déclencher sélection/drag.
+  it("6bis — onMouseDown n'est plus un prop de ButtonPart ; un mousedown natif sur la racine n'est intercepté par aucun handler local", () => {
+    const calls = []
+    const { container } = render(
+      <div onMouseDown={() => calls.push('ancestor-mouse')}>
+        <ButtonPart state="released" />
+      </div>
+    )
+    const root = container.querySelector('.part-button')
     fireEvent.mouseDown(root)
-    expect(calls).toEqual(['down', 'up', 'cancel', 'lost', 'mouse'])
+    expect(calls).toEqual(['ancestor-mouse'])
   })
 
   it('7 — l\'<img> ne porte aucun gestionnaire, draggable=false, pointer-events:none', () => {

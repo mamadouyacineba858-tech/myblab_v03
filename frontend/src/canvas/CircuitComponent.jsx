@@ -104,8 +104,18 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
   // interaction.type === "latching" — voir componentDefinitions.js.
   const isButton = def?.interaction?.type === "momentary"
 
+  // [MB-VIS-BUTTON-INTERACTION-003] `e.preventDefault()` retiré ici (audit
+  // MB-VIS-CONTACT-AUDIT-002, cause racine confirmée empiriquement) :
+  // appelé sur `pointerdown`, il supprimait entièrement l'événement
+  // `mousedown` de compatibilité que le navigateur dispatche normalement
+  // juste après (spec Pointer Events) — or c'est UNIQUEMENT ce `mousedown`,
+  // reçu par `.circuit-component` (`onMouseDown={handleBodyMouseDown}` plus
+  // bas), qui déclenche `selectOnly()`/`startDrag()`. Sans lui, BUTTON ne
+  // pouvait plus jamais être sélectionné ni déplacé en cliquant sur son
+  // corps. `e.stopPropagation()` est conservé (aucun ancêtre n'écoute
+  // `pointerdown`, donc sans effet fonctionnel ici, mais il n'est pas la
+  // cause du bug et son retrait n'est pas nécessaire à la correction).
   const handleButtonPointerDown = useCallback((e) => {
-    e.preventDefault()
     e.stopPropagation()
 
     setButtonState(uid, "pressed")
@@ -141,14 +151,24 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
     setButtonState(uid, "released")
   }, [setButtonState, uid])
 
-  const handleButtonMouseDown = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }, [])
+  // [MB-VIS-BUTTON-INTERACTION-003] `handleButtonMouseDown` supprimé : il
+  // n'a plus lieu d'être. Il existait pour intercepter le `mousedown` sur
+  // le corps du bouton (`onMouseDown` de `ButtonPart.jsx`) — mais depuis le
+  // retrait de `preventDefault()` ci-dessus, c'est précisément CE
+  // `mousedown` que `.circuit-component` doit recevoir pour que
+  // `selectOnly()`/`startDrag()` s'exécutent. Le conserver aurait
+  // neutralisé la correction en stoppant sa propagation avant le wrapper.
+  // `ButtonPart.jsx` ne reçoit donc plus de prop `onMouseDown` (voir plus
+  // bas) : aucun autre code ne s'appuyait sur ce handler.
   const isLatchingButton = def?.interaction?.type === "latching"
 
+  // [MB-VIS-BUTTON-INTERACTION-003] Même correction que
+  // handleButtonPointerDown ci-dessus : `preventDefault()` retiré, seule
+  // cause de la suppression du `mousedown` de compatibilité pour
+  // BUTTON_LATCHING (qui, contrairement à BUTTON, ne posait déjà aucun
+  // `onMouseDown` propre — la suppression se produisait entièrement via ce
+  // seul `preventDefault()` sur `pointerdown`).
   const handleLatchingButtonPointerDown = useCallback((e) => {
-    e.preventDefault()
     e.stopPropagation()
   }, [])
 
@@ -229,7 +249,6 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
             onPointerUp: handleButtonPointerUp,
             onPointerCancel: handleButtonPointerCancel,
             onLostPointerCapture: handleButtonLostPointerCapture,
-            onMouseDown: handleButtonMouseDown,
           } : {})}
           {...(isLatchingButton ? {
             state: component.state,

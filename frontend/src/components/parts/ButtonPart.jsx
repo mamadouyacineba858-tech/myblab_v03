@@ -23,10 +23,19 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  * l'élément racine (le `<div>` reste la cible des événements pointer/mouse,
  * exactement comme avant) :
  *  - state, onPointerDown, onPointerUp, onPointerCancel,
- *    onLostPointerCapture, onMouseDown — tous fournis par
- *    CircuitComponent.jsx, non touché par ce ticket ;
+ *    onLostPointerCapture — tous fournis par CircuitComponent.jsx ;
  *  - classes `part-button` / `part-button--pressed` (LOCK-19, VIS-TEST-08) ;
  *  - `aria-label="Bouton"`.
+ *
+ * [MB-VIS-BUTTON-INTERACTION-003] `onMouseDown` retiré du contrat de props
+ * (n'est plus fourni par CircuitComponent.jsx) : ce handler interceptait le
+ * `mousedown` de compatibilité sur le corps du bouton, empêchant
+ * `.circuit-component` (le wrapper ancêtre) de jamais le recevoir — cause
+ * confirmée (MB-VIS-CONTACT-AUDIT-002) de l'impossibilité de sélectionner/
+ * déplacer BUTTON en cliquant sur son corps. Le `mousedown` remonte
+ * désormais naturellement jusqu'au wrapper, qui gère seul la sélection et
+ * le drag — comme pour tout composant non interactif. La racine reste la
+ * cible des événements pointer restants (press/release), inchangés.
  * Le `<picture>`/`<img>` ajouté est purement visuel et non interactif :
  * `pointer-events: none`, `draggable={false}` — le hit-test, le drag et le
  * câblage restent entièrement gérés par le wrapper `.circuit-component` /
@@ -62,7 +71,6 @@ export function ButtonPart({
   onPointerUp,
   onPointerCancel,
   onLostPointerCapture,
-  onMouseDown,
 }) {
   const def = getComponentDef("BUTTON")
   const width = def?.width ?? 60
@@ -78,7 +86,6 @@ export function ButtonPart({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
       onLostPointerCapture={onLostPointerCapture}
-      onMouseDown={onMouseDown}
       style={{
         cursor: "pointer",
         userSelect: "none",
