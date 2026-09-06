@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react"
 import { useCircuit } from "../context/useCircuit.js"
+import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { getPinPosition } from "../utils/geometry.js"
 import { buildWirePath } from "./wirePath.js"
@@ -27,7 +28,8 @@ function resolveEndpoint(endpoint, components, breadboard) {
 
 /** MB-BREADBOARD-012 — renders and selects persisted wires with hole endpoints. */
 export function BreadboardWiresLayer() {
-  const { components, wires, breadboard, isSelected, selectOnly, toggleSelection } = useCircuit()
+  const { wires, isSelected, selectOnly, toggleSelection } = useCircuit()
+  const { components, breadboard } = useCircuitInteraction()
 
   const paths = useMemo(() => {
     const result = []

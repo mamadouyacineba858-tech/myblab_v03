@@ -1,0 +1,11 @@
+# MB-BREADBOARD-WIRE-CRASH-013
+- Baseline : `328b36ee25ad64d6128216b7eba9aab38339a996`, branche imposée vérifiée après fetch.
+- Cause : BreadboardWiresLayer lisait components/breadboard dans le contexte stable ; `components.find` faisait tomber le rendu React.
+- Reproduction Chromium/Vite avant correction : POWER +5V → trou, écran noir et TypeError dans resolveEndpoint.
+- Correction : géométrie lue via useCircuitInteraction ; wires/sélection/actions restent via useCircuit, aucun fallback.
+- Fichiers : `frontend/src/wires/BreadboardWiresLayer.jsx`, `frontend/src/wires/__tests__/BreadboardWiresLayer.integration.test.jsx`, ce rapport.
+- Régression : 2 tests avec le vrai CircuitProvider séparé, POWER→trou et trou→POWER ; tous deux FAIL avant, PASS après.
+- Tests ciblés : 13 PASS / 3 fichiers ; suivi de géométrie pendant déplacement et maintien du canvas après zoom inclus.
+- Browser après : wire orange visible (stroke rgb(249,115,22), opacity 1), canvas intact, déplacement POWER + zoom OK, console sans erreur.
+- Validations finales : suite complète en cours ; tsc/build/diff-check à compléter.
+- Aucun autre code ni contexte modifié ; fichiers non suivis préexistants exclus du commit.
