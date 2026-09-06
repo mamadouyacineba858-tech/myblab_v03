@@ -73,3 +73,11 @@
 .wires-layer__waypoint-handle:hover {
   fill: #4ade80;
 }
+
+.wires-layer__preview {
+  fill: none;
+  stroke: #38bdf8;
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+  pointer-events: none;
+}

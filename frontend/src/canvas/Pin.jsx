@@ -10,6 +10,8 @@ import "./Pin.css"
  */
 export function Pin({
   pinId,
+  componentUid,
+  startWireGesture,
   label,
   left,
   top,
@@ -32,6 +34,12 @@ export function Pin({
   return (
     <button
       type="button"
+      data-wire-uid={componentUid}
+      data-wire-pin={pinId}
+      onPointerDown={(e) => {
+        e.stopPropagation()
+        startWireGesture?.(e, componentUid, pinId)
+      }}
       className={[
         "myblab-pin",
         hover && "myblab-pin--hover",

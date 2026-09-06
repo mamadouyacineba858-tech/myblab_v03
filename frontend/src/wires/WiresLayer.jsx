@@ -14,6 +14,8 @@ import { getWireStrokeColor, getWireStateClassName } from "./wirePath.js"
 import { getWireLogicalState, Signal } from "./wireState.js"
 import { clientToCanvas, extractPointsFromPathData } from "../utils/geometry.js"
 import { nearestSegmentInsertIndex } from "./waypointInsertion.js"
+import { getComponentDef } from "../config/componentDefinitions.js"
+import { getPinPresentationPosition } from "../utils/pinPresentationGeometry.js"
 
 /**
  * Rendu d'un fil individuel (MB-VIS-004 ; poignées de waypoint MB-VIS-005).
@@ -132,11 +134,23 @@ export function WiresLayer({ wirePaths = [] }) {
     canvasRef,
     updateWireWaypoints,
     startWaypointDrag,
+    focusedComponentId,
   } = useCircuit()
   // MB-VIS-CANVAS-051 : `viewport` seul relève du state haute fréquence —
   // isolé dans son propre contexte pour ne pas forcer WiresLayer à dépendre
   // du même Context que CircuitComponent.jsx (qui n'en a, lui, jamais besoin).
-  const { viewport } = useCircuitInteraction()
+  const { viewport, wireGesture, components, localScale } = useCircuitInteraction()
+  let preview = null
+  if (wireGesture && canvasRef?.current) {
+    const component = components?.find((c) => c.uid === wireGesture.uid)
+    const pin = component && getComponentDef(component.type)?.pins?.find((p) => p.id === wireGesture.pinId)
+    const from = pin && getPinPresentationPosition(component, pin, {
+      scale: component.uid === focusedComponentId ? localScale : 1,
+    })
+    const to = clientToCanvas(wireGesture, canvasRef.current.getBoundingClientRect(),
+      viewport.zoom, viewport.translateX, viewport.translateY)
+    if (from) preview = `M ${from.x} ${from.y} L ${to.x} ${to.y}`
+  }
 
   // Jointure géométrie (wirePaths: {id, d}, géométrie pure — cf. circuitSelectors.js)
   // ↔ topologie (wires: {id, fromUid, fromPin, toUid, toPin, waypoints}), par id.
@@ -221,6 +235,7 @@ export function WiresLayer({ wirePaths = [] }) {
 
   return (
     <svg className="wires-layer" aria-hidden="true">
+      {preview && <path className="wires-layer__preview" d={preview} />}
       {paths.map((p) => {
         if (!p?.id || !p?.d) return null
         const wire = wiresById.get(p.id)

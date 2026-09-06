@@ -72,6 +72,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     adjustLocalScale: state.adjustLocalScale,
     addComponent: state.addComponent,
     addWire: state.addWire,
+    startWireGesture: state.startWireGesture,
     addBreadboard: state.addBreadboard,
     clearCircuit: state.clearCircuit,
     onPinClick: state.onPinClick,
@@ -130,6 +131,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     state.simulationActive, state.showGrid, state.theme,
     state.focusedComponentId, state.focusComponent, state.exitFocus, state.adjustLocalScale,
     state.addComponent, state.addWire, state.addBreadboard, state.clearCircuit,
+    state.startWireGesture,
     state.onPinClick, state.cancelWiring, state.isPinPending, state.isPinConnected,
     state.startSidebarComponentDrag, state.updateSidebarComponentDragPosition, state.endSidebarComponentDrag,
     state.updateWireWaypoints, state.startWaypointDrag,
@@ -161,6 +163,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     breadboardFeedback: state.breadboardFeedback,
     breadboardInsertPreview: state.breadboardInsertPreview,
     wirePaths: state.wirePaths,
+    wireGesture: state.wireGesture,
     viewport: state.viewport,
     zoom: state.zoom,
     marqueeRect: state.marqueeRect,
@@ -174,6 +177,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
   }), [
     state.components, state.breadboard, state.breadboardFeedback, state.breadboardInsertPreview,
     state.wirePaths, state.viewport, state.zoom, state.marqueeRect, state.localScale,
+    state.wireGesture,
   ])
 
   return (

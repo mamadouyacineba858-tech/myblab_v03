@@ -114,6 +114,9 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   // connectivité propre).
   const [breadboard, setBreadboard] = useState(null)
   const [pendingPin, setPendingPin] = useState(null)
+  const [wireGesture, setWireGesture] = useState(null)
+  const wireGestureRef = useRef(null)
+  const suppressWireClickRef = useRef(false)
 
   const [selection, setSelection] = useState(new Set())
   const [activeItem, setActiveItem] = useState(null)
@@ -481,7 +484,7 @@ const adapted = toEngineInput(coreDoc);
   }
 }, [safeComponents, safeWires, breadboard, simulationActive, orchestrators])
 
-  const isWiringActive = pendingPin !== null
+  const isWiringActive = pendingPin !== null || wireGesture !== null
 
   // =========================================================================
   // MB-004.5 : Référence synchrone pour aƒéiter la stale closure
@@ -916,7 +919,7 @@ const adapted = toEngineInput(coreDoc);
     if (dragSessionRef.current !== null) return
     if (marqueeSessionRef.current !== null) return
     if (panSessionRef.current !== null) return
-    if (pendingPin !== null) return
+    if (pendingPin !== null || wireGestureRef.current !== null) return
 
     const wire = wiresRef.current.find((w) => w.id === wireId)
     if (!wire || !Array.isArray(wire.waypoints) || !wire.waypoints[index]) return
@@ -943,7 +946,80 @@ const adapted = toEngineInput(coreDoc);
   // FIN MB-VIS-005 (Phase E — déplacement de waypoint)
   // =========================================================================
 
-  const cancelWiring = useCallback(() => setPendingPin(null), [])
+  const cancelWiring = useCallback(() => {
+    if (wireGestureRef.current) suppressWireClickRef.current = true
+    wireGestureRef.current = null
+    setWireGesture(null)
+    setPendingPin(null)
+  }, [])
+
+  // Presentation only: no temporary wire, Document mutation or history entry.
+  const startWireGesture = useCallback((event, uid, pinId) => {
+    if (event.button !== 0 || !uid || !pinId || wireGestureRef.current) return
+    if (dragSessionRef.current || marqueeSessionRef.current || panSessionRef.current || waypointDragSessionRef.current) return
+    const gesture = { uid, pinId, pointerId: event.pointerId,
+      clientX: event.clientX, clientY: event.clientY,
+      startX: event.clientX, startY: event.clientY, moved: false }
+    wireGestureRef.current = gesture
+    setWireGesture(gesture)
+    // Release implicit touch capture so the physical destination remains hittable.
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }, [])
+
+  useEffect(() => {
+    const move = (event) => {
+      const gesture = wireGestureRef.current
+      if (!gesture || event.pointerId !== gesture.pointerId) return
+      const next = { ...gesture, clientX: event.clientX, clientY: event.clientY,
+        moved: gesture.moved || Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) >= 3 }
+      wireGestureRef.current = next
+      setWireGesture(next)
+    }
+    const up = (event) => {
+      const gesture = wireGestureRef.current
+      if (!gesture || event.pointerId !== gesture.pointerId) return
+      const target = typeof document.elementFromPoint === "function"
+        ? document.elementFromPoint(event.clientX, event.clientY) : event.target
+      const pin = target?.closest?.("[data-wire-uid][data-wire-pin]")
+      const same = pin?.dataset.wireUid === gesture.uid && pin?.dataset.wirePin === gesture.pinId
+      wireGestureRef.current = null
+      setWireGesture(null)
+      // A stationary release on A remains the existing click-pin interaction.
+      if (same && !gesture.moved) return
+      suppressWireClickRef.current = true
+      setPendingPin(null)
+      if (pin && canvasRef?.current?.contains(pin)) {
+        addWire(gesture.uid, gesture.pinId, pin.dataset.wireUid, pin.dataset.wirePin)
+      }
+    }
+    const cancel = () => { if (wireGestureRef.current) cancelWiring() }
+    const key = (event) => { if (event.key === "Escape") cancel() }
+    const resetClick = () => { suppressWireClickRef.current = false }
+    const click = (event) => {
+      if (!suppressWireClickRef.current || event.detail === 0) return
+      suppressWireClickRef.current = false
+      event.preventDefault()
+      event.stopImmediatePropagation()
+    }
+    window.addEventListener("pointerdown", resetClick, true)
+    window.addEventListener("pointermove", move)
+    window.addEventListener("pointerup", up)
+    window.addEventListener("pointercancel", cancel)
+    window.addEventListener("blur", cancel)
+    window.addEventListener("keydown", key, true)
+    window.addEventListener("click", click, true)
+    return () => {
+      window.removeEventListener("pointerdown", resetClick, true)
+      window.removeEventListener("pointermove", move)
+      window.removeEventListener("pointerup", up)
+      window.removeEventListener("pointercancel", cancel)
+      window.removeEventListener("blur", cancel)
+      window.removeEventListener("keydown", key, true)
+      window.removeEventListener("click", click, true)
+    }
+  }, [addWire, canvasRef, cancelWiring])
 
   const onPinClick = useCallback((uid, pinId) => {
     if (!uid || !pinId) return
@@ -1230,7 +1306,7 @@ if (import.meta.env.DEV) {
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (marqueeSessionRef.current !== null) return
     if (panSessionRef.current !== null) return
-    if (pendingPin !== null) return
+    if (pendingPin !== null || wireGestureRef.current !== null) return
 
     event.stopPropagation()
 
@@ -1337,7 +1413,7 @@ if (import.meta.env.DEV) {
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
     if (dragSessionRef.current !== null) return
     if (panSessionRef.current !== null) return
-    if (pendingPin !== null) return
+    if (pendingPin !== null || wireGestureRef.current !== null) return
 
     const rect = canvasRef.current.getBoundingClientRect()
     // MB-VIS-CANVAS-051 (D3) : viewportRef — lu une seule fois au pointerdown.
@@ -1521,7 +1597,7 @@ if (import.meta.env.DEV) {
     if (dragSessionRef.current !== null) return
     if (marqueeSessionRef.current !== null) return
     if (waypointDragSessionRef.current !== null) return
-    if (pendingPin !== null) return
+    if (pendingPin !== null || wireGestureRef.current !== null) return
 
     // MB-VIS-CANVAS-051 (D3) : viewportRef — lu une seule fois au pointerdown
     // (jamais en continu), même raisonnement que startDrag/startMarquee.
@@ -2018,6 +2094,8 @@ if (import.meta.env.DEV) {
   const deleteSelectedWire = useCallback(() => deleteSelection(), [deleteSelection])
 
   const clearCircuit = useCallback(() => {
+    wireGestureRef.current = null
+    setWireGesture(null)
     setComponents([])
     setWires([])
     setPendingPin(null)
@@ -2050,6 +2128,8 @@ if (import.meta.env.DEV) {
 
   const importCircuit = useCallback((data) => {
     if (!data || typeof data !== "object") return
+    wireGestureRef.current = null
+    setWireGesture(null)
     setComponents(Array.isArray(data.components) ? data.components.map(normalizeComponent).filter((c) => c !== null) : [])
     setWires(Array.isArray(data.wires) ? data.wires.map(normalizeWire).filter((w) => w !== null) : [])
     // MB-BREADBOARD-003 (AC-23) : restaure document.breadboard tel quel (même
@@ -2147,6 +2227,8 @@ if (import.meta.env.DEV) {
   const setThemeMode = useCallback((mode) => { if (mode !== "dark" && mode !== "light") return; setTheme(mode) }, [])
 
   return useMemo(() => ({
+  wireGesture,
+  startWireGesture,
   canvasRef,
   // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001) : componentsForRender (aperçu
   // de drag superposé à safeComponents) — jamais safeComponents seul,
@@ -2275,6 +2357,8 @@ if (import.meta.env.DEV) {
   canRedo,
   getUndoCount,
 }), [
+  wireGesture,
+  startWireGesture,
   canvasRef,
   componentsForRender,
   safeWires,

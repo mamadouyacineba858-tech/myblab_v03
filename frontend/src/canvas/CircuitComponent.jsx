@@ -46,6 +46,7 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
   const {
     startDrag,
     onPinClick,
+    startWireGesture,
     isPinPending,
     isPinConnected,
     pinSignals,
@@ -266,6 +267,8 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
           <Pin
             key={pin.id}
             pinId={pin.id}
+            componentUid={uid}
+            startWireGesture={startWireGesture}
             label={pin.label ?? pin.id}
             left={left}
             top={top}
