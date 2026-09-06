@@ -149,8 +149,9 @@ git status --short
 ```
 (`.claude/` non suivi, préexistant à ce ticket, non touché, non inclus dans le commit.)
 
-- Commit : `fix(button): restore drag interaction for interactive buttons` — SHA : *(voir section suivante, complété après commit)*
-- Push : branche `feat/MB-VIS-LED-V16-leads-thicker-realistic`
+- Commit : `fix(button): restore drag interaction for interactive buttons` — SHA : `d10b23011495df1291fd4378e3810d8257f80572`
+- Push : branche `feat/MB-VIS-LED-V16-leads-thicker-realistic` — `origin/feat/MB-VIS-LED-V16-leads-thicker-realistic` confirmé identique (`d10b23011495df1291fd4378e3810d8257f80572`)
+- État final : `git status --short` propre (seul `.claude/` non suivi, préexistant à ce ticket, non touché)
 
 ## 12. STOP
 
