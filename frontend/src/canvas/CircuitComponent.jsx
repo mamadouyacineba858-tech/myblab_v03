@@ -7,7 +7,7 @@
 // d'intégration CircuitComponent -> PartRenderer ajoutés par ce ticket
 // (RealisticRenderers.test.jsx). Aucun changement de comportement : ajout
 // d'import pur, aucune ligne de logique modifiée.
-import React, { useCallback, useEffect, useMemo } from "react"
+import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { Pin } from "./Pin.jsx"
@@ -104,6 +104,7 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
   // interaction.type === "momentary", seul BUTTON_LATCHING déclare
   // interaction.type === "latching" — voir componentDefinitions.js.
   const isButton = def?.interaction?.type === "momentary"
+  const latchingPointerDownRef = useRef(null)
 
   // [MB-VIS-BUTTON-INTERACTION-003] `e.preventDefault()` retiré ici (audit
   // MB-VIS-CONTACT-AUDIT-002, cause racine confirmée empiriquement) :
@@ -118,33 +119,23 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
   // cause du bug et son retrait n'est pas nécessaire à la correction).
   const handleButtonPointerDown = useCallback((e) => {
     e.stopPropagation()
-
     setButtonState(uid, "pressed")
-
-    if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) {
-      e.currentTarget.setPointerCapture?.(e.pointerId)
-    }
   }, [setButtonState, uid])
 
   const handleButtonPointerUp = useCallback((e) => {
     e.preventDefault()
     e.stopPropagation()
-
     setButtonState(uid, "released")
-
-    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
-      e.currentTarget.releasePointerCapture?.(e.pointerId)
-    }
   }, [setButtonState, uid])
 
   const handleButtonPointerCancel = useCallback((e) => {
     e.stopPropagation()
-
     setButtonState(uid, "released")
+  }, [setButtonState, uid])
 
-    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
-      e.currentTarget.releasePointerCapture?.(e.pointerId)
-    }
+  const handleButtonPointerLeave = useCallback((e) => {
+    e.stopPropagation()
+    setButtonState(uid, "released")
   }, [setButtonState, uid])
 
   const handleButtonLostPointerCapture = useCallback((e) => {
@@ -171,11 +162,38 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
   // seul `preventDefault()` sur `pointerdown`).
   const handleLatchingButtonPointerDown = useCallback((e) => {
     e.stopPropagation()
+    latchingPointerDownRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      moved: false,
+    }
+  }, [])
+
+  const handleLatchingButtonPointerMove = useCallback((e) => {
+    const gesture = latchingPointerDownRef.current
+    if (!gesture || gesture.moved) return
+
+    const dx = e.clientX - gesture.x
+    const dy = e.clientY - gesture.y
+
+    if (Math.hypot(dx, dy) >= 4) {
+      gesture.moved = true
+    }
   }, [])
 
   const handleLatchingButtonClick = useCallback((e) => {
     e.preventDefault()
     e.stopPropagation()
+
+    const start = latchingPointerDownRef.current
+    latchingPointerDownRef.current = null
+
+    if (start) {
+      const dx = e.clientX - start.x
+      const dy = e.clientY - start.y
+      if (start.moved || Math.hypot(dx, dy) >= 4) return
+    }
+
     toggleLatchingButton(uid)
   }, [toggleLatchingButton, uid])
 
@@ -249,11 +267,13 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
             onPointerDown: handleButtonPointerDown,
             onPointerUp: handleButtonPointerUp,
             onPointerCancel: handleButtonPointerCancel,
+            onPointerLeave: handleButtonPointerLeave,
             onLostPointerCapture: handleButtonLostPointerCapture,
           } : {})}
           {...(isLatchingButton ? {
             state: component.state,
             onPointerDown: handleLatchingButtonPointerDown,
+            onPointerMove: handleLatchingButtonPointerMove,
             onClick: handleLatchingButtonClick,
           } : {})}
         />

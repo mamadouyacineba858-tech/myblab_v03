@@ -60,6 +60,7 @@ const ASSET_SOURCES = {
 export function LatchingButtonPart({
   state,
   onPointerDown,
+  onPointerMove,
   onClick,
 }) {
   const def = getComponentDef("BUTTON_LATCHING")
@@ -73,6 +74,7 @@ export function LatchingButtonPart({
       className={`part-latching-button${isOn ? " is-on" : ""}`}
       aria-label={isOn ? "Interrupteur activé" : "Interrupteur désactivé"}
       onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
       onClick={onClick}
       style={{
         cursor: "pointer",

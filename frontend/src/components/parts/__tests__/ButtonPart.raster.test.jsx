@@ -44,6 +44,7 @@ import { dirname, resolve } from 'node:path'
 import { ButtonPart } from '../ButtonPart.jsx'
 import { getComponentDef } from '../../../config/componentDefinitions.js'
 import { getComponentPresentation } from '../../../visualization/defaultRegistrations.js'
+import { getPinPresentationPosition } from '../../../utils/pinPresentationGeometry.js'
 import { CircuitProvider } from '../../../context/CircuitContext.jsx'
 import { useCircuit } from '../../../context/useCircuit.js'
 import { useCircuitInteraction } from '../../../context/useCircuitInteraction.js'
@@ -227,17 +228,18 @@ describe('MB-VIS-PROTOTYPE-008 — pipeline réel : pins et interactions BUTTON 
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  // Positions attendues dérivées de getComponentDef (dx 14/46 depuis
-  // MB-VIS-BUTTON-ASSET-006, précédemment 8/51 sous
-  // MB-VIS-CONTACT-FOUNDATION-001), jamais réécrites en dur — ce test reste
-  // donc automatiquement à jour si la présentation est ajustée à nouveau
-  // par un futur ticket documenté.
+  // Positions attendues dérivées de getPinPresentationPosition() — l'oracle
+  // de présentation réel — et non des dx/dy canoniques : depuis
+  // MB-VIS-BUTTON-INTERACTION-008 le BUTTON a une projection de présentation
+  // (dx 14/46 conservés, dy 30 -> 58, sur la patte métallique de l'asset).
+  // Le test reste automatiquement à jour si la projection est réajustée.
   it('10 — CircuitComponent produit les 2 pins BUTTON à leur position de présentation ; asset raster dans le wrapper, chrome neutralisé', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('BUTTON', 50, 60) })
 
     const def = getComponentDef('BUTTON')
+    const component = api.components[0]
     const pins = container.querySelectorAll('.myblab-pin')
     expect(pins.length).toBe(def.pins.length)
     expect(def.pins.length).toBe(2)
@@ -246,7 +248,14 @@ describe('MB-VIS-PROTOTYPE-008 — pipeline réel : pins et interactions BUTTON 
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining(def.pins.map((p) => [p.dx, p.dy])))
+    const expectedPresentation = def.pins.map((p) => {
+      const pos = getPinPresentationPosition(component, p)
+      return [pos.x - component.x, pos.y - component.y]
+    })
+    expect(positions).toEqual(expect.arrayContaining(expectedPresentation))
+    // Projection MB-VIS-BUTTON-INTERACTION-008 : dx canonique conservé, dy
+    // projeté sur la patte inférieure (58, jamais le corps à 30).
+    expect(expectedPresentation).toEqual(expect.arrayContaining([[14, 58], [46, 58]]))
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()

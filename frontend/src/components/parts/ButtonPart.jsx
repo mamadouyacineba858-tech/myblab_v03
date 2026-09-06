@@ -70,6 +70,7 @@ export function ButtonPart({
   onPointerDown,
   onPointerUp,
   onPointerCancel,
+  onPointerLeave,
   onLostPointerCapture,
 }) {
   const def = getComponentDef("BUTTON")
@@ -85,6 +86,7 @@ export function ButtonPart({
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
+      onPointerLeave={onPointerLeave}
       onLostPointerCapture={onLostPointerCapture}
       style={{
         cursor: "pointer",

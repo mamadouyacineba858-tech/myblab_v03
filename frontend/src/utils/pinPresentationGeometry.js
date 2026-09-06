@@ -106,6 +106,49 @@ const ARDUINO_VISUAL_PINS = {
 }
 
 /**
+ * [MB-VIS-BUTTON-INTERACTION-008] Projection de présentation du BUTTON
+ * (poussoir tactile 4 pattes, asset raster "Tinkercad-style", cf.
+ * ButtonPart.jsx). Cause racine : MB-VIS-BUTTON-ASSET-006 a remesuré `dx`
+ * (14 / 46 — colonnes des pattes, correct, pixel-probe cohérent 1x/3x) mais
+ * a reconduit `dy: 30` de l'ancien asset à leads latéraux. Or le nouvel
+ * asset n'a PLUS de contact à mi-hauteur : le boîtier occupe canonique
+ * y[9,49] et les 4 pattes métalliques verticales sortent en HAUT
+ * (y[0,9]) et en BAS (y[49,60]). Résultat : le point de présentation
+ * (14/46, 30) — donc l'extrémité de fil ET la cible du <Pin>, qui lisent
+ * tous deux getPinPresentationPosition() — tombait au centre du corps, pas
+ * sur une patte (anomalie navigateur du ticket : « fil sur le corps »).
+ *
+ * Même mécanisme et même statut que LED_VISUAL_PINS / NPN_TRANSISTOR_VISUAL_PINS
+ * / POWER_VISUAL_PINS / ARDUINO_VISUAL_PINS : décision de PRÉSENTATION pure —
+ * componentDefinitions.js (géométrie canonique / électrique / connectivité /
+ * breadboard, via getPinPosition()) N'EST PAS modifié. Seul l'endroit où le
+ * connecteur est dessiné et où le fil se termine change.
+ *
+ * `x` : inchangé (14 / 46), colonnes de pattes mesurées. `y: 58` : sur la
+ * patte inférieure (bande métal canonique y[49.3,59.7]), près de son
+ * extrémité — même choix que LED_VISUAL_PINS (projection sur l'extrémité
+ * réelle du lead, ~97 % de la hauteur de boîte : LED 62/64, BUTTON 58/60).
+ */
+const BUTTON_VISUAL_PINS = {
+  pin1: { x: 14, y: 58 },
+  pin2: { x: 46, y: 58 },
+}
+
+/**
+ * [MB-VIS-BUTTON-INTERACTION-008] Même cause, même correction que
+ * BUTTON_VISUAL_PINS, mesurée séparément sur button-latching.off.3x.png :
+ * pattes gauche/droite en colonnes canoniques x≈12.6 / 46.9 (arrondi
+ * 13 / 47, inchangé vs componentDefinitions.js) ; boîtier y[8.7,49.3],
+ * pattes inférieures y[49.3,59.7]. `y: 58` identique à BUTTON (géométrie de
+ * patte quasi identique entre les deux assets). Projection de présentation
+ * pure — canonicalRegistry.js / componentDefinitions.js non touchés.
+ */
+const BUTTON_LATCHING_VISUAL_PINS = {
+  pin1: { x: 13, y: 58 },
+  pin2: { x: 47, y: 58 },
+}
+
+/**
  * Resolve the presentation coordinate of a component pin.
  * Falls back to the canonical electrical coordinate (getPinPosition(),
  * geometry.js) for every component and every pin that has no presentation
@@ -133,6 +176,16 @@ export function getPinPresentationPosition(component, pinDef, { scale = 1 } = {}
     basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
   } else if (component.type === "ARDUINO" && ARDUINO_VISUAL_PINS[pinDef.id]) {
     const visual = ARDUINO_VISUAL_PINS[pinDef.id]
+    const x = component.x + visual.x
+    const y = component.y + visual.y
+    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+  } else if (component.type === "BUTTON" && BUTTON_VISUAL_PINS[pinDef.id]) {
+    const visual = BUTTON_VISUAL_PINS[pinDef.id]
+    const x = component.x + visual.x
+    const y = component.y + visual.y
+    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+  } else if (component.type === "BUTTON_LATCHING" && BUTTON_LATCHING_VISUAL_PINS[pinDef.id]) {
+    const visual = BUTTON_LATCHING_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y
     basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null

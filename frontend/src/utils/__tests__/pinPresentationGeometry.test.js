@@ -25,6 +25,50 @@ describe('MB-VIS-LED-V5 — presentation-only pin geometry', () => {
   })
 })
 
+describe('MB-VIS-BUTTON-INTERACTION-008 — projection des pins BUTTON / BUTTON_LATCHING sur les pattes métalliques', () => {
+  it('projette les pins BUTTON sur la patte inférieure (dy 30 -> 58) sans toucher la définition électrique', () => {
+    const component = { uid: 'btn-1', type: 'BUTTON', x: 100, y: 200 }
+    const def = getComponentDef('BUTTON')
+
+    // Définition canonique inchangée (componentDefinitions.js / breadboard).
+    expect(def.pins).toEqual([
+      expect.objectContaining({ id: 'pin1', dx: 14, dy: 30 }),
+      expect.objectContaining({ id: 'pin2', dx: 46, dy: 30 }),
+    ])
+
+    // Présentation : dx conservé, dy projeté sur la patte (le corps du
+    // poussoir n'a aucun contact à dy=30 dans l'asset raster).
+    expect(getPinPresentationPosition(component, def.pins[0])).toEqual({ x: 114, y: 258 })
+    expect(getPinPresentationPosition(component, def.pins[1])).toEqual({ x: 146, y: 258 })
+  })
+
+  it('projette les pins BUTTON_LATCHING sur la patte inférieure (dy 30 -> 58)', () => {
+    const component = { uid: 'lat-1', type: 'BUTTON_LATCHING', x: 100, y: 200 }
+    const def = getComponentDef('BUTTON_LATCHING')
+
+    expect(def.pins).toEqual([
+      expect.objectContaining({ id: 'pin1', dx: 13, dy: 30 }),
+      expect.objectContaining({ id: 'pin2', dx: 47, dy: 30 }),
+    ])
+
+    expect(getPinPresentationPosition(component, def.pins[0])).toEqual({ x: 113, y: 258 })
+    expect(getPinPresentationPosition(component, def.pins[1])).toEqual({ x: 147, y: 258 })
+  })
+
+  it('la projection BUTTON reste cohérente sous scale (même centre canonique 60x60, pas de branchement ad hoc)', () => {
+    const component = { uid: 'btn-2', type: 'BUTTON', x: 0, y: 0 }
+    const def = getComponentDef('BUTTON')
+    const pin1 = def.pins[0]
+    const base = getPinPresentationPosition(component, pin1)
+    const center = { x: 30, y: 30 } // BUTTON : 60x60
+    const scaled = getPinPresentationPosition(component, pin1, { scale: 2 })
+    expect(scaled.x).toBeCloseTo(center.x + (base.x - center.x) * 2, 10)
+    expect(scaled.y).toBeCloseTo(center.y + (base.y - center.y) * 2, 10)
+    // component jamais muté par la présentation.
+    expect(component).toEqual({ uid: 'btn-2', type: 'BUTTON', x: 0, y: 0 })
+  })
+})
+
 describe('MB-VIS-CANVAS-052 — getPinPresentationPosition({ scale })', () => {
   const component = { uid: 'res-1', type: 'RESISTOR', x: 100, y: 200 }
   const def = getComponentDef('RESISTOR')

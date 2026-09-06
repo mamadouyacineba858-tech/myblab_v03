@@ -222,9 +222,12 @@ describe("MB-VIS-BUTTON-INTERACTION-003 — E : câblage BUTTON/BUTTON_LATCHING 
     const moved = getApi().components.find((c) => c.uid === button.uid)
     expect(moved.x).toBe(button.x + 40)
     const path = getApi().wirePaths.find((p) => p.id === getApi().wires[0].id)
-    // [MB-VIS-BUTTON-ASSET-006] dx=14 (pin1 de BUTTON), remesuré sur le
-    // nouveau paquet d'assets Tinkercad-style — voir componentDefinitions.js.
-    expect(path.d.startsWith(`M ${moved.x + 14} ${moved.y + 30}`)).toBe(true)
+    // [MB-VIS-BUTTON-INTERACTION-008] L'extrémité de fil suit la PROJECTION
+    // DE PRÉSENTATION du pin (pinPresentationGeometry.js), pas la géométrie
+    // canonique : BUTTON pin1 -> (dx 14, dy 58) — dy projeté sur la patte
+    // métallique inférieure de l'asset (le corps du poussoir n'a aucun
+    // contact à dy=30). dx=14 remesuré MB-VIS-BUTTON-ASSET-006, inchangé.
+    expect(path.d.startsWith(`M ${moved.x + 14} ${moved.y + 58}`)).toBe(true)
   })
 })
 
@@ -236,9 +239,10 @@ describe("MB-VIS-BUTTON-INTERACTION-003 — F : le Pin continue de bloquer le dr
     expect(pin1).toBeTruthy()
 
     // clientX/Y purement documentaires (le nœud cible est déjà résolu via
-    // querySelectorAll, aucune assertion ne dépend de ces valeurs) — 114 =
-    // 100 + dx pin1 (14, MB-VIS-BUTTON-ASSET-006).
-    realMouseDown(pin1, { clientX: 114, clientY: 130 })
+    // querySelectorAll, aucune assertion ne dépend de ces valeurs) —
+    // 114 = 100 + dx pin1 (14) ; 158 = 100 + dy projeté pin1 (58,
+    // MB-VIS-BUTTON-INTERACTION-008, patte métallique inférieure).
+    realMouseDown(pin1, { clientX: 114, clientY: 158 })
     expect(getApi().activeItem).toBe(null)
 
     movePointer(150, 160)
