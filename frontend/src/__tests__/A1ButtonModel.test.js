@@ -14,21 +14,23 @@ describe("A1 - Button Model", () => {
       expect(button.x).toBe(100)
       expect(button.y).toBe(100)
 
-      // MB-VIS-CONTACT-FOUNDATION-001 : dx corrigés depuis 0/60 (bord de
-      // boîte, jamais vérifié contre l'asset raster réel) vers les valeurs
-      // mesurées par pixel-probe (voir componentDefinitions.js).
+      // [MB-VIS-BUTTON-ASSET-006] dx remesurés sur le nouveau paquet
+      // d'assets Tinkercad-style (précédemment 8/51 sous
+      // MB-VIS-CONTACT-FOUNDATION-001, valeurs mesurées sur un asset
+      // visuellement différent, non reconduites — voir
+      // componentDefinitions.js).
       expect(button.pins).toEqual([
         {
           id: "pin1",
           label: "1",
-          dx: 8,
+          dx: 14,
           dy: 30,
           role: "switch",
         },
         {
           id: "pin2",
           label: "2",
-          dx: 51,
+          dx: 46,
           dy: 30,
           role: "switch",
         },

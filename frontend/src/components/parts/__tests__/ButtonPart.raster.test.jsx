@@ -26,7 +26,9 @@
  *     pointer-events:none (le hit-test reste sur le wrapper) ;
  *  8. le backend résolu pour BUTTON est bien 'raster' (via
  *     getComponentPresentation) ;
- *  9. la géométrie canonique 60×60, pin1(0,30)/pin2(60,30) reste inchangée
+ *  9. la géométrie canonique 60×60 reste inchangée ; les pins pin1/pin2 ont
+ *     été remesurés par MB-VIS-BUTTON-ASSET-006 sur le nouveau paquet
+ *     d'assets Tinkercad-style — pin1(14,30)/pin2(46,30)
  *     (componentDefinitions.js) ;
  *  10. pipeline réel CircuitComponent -> PartRenderer : pins fonctionnels
  *      inchangés, wrapper reçoit les événements, chrome neutralisé.
@@ -183,16 +185,20 @@ describe("MB-VIS-PROTOTYPE-008 — BUTTON rend le paquet d'assets raster validé
     expect(getComponentPresentation('BUTTON')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
   })
 
-  // MB-VIS-CONTACT-FOUNDATION-001 : dx corrigés depuis 0/60 (bord de boîte,
-  // jamais vérifié contre l'asset raster réel) vers 8/51, mesurés par
-  // pixel-probe sur button.released.1x/3x.png (voir componentDefinitions.js).
-  it('9 — géométrie canonique inchangée : 60×60, pins pin1(8,30)/pin2(51,30)', () => {
+  // [MB-VIS-BUTTON-ASSET-006] dx remesurés depuis zéro sur le nouveau
+  // paquet d'assets Tinkercad-style (housing carré + 4 pattes physiques) —
+  // les anciennes valeurs 8/51 (MB-VIS-CONTACT-FOUNDATION-001) mesuraient
+  // un asset visuellement différent et n'ont pas été reconduites. Nouvelle
+  // mesure : centre de masse pondéré par alpha sur chaque patte,
+  // canvas.getImageData sur button.released.3x.png (voir
+  // componentDefinitions.js pour le détail de la méthode).
+  it('9 — géométrie canonique inchangée : 60×60, pins pin1(14,30)/pin2(46,30)', () => {
     const def = getComponentDef('BUTTON')
     expect(def.width).toBe(60)
     expect(def.height).toBe(60)
     const byId = Object.fromEntries(def.pins.map((p) => [p.id, [p.dx, p.dy]]))
-    expect(byId.pin1).toEqual([8, 30])
-    expect(byId.pin2).toEqual([51, 30])
+    expect(byId.pin1).toEqual([14, 30])
+    expect(byId.pin2).toEqual([46, 30])
   })
 
   it('déterminisme — deux rendus produisent un HTML strictement identique (released puis pressed)', () => {
@@ -221,10 +227,11 @@ describe('MB-VIS-PROTOTYPE-008 — pipeline réel : pins et interactions BUTTON 
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  // MB-VIS-CONTACT-FOUNDATION-001 : positions attendues dérivées de
-  // getComponentDef (dx corrigés 8/51), jamais réécrites en dur — ce test
-  // reste donc automatiquement à jour si la présentation est ajustée à
-  // nouveau par un futur ticket documenté.
+  // Positions attendues dérivées de getComponentDef (dx 14/46 depuis
+  // MB-VIS-BUTTON-ASSET-006, précédemment 8/51 sous
+  // MB-VIS-CONTACT-FOUNDATION-001), jamais réécrites en dur — ce test reste
+  // donc automatiquement à jour si la présentation est ajustée à nouveau
+  // par un futur ticket documenté.
   it('10 — CircuitComponent produit les 2 pins BUTTON à leur position de présentation ; asset raster dans le wrapper, chrome neutralisé', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })

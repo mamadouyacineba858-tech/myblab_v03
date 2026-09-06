@@ -21,31 +21,41 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "GND", label: "GND", dx: 0, dy: 110 },
     { id: "5V", label: "5V", dx: 120, dy: 50 },
   ],
-  // [MB-VIS-CONTACT-FOUNDATION-001] Corrigé depuis dx:0/dx:60 (bord gauche/
-  // droit de la boîte canonique). Audit réel (pixel-probe navigateur,
-  // canvas.getImageData sur button.released.1x.png/3x.png, alpha>=32,
-  // cohérent entre 1x et 3x) : contrairement aux passifs axiaux (RESISTOR/
-  // LDR/THERMISTOR/DIODE/CAPACITOR/DC_MOTOR), dont les FILS métalliques
-  // s'étendent bien jusqu'au bord de la boîte, BUTTON est un composant
-  // BOXED (fillFactor 0.9, visualContract.js) : ses deux pattes métalliques
-  // sortent de la base du boîtier, en retrait du bord — dx=0/60 supposait à
-  // tort la convention "fil jusqu'au bord", jamais vérifiée contre l'asset
-  // réel livré. Delta mesuré avant correction : ~8-9 unités canvas (tolérance
-  // cible 0.75, visualContract.js LEAD_ANCHORING) ; delta après correction :
-  // < 1 unité canvas, cohérent 1x/3x. Voir Delivery Report
-  // MB-VIS-CONTACT-FOUNDATION-001 (cause commune §Phase 4, tableau §Phase 12).
+  // [MB-VIS-BUTTON-ASSET-006] Remesuré depuis zéro sur le nouveau paquet
+  // d'assets "Tinkercad-style" (housing carré + 4 pattes métalliques
+  // physiques, cf. ButtonPart.jsx) — les anciennes valeurs (dx:8/51, héritées
+  // de MB-VIS-CONTACT-FOUNDATION-001) mesuraient un asset visuellement
+  // différent et n'ont explicitement PAS été considérées valides pour ce
+  // remplacement (mandat CSA). Méthode : pixel-probe navigateur
+  // (canvas.getImageData sur button.released.3x.png, alpha>16), centre de
+  // masse pondéré par alpha calculé séparément sur chaque patte (colonnes
+  // isolées aux lignes "hors boîtier", au-dessus/en-dessous du corps) pour
+  // le dx, et sur la même colonne pour le dy — évite le bruit de
+  // quantification d'un simple bbox. Pattes gauche/droite mesurées à
+  // x≈40.7/139.3 (échelle 3x, soit ≈13.6/46.4 en 1x) — somme ≈180 (3x) /
+  // 60 (1x) : symétrie quasi parfaite, cohérente avec le housing carré
+  // centré. dy mesuré ≈90.7 (3x) / ≈30.2 (1x) — quasiment inchangé par
+  // rapport à l'ancienne valeur (30), le nouvel asset restant centré
+  // verticalement dans sa boîte 60×60. Valeurs arrondies à l'entier le plus
+  // proche en conservant la symétrie gauche/droite (14+46=60). Toujours
+  // exactement 2 pins logiques (mandat §7/§8) : les 4 pattes visibles sont
+  // une représentation physique pure, non électrique.
   BUTTON: [
-    { id: "pin1", label: "1", dx: 8, dy: 30 },
-    { id: "pin2", label: "2", dx: 51, dy: 30 },
+    { id: "pin1", label: "1", dx: 14, dy: 30 },
+    { id: "pin2", label: "2", dx: 46, dy: 30 },
   ],
-  // [MB-VIS-CONTACT-FOUNDATION-001] Même correction, même cause (BOXED,
-  // fillFactor 0.9), mesurée séparément sur button-latching.off.1x/3x.png —
-  // valeurs légèrement différentes de BUTTON car l'asset (rocker plus large)
-  // diffère physiquement, pas une coïncidence à réutiliser entre les deux
-  // types.
+  // [MB-VIS-BUTTON-ASSET-006] Même méthode, mesurée séparément sur
+  // button-latching.off.3x.png : pattes gauche/droite à x≈37.9/140.7
+  // (3x, soit ≈12.6/46.9 en 1x) — somme ≈178.6 (3x) / ≈59.5 (1x), légère
+  // asymétrie réelle de l'asset rocker (pas une erreur de mesure — déjà
+  // noté par la version précédente : "l'asset (rocker plus large) diffère
+  // physiquement" de BUTTON, toujours vrai avec ce nouvel asset). dy
+  // mesuré ≈90.7 (3x) / ≈30.2 (1x), identique à BUTTON. Valeurs arrondies
+  // en conservant la somme symétrique 60 (13+47) la plus proche de la
+  // mesure. Toujours exactement 2 pins logiques.
   BUTTON_LATCHING: [
-    { id: "pin1", label: "1", dx: 7, dy: 30 },
-    { id: "pin2", label: "2", dx: 52, dy: 30 },
+    { id: "pin1", label: "1", dx: 13, dy: 30 },
+    { id: "pin2", label: "2", dx: 47, dy: 30 },
   ],
   POWER: [
     { id: "5V", label: "+5V", dx: 70, dy: 37 },

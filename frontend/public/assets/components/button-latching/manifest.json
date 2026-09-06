@@ -1,6 +1,6 @@
 {
   "component": "BUTTON_LATCHING",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "backend": "raster",
   "states": [
     "off",
@@ -23,6 +23,14 @@
       "width": 180,
       "height": 180
     }
+  },
+  "visualContract": {
+    "style": "tinkercad-simple-rocker",
+    "transparentBackground": true,
+    "physicalLeads": 4,
+    "logicalPins": 2,
+    "off": "red head raised",
+    "on": "red head depressed and darker"
   },
   "variants": [
     {

@@ -222,7 +222,9 @@ describe("MB-VIS-BUTTON-INTERACTION-003 — E : câblage BUTTON/BUTTON_LATCHING 
     const moved = getApi().components.find((c) => c.uid === button.uid)
     expect(moved.x).toBe(button.x + 40)
     const path = getApi().wirePaths.find((p) => p.id === getApi().wires[0].id)
-    expect(path.d.startsWith(`M ${moved.x + 8} ${moved.y + 30}`)).toBe(true)
+    // [MB-VIS-BUTTON-ASSET-006] dx=14 (pin1 de BUTTON), remesuré sur le
+    // nouveau paquet d'assets Tinkercad-style — voir componentDefinitions.js.
+    expect(path.d.startsWith(`M ${moved.x + 14} ${moved.y + 30}`)).toBe(true)
   })
 })
 
@@ -233,7 +235,10 @@ describe("MB-VIS-BUTTON-INTERACTION-003 — F : le Pin continue de bloquer le dr
     const pin1 = [...document.querySelectorAll(".myblab-pin")].find((p) => p.getAttribute("aria-label") === "1")
     expect(pin1).toBeTruthy()
 
-    realMouseDown(pin1, { clientX: 108, clientY: 130 })
+    // clientX/Y purement documentaires (le nœud cible est déjà résolu via
+    // querySelectorAll, aucune assertion ne dépend de ces valeurs) — 114 =
+    // 100 + dx pin1 (14, MB-VIS-BUTTON-ASSET-006).
+    realMouseDown(pin1, { clientX: 114, clientY: 130 })
     expect(getApi().activeItem).toBe(null)
 
     movePointer(150, 160)

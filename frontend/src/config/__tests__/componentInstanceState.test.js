@@ -67,20 +67,22 @@ describe("MB-VIS-COMP-002 — instance state initiale générique (TEST 2)", () 
 })
 
 describe("MB-VIS-COMP-002 — stabilité des coordonnées dx/dy (TEST 10)", () => {
-  // MB-VIS-CONTACT-FOUNDATION-001 : BUTTON/BUTTON_LATCHING dx corrigés depuis
-  // 0/60 vers les valeurs mesurées par pixel-probe réel (voir
-  // componentDefinitions.js et geometryPinCanonical.test.js). Ce test verrouille
-  // désormais la valeur CORRIGÉE, pas la valeur d'origine.
-  it("BUTTON : dx/dy des pins (corrigés MB-VIS-CONTACT-FOUNDATION-001)", () => {
+  // [MB-VIS-BUTTON-ASSET-006] BUTTON/BUTTON_LATCHING dx remesurés depuis
+  // zéro sur le nouveau paquet d'assets Tinkercad-style (précédemment
+  // 8/51 et 7/52 sous MB-VIS-CONTACT-FOUNDATION-001, valeurs mesurées sur
+  // un asset visuellement différent, non reconduites — voir
+  // componentDefinitions.js). Ce test verrouille la valeur CORRIGÉE
+  // courante, pas une valeur d'origine.
+  it("BUTTON : dx/dy des pins (remesurés MB-VIS-BUTTON-ASSET-006)", () => {
     const pins = getComponentDef("BUTTON").pins
-    expect(pins.find((p) => p.id === "pin1")).toMatchObject({ dx: 8, dy: 30 })
-    expect(pins.find((p) => p.id === "pin2")).toMatchObject({ dx: 51, dy: 30 })
+    expect(pins.find((p) => p.id === "pin1")).toMatchObject({ dx: 14, dy: 30 })
+    expect(pins.find((p) => p.id === "pin2")).toMatchObject({ dx: 46, dy: 30 })
   })
 
-  it("BUTTON_LATCHING : dx/dy des pins (corrigés MB-VIS-CONTACT-FOUNDATION-001)", () => {
+  it("BUTTON_LATCHING : dx/dy des pins (remesurés MB-VIS-BUTTON-ASSET-006)", () => {
     const pins = getComponentDef("BUTTON_LATCHING").pins
-    expect(pins.find((p) => p.id === "pin1")).toMatchObject({ dx: 7, dy: 30 })
-    expect(pins.find((p) => p.id === "pin2")).toMatchObject({ dx: 52, dy: 30 })
+    expect(pins.find((p) => p.id === "pin1")).toMatchObject({ dx: 13, dy: 30 })
+    expect(pins.find((p) => p.id === "pin2")).toMatchObject({ dx: 47, dy: 30 })
   })
 
   it("CAPACITOR : dx/dy des pins inchangés (contrat électrique verrouillé par CAP-004/MB-VIS-COMP-001)", () => {

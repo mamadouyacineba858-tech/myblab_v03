@@ -79,8 +79,11 @@ describe("MB-VIS-CONTACT-FOUNDATION-001 — cohérence Pin DOM / extrémité de 
     act(() => { getApi().addComponent("BUTTON", 100, 100) })
     const [button] = getApi().components
     const def = getComponentDef("BUTTON")
-    expect(def.pins.find((p) => p.id === "pin1")).toMatchObject({ dx: 8, dy: 30 })
-    expect(def.pins.find((p) => p.id === "pin2")).toMatchObject({ dx: 51, dy: 30 })
+    // [MB-VIS-BUTTON-ASSET-006] dx remesurés sur le nouveau paquet d'assets
+    // Tinkercad-style (précédemment 8/51 sous MB-VIS-CONTACT-FOUNDATION-001,
+    // non reconduits — voir componentDefinitions.js).
+    expect(def.pins.find((p) => p.id === "pin1")).toMatchObject({ dx: 14, dy: 30 })
+    expect(def.pins.find((p) => p.id === "pin2")).toMatchObject({ dx: 46, dy: 30 })
 
     const nodes = [...container.querySelectorAll(".myblab-pin")]
     expect(nodes).toHaveLength(2)

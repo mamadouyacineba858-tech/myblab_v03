@@ -1,47 +1,47 @@
 [
   {
     "file": "button-latching.off.1x.png",
-    "bytes": 1562,
-    "sha256": "90e15b15d02bfdede0d1148fe7ed2c84b955be6d0ba3e8170662001eb44f1731"
+    "bytes": 4648,
+    "sha256": "fc15073d72011111d0974f251545faeccd634cd85711a7bb35b83a5fb9b24c77"
   },
   {
     "file": "button-latching.off.1x.webp",
-    "bytes": 4834,
-    "sha256": "91a2a69b9c9c287fa436413c7a75cd7a341d203bd87e55ec252b7576b526f691"
+    "bytes": 2248,
+    "sha256": "afd421e1f94c4f38c7db9987ea04def65a131046aeef2d01eba7f7c38dab50b7"
   },
   {
     "file": "button-latching.off.3x.png",
-    "bytes": 5133,
-    "sha256": "9aadf2b2c5a7134c190c44dac3bd0b8e9f02a5ab8d8ff4c68721c5f4473c0613"
+    "bytes": 27908,
+    "sha256": "30f05ec50a316a0a47c4583fd20587aeb29f3675430f36461c0340441f94a13a"
   },
   {
     "file": "button-latching.off.3x.webp",
-    "bytes": 26958,
-    "sha256": "1b240f62547119a1ed5ec060fcb9cdcc8eba8d1c99cede4c27da8fe21f1a6817"
+    "bytes": 7892,
+    "sha256": "0bc1ca1b2365e9e815570c072b3e2ec8bc686ce8a98f5babe5caa152cd8e7d25"
   },
   {
     "file": "button-latching.on.1x.png",
-    "bytes": 1554,
-    "sha256": "92415e36c55b98911c31386f22e97e762b71a288f766277814c95e37a4ab5352"
+    "bytes": 4280,
+    "sha256": "282f7b2efa8e7a1dcb8755e92be1bb2cf51d02086aa26ea4f3af1f2cd2cf300d"
   },
   {
     "file": "button-latching.on.1x.webp",
-    "bytes": 4614,
-    "sha256": "22e1641b4bdc1700b7b664368501a66b0faf4033af5b0bce4611a735859d075b"
+    "bytes": 2050,
+    "sha256": "15fa312b93cffeb25984e2d419582e64e00d7f7441dd31d7bd1881f943083bac"
   },
   {
     "file": "button-latching.on.3x.png",
-    "bytes": 5417,
-    "sha256": "0bd9961ed58a55399e0ac7d4b8696ae8b45e0028acbb096fd34f802fed74960d"
+    "bytes": 25160,
+    "sha256": "88e3ffef0a04f40b2d436c5791df1dd3b069fafc7c6ad49de0d6d66bdfee2875"
   },
   {
     "file": "button-latching.on.3x.webp",
-    "bytes": 27180,
-    "sha256": "9e5f647bf7ff735ecd5020ea71815543d0cd0139632cd174c3a829ab79b36c4f"
+    "bytes": 7140,
+    "sha256": "7ffd6d913b6de9cac32362cddf0ecc37e10548424a55141dce118b8dcbb8a6e9"
   },
   {
     "file": "manifest.json",
-    "bytes": 1655,
-    "sha256": "f21154cf54cb62a5924b682d7f107cecbbafba73ce8e315089983c53f48c92bf"
+    "bytes": 1875,
+    "sha256": "4143fd1536906edf4948f2070a2278135e72f5d0ffc444d50b1b0900d0429465"
   }
 ]

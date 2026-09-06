@@ -22,7 +22,9 @@
  *     pointer-events:none (le hit-test reste sur le wrapper) ;
  *  8. le backend résolu pour BUTTON_LATCHING est bien 'raster' (via
  *     getComponentPresentation) ;
- *  9. la géométrie canonique 60×60, pin1(0,30)/pin2(60,30) reste inchangée
+ *  9. la géométrie canonique 60×60 reste inchangée ; les pins pin1/pin2 ont
+ *     été remesurés par MB-VIS-BUTTON-ASSET-006 sur le nouveau paquet
+ *     d'assets Tinkercad-style — pin1(13,30)/pin2(47,30)
  *     (componentDefinitions.js) ;
  *  10. pipeline réel CircuitComponent -> PartRenderer : pins fonctionnels
  *      inchangés, click réel bascule component.state, chrome neutralisé.
@@ -159,16 +161,20 @@ describe("MB-VIS-PROTOTYPE-008 — BUTTON_LATCHING rend le paquet d'assets raste
     expect(getComponentPresentation('BUTTON_LATCHING')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
   })
 
-  // MB-VIS-CONTACT-FOUNDATION-001 : dx corrigés depuis 0/60 vers 7/52,
-  // mesurés par pixel-probe sur button-latching.off.1x/3x.png (voir
-  // componentDefinitions.js).
-  it('9 — géométrie canonique inchangée : 60×60, pins pin1(7,30)/pin2(52,30)', () => {
+  // [MB-VIS-BUTTON-ASSET-006] dx remesurés depuis zéro sur le nouveau
+  // paquet d'assets Tinkercad-style (housing + rocker rouge) — les
+  // anciennes valeurs 7/52 (MB-VIS-CONTACT-FOUNDATION-001) mesuraient un
+  // asset visuellement différent et n'ont pas été reconduites. Nouvelle
+  // mesure : centre de masse pondéré par alpha sur chaque patte,
+  // canvas.getImageData sur button-latching.off.3x.png (voir
+  // componentDefinitions.js pour le détail de la méthode).
+  it('9 — géométrie canonique inchangée : 60×60, pins pin1(13,30)/pin2(47,30)', () => {
     const def = getComponentDef('BUTTON_LATCHING')
     expect(def.width).toBe(60)
     expect(def.height).toBe(60)
     const byId = Object.fromEntries(def.pins.map((p) => [p.id, [p.dx, p.dy]]))
-    expect(byId.pin1).toEqual([7, 30])
-    expect(byId.pin2).toEqual([52, 30])
+    expect(byId.pin1).toEqual([13, 30])
+    expect(byId.pin2).toEqual([47, 30])
   })
 
   it('déterminisme — deux rendus produisent un HTML strictement identique (off puis on)', () => {
