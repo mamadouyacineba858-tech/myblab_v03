@@ -1,5 +1,5 @@
 import { getComponentDef } from '../../../config/componentDefinitions.js';
-import { holeAt } from '../../../utils/breadboardGeometry.js';
+import { resolveComponentPinHoles } from '../../../utils/breadboardGeometry.js';
 
 /**
  * breadboardSolidarity.js — MB-BREADBOARD-006 (CSA Ruling §4).
@@ -54,10 +54,11 @@ export function resolveSolidaryComponentIds(breadboard, components) {
     const def = getComponentDef(component.type);
     if (!def || !Array.isArray(def.pins)) continue;
 
-    const anyPinOnHole = def.pins.some(
-      (pin) => holeAt(breadboard, x + pin.dx, y + pin.dy) !== null
-    );
-    if (anyPinOnHole) solidary.add(componentId);
+    // FT-B-001-S1 : classification pin -> trou centralisée. Politique
+    // SOLIDARITÉ = au moins une pin résolue (delta zéro : anyResolved ===
+    // def.pins.some(pin => holeAt(x/y + pin.dx/dy) !== null)).
+    const { anyResolved } = resolveComponentPinHoles(breadboard, def.pins, { x, y });
+    if (anyResolved) solidary.add(componentId);
   }
 
   return solidary;

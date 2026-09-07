@@ -105,3 +105,50 @@ export function holeAt(breadboard, x, y) {
   // Rainure centrale (LOCK-09) ou interstice rail/strip : aucun trou.
   return null
 }
+
+/**
+ * FT-B-001-S1 — Primitive générique UNIQUE de classification pin → trou.
+ *
+ * Centralise, SANS en changer la sémantique, le motif dupliqué jusqu'ici dans
+ * breadboardPlacementAdapter / breadboardConnectivity /
+ * BreadboardHoleCollisionRule / breadboardSolidarity :
+ *
+ *     holeAt(breadboard, origin.x + pin.dx, origin.y + pin.dy)   pour chaque pin
+ *
+ * Delta ZÉRO : `holeAt()` (arrondi, tolérance ±2 inclusive par axe, limites,
+ * rainure, groupKey) est appelé à l'identique. La primitive :
+ *  - ne déplace PAS le composant ;
+ *  - ne cherche AUCUNE meilleure origine (le search reste la responsabilité de
+ *    breadboardPlacementAdapter) ;
+ *  - ne décide d'AUCUNE politique de placement — chaque consommateur applique
+ *    la sienne sur `results` : PLACEMENT = toutes résolues ; CONNECTIVITÉ /
+ *    COLLISION = par pin résolue ; SOLIDARITÉ = au moins une résolue.
+ *
+ * Résultats PARTIELS préservés (une pin non résolue n'invalide pas les
+ * autres) et ordre des pins préservé (identique à `pins`).
+ *
+ * @param {{ id: string, position: {x:number,y:number} } | null} breadboard
+ * @param {Array<{ id: string, dx: number, dy: number }>} pins  typiquement `getComponentDef(type).pins`
+ * @param {{ x: number, y: number }} origin  position d'instance du composant (forme Presentation {x,y} ou Core {position:{x,y}} déjà déréférencée par l'appelant)
+ * @returns {{
+ *   results: Array<{ pinId: string, hole: (ReturnType<typeof holeAt>)|null, resolved: boolean }>,
+ *   allResolved: boolean,
+ *   anyResolved: boolean,
+ * }}
+ */
+export function resolveComponentPinHoles(breadboard, pins, origin) {
+  const list = Array.isArray(pins) ? pins : []
+  const ox = origin && Number.isFinite(origin.x) ? origin.x : NaN
+  const oy = origin && Number.isFinite(origin.y) ? origin.y : NaN
+
+  const results = list.map((pin) => {
+    const hole = holeAt(breadboard, ox + (pin ? pin.dx : NaN), oy + (pin ? pin.dy : NaN))
+    return { pinId: pin ? pin.id : undefined, hole: hole ?? null, resolved: hole != null }
+  })
+
+  return {
+    results,
+    allResolved: results.length > 0 && results.every((r) => r.resolved),
+    anyResolved: results.some((r) => r.resolved),
+  }
+}

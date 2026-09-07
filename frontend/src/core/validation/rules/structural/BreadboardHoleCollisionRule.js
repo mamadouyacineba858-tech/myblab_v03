@@ -36,7 +36,7 @@
 import { CATEGORIES, LEVELS } from '../../constants.js'
 import { getEffectiveComponents } from '../shared/documentHelpers.js'
 import { getComponentDef } from '../../../../config/componentDefinitions.js'
-import { holeAt } from '../../../../utils/breadboardGeometry.js'
+import { resolveComponentPinHoles } from '../../../../utils/breadboardGeometry.js'
 
 export const BreadboardHoleCollisionRule = {
   id: 'STR-007',
@@ -60,14 +60,18 @@ export const BreadboardHoleCollisionRule = {
       const def = getComponentDef(component.type)
       if (!def || !Array.isArray(def.pins)) continue
 
-      for (const pin of def.pins) {
-        const x = component.position.x + pin.dx
-        const y = component.position.y + pin.dy
-        const hole = holeAt(breadboard, x, y)
+      // FT-B-001-S1 : classification pin -> trou centralisée. Politique
+      // COLLISION = par pin résolue (delta zéro : même holeAt(position + dx/dy)
+      // par pin ; les pins non résolues sont ignorées comme avant).
+      const { results } = resolveComponentPinHoles(breadboard, def.pins, {
+        x: component.position.x,
+        y: component.position.y,
+      })
+      for (const { pinId, hole } of results) {
         if (!hole) continue
         const key = `${hole.column}:${hole.row}`
         if (!byHole.has(key)) byHole.set(key, [])
-        byHole.get(key).push({ componentId: component.id, pinId: pin.id })
+        byHole.get(key).push({ componentId: component.id, pinId })
       }
     }
 

@@ -21,7 +21,7 @@ import {
   BREADBOARD_PITCH,
   STANDARD_V1_LAYOUT,
   STANDARD_V1_TOTAL_ROWS,
-  holeAt,
+  resolveComponentPinHoles,
 } from "./breadboardGeometry.js"
 
 function isWithinFootprint(breadboard, position, pins) {
@@ -44,8 +44,10 @@ function resolveOccupiedHoleKeys(breadboard, components) {
     if (!component || !Number.isFinite(component.x) || !Number.isFinite(component.y)) continue
     const def = getComponentDef(component.type)
     if (!def || !Array.isArray(def.pins)) continue
-    for (const pin of def.pins) {
-      const hole = holeAt(breadboard, component.x + pin.dx, component.y + pin.dy)
+    // FT-B-001-S1 : classification pin -> trou centralisée (delta zéro — même
+    // holeAt(component.x/y + pin.dx/dy) par pin, résultats partiels préservés).
+    const { results } = resolveComponentPinHoles(breadboard, def.pins, { x: component.x, y: component.y })
+    for (const { hole } of results) {
       if (hole) occupied.add(`${hole.column}:${hole.row}`)
     }
   }
@@ -53,11 +55,13 @@ function resolveOccupiedHoleKeys(breadboard, components) {
 }
 
 function resolveAllHoles(breadboard, pins, position) {
+  // FT-B-001-S1 : delta zéro — itère `results` dans l'ordre des pins, retourne
+  // null dès la première pin non résolue (politique PLACEMENT = toutes
+  // résolues), sinon la liste complète {pinId,column,row}.
   const holes = []
-  for (const pin of pins) {
-    const hole = holeAt(breadboard, position.x + pin.dx, position.y + pin.dy)
+  for (const { pinId, hole } of resolveComponentPinHoles(breadboard, pins, position).results) {
     if (!hole) return null
-    holes.push({ pinId: pin.id, column: hole.column, row: hole.row })
+    holes.push({ pinId, column: hole.column, row: hole.row })
   }
   return holes
 }
@@ -105,11 +109,14 @@ function bestEffortPinZeroSnap(breadboard, pins, candidatePosition) {
   }
   const position = { x: snappedPin0.x - pin0.dx, y: snappedPin0.y - pin0.dy }
 
-  const holes = []
-  for (const pin of pins) {
-    const hole = holeAt(breadboard, position.x + pin.dx, position.y + pin.dy)
-    holes.push(hole ? { pinId: pin.id, column: hole.column, row: hole.row } : { pinId: pin.id, column: null, row: null })
-  }
+  // FT-B-001-S1 : delta zéro — chaque pin garde son entrée (column/row ou
+  // null/null), dans l'ordre, exactement comme l'ancien holeAt() par pin.
+  const holes = resolveComponentPinHoles(breadboard, pins, position).results.map(
+    ({ pinId, hole }) =>
+      hole
+        ? { pinId, column: hole.column, row: hole.row }
+        : { pinId, column: null, row: null }
+  )
   return { position, holes }
 }
 
