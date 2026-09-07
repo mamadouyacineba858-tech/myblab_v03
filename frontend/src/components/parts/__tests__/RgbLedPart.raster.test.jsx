@@ -21,9 +21,13 @@ const STATE_CASES = [
 ]
 
 describe('MB-VIS-COMP-033 — RgbLedPart : rendu raster + 8 états', () => {
-  it('compose un corps raster + 4 crops de pattes, aucun SVG/shape/id', () => {
+  it('rend un asset composite unique (1 <picture>/<source>/<img>), aucun SVG/shape/id', () => {
     const { container } = render(<RgbLedPart />)
-    expect(container.querySelectorAll('img').length).toBe(5)
+    // [FT-A-001] Renderer composite actuel : un seul asset raster par état
+    // (l'ancien design « corps + 4 crops de pattes = 5 images » n'existe plus).
+    expect(container.querySelectorAll('picture').length).toBe(1)
+    expect(container.querySelectorAll('source[type="image/webp"]').length).toBe(1)
+    expect(container.querySelectorAll('img').length).toBe(1)
     for (const tag of ['svg', 'line', 'circle', 'path']) expect(container.querySelector(tag)).toBeNull()
     expect(container.querySelectorAll('[id]').length).toBe(0)
     expect(container.querySelector('.part-rgb-led')).not.toBeNull()
@@ -33,12 +37,15 @@ describe('MB-VIS-COMP-033 — RgbLedPart : rendu raster + 8 états', () => {
     for (const [props, state] of STATE_CASES) {
       const { container, unmount } = render(<RgbLedPart {...props} />)
       expect(container.querySelector('.part-rgb-led').getAttribute('data-state')).toBe(state)
-      expect(container.querySelectorAll('img').length).toBe(5)
+      expect(container.querySelectorAll('img').length).toBe(1)
       for (const img of container.querySelectorAll('img')) {
         expect(img.getAttribute('src')).toBe(`/assets/components/rgb-led/rgb-led.${state}.3x.png`)
         expect(img.getAttribute('srcset')).toBe(`/assets/components/rgb-led/rgb-led.${state}.1x.png 1x, /assets/components/rgb-led/rgb-led.${state}.3x.png 3x`)
       }
-      expect(container.querySelectorAll('source[type="image/webp"]').length).toBe(5)
+      for (const src of container.querySelectorAll('source[type="image/webp"]')) {
+        expect(src.getAttribute('srcset')).toBe(`/assets/components/rgb-led/rgb-led.${state}.1x.webp 1x, /assets/components/rgb-led/rgb-led.${state}.3x.webp 3x`)
+      }
+      expect(container.querySelectorAll('source[type="image/webp"]').length).toBe(1)
       unmount()
     }
   })
@@ -136,7 +143,7 @@ describe('MB-VIS-COMP-033 — pipeline réel : 4 pins physiques rapprochés', ()
     expect(pins.length).toBe(4); expect(def.pins.map((p) => p.id)).toEqual(['R', 'common', 'G', 'B'])
     const positions = [...pins].map((el) => [Number(el.style.left.replace('px', '')), Number(el.style.top.replace('px', ''))])
     expect(positions).toEqual(expect.arrayContaining([[19, 56], [35, 56], [53, 56], [71, 56]]))
-    expect(container.querySelectorAll('.circuit-component__body img').length).toBe(5)
+    expect(container.querySelectorAll('.circuit-component__body img').length).toBe(1)
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
     expect(container.querySelector('.circuit-component').getAttribute('data-backend')).toBe('raster')
     expect(container.querySelector('.circuit-component__body').hasAttribute('data-bare-body')).toBe(true)
