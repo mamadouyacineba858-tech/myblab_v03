@@ -14,26 +14,17 @@ describe("A1 - Button Model", () => {
       expect(button.x).toBe(100)
       expect(button.y).toBe(100)
 
-      // [MB-VIS-BUTTON-ASSET-006] dx remesurés sur le nouveau paquet
-      // d'assets Tinkercad-style (précédemment 8/51 sous
-      // MB-VIS-CONTACT-FOUNDATION-001, valeurs mesurées sur un asset
-      // visuellement différent, non reconduites — voir
-      // componentDefinitions.js).
-      expect(button.pins).toEqual([
-        {
-          id: "pin1",
-          label: "1",
-          dx: 14,
-          dy: 30,
-          role: "switch",
-        },
-        {
-          id: "pin2",
-          label: "2",
-          dx: 46,
-          dy: 30,
-          role: "switch",
-        },
+      // [FT-B-001-S2] 2 pins électriques canoniques (role "switch"), chacune
+      // portant 2 contacts physiques de présentation (patte basse "1a"/"2a"
+      // à dy:58 = contact par défaut, patte haute "1b"/"2b" à dy:2). La
+      // cardinalité électrique reste 2 (canonicalRegistry inchangé).
+      expect(button.pins.map(({ id, label, dx, dy, role }) => ({ id, label, dx, dy, role }))).toEqual([
+        { id: "pin1", label: "1", dx: 14, dy: 30, role: "switch" },
+        { id: "pin2", label: "2", dx: 46, dy: 30, role: "switch" },
+      ])
+      expect(button.pins.map((p) => p.contacts.map((c) => [c.id, c.dx, c.dy]))).toEqual([
+        [["1a", 14, 58], ["1b", 14, 2]],
+        [["2a", 46, 58], ["2b", 46, 2]],
       ])
 
       expect(button.state).toBe("released")

@@ -8,10 +8,11 @@ import { SimulationCanvas } from '../canvas/SimulationCanvas.jsx'
 import { CommandBus } from '../core/command/CommandBus.js'
 import { getComponentDef } from '../config/componentDefinitions.js'
 import { getPinPresentationPosition } from '../utils/pinPresentationGeometry.js'
+import { resolveContact } from '../utils/contactModel.js'
 import { clientToCanvas, extractPointsFromPathData } from '../utils/geometry.js'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
-function setup(type = 'BUTTON') {
+function setup(type = 'RESISTOR') {
   let api
   const canvasRef = { current: null }
   function Probe() {
@@ -29,41 +30,64 @@ function setup(type = 'BUTTON') {
 }
 
 describe('MB-VIS-WIRE-INTERACTION-007', () => {
+  // [FT-B-001-S2] BUTTON / BUTTON_LATCHING exposent 4 CONTACTS physiques / 2
+  // pins canoniques. La gesture est paramétrée par (pin, contact) et les
+  // nœuds DOM sont sélectionnés par leurs attributs `data-wire-pin` /
+  // `data-wire-contact` (plus par index positionnel). L'ancre de contact
+  // choisie doit survivre à ADD_WIRE, undo/redo ET au déplacement du
+  // composant (l'extrémité de fil suit le CONTACT, pas la pin).
+  const CONTACT_CASES = [
+    { pin: 'pin1', contact: '1a' }, { pin: 'pin1', contact: '1b' },
+    { pin: 'pin2', contact: '2a' }, { pin: 'pin2', contact: '2b' },
+  ]
   for (const type of ['BUTTON', 'BUTTON_LATCHING']) {
-    for (const pinIndex of [0, 1]) {
-      it(`${type} pin${pinIndex + 1}: real gesture, isolated preview, ADD_WIRE, undo/redo and movement`, () => {
+    for (const tc of CONTACT_CASES) {
+      it(`${type} ${tc.pin}/${tc.contact}: real gesture, isolated preview, ADD_WIRE, undo/redo, movement retains contact anchor`, () => {
         const h = setup(type)
+        const nodesFor = (i) => [...h.container.querySelectorAll('.circuit-component')][i]
+          .querySelectorAll(`[data-wire-pin="${tc.pin}"][data-wire-contact="${tc.contact}"]`)[0]
+        const src = nodesFor(0)
+        const dst = nodesFor(1)
+        expect(src).toBeTruthy()
+        expect(dst).toBeTruthy()
+
         const before = h.api().exportCircuit()
         const count = h.api().getUndoCount()
         const dispatch = vi.spyOn(CommandBus.prototype, 'dispatch')
-        h.event(h.pins[pinIndex], 'pointerdown')
-        fireEvent.mouseDown(h.pins[pinIndex], { button: 0, clientX: 120, clientY: 130 })
+        h.event(src, 'pointerdown')
+        fireEvent.mouseDown(src, { button: 0, clientX: 120, clientY: 130 })
         expect(h.api().wireGesture).not.toBeNull()
+        expect(h.api().wireGesture.contactId).toBe(tc.contact)
         h.event(window, 'pointermove', 420, 130)
         expect(h.preview()).not.toBeNull()
         expect(h.api().exportCircuit()).toEqual(before)
-        expect(h.api().components).toEqual(before.components)
         expect(h.api().getUndoCount()).toBe(count)
         expect(dispatch).not.toHaveBeenCalled()
-        h.event(h.pins[2 + pinIndex], 'pointerup', 420, 130)
-        fireEvent.click(h.pins[2 + pinIndex], { detail: 1 })
+        h.event(dst, 'pointerup', 420, 130)
+        fireEvent.click(dst, { detail: 1 })
         expect(h.preview()).toBeNull()
-        expect(h.api().pendingPin).toBeNull()
         expect(h.api().wires).toHaveLength(1)
         expect(dispatch).toHaveBeenCalledTimes(1)
         expect(dispatch.mock.calls[0][0].type).toBe('ADD_WIRE')
+        // L'ancre de contact source ET destination est persistée.
+        expect(h.api().wires[0]).toMatchObject({ fromPin: tc.pin, fromContact: tc.contact, toPin: tc.pin, toContact: tc.contact })
         expect(h.api().getUndoCount()).toBe(count + 1)
         act(() => h.api().undo())
         expect(h.api().wires).toHaveLength(0)
         act(() => h.api().redo())
         expect(h.api().wires).toHaveLength(1)
+        expect(h.api().wires[0]).toMatchObject({ fromContact: tc.contact, toContact: tc.contact })
+
         const body = h.container.querySelector('.circuit-component')
         fireEvent.mouseDown(body, { button: 0, clientX: 110, clientY: 110 })
         h.event(window, 'pointermove', 150, 150)
         h.event(window, 'pointerup', 150, 150)
         const moved = h.api().components[0]
         expect(moved.x).not.toBe(before.components[0].x)
-        const expected = getPinPresentationPosition(moved, getComponentDef(type).pins[pinIndex])
+        // Extrémité de fil = position du CONTACT choisi (pas de la pin).
+        const pinDef = getComponentDef(type).pins.find((p) => p.id === tc.pin)
+        const resolved = resolveContact(pinDef, tc.contact)
+        const expected = getPinPresentationPosition(moved, pinDef, { contact: resolved })
         expect(extractPointsFromPathData(h.api().wirePaths[0].d)[0]).toEqual(expected)
       })
     }

@@ -74,25 +74,30 @@ function releasePointer() {
 }
 
 describe("MB-VIS-CONTACT-FOUNDATION-001 — cohérence Pin DOM / extrémité de fil / point de présentation (BUTTON)", () => {
-  it("Pin DOM (non focalisé) est positionné exactement à getPinPresentationPosition() — avec les dx corrigés", () => {
+  it("Pin DOM (non focalisé) : 4 contacts physiques / 2 pins ; le contact par défaut coïncide avec getPinPresentationPosition()", () => {
     const { getApi, container } = renderHarness()
     act(() => { getApi().addComponent("BUTTON", 100, 100) })
     const [button] = getApi().components
     const def = getComponentDef("BUTTON")
-    // [MB-VIS-BUTTON-ASSET-006] dx remesurés sur le nouveau paquet d'assets
-    // Tinkercad-style (précédemment 8/51 sous MB-VIS-CONTACT-FOUNDATION-001,
-    // non reconduits — voir componentDefinitions.js).
+    // Géométrie canonique / cardinalité électrique inchangées.
     expect(def.pins.find((p) => p.id === "pin1")).toMatchObject({ dx: 14, dy: 30 })
     expect(def.pins.find((p) => p.id === "pin2")).toMatchObject({ dx: 46, dy: 30 })
 
+    // [FT-B-001-S2] 4 hit targets (2 pins × 2 contacts physiques).
     const nodes = [...container.querySelectorAll(".myblab-pin")]
-    expect(nodes).toHaveLength(2)
+    expect(nodes).toHaveLength(4)
+    expect([...new Set(nodes.map((n) => n.getAttribute("data-wire-pin")))].sort()).toEqual(["pin1", "pin2"])
+    expect([...new Set(nodes.map((n) => n.getAttribute("data-wire-contact")))].sort()).toEqual(["1a", "1b", "2a", "2b"])
+
     for (const pin of def.pins) {
+      // Le CONTACT PAR DÉFAUT (getPinPresentationPosition sans argument
+      // `contact`) reste positionné à l'ancienne projection de présentation.
       const expected = getPinPresentationPosition(button, pin)
-      const node = nodes.find((n) => n.getAttribute("aria-label") === pin.label)
-      expect(node).toBeTruthy()
-      expect(Number(node.style.left.replace("px", ""))).toBe(expected.x - button.x)
-      expect(Number(node.style.top.replace("px", ""))).toBe(expected.y - button.y)
+      const defaultNode = nodes.find((n) =>
+        n.getAttribute("data-wire-pin") === pin.id && n.getAttribute("data-wire-contact") === `${pin.id === "pin1" ? "1" : "2"}a`)
+      expect(defaultNode).toBeTruthy()
+      expect(Number(defaultNode.style.left.replace("px", ""))).toBe(expected.x - button.x)
+      expect(Number(defaultNode.style.top.replace("px", ""))).toBe(expected.y - button.y)
     }
   })
 

@@ -47,7 +47,11 @@ export class ReactDocumentMapper {
 
   /**
    * Contrat de mapping : React → Core pour une wire.
-   * fromPinId et toPinId sont optionnels.
+   * fromPin/toPin sont optionnels.
+   * [FT-B-001-S2] fromContact/toContact (ancre de contact physique) sont
+   * optionnels et purement additifs : mappés vers pinA.contactId /
+   * pinB.contactId uniquement s'ils sont présents. Aucune synthèse en cas
+   * d'absence — un document legacy sans contact reste valide.
    */
   static _WIRE_MAPPING_RC = [
     // Champs obligatoires
@@ -56,6 +60,8 @@ export class ReactDocumentMapper {
     // Champs optionnels
     ['fromPin', 'pinA.pinId', false, (v) => v !== undefined ? v : undefined],
     ['toPin', 'pinB.pinId', false, (v) => v !== undefined ? v : undefined],
+    ['fromContact', 'pinA.contactId', false, (v) => v !== undefined ? v : undefined],
+    ['toContact', 'pinB.contactId', false, (v) => v !== undefined ? v : undefined],
   ];
 
   /**
@@ -68,6 +74,8 @@ export class ReactDocumentMapper {
     // Champs optionnels
     ['pinA.pinId', 'fromPin', false, (v) => v !== undefined ? v : undefined],
     ['pinB.pinId', 'toPin', false, (v) => v !== undefined ? v : undefined],
+    ['pinA.contactId', 'fromContact', false, (v) => v !== undefined ? v : undefined],
+    ['pinB.contactId', 'toContact', false, (v) => v !== undefined ? v : undefined],
   ];
 
   // ============================================================
@@ -89,7 +97,7 @@ export class ReactDocumentMapper {
       ReactDocumentMapper._applyMapping(
         wire,
         ReactDocumentMapper._WIRE_MAPPING_RC,
-        ['fromUid', 'toUid', 'fromPin', 'toPin']
+        ['fromUid', 'toUid', 'fromPin', 'toPin', 'fromContact', 'toContact']
       )
     );
 

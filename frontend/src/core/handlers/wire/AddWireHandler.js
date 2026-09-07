@@ -31,12 +31,12 @@ export class AddWireHandler extends BaseCommandHandler {
   }
 
   _applyMutation(command, document) {
-    const { fromUid, fromPin, toUid, toPin } = command.payload;
+    const { fromUid, fromPin, toUid, toPin, fromContact, toContact } = command.payload;
 
     const id = command.payload.wireId || this._generateWireId();
     command.payload.wireId = id;
 
-    const newWire = this._buildWire(id, fromUid, fromPin, toUid, toPin);
+    const newWire = this._buildWire(id, fromUid, fromPin, toUid, toPin, fromContact, toContact);
 
     const newDocument = {
       ...document,
@@ -57,7 +57,7 @@ export class AddWireHandler extends BaseCommandHandler {
 
   _applyRedo(command, document) {
     const wireId = command.payload.wireId;
-    const { fromUid, fromPin, toUid, toPin } = command.payload;
+    const { fromUid, fromPin, toUid, toPin, fromContact, toContact } = command.payload;
 
     if (!wireId) {
       throw new Error('Cannot redo AddWire: missing wireId');
@@ -67,7 +67,7 @@ export class AddWireHandler extends BaseCommandHandler {
       return { success: true, document, wireId };
     }
 
-    const newWire = this._buildWire(wireId, fromUid, fromPin, toUid, toPin);
+    const newWire = this._buildWire(wireId, fromUid, fromPin, toUid, toPin, fromContact, toContact);
 
     const newDocument = {
       ...document,
@@ -112,16 +112,22 @@ export class AddWireHandler extends BaseCommandHandler {
     };
   }
 
-  _buildWire(id, fromUid, fromPin, toUid, toPin) {
+  _buildWire(id, fromUid, fromPin, toUid, toPin, fromContact, toContact) {
+    // [FT-B-001-S2] contactId : ancre de contact physique OPTIONNELLE
+    // (présentation). Ajoutée à pinA/pinB uniquement si fournie ; jamais
+    // requise ; jamais lue par la validation électrique (STR-003) ni par le
+    // moteur (engineAdapter.js).
     return {
       id,
       pinA: {
         componentId: fromUid,
         ...(fromPin !== undefined ? { pinId: fromPin } : {}),
+        ...(fromContact !== undefined && fromContact !== null ? { contactId: fromContact } : {}),
       },
       pinB: {
         componentId: toUid,
         ...(toPin !== undefined ? { pinId: toPin } : {}),
+        ...(toContact !== undefined && toContact !== null ? { contactId: toContact } : {}),
       },
     };
   }

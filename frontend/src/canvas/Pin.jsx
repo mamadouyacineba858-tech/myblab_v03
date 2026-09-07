@@ -10,6 +10,7 @@ import "./Pin.css"
  */
 export function Pin({
   pinId,
+  contactId,
   componentUid,
   startWireGesture,
   label,
@@ -28,7 +29,9 @@ export function Pin({
 
   const handleClick = (e) => {
     e.stopPropagation()
-    onPinClick(pinId)
+    // [FT-B-001-S2] Le câblage par double-clic transporte aussi l'ancre de
+    // contact physique (identique au geste de drag).
+    onPinClick(pinId, contactId)
   }
 
   return (
@@ -36,9 +39,13 @@ export function Pin({
       type="button"
       data-wire-uid={componentUid}
       data-wire-pin={pinId}
+      {...(contactId != null ? { "data-wire-contact": contactId } : {})}
       onPointerDown={(e) => {
         e.stopPropagation()
-        startWireGesture?.(e, componentUid, pinId)
+        // [FT-B-001-S2] `contactId` transmis à la gesture (ancre de contact
+        // physique). Undefined pour une pin mono-contact ⇒ comportement
+        // historique.
+        startWireGesture?.(e, componentUid, pinId, contactId)
       }}
       className={[
         "myblab-pin",

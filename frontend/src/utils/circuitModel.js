@@ -120,6 +120,24 @@ export function normalizeWaypoints(waypoints) {
 }
 
 /**
+ * [FT-B-001-S2] Ancre de contact physique OPTIONNELLE d'une extrémité de
+ * fil. `fromContact` / `toContact` sont une identité de PRÉSENTATION
+ * (utils/contactModel.js) : purement additive, jamais requise, sans
+ * sémantique électrique. Un fil legacy (sans ces champs) est normalisé
+ * exactement comme avant S2 — aucune clé de contact ajoutée. Une valeur
+ * scalaire présente est conservée en `String()` (cohérence avec
+ * fromPin/toPin). Round-trip garanti : normalize → export → import →
+ * normalize préserve l'ancre ; le solveur ne lit jamais ces champs
+ * (engineAdapter.js), donc aucune conséquence électrique.
+ */
+function contactAnchor(key, value) {
+  if (value === undefined || value === null) return {}
+  if (typeof value === "object") return {}
+  const s = String(value)
+  return s.length > 0 ? { [key]: s } : {}
+}
+
+/**
  * @param {object} wire
  * @returns {object | null}
  */
@@ -133,6 +151,8 @@ export function normalizeWire(wire) {
     fromPin: String(wire.fromPin),
     toUid: String(wire.toUid),
     toPin: String(wire.toPin),
+    ...contactAnchor("fromContact", wire.fromContact),
+    ...contactAnchor("toContact", wire.toContact),
     // MB-VIS-005 : les trois chemins d'appel de normalizeWire() (safeWires,
     // documentApi.applyDocument, import de document — cf.
     // frontend/src/hooks/useCircuitState.js) partagent cette même fonction ;

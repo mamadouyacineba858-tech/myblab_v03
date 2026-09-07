@@ -40,9 +40,28 @@ const PIN_PRESENTATION_BY_TYPE = {
   // proche en conservant la symétrie gauche/droite (14+46=60). Toujours
   // exactement 2 pins logiques (mandat §7/§8) : les 4 pattes visibles sont
   // une représentation physique pure, non électrique.
+  // [FT-B-001-S2] `contacts` : 4 pattes métalliques physiques / 2 pins
+  // électriques canoniques (canonicalRegistry.js INCHANGÉ). Les deux pattes
+  // d'un même côté (gauche = pin1, droite = pin2) sont électriquement
+  // reliées dans le boîtier ; leurs `contact.id` ("1a"/"1b", "2a"/"2b") sont
+  // une identité de PRÉSENTATION uniquement, jamais un nœud électrique.
+  // Coordonnées = centroïdes pondérés par alpha des 4 blobs métalliques hors
+  // boîtier, mesurés sur button.released.3x.png (pixel-probe, cohérent 1x/3x)
+  // : gauche x≈13.6 → 14, droite x≈46.4 → 46 ; patte haute y≈4.95, patte
+  // basse y≈53.9. Le contact PAR DÉFAUT (premier déclaré, "1a"/"2a") est la
+  // patte BASSE à dy:58 — valeur exacte de l'ancienne projection
+  // BUTTON_VISUAL_PINS (MB-VIS-BUTTON-INTERACTION-008), donc les fils legacy
+  // sans contactId restent pixel-identiques. La patte haute ("1b"/"2b") est
+  // à dy:2 (miroir, extrémité de la patte supérieure).
   BUTTON: [
-    { id: "pin1", label: "1", dx: 14, dy: 30 },
-    { id: "pin2", label: "2", dx: 46, dy: 30 },
+    { id: "pin1", label: "1", dx: 14, dy: 30, contacts: [
+      { id: "1a", dx: 14, dy: 58, wireConnectable: true, breadboardInsertable: true },
+      { id: "1b", dx: 14, dy: 2, wireConnectable: true, breadboardInsertable: true },
+    ] },
+    { id: "pin2", label: "2", dx: 46, dy: 30, contacts: [
+      { id: "2a", dx: 46, dy: 58, wireConnectable: true, breadboardInsertable: true },
+      { id: "2b", dx: 46, dy: 2, wireConnectable: true, breadboardInsertable: true },
+    ] },
   ],
   // [MB-VIS-BUTTON-ASSET-006] Même méthode, mesurée séparément sur
   // button-latching.off.3x.png : pattes gauche/droite à x≈37.9/140.7
@@ -53,9 +72,20 @@ const PIN_PRESENTATION_BY_TYPE = {
   // mesuré ≈90.7 (3x) / ≈30.2 (1x), identique à BUTTON. Valeurs arrondies
   // en conservant la somme symétrique 60 (13+47) la plus proche de la
   // mesure. Toujours exactement 2 pins logiques.
+  // [FT-B-001-S2] Même modèle que BUTTON — 4 pattes / 2 pins électriques.
+  // Mesuré séparément sur button-latching.off.3x.png : gauche x≈12.7 → 13,
+  // droite x≈46.9 → 47 ; patte haute y≈4.7, patte basse y≈53.9. Contact par
+  // défaut ("1a"/"2a") = patte basse à dy:58 = ancienne projection
+  // BUTTON_LATCHING_VISUAL_PINS (legacy pixel-identique).
   BUTTON_LATCHING: [
-    { id: "pin1", label: "1", dx: 13, dy: 30 },
-    { id: "pin2", label: "2", dx: 47, dy: 30 },
+    { id: "pin1", label: "1", dx: 13, dy: 30, contacts: [
+      { id: "1a", dx: 13, dy: 58, wireConnectable: true, breadboardInsertable: true },
+      { id: "1b", dx: 13, dy: 2, wireConnectable: true, breadboardInsertable: true },
+    ] },
+    { id: "pin2", label: "2", dx: 47, dy: 30, contacts: [
+      { id: "2a", dx: 47, dy: 58, wireConnectable: true, breadboardInsertable: true },
+      { id: "2b", dx: 47, dy: 2, wireConnectable: true, breadboardInsertable: true },
+    ] },
   ],
   POWER: [
     { id: "5V", label: "+5V", dx: 70, dy: 37 },
@@ -124,7 +154,17 @@ function buildPins(type) {
   return canonicalEntry.pins.map((canonicalPin) => {
     const presentationPin = presentationById.get(canonicalPin.id)
     if (!presentationPin) throw new Error(`Missing presentation pin for component ${type}: ${canonicalPin.id}`)
-    return { ...canonicalPin, label: presentationPin.label, dx: presentationPin.dx, dy: presentationPin.dy }
+    return {
+      ...canonicalPin,
+      label: presentationPin.label,
+      dx: presentationPin.dx,
+      dy: presentationPin.dy,
+      // [FT-B-001-S2] `contacts` optionnel (contacts physiques de présentation) —
+      // recopié tel quel s'il est déclaré ; absent ⇒ contact implicite unique
+      // synthétisé à la lecture par utils/contactModel.js (comportement S1
+      // strictement préservé pour les 14 types mono-contact).
+      ...(Array.isArray(presentationPin.contacts) ? { contacts: presentationPin.contacts.map((c) => ({ ...c })) } : {}),
+    }
   })
 }
 

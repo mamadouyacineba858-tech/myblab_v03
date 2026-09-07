@@ -832,11 +832,19 @@ const adapted = toEngineInput(coreDoc);
   // garantie elle-même. wiresRef.current (MB-CF3-001, référence synchrone)
   // est utilisé plutôt que safeWires pour éviter toute stale closure.
   // =========================================================================
-  const addWire = useCallback((fromUid, fromPin, toUid, toPin) => {
+  // [FT-B-001-S2] `contactAnchors` : 5ᵉ argument OPTIONNEL
+  // `{ fromContact?, toContact? }` — ancres de contact physique de
+  // présentation. Additif : tout appelant existant à 4 arguments est
+  // inchangé. La déduplication (`wireAlreadyExists`) reste STRICTEMENT par
+  // paire de pins canoniques (jamais contact-aware) : deux contacts d'une
+  // même paire d'endpoints ne créent pas un second fil électrique.
+  const addWire = useCallback((fromUid, fromPin, toUid, toPin, contactAnchors) => {
     if (!fromUid || !fromPin || !toUid || !toPin) return
     if (fromUid === toUid && fromPin === toPin) return
     if (!commandBusRef.current) return
     if (wireAlreadyExists(wiresRef.current, fromUid, fromPin, toUid, toPin)) return
+    const fromContact = contactAnchors?.fromContact
+    const toContact = contactAnchors?.toContact
     try {
       const coreDocument = documentApi.getDocument()
       const command = new Command("ADD_WIRE", {
@@ -844,6 +852,8 @@ const adapted = toEngineInput(coreDoc);
         fromPin,
         toUid,
         toPin,
+        ...(fromContact != null ? { fromContact: String(fromContact) } : {}),
+        ...(toContact != null ? { toContact: String(toContact) } : {}),
       })
       commandBusRef.current.dispatch(command, coreDocument)
     } catch (error) {
@@ -954,10 +964,16 @@ const adapted = toEngineInput(coreDoc);
   }, [])
 
   // Presentation only: no temporary wire, Document mutation or history entry.
-  const startWireGesture = useCallback((event, uid, pinId) => {
+  // [FT-B-001-S2] `contactId` optionnel : identité du CONTACT PHYSIQUE cliqué
+  // (présentation). Transporté tel quel jusqu'au preview, puis à ADD_WIRE.
+  // Absent ⇒ comportement historique (repli sur le contact par défaut à la
+  // résolution du tracé).
+  const startWireGesture = useCallback((event, uid, pinId, contactId) => {
     if (event.button !== 0 || !uid || !pinId || wireGestureRef.current) return
     if (dragSessionRef.current || marqueeSessionRef.current || panSessionRef.current || waypointDragSessionRef.current) return
-    const gesture = { uid, pinId, pointerId: event.pointerId,
+    const gesture = { uid, pinId,
+      contactId: contactId != null ? String(contactId) : undefined,
+      pointerId: event.pointerId,
       clientX: event.clientX, clientY: event.clientY,
       startX: event.clientX, startY: event.clientY, moved: false }
     wireGestureRef.current = gesture
@@ -991,7 +1007,14 @@ const adapted = toEngineInput(coreDoc);
       suppressWireClickRef.current = true
       setPendingPin(null)
       if (pin && canvasRef?.current?.contains(pin)) {
-        addWire(gesture.uid, gesture.pinId, pin.dataset.wireUid, pin.dataset.wirePin)
+        // [FT-B-001-S2] Ancres de contact physique : contact source =
+        // gesture.contactId ; contact destination = data-wire-contact de la
+        // cible. Optionnelles — addWire tombe sur le contact par défaut si
+        // absentes.
+        addWire(gesture.uid, gesture.pinId, pin.dataset.wireUid, pin.dataset.wirePin, {
+          fromContact: gesture.contactId,
+          toContact: pin.dataset.wireContact,
+        })
       }
     }
     const cancel = () => { if (wireGestureRef.current) cancelWiring() }
@@ -1021,7 +1044,7 @@ const adapted = toEngineInput(coreDoc);
     }
   }, [addWire, canvasRef, cancelWiring])
 
-  const onPinClick = useCallback((uid, pinId) => {
+  const onPinClick = useCallback((uid, pinId, contactId) => {
     if (!uid || !pinId) return
 
     // Garde I-M1 : vérifier qu'aucune autre interaction n'est active
@@ -1029,11 +1052,17 @@ const adapted = toEngineInput(coreDoc);
     if (marqueeSessionRef.current !== null) return
     if (panSessionRef.current !== null) return
 
-    const current = { uid, pinId }
+    // [FT-B-001-S2] `contactId` (ancre de contact physique) mémorisé dans
+    // pendingPin puis transmis à addWire — même sémantique que le geste de
+    // drag. Optionnel : une pin mono-contact garde le comportement d'avant.
+    const current = { uid, pinId, contactId: contactId != null ? String(contactId) : undefined }
     if (!pendingPin) { setPendingPin(current); return }
     setPendingPin(null)
     if (pendingPin.uid === uid && pendingPin.pinId === pinId) return
-    addWire(pendingPin.uid, pendingPin.pinId, uid, pinId)
+    addWire(pendingPin.uid, pendingPin.pinId, uid, pinId, {
+      fromContact: pendingPin.contactId,
+      toContact: current.contactId,
+    })
   }, [pendingPin, addWire])
 
   const isPinPending = useCallback((uid, pinId) => pendingPin?.uid === uid && pendingPin?.pinId === pinId, [pendingPin])

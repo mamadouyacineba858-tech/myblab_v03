@@ -14,6 +14,7 @@ import { Pin } from "./Pin.jsx"
 import { PartRenderer } from "../components/parts/PartRenderer.jsx"
 import { getComponentPresentation } from "../visualization/defaultRegistrations.js"
 import { getPinPresentationPosition } from "../utils/pinPresentationGeometry.js"
+import { resolveWireConnectableContacts } from "../utils/contactModel.js"
 import "./CircuitComponent.css"
 
 // MB-VIS-CANVAS-051 (Blueprint C3/D4) : React.memo — SimulationCanvas.jsx
@@ -92,8 +93,8 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
   )
 
   const handlePinClick = useCallback(
-    (pinId) => {
-      if (uid) onPinClick(uid, pinId)
+    (pinId, contactId) => {
+      if (uid) onPinClick(uid, pinId, contactId)
     },
     [onPinClick, uid]
   )
@@ -279,25 +280,41 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
         />
       </div>
 
-      {pins.map((pin) => {
-        const presentationPosition = getPinPresentationPosition(component, pin)
-        const left = presentationPosition ? presentationPosition.x - x : pin.dx ?? 0
-        const top = presentationPosition ? presentationPosition.y - y : pin.dy ?? 0
-        return (
-          <Pin
-            key={pin.id}
-            pinId={pin.id}
-            componentUid={uid}
-            startWireGesture={startWireGesture}
-            label={pin.label ?? pin.id}
-            left={left}
-            top={top}
-            isPending={isPinPending(uid, pin.id)}
-            isConnected={isPinConnected(uid, pin.id)}
-            onPinClick={handlePinClick}
-            hideVisualMarker={presentation.markerless}
-          />
-        )
+      {pins.flatMap((pin) => {
+        // [FT-B-001-S2] Un hit target par CONTACT PHYSIQUE câblable. Une pin
+        // SANS `contacts` explicite ⇒ contact implicite unique : on garde
+        // alors la résolution historique (aucun argument `contact` passé à
+        // getPinPresentationPosition), donc les projections *_VISUAL_PINS
+        // existantes (LED/NPN/POWER/ARDUINO/BUTTON*) ne bougent pas. BUTTON /
+        // BUTTON_LATCHING (4 contacts / 2 pins) ⇒ 4 hit targets, chacun
+        // positionné sur sa patte via contact.dx/dy, `data-wire-contact` posé.
+        const explicit = Array.isArray(pin.contacts) && pin.contacts.length > 0
+        const contacts = resolveWireConnectableContacts(pin)
+        return contacts.map((contact) => {
+          const presentationPosition = explicit
+            ? getPinPresentationPosition(component, pin, { contact })
+            : getPinPresentationPosition(component, pin)
+          const fallbackDx = explicit ? contact.dx : pin.dx
+          const fallbackDy = explicit ? contact.dy : pin.dy
+          const left = presentationPosition ? presentationPosition.x - x : fallbackDx ?? 0
+          const top = presentationPosition ? presentationPosition.y - y : fallbackDy ?? 0
+          return (
+            <Pin
+              key={explicit ? `${pin.id}:${contact.id}` : pin.id}
+              pinId={pin.id}
+              contactId={explicit ? contact.id : undefined}
+              componentUid={uid}
+              startWireGesture={startWireGesture}
+              label={pin.label ?? pin.id}
+              left={left}
+              top={top}
+              isPending={isPinPending(uid, pin.id)}
+              isConnected={isPinConnected(uid, pin.id)}
+              onPinClick={handlePinClick}
+              hideVisualMarker={presentation.markerless}
+            />
+          )
+        })
       })}
     </div>
   )

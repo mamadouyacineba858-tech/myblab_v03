@@ -153,13 +153,29 @@ const BUTTON_LATCHING_VISUAL_PINS = {
  * Falls back to the canonical electrical coordinate (getPinPosition(),
  * geometry.js) for every component and every pin that has no presentation
  * override.
+ *
+ * [FT-B-001-S2] Paramètre optionnel `contact` : un CONTACT PHYSIQUE déjà
+ * résolu (`{ dx, dy }`, via utils/contactModel.js). Quand il est fourni, la
+ * position de base est `component.x/y + contact.dx/dy` — priorité sur toute
+ * projection `*_VISUAL_PINS` et sur la géométrie canonique. Ce n'est PAS un
+ * nouvel oracle de coordonnées : `contact.dx/dy` vient de
+ * componentDefinitions.js (`PIN_PRESENTATION_BY_TYPE`). Sans `contact`
+ * (appelants historiques à 2 arguments ou `{ scale }` seul), comportement
+ * STRICTEMENT inchangé — les 14 types mono-contact et les projections
+ * LED/NPN/POWER/ARDUINO/BUTTON* existantes ne bougent pas. La reprojection
+ * `scale` (focus/localScale, MB-VIS-CANVAS-052) s'applique ensuite à
+ * l'identique.
  */
-export function getPinPresentationPosition(component, pinDef, { scale = 1 } = {}) {
+export function getPinPresentationPosition(component, pinDef, { scale = 1, contact } = {}) {
   if (!component || !pinDef) return null
 
   let basePos = null
 
-  if (component.type === "LED" && LED_VISUAL_PINS[pinDef.id]) {
+  if (contact && Number.isFinite(contact.dx) && Number.isFinite(contact.dy)) {
+    const x = component.x + contact.dx
+    const y = component.y + contact.dy
+    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+  } else if (component.type === "LED" && LED_VISUAL_PINS[pinDef.id]) {
     const visual = LED_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y

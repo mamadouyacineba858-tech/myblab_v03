@@ -16,6 +16,7 @@ import { clientToCanvas, extractPointsFromPathData } from "../utils/geometry.js"
 import { nearestSegmentInsertIndex } from "./waypointInsertion.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { getPinPresentationPosition } from "../utils/pinPresentationGeometry.js"
+import { resolveContact } from "../utils/contactModel.js"
 
 /**
  * Rendu d'un fil individuel (MB-VIS-004 ; poignées de waypoint MB-VIS-005).
@@ -144,8 +145,14 @@ export function WiresLayer({ wirePaths = [] }) {
   if (wireGesture && canvasRef?.current) {
     const component = components?.find((c) => c.uid === wireGesture.uid)
     const pin = component && getComponentDef(component.type)?.pins?.find((p) => p.id === wireGesture.pinId)
+    // [FT-B-001-S2] Aperçu ancré au CONTACT PHYSIQUE cliqué (wireGesture.contactId)
+    // pour les pins multi-contacts ; sinon résolution historique inchangée.
+    const previewContact = pin && Array.isArray(pin.contacts) && pin.contacts.length > 0
+      ? resolveContact(pin, wireGesture.contactId)
+      : undefined
     const from = pin && getPinPresentationPosition(component, pin, {
       scale: component.uid === focusedComponentId ? localScale : 1,
+      contact: previewContact,
     })
     const to = clientToCanvas(wireGesture, canvasRef.current.getBoundingClientRect(),
       viewport.zoom, viewport.translateX, viewport.translateY)

@@ -41,6 +41,7 @@ import { LatchingButtonPart } from '../LatchingButtonPart.jsx'
 import { getComponentDef } from '../../../config/componentDefinitions.js'
 import { getComponentPresentation } from '../../../visualization/defaultRegistrations.js'
 import { getPinPresentationPosition } from '../../../utils/pinPresentationGeometry.js'
+import { resolveContacts } from '../../../utils/contactModel.js'
 import { CircuitProvider } from '../../../context/CircuitContext.jsx'
 import { useCircuit } from '../../../context/useCircuit.js'
 import { useCircuitInteraction } from '../../../context/useCircuitInteraction.js'
@@ -204,39 +205,51 @@ describe('MB-VIS-PROTOTYPE-008 — pipeline réel : pins, click et undo/redo BUT
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  // Positions attendues dérivées de getPinPresentationPosition() — l'oracle
-  // de présentation réel. Depuis MB-VIS-BUTTON-INTERACTION-008 BUTTON_LATCHING
-  // a une projection de présentation (dx 13/47 conservés, dy 30 -> 58, sur la
-  // patte métallique de l'asset), jamais réécrite en dur ici.
-  it('10 — CircuitComponent produit les 2 pins BUTTON_LATCHING à leur position de présentation ; asset raster dans le wrapper, chrome neutralisé', () => {
+  // [FT-B-001-S2] BUTTON_LATCHING : 4 contacts physiques / 2 pins électriques
+  // canoniques (canonicalRegistry INCHANGÉ). Mêmes vérifications que BUTTON.
+  it('10 — CircuitComponent produit 4 contacts physiques / 2 pins canoniques BUTTON_LATCHING ; asset raster, chrome neutralisé', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('BUTTON_LATCHING', 50, 60) })
 
     const def = getComponentDef('BUTTON_LATCHING')
     const component = api.components[0]
-    const pins = container.querySelectorAll('.myblab-pin')
-    expect(pins.length).toBe(def.pins.length)
-    expect(def.pins.length).toBe(2)
+    const targets = [...container.querySelectorAll('.myblab-pin')]
 
-    const positions = [...pins].map((el) => [
-      Number(el.style.left.replace('px', '')),
-      Number(el.style.top.replace('px', '')),
-    ])
-    const expectedPresentation = def.pins.map((p) => {
-      const pos = getPinPresentationPosition(component, p)
-      return [pos.x - component.x, pos.y - component.y]
-    })
-    expect(positions).toEqual(expect.arrayContaining(expectedPresentation))
-    // Projection MB-VIS-BUTTON-INTERACTION-008 : dx canonique conservé, dy
-    // projeté sur la patte inférieure (58, jamais le corps à 30).
-    expect(expectedPresentation).toEqual(expect.arrayContaining([[13, 58], [47, 58]]))
+    expect(def.pins.map((p) => p.id)).toEqual(['pin1', 'pin2'])
+    expect(targets.length).toBe(4)
+    expect(def.pins.every((p) => resolveContacts(p).length === 2)).toBe(true)
+
+    expect([...new Set(targets.map((el) => el.getAttribute('data-wire-pin')))].sort()).toEqual(['pin1', 'pin2'])
+    expect([...new Set(targets.map((el) => el.getAttribute('data-wire-contact')))].sort()).toEqual(['1a', '1b', '2a', '2b'])
+
+    const byPin = {}
+    for (const el of targets) {
+      const p = el.getAttribute('data-wire-pin')
+      ;(byPin[p] ??= []).push(el.getAttribute('data-wire-contact'))
+    }
+    expect(byPin.pin1.sort()).toEqual(['1a', '1b'])
+    expect(byPin.pin2.sort()).toEqual(['2a', '2b'])
+
+    const posOf = (pinId, contactId) => {
+      const el = targets.find((t) => t.getAttribute('data-wire-pin') === pinId && t.getAttribute('data-wire-contact') === contactId)
+      return [Number(el.style.left.replace('px', '')), Number(el.style.top.replace('px', ''))]
+    }
+    expect(posOf('pin1', '1a')).toEqual([13, 58])
+    expect(posOf('pin1', '1b')).toEqual([13, 2])
+    expect(posOf('pin2', '2a')).toEqual([47, 58])
+    expect(posOf('pin2', '2b')).toEqual([47, 2])
+
+    for (const p of def.pins) {
+      const legacy = getPinPresentationPosition(component, p)
+      expect([legacy.x - component.x, legacy.y - component.y]).toEqual([p.dx, 58])
+    }
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
     expect(container.querySelector('.circuit-component').getAttribute('data-backend')).toBe('raster')
     expect(container.querySelector('.circuit-component__body').hasAttribute('data-bare-body')).toBe(true)
-    for (const p of pins) expect(p.style.opacity).toBe('0')
+    for (const p of targets) expect(p.style.opacity).toBe('0')
   })
 
   it('11 — un clic réel sur le wrapper bascule component.state off -> on -> off (ToggleLatchingButtonCommand non régressé)', () => {

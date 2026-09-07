@@ -34,6 +34,7 @@ import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { CircuitComponent } from "../canvas/CircuitComponent.jsx"
 import { getPinPresentationPosition } from "../utils/pinPresentationGeometry.js"
+import { resolveWireConnectableContacts } from "../utils/contactModel.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -100,7 +101,7 @@ describe("MB-VIS-RENDER-009 — TEST T2/T3 : cohérence dimensions/pins au nivea
       expect(wrapper.style.height).toBe(`${def.height}px`)
     })
 
-    it(`${type} : chaque <Pin> rendu est positionné exactement à getPinPresentationPosition() (relatif au composant)`, () => {
+    it(`${type} : chaque <Pin> rendu est positionné exactement sur son CONTACT PHYSIQUE (relatif au composant)`, () => {
       let circuit
       const { container } = render(
         <Harness type={type} onReady={(c) => { circuit = c }} />,
@@ -109,17 +110,35 @@ describe("MB-VIS-RENDER-009 — TEST T2/T3 : cohérence dimensions/pins au nivea
       act(() => { circuit.addComponent(type, 50, 60) })
       const component = circuit.components[0]
       const def = COMPONENT_TYPES[type]
-      const pinButtons = container.querySelectorAll(".myblab-pin")
-      expect(pinButtons.length).toBe(def.pins.length)
+      const pinButtons = [...container.querySelectorAll(".myblab-pin")]
 
-      def.pins.forEach((pin, index) => {
-        const expected = getPinPresentationPosition(component, pin)
-        const expectedLeft = expected.x - component.x
-        const expectedTop = expected.y - component.y
-        const el = pinButtons[index]
-        expect(Number(el.style.left.replace("px", ""))).toBeCloseTo(expectedLeft, 5)
-        expect(Number(el.style.top.replace("px", ""))).toBeCloseTo(expectedTop, 5)
+      // [FT-B-001-S2] Un hit target par CONTACT PHYSIQUE câblable. Pour une
+      // pin mono-contact (14/16 types) : 1 target à getPinPresentationPosition()
+      // historique. Pour BUTTON / BUTTON_LATCHING : 4 targets (2 pins × 2
+      // contacts), chacun à component + contact.dx/dy.
+      const expectedTargets = def.pins.flatMap((pin) => {
+        const explicit = Array.isArray(pin.contacts) && pin.contacts.length > 0
+        return resolveWireConnectableContacts(pin).map((contact) => {
+          const pos = explicit
+            ? getPinPresentationPosition(component, pin, { contact })
+            : getPinPresentationPosition(component, pin)
+          return { pinId: pin.id, left: pos.x - component.x, top: pos.y - component.y }
+        })
       })
+
+      expect(pinButtons.length).toBe(expectedTargets.length)
+      // Cardinalité électrique canonique intacte.
+      const distinctPins = new Set(pinButtons.map((el) => el.getAttribute("data-wire-pin")))
+      expect([...distinctPins].sort()).toEqual(def.pins.map((p) => p.id).sort())
+
+      const rendered = pinButtons.map((el) => [
+        el.getAttribute("data-wire-pin"),
+        Number(el.style.left.replace("px", "")),
+        Number(el.style.top.replace("px", "")),
+      ])
+      for (const t of expectedTargets) {
+        expect(rendered).toEqual(expect.arrayContaining([[t.pinId, t.left, t.top]]))
+      }
     })
   }
 })
