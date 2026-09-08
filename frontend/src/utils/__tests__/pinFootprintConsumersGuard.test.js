@@ -142,9 +142,18 @@ describe("MB-VIS-COMP-007 — TEST 8 : les coordonnées utilisées par le rendu 
     expect(codeOnly).toMatch(/import\s*\{\s*getPinPosition\s*\}\s*from\s*["']\.\.\/utils\/geometry\.js["']/)
   })
 
-  it("Breadboard.jsx importe bien getPinPosition() depuis geometry.js (pas de recalcul indépendant)", () => {
+  it("Breadboard.jsx délègue la résolution physique à la primitive centralisée resolveComponentContactHoles (FT-B-001-S3 — pas de recalcul indépendant)", () => {
+    // [FT-B-001-S3] Breadboard.jsx (occupiedBy) ne reconstruit plus
+    // getPinPosition()+holeAt() pin par pin : il consomme désormais la
+    // primitive UNIQUE `resolveComponentContactHoles()` (breadboardGeometry.js),
+    // qui développe chaque pin en ses contacts physiques et applique le MÊME
+    // holeAt(). L'intention du garde MB-VIS-COMP-007 (aucun recalcul
+    // indépendant des coordonnées) est donc renforcée, pas affaiblie — le scan
+    // "+ pin.dx"/"+ pin.dy" ci-dessus (TEST 6) reste vert.
     const codeOnly = stripComments(readFileSync(resolve(__dirname, "../../canvas/Breadboard.jsx"), "utf-8"))
-    expect(codeOnly).toMatch(/import\s*\{\s*getPinPosition\s*\}\s*from\s*["']\.\.\/utils\/geometry\.js["']/)
+    expect(codeOnly).toMatch(
+      /import\s*\{[\s\S]*?resolveComponentContactHoles[\s\S]*?\}\s*from\s*["']\.\.\/utils\/breadboardGeometry\.js["']/
+    )
   })
 
   it("pour un composant occupant un trou, la position réellement utilisée pour résoudre le trou égale getPinPosition() (RESISTOR, aucune projection visuelle en jeu)", () => {

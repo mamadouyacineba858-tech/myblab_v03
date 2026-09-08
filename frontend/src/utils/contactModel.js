@@ -78,6 +78,28 @@ export function resolveWireConnectableContacts(pinDef) {
 }
 
 /**
+ * [FT-B-001-S3] Contacts d'une pin qui s'enfichent dans un trou de breadboard
+ * (⊆ resolveContacts). Symétrique de `resolveWireConnectableContacts` : même
+ * source (`resolveContacts`), même ordre déterministe de déclaration, même
+ * synthèse du contact implicite pour les pins mono-contact (id = pin.id,
+ * `breadboardInsertable: true` — comportement S1 strictement préservé pour les
+ * 14 types mono-contact : une pin sans `contacts` explicite ⇒ exactement un
+ * contact enfichable en `pin.dx`/`pin.dy`).
+ *
+ * `breadboardInsertable === false` sur un contact explicite ⇒ le contact est
+ * ignoré par le breadboard (aucune résolution de trou, aucune occupation,
+ * aucune contrainte de placement) tout en restant un point d'ancrage de fil si
+ * `wireConnectable`. `contact.id` reste une identité de PRÉSENTATION : il
+ * n'entre JAMAIS dans une jointure de net (INV-S3-02/03/04).
+ *
+ * @param {object} pinDef
+ * @returns {PhysicalContact[]}
+ */
+export function resolveBreadboardInsertableContacts(pinDef) {
+  return resolveContacts(pinDef).filter((c) => c.breadboardInsertable)
+}
+
+/**
  * Contact physique par DÉFAUT d'une pin — déterministe : le PREMIER contact
  * déclaré (donc, pour une pin mono-contact, le contact implicite = la pin).
  * Stable après export/import et undo/redo (l'ordre vit dans le code, jamais

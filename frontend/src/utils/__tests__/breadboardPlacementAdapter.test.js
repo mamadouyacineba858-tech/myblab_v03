@@ -53,9 +53,12 @@ describe('computeBreadboardPlacement — snapping RESISTOR (UI-02, écart dx 84 
     expect(result.breadboardActive).toBe(true)
     expect(result.compatible).toBe(true)
     expect(result.valid).toBe(true)
+    // FT-B-001-S3 : `holes` porte désormais `contactId` (métadonnée additive —
+    // §6). Pour un composant mono-contact, contactId === pinId (un contact
+    // physique implicite par pin, delta zéro géométrique).
     expect(result.holes).toEqual([
-      { pinId: 'A', column: 5, row: 3 },
-      { pinId: 'B', column: 12, row: 3 },
+      { pinId: 'A', contactId: 'A', column: 5, row: 3 },
+      { pinId: 'B', contactId: 'B', column: 12, row: 3 },
     ])
   })
 
@@ -64,8 +67,8 @@ describe('computeBreadboardPlacement — snapping RESISTOR (UI-02, écart dx 84 
     expect(result.valid).toBe(true)
     expect(result.position).toEqual({ x: 50, y: 20 })
     expect(result.holes).toEqual([
-      { pinId: 'A', column: 4, row: 3 },
-      { pinId: 'B', column: 11, row: 3 },
+      { pinId: 'A', contactId: 'A', column: 4, row: 3 },
+      { pinId: 'B', contactId: 'B', column: 11, row: 3 },
     ])
   })
 })
@@ -78,8 +81,8 @@ describe('computeBreadboardPlacement — snapping LED (UI-03, correction algorit
     expect(result.valid).toBe(true)
     expect(result.position).toEqual({ x: 2, y: 15 })
     expect(result.holes).toEqual([
-      { pinId: 'anode', column: 0, row: 3 },
-      { pinId: 'cathode', column: 7, row: 3 },
+      { pinId: 'anode', contactId: 'anode', column: 0, row: 3 },
+      { pinId: 'cathode', contactId: 'cathode', column: 7, row: 3 },
     ])
   })
 
@@ -103,8 +106,8 @@ describe('computeBreadboardPlacement — collision (LOCK-12, UI-07/09)', () => {
     // La position/les trous restent renseignés (feedback rouge, AC-09) même
     // si invalide.
     expect(result.holes).toEqual([
-      { pinId: 'A', column: 5, row: 3 },
-      { pinId: 'B', column: 12, row: 3 },
+      { pinId: 'A', contactId: 'A', column: 5, row: 3 },
+      { pinId: 'B', contactId: 'B', column: 12, row: 3 },
     ])
   })
 
@@ -124,8 +127,8 @@ describe('computeBreadboardPlacement — hors limites de colonne (repli best-eff
     expect(result.compatible).toBe(true)
     expect(result.valid).toBe(false)
     expect(result.holes).toEqual([
-      { pinId: 'A', column: 28, row: 3 },
-      { pinId: 'B', column: null, row: null },
+      { pinId: 'A', contactId: 'A', column: 28, row: 3 },
+      { pinId: 'B', contactId: 'B', column: null, row: null },
     ])
   })
 })
@@ -175,8 +178,8 @@ describe('computeBreadboardPlacement — POWER sur rail physique (MB-BREADBOARD-
     expect(result.compatible).toBe(true)
     expect(result.valid).toBe(true)
     expect(result.holes).toEqual([
-      { pinId: '5V', column: 6, row: 16 },
-      { pinId: 'GND', column: 5, row: 15 },
+      { pinId: '5V', contactId: '5V', column: 6, row: 16 },
+      { pinId: 'GND', contactId: 'GND', column: 5, row: 15 },
     ])
   })
 
@@ -229,8 +232,8 @@ describe('computeBreadboardPlacement — POWER sur rail physique (MB-BREADBOARD-
     expect(result.valid).toBe(false)
     // Les trous restent renseignés (feedback rouge, AC-09) même invalides.
     expect(result.holes).toEqual([
-      { pinId: '5V', column: 6, row: 16 },
-      { pinId: 'GND', column: 5, row: 15 },
+      { pinId: '5V', contactId: '5V', column: 6, row: 16 },
+      { pinId: 'GND', contactId: 'GND', column: 5, row: 15 },
     ])
   })
 
@@ -292,8 +295,62 @@ describe('computeBreadboardPlacement — MB-BREADBOARD-008 (O8/R6/A9) : généra
     const result = computeBreadboardPlacement(breadboard, 'RESISTOR', { x: 58, y: 21 }, [])
     expect(result.valid).toBe(true)
     expect(result.holes).toEqual([
-      { pinId: 'A', column: 5, row: 3 },
-      { pinId: 'B', column: 12, row: 3 },
+      { pinId: 'A', contactId: 'A', column: 5, row: 3 },
+      { pinId: 'B', contactId: 'B', column: 12, row: 3 },
+    ])
+  })
+})
+
+/**
+ * FT-B-001-S3 — TEST S3-D : le placement physique passe des PINS aux CONTACTS.
+ * BUTTON expose 2 pins canoniques / 4 contacts physiques enfichables. Un
+ * placement est VALIDE ssi les 4 contacts résolvent un trou ; l'aperçu
+ * contient alors 4 trous physiques (un par contact, `contactId` distinct). Les
+ * composants mono-contact conservent exactement le comportement d'avant S3
+ * (cf. describe "généralisation N-pins" ci-dessus, non modifié).
+ */
+describe('computeBreadboardPlacement — FT-B-001-S3 (TEST S3-D) : placement CONTACT-AWARE (BUTTON 4 contacts)', () => {
+  it('BUTTON obtient un placement valide à 4 contacts physiques ; l\'aperçu contient 4 trous distincts', () => {
+    const result = computeBreadboardPlacement(breadboard, 'BUTTON', { x: 0, y: 46 }, [])
+    expect(result.breadboardActive).toBe(true)
+    expect(result.compatible).toBe(true)
+    expect(result.valid).toBe(true)
+    expect(result.holes).toHaveLength(4)
+    // 2 identités canoniques, 4 identités de contact
+    expect(new Set(result.holes.map((h) => h.pinId))).toEqual(new Set(['pin1', 'pin2']))
+    expect(new Set(result.holes.map((h) => h.contactId))).toEqual(new Set(['1a', '1b', '2a', '2b']))
+    // 4 trous PHYSIQUES distincts
+    expect(new Set(result.holes.map((h) => `${h.column}:${h.row}`)).size).toBe(4)
+  })
+
+  it('BUTTON_LATCHING : même modèle physique — 4 contacts, placement valide', () => {
+    const result = computeBreadboardPlacement(breadboard, 'BUTTON_LATCHING', { x: 0, y: 46 }, [])
+    expect(result.valid).toBe(true)
+    expect(result.holes).toHaveLength(4)
+    expect(new Set(result.holes.map((h) => h.contactId))).toEqual(new Set(['1a', '1b', '2a', '2b']))
+  })
+
+  it('TOUS les contacts participent à la validité : hors empreinte -> repli GRID_SIZE, jamais de crash', () => {
+    const result = computeBreadboardPlacement(breadboard, 'BUTTON', { x: 5000, y: 5000 }, [])
+    expect(result.breadboardActive).toBe(false)
+    expect(result.compatible).toBe(true)
+    expect(result.position).toEqual({ x: 5000, y: 5000 })
+  })
+
+  it('collision CONTACT-AWARE : un BUTTON déjà posé occupe ses 4 trous — un 2ᵉ BUTTON au même endroit est invalide', () => {
+    const existing = [{ uid: 'btn-a', type: 'BUTTON', x: 0, y: 48 }]
+    const result = computeBreadboardPlacement(breadboard, 'BUTTON', { x: 0, y: 46 }, existing)
+    expect(result.breadboardActive).toBe(true)
+    expect(result.valid).toBe(false)
+    expect(result.holes).toHaveLength(4)
+  })
+
+  it('non-régression mono-contact : RESISTOR reste valid:true à la même position candidate qu\'avant S3', () => {
+    const result = computeBreadboardPlacement(breadboard, 'RESISTOR', { x: 58, y: 21 }, [])
+    expect(result.valid).toBe(true)
+    expect(result.holes).toEqual([
+      { pinId: 'A', contactId: 'A', column: 5, row: 3 },
+      { pinId: 'B', contactId: 'B', column: 12, row: 3 },
     ])
   })
 })

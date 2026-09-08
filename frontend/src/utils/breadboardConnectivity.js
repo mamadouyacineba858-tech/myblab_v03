@@ -7,10 +7,15 @@
  * stockée dans le breadboard.
  */
 import { getComponentDef } from '../config/componentDefinitions.js'
-import { holeAt, resolveComponentPinHoles } from './breadboardGeometry.js'
+import { holeAt, resolveComponentContactHoles } from './breadboardGeometry.js'
 import { BREADBOARD_PITCH } from './breadboardGeometry.js'
 import { parseBreadboardHoleEndpoint } from './breadboardWireEndpoint.js'
 
+// FT-B-001-S3 : chaque entrée d'occupation est désormais un CONTACT physique
+// résolu — { groupKey, componentId, pinId, contactId }. L'identité électrique
+// émise en aval reste canonique (componentId + pinId) : `contactId` ne sert
+// qu'à distinguer physiquement les pattes d'une même pin AVANT
+// canonicalisation, jamais après (INV-S3-02/03/14, §11.2).
 function resolveOccupiedHoles(breadboard, components) {
   const occupied = []
   for (const component of components || []) {
@@ -18,16 +23,19 @@ function resolveOccupiedHoles(breadboard, components) {
     const def = getComponentDef(component.type)
     if (!def || !Array.isArray(def.pins)) continue
 
-    // FT-B-001-S1 : classification pin -> trou centralisée. Politique
-    // CONNECTIVITÉ = par pin résolue (delta zéro : même holeAt(position + dx/dy)
-    // par pin, dans l'ordre ; les pins non résolues sont ignorées comme avant).
-    const { results } = resolveComponentPinHoles(breadboard, def.pins, {
+    // FT-B-001-S3 : classification CONTACT PHYSIQUE -> trou centralisée.
+    // Politique CONNECTIVITÉ = par contact résolu (delta zéro pour un type
+    // mono-contact : un contact implicite en pin.dx/dy, contactId === pinId ;
+    // les contacts non résolus sont ignorés comme avant). Chaque association
+    // contact -> trou est PRÉSERVÉE ici — l'agrégation par pin canonique
+    // n'intervient qu'après observation des groupes atteints (§11.2).
+    const { results } = resolveComponentContactHoles(breadboard, def.pins, {
       x: component.position.x,
       y: component.position.y,
     })
-    for (const { pinId, hole } of results) {
+    for (const { pinId, contactId, hole } of results) {
       if (!hole) continue
-      occupied.push({ groupKey: hole.groupKey, componentId: component.id, pinId })
+      occupied.push({ groupKey: hole.groupKey, componentId: component.id, pinId, contactId })
     }
   }
   return occupied
@@ -82,6 +90,30 @@ export function deriveBreadboardVirtualWires(document) {
     const ra = find(a)
     const rb = find(b)
     if (ra !== rb) parent.set(ra, rb)
+  }
+
+  // FT-B-001-S3 (§11) — RÈGLE ÉLECTRIQUE CRITIQUE : une MÊME pin canonique peut
+  // enficher plusieurs contacts physiques dans des groupes de breadboard
+  // DISTINCTS (ex. BUTTON.pin1 : contact "1a" dans strip:colC:bottom, contact
+  // "1b" dans strip:colC:top). Ces contacts appartenant à la même identité
+  // électrique (componentId, pinId), les groupes qu'ils atteignent sont
+  // électriquement continus et doivent être unis — AVANT toute émission
+  // canonique. On regroupe donc les associations contact->trou par clé
+  // canonique, on collecte les groupKeys distincts atteints, et on les unit
+  // deux à deux. Aucune agrégation par pinId n'a lieu avant cette observation
+  // (§11.2). pin1 et pin2 restent des identités distinctes : leurs groupes ne
+  // sont jamais unis par cette règle (§11.1 — S3 modélise l'enfichage
+  // physique, pas la fermeture de l'interrupteur).
+  const groupsByCanonicalPin = new Map()
+  for (const entry of occupied) {
+    const canonicalKey = JSON.stringify([entry.componentId, entry.pinId])
+    if (!groupsByCanonicalPin.has(canonicalKey)) groupsByCanonicalPin.set(canonicalKey, new Set())
+    groupsByCanonicalPin.get(canonicalKey).add(entry.groupKey)
+  }
+  for (const groupKeys of groupsByCanonicalPin.values()) {
+    if (groupKeys.size < 2) continue
+    const [firstGroup, ...restGroups] = groupKeys
+    for (const groupKey of restGroups) union(firstGroup, groupKey)
   }
 
   for (const wire of document.wires || []) {

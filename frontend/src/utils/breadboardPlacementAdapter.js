@@ -21,7 +21,7 @@ import {
   BREADBOARD_PITCH,
   STANDARD_V1_LAYOUT,
   STANDARD_V1_TOTAL_ROWS,
-  resolveComponentPinHoles,
+  resolveComponentContactHoles,
 } from "./breadboardGeometry.js"
 
 function isWithinFootprint(breadboard, position, pins) {
@@ -44,9 +44,11 @@ function resolveOccupiedHoleKeys(breadboard, components) {
     if (!component || !Number.isFinite(component.x) || !Number.isFinite(component.y)) continue
     const def = getComponentDef(component.type)
     if (!def || !Array.isArray(def.pins)) continue
-    // FT-B-001-S1 : classification pin -> trou centralisée (delta zéro — même
-    // holeAt(component.x/y + pin.dx/dy) par pin, résultats partiels préservés).
-    const { results } = resolveComponentPinHoles(breadboard, def.pins, { x: component.x, y: component.y })
+    // FT-B-001-S3 : classification CONTACT PHYSIQUE -> trou centralisée (delta
+    // zéro pour les types mono-contact — un contact implicite en pin.dx/dy ;
+    // un composant multi-contacts comme BUTTON occupe un trou par contact
+    // enfichable résolu). Résultats partiels préservés.
+    const { results } = resolveComponentContactHoles(breadboard, def.pins, { x: component.x, y: component.y })
     for (const { hole } of results) {
       if (hole) occupied.add(`${hole.column}:${hole.row}`)
     }
@@ -55,13 +57,15 @@ function resolveOccupiedHoleKeys(breadboard, components) {
 }
 
 function resolveAllHoles(breadboard, pins, position) {
-  // FT-B-001-S1 : delta zéro — itère `results` dans l'ordre des pins, retourne
-  // null dès la première pin non résolue (politique PLACEMENT = toutes
-  // résolues), sinon la liste complète {pinId,column,row}.
+  // FT-B-001-S3 : politique PLACEMENT = TOUS les contacts physiques enfichables
+  // résolus. Itère `results` dans l'ordre (pin, puis contact), retourne null
+  // dès le premier contact non résolu, sinon la liste complète
+  // {pinId, contactId, column, row} (métadonnée `contactId` strictement
+  // additive — pour un type mono-contact, contactId === pinId).
   const holes = []
-  for (const { pinId, hole } of resolveComponentPinHoles(breadboard, pins, position).results) {
+  for (const { pinId, contactId, hole } of resolveComponentContactHoles(breadboard, pins, position).results) {
     if (!hole) return null
-    holes.push({ pinId, column: hole.column, row: hole.row })
+    holes.push({ pinId, contactId, column: hole.column, row: hole.row })
   }
   return holes
 }
@@ -109,13 +113,14 @@ function bestEffortPinZeroSnap(breadboard, pins, candidatePosition) {
   }
   const position = { x: snappedPin0.x - pin0.dx, y: snappedPin0.y - pin0.dy }
 
-  // FT-B-001-S1 : delta zéro — chaque pin garde son entrée (column/row ou
-  // null/null), dans l'ordre, exactement comme l'ancien holeAt() par pin.
-  const holes = resolveComponentPinHoles(breadboard, pins, position).results.map(
-    ({ pinId, hole }) =>
+  // FT-B-001-S3 : best-effort — chaque CONTACT physique enfichable garde son
+  // entrée (column/row ou null/null), dans l'ordre (pin, puis contact). Pour un
+  // type mono-contact : une entrée par pin, contactId === pinId (delta zéro).
+  const holes = resolveComponentContactHoles(breadboard, pins, position).results.map(
+    ({ pinId, contactId, hole }) =>
       hole
-        ? { pinId, column: hole.column, row: hole.row }
-        : { pinId, column: null, row: null }
+        ? { pinId, contactId, column: hole.column, row: hole.row }
+        : { pinId, contactId, column: null, row: null }
   )
   return { position, holes }
 }

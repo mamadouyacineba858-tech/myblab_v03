@@ -1,5 +1,5 @@
 import { getComponentDef } from '../../../config/componentDefinitions.js';
-import { resolveComponentPinHoles } from '../../../utils/breadboardGeometry.js';
+import { resolveComponentContactHoles } from '../../../utils/breadboardGeometry.js';
 
 /**
  * breadboardSolidarity.js — MB-BREADBOARD-006 (CSA Ruling §4).
@@ -54,10 +54,13 @@ export function resolveSolidaryComponentIds(breadboard, components) {
     const def = getComponentDef(component.type);
     if (!def || !Array.isArray(def.pins)) continue;
 
-    // FT-B-001-S1 : classification pin -> trou centralisée. Politique
-    // SOLIDARITÉ = au moins une pin résolue (delta zéro : anyResolved ===
-    // def.pins.some(pin => holeAt(x/y + pin.dx/dy) !== null)).
-    const { anyResolved } = resolveComponentPinHoles(breadboard, def.pins, { x, y });
+    // FT-B-001-S3 : classification CONTACT PHYSIQUE -> trou centralisée.
+    // Politique SOLIDARITÉ = au moins un CONTACT physique enfichable résolu sur
+    // un trou de CE breadboard (§8). Delta zéro pour un type mono-contact :
+    // anyResolved reste équivalent à def.pins.some(pin => holeAt(...) !== null),
+    // le contact implicite étant en pin.dx/dy. Un composant multi-contacts
+    // (BUTTON) est solidaire dès qu'une seule de ses 4 pattes est enfichée.
+    const { anyResolved } = resolveComponentContactHoles(breadboard, def.pins, { x, y });
     if (anyResolved) solidary.add(componentId);
   }
 

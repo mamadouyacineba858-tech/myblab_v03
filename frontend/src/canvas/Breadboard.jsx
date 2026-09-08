@@ -7,12 +7,12 @@
 // besoin (React.createElement implicite sinon indisponible sous esbuild).
 import React, { useCallback, useMemo } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
-import { getPinPosition } from "../utils/geometry.js"
 import {
   BREADBOARD_PITCH,
   STANDARD_V1_LAYOUT,
   STANDARD_V1_TOTAL_ROWS,
   holeAt,
+  resolveComponentContactHoles,
 } from "../utils/breadboardGeometry.js"
 // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : Breadboard.jsx consulte
 // désormais directement useCircuit() pour la sélection/le drag, même
@@ -208,16 +208,23 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
   // composants occupent un trou donné, afin de distinguer un trou occupé par
   // le composant en cours de drag (feedback vert/rouge) d'un trou occupé par
   // un composant déjà posé (neutre, inchangé).
+  // FT-B-001-S3 : l'occupation visuelle est CONTACT-AWARE et réutilise la
+  // résolution physique centralisée (resolveComponentContactHoles) — jamais une
+  // reconstruction indépendante. Delta zéro pour les types mono-contact : un
+  // contact implicite en pin.dx/dy, mêmes trous qu'avec getPinPosition()+holeAt().
+  // Un BUTTON physiquement enfiché occupe un trou par patte physique résolue
+  // (jusqu'à 4), pour 2 pins électriques inchangées (INV-S3-07/§9).
   const occupiedBy = useMemo(() => {
     const map = new Map()
     if (!breadboard || !breadboard.position) return map
     for (const component of components || []) {
       const def = getComponentDef(component?.type)
       if (!def || !Array.isArray(def.pins)) continue
-      for (const pin of def.pins) {
-        const pos = getPinPosition(component, pin)
-        if (!pos) continue
-        const hole = holeAt(breadboard, pos.x, pos.y)
+      const { results } = resolveComponentContactHoles(breadboard, def.pins, {
+        x: component?.x,
+        y: component?.y,
+      })
+      for (const { hole } of results) {
         if (!hole) continue
         const key = `${hole.column}:${hole.row}`
         if (!map.has(key)) map.set(key, new Set())

@@ -11,6 +11,7 @@
  * (breadboardConnectivity.js) reconstruit l'occupation à chaque appel à
  * partir de document.components (LOCK-07, AC-17).
  */
+import { resolveBreadboardInsertableContacts } from "./contactModel.js"
 
 /** Pas de grille dédié du breadboard (0,1" simulé en px), découplé de GRID_SIZE. */
 export const BREADBOARD_PITCH = 12
@@ -145,6 +146,64 @@ export function resolveComponentPinHoles(breadboard, pins, origin) {
     const hole = holeAt(breadboard, ox + (pin ? pin.dx : NaN), oy + (pin ? pin.dy : NaN))
     return { pinId: pin ? pin.id : undefined, hole: hole ?? null, resolved: hole != null }
   })
+
+  return {
+    results,
+    allResolved: results.length > 0 && results.every((r) => r.resolved),
+    anyResolved: results.some((r) => r.resolved),
+  }
+}
+
+/**
+ * FT-B-001-S3 — Primitive générique UNIQUE de classification CONTACT PHYSIQUE
+ * → trou.
+ *
+ * Extension stricte de `resolveComponentPinHoles()` : une pin canonique peut
+ * exposer 1..N contacts physiques (modèle S2, `utils/contactModel.js`). Cette
+ * primitive développe chaque pin en ses contacts ENFICHABLES
+ * (`resolveBreadboardInsertableContacts`, ordre de déclaration déterministe)
+ * puis applique le MÊME `holeAt()` à l'identique — aucun arrondi, tolérance,
+ * limite, rainure ou groupKey dupliqué ou redéfini (INV-S3-09).
+ *
+ * Delta ZÉRO pour les 14 types mono-contact : une pin sans `contacts` explicite
+ * synthétise exactement UN contact implicite en `pin.dx`/`pin.dy` avec
+ * `contactId === pin.id` — `results` est alors identique à
+ * `resolveComponentPinHoles()` au champ additif `contactId` près (INV-S3-08).
+ *
+ * Comme la primitive S1 : ne déplace PAS le composant, ne cherche AUCUNE
+ * meilleure origine, ne décide d'AUCUNE politique — chaque consommateur
+ * applique la sienne sur `results` (PLACEMENT = tous les contacts résolus ;
+ * CONNECTIVITÉ / COLLISION = par contact résolu ; SOLIDARITÉ = au moins un
+ * contact résolu). Résultats PARTIELS préservés, ordre (pin, puis contact)
+ * préservé.
+ *
+ * @param {{ id: string, position: {x:number,y:number} } | null} breadboard
+ * @param {Array<{ id: string, dx: number, dy: number, contacts?: Array }>} pins  typiquement `getComponentDef(type).pins`
+ * @param {{ x: number, y: number }} origin  position d'instance du composant (forme Presentation {x,y} ou Core {position:{x,y}} déjà déréférencée par l'appelant)
+ * @returns {{
+ *   results: Array<{ pinId: string, contactId: string, hole: (ReturnType<typeof holeAt>)|null, resolved: boolean }>,
+ *   allResolved: boolean,
+ *   anyResolved: boolean,
+ * }}
+ */
+export function resolveComponentContactHoles(breadboard, pins, origin) {
+  const list = Array.isArray(pins) ? pins : []
+  const ox = origin && Number.isFinite(origin.x) ? origin.x : NaN
+  const oy = origin && Number.isFinite(origin.y) ? origin.y : NaN
+
+  const results = []
+  for (const pin of list) {
+    const contacts = resolveBreadboardInsertableContacts(pin)
+    for (const contact of contacts) {
+      const hole = holeAt(breadboard, ox + contact.dx, oy + contact.dy)
+      results.push({
+        pinId: pin ? pin.id : undefined,
+        contactId: contact.id,
+        hole: hole ?? null,
+        resolved: hole != null,
+      })
+    }
+  }
 
   return {
     results,

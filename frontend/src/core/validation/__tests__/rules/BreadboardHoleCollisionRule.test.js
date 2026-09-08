@@ -115,3 +115,59 @@ describe('STR-007 BreadboardHoleCollisionRule', () => {
     expect(BreadboardHoleCollisionRule.validate(document, command)).toBeNull()
   })
 })
+
+/**
+ * FT-B-001-S3 — TEST S3-E : la collision est un fait PHYSIQUE, évalué par
+ * CONTACT. L'identité d'occupant d'un trou est (componentId, pinId, contactId)
+ * — deux contacts physiques d'une même pin canonique restent distincts (§7).
+ *
+ * BUTTON @ {x:0,y:48} (probe S3) : 1a=col1/row9, 1b=col1/row4, 2a=col4/row9,
+ * 2b=col4/row4 — 4 trous physiques DISTINCTS.
+ * RESISTOR @ {x:12,y:94} : pin A -> (12,108) -> col1/row9 (même trou que 1a).
+ */
+describe('STR-007 — FT-B-001-S3 (TEST S3-E) : collision CONTACT-AWARE', () => {
+  const button = (id, x, y) => ({ id, type: 'BUTTON', position: { x, y }, parameters: {} })
+
+  it('un BUTTON seul (4 contacts sur 4 trous distincts) ne déclenche AUCUNE collision — deux contacts d\'une même pin à des trous différents ne collisionnent pas', () => {
+    const document = { breadboard, components: [button('b1', 0, 48)], wires: [] }
+    expect(BreadboardHoleCollisionRule.validate(document, null)).toBeNull()
+  })
+
+  it('collision détectée quand un contact de BUTTON et une pin de RESISTOR occupent EXACTEMENT le même trou physique', () => {
+    const document = {
+      breadboard,
+      components: [button('b1', 0, 48), resistor('r1', 12, 94)],
+      wires: [],
+    }
+    const problem = BreadboardHoleCollisionRule.validate(document, null)
+    expect(problem).not.toBeNull()
+    expect(problem.id).toBe('STR-007')
+    // le trou en collision est col1:row9 (contact "1a" de b1 + pin "A" de r1)
+    expect(problem.context.collisions.some((c) => c.hole === '1:9')).toBe(true)
+    const entry = problem.context.collisions.find((c) => c.hole === '1:9')
+    // l'occupant physique porte bien pinId ET contactId
+    expect(entry.pins.some((p) => p.componentId === 'b1' && p.pinId === 'pin1' && p.contactId === '1a')).toBe(true)
+    expect(entry.pins.some((p) => p.componentId === 'r1' && p.pinId === 'A' && p.contactId === 'A')).toBe(true)
+  })
+
+  it('deux BUTTON côte à côte sur des trous distincts (colonnes différentes) ne collisionnent pas', () => {
+    const document = {
+      breadboard,
+      // b2 décalé de 6 colonnes (72px) -> aucun trou partagé
+      components: [button('b1', 0, 48), button('b2', 72, 48)],
+      wires: [],
+    }
+    expect(BreadboardHoleCollisionRule.validate(document, null)).toBeNull()
+  })
+
+  it('non-régression mono-contact : deux RESISTOR sur le même trou -> collision inchangée', () => {
+    const document = {
+      breadboard,
+      components: [resistor('r1', 60, 22), resistor('r2', 60, 22)],
+      wires: [],
+    }
+    const problem = BreadboardHoleCollisionRule.validate(document, null)
+    expect(problem).not.toBeNull()
+    expect(problem.context.collisions).toHaveLength(2)
+  })
+})

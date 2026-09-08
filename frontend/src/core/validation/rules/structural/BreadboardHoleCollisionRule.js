@@ -36,7 +36,7 @@
 import { CATEGORIES, LEVELS } from '../../constants.js'
 import { getEffectiveComponents } from '../shared/documentHelpers.js'
 import { getComponentDef } from '../../../../config/componentDefinitions.js'
-import { resolveComponentPinHoles } from '../../../../utils/breadboardGeometry.js'
+import { resolveComponentContactHoles } from '../../../../utils/breadboardGeometry.js'
 
 export const BreadboardHoleCollisionRule = {
   id: 'STR-007',
@@ -60,24 +60,29 @@ export const BreadboardHoleCollisionRule = {
       const def = getComponentDef(component.type)
       if (!def || !Array.isArray(def.pins)) continue
 
-      // FT-B-001-S1 : classification pin -> trou centralisée. Politique
-      // COLLISION = par pin résolue (delta zéro : même holeAt(position + dx/dy)
-      // par pin ; les pins non résolues sont ignorées comme avant).
-      const { results } = resolveComponentPinHoles(breadboard, def.pins, {
+      // FT-B-001-S3 : classification CONTACT PHYSIQUE -> trou centralisée. La
+      // collision est un fait PHYSIQUE : l'occupant d'un trou est identifié par
+      // (componentId, pinId, contactId), pas seulement (componentId, pinId) —
+      // deux contacts physiques distincts d'une MÊME pin canonique restent
+      // physiquement distincts (INV-S3-06/§7). Delta zéro pour un type
+      // mono-contact : contactId === pinId, la clé d'occupant est équivalente.
+      // Politique COLLISION = par contact résolu ; les contacts non résolus
+      // sont ignorés comme avant.
+      const { results } = resolveComponentContactHoles(breadboard, def.pins, {
         x: component.position.x,
         y: component.position.y,
       })
-      for (const { pinId, hole } of results) {
+      for (const { pinId, contactId, hole } of results) {
         if (!hole) continue
         const key = `${hole.column}:${hole.row}`
         if (!byHole.has(key)) byHole.set(key, [])
-        byHole.get(key).push({ componentId: component.id, pinId })
+        byHole.get(key).push({ componentId: component.id, pinId, contactId })
       }
     }
 
     const collisions = []
     for (const [hole, entries] of byHole.entries()) {
-      const distinct = new Set(entries.map((e) => `${e.componentId}:${e.pinId}`))
+      const distinct = new Set(entries.map((e) => `${e.componentId}:${e.pinId}:${e.contactId}`))
       if (distinct.size >= 2) {
         collisions.push({ hole, pins: entries })
       }

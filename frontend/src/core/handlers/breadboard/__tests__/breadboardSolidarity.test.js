@@ -63,3 +63,40 @@ describe('resolveSolidaryComponentIds — MB-BREADBOARD-006 (CSA Ruling §4)', (
     expect(resolveSolidaryComponentIds(breadboard, [])).toEqual(new Set());
   });
 });
+
+/**
+ * FT-B-001-S3 — TEST S3-F : la solidarité passe des PINS aux CONTACTS
+ * physiques. Un composant est solidaire ssi AU MOINS UN contact physique
+ * enfichable résout un trou de CE breadboard (§8). Le critère "au moins un"
+ * est préservé — seule l'unité de classification change (pin -> contact). Les
+ * formes Presentation ({uid,x,y}) et Core ({id,position}) restent
+ * équivalentes.
+ *
+ * BUTTON @ {x:0,y:48} (probe S3) : ses 4 contacts résolvent -> solidaire.
+ * BUTTON @ {x:0,y:1000} : aucun contact ne résout -> non solidaire.
+ */
+describe('resolveSolidaryComponentIds — FT-B-001-S3 (TEST S3-F) : solidarité CONTACT-AWARE', () => {
+  it('un BUTTON dont les 4 contacts physiques résolvent est solidaire', () => {
+    const core = [{ id: 'B1', type: 'BUTTON', position: { x: 0, y: 48 } }];
+    expect(resolveSolidaryComponentIds(breadboard, core)).toEqual(new Set(['B1']));
+  });
+
+  it('un BUTTON hors empreinte (aucun contact résolu) n\'est pas solidaire', () => {
+    const core = [{ id: 'B1', type: 'BUTTON', position: { x: 0, y: 1000 } }];
+    expect(resolveSolidaryComponentIds(breadboard, core)).toEqual(new Set());
+  });
+
+  it('un BUTTON partiellement enfiché (au moins un contact résolu) reste solidaire — critère "au moins un contact"', () => {
+    // x=322 : les 2 contacts de pin1 (dx14 -> col28) résolvent, les 2 contacts
+    // de pin2 (dx46 -> col31, hors grille) ne résolvent pas -> solidaire.
+    const core = [{ id: 'B1', type: 'BUTTON', position: { x: 322, y: 48 } }];
+    expect(resolveSolidaryComponentIds(breadboard, core)).toEqual(new Set(['B1']));
+  });
+
+  it('formes Presentation ({uid,x,y}) et Core ({id,position}) produisent le même résultat pour un BUTTON', () => {
+    const presentation = [{ uid: 'B1', type: 'BUTTON', x: 0, y: 48 }];
+    const core = [{ id: 'B1', type: 'BUTTON', position: { x: 0, y: 48 } }];
+    expect(resolveSolidaryComponentIds(breadboard, presentation)).toEqual(resolveSolidaryComponentIds(breadboard, core));
+    expect(resolveSolidaryComponentIds(breadboard, presentation)).toEqual(new Set(['B1']));
+  });
+});

@@ -113,6 +113,23 @@ describe('MB-BREADBOARD-002 — Breadboard.jsx (Presentation, AC-18/LOCK-08)', (
     // (breadboardConnectivity.js non appelé par Breadboard.jsx).
     expect(occupied.length).toBe(2)
   })
+
+  // FT-B-001-S3 — TEST S3-G : l'occupation visuelle est CONTACT-AWARE. Un
+  // BUTTON physiquement enfiché (2 pins électriques / 4 contacts physiques)
+  // occupe QUATRE trous. Position {x:0,y:48} : issue d'une exécution réelle de
+  // computeBreadboardPlacement()/resolveComponentContactHoles() (probe S3) —
+  // 1a=col1/row9, 1b=col1/row4, 2a=col4/row9, 2b=col4/row4.
+  it("FT-B-001-S3 (TEST S3-G) : un BUTTON enfiché occupe QUATRE trous physiques (4 contacts / 2 pins)", () => {
+    const button = { uid: 'btn1', type: 'BUTTON', x: 0, y: 48 }
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[button]} />)
+    expect(container.querySelectorAll('.breadboard__hole--occupied').length).toBe(4)
+  })
+
+  it("FT-B-001-S3 : un BUTTON hors grille n'occupe aucun trou (non-régression)", () => {
+    const button = { uid: 'btn1', type: 'BUTTON', x: 1000, y: 1000 }
+    const { container } = render(<Breadboard breadboard={BREADBOARD} components={[button]} />)
+    expect(container.querySelectorAll('.breadboard__hole--occupied').length).toBe(0)
+  })
 })
 
 describe('MB-BREADBOARD-003 — feedback vert/rouge pendant le drag (Blueprint §5, AC-08/AC-09)', () => {
