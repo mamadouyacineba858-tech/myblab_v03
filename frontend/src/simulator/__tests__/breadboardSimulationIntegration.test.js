@@ -18,12 +18,14 @@ import { runSimulation, getLedState } from '../engine.js'
 import { makeBreadboardHoleEndpoint } from '../../utils/breadboardWireEndpoint.js'
 
 const POWER = { id: 'power1', type: 'POWER', position: { x: -300, y: -100 }, parameters: { voltage: 5 } }
-// RESISTOR.B (dx:84,dy:14 — MB-BREADBOARD-003, corrigé depuis dx:90 ; x du
-// composant décalé de +6 en conséquence pour préserver la même coïncidence)
-// et LED.anode (dx:0,dy:20) placés pour coïncider exactement sur le même
-// trou de breadboard (col 5, rangée 3 - strip haut).
+// RESISTOR.B (dx:84,dy:14) -> col5/row3 (strip haut). [FT-C-001-A] LED.anode a
+// migré vers son PhysicalContact physique (dx:28,dy:62, écart 24 = 2·pitch ;
+// LED_VISUAL_PINS 0/80 supprimé en FT-B-001-S4) : la LED est repositionnée en
+// (32,10) pour que l'anode retombe dans le MÊME groupe de strip que RESISTOR.B
+// -> anode (60,72) = col5/row6, même groupKey `bb1:strip:col5:top` (le bus de
+// strip connecte les deux SANS wire explicite, comme avant la migration).
 const RESISTOR = { id: 'r1', type: 'RESISTOR', position: { x: -24, y: 22 }, parameters: { resistance: 220 } }
-const LED = { id: 'led1', type: 'LED', position: { x: 60, y: 16 } }
+const LED = { id: 'led1', type: 'LED', position: { x: 32, y: 10 } }
 
 const powerWires = [
   { id: 'w-power', pinA: { componentId: 'power1', pinId: '5V' }, pinB: { componentId: 'r1', pinId: 'A' } },

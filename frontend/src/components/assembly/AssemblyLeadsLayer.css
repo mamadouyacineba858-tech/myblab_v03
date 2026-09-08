@@ -1,0 +1,28 @@
+/* FT-C-001-A — pattes / cosses d'assemblage génériques.
+   Aucun sélecteur par type de composant : le style vient de la classe
+   `--wire` / `--lug` posée d'après le profil mécanique de présentation. */
+
+.assembly-leads {
+  /* la couche ne capte jamais le pointeur (drag/sélection/câblage = wrapper + <Pin>) */
+  pointer-events: none;
+}
+
+.assembly-leads__lead {
+  fill: none;
+  stroke-linecap: round;
+  /* Pas de vector-effect : la patte est dans le repère local du composant et
+     doit se mettre à l'échelle avec le corps, les <Pin> et les fils sous
+     l'effet du zoom global et du localScale de focus (ruling §29). */
+}
+
+/* Fil métallique fin (LED, NPN) — patte nickelée. */
+.assembly-leads__lead--wire {
+  stroke: #9aa1a9;
+  stroke-width: 2.4;
+}
+
+/* Cosse plate (potentiomètre) — languette cuivre/étain, plus large. */
+.assembly-leads__lead--lug {
+  stroke: #b6bcc4;
+  stroke-width: 3.6;
+}

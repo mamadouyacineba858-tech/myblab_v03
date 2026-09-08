@@ -52,6 +52,31 @@ export function snapToBreadboardPitch(point) {
 }
 
 /**
+ * FT-C-001-A — Primitive PURE et GÉNÉRIQUE : centre géométrique absolu d'un
+ * trou de breadboard, à partir de sa colonne / rangée (unités de pas).
+ *
+ * Inverse exact de la résolution de `holeAt()` (`column = round(relX / PITCH)`,
+ * `row = round(relY / PITCH)`) : reconstruit `breadboard.position + n * PITCH`
+ * SANS aucune duplication de `BREADBOARD_PITCH`, sans branche de type, sans
+ * seconde géométrie. Ne valide PAS l'appartenance au layout (rail/strip/
+ * rainure/limites) : `holeAt()` reste l'unique arbitre de résolution ; cette
+ * primitive ne fait que projeter une paire (colonne, rangée) DÉJÀ résolue vers
+ * son point Canvas, pour la présentation (Assembly Geometry) et les preuves.
+ *
+ * @param {{ position: {x:number,y:number} } | null} breadboard
+ * @param {number} column
+ * @param {number} row
+ * @returns {{ x: number, y: number } | null}
+ */
+export function getBreadboardHolePosition(breadboard, column, row) {
+  if (!breadboard || !breadboard.position) return null
+  if (!Number.isFinite(column) || !Number.isFinite(row)) return null
+  const x = breadboard.position.x + column * BREADBOARD_PITCH
+  const y = breadboard.position.y + row * BREADBOARD_PITCH
+  return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+}
+
+/**
  * Résout un point absolu du canvas en trou de breadboard.
  *
  * @param {{ id: string, position: {x,y} }} breadboard

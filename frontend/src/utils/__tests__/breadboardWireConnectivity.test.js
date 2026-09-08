@@ -17,7 +17,10 @@ const resistor = {
 const led = {
   id: "led1",
   type: "LED",
-  position: { x: 12, y: 16 }, // anode -> (12,36) -> strip col 1, row 3
+  // [FT-C-001-A] Contrat physique LED actuel : anode dx:28, dy:62 (écart
+  // 24 = 2·pitch). Position choisie pour que l'anode retombe EXACTEMENT sur le
+  // même trou qu'avant la migration : anode -> (12,36) -> strip col 1, row 3.
+  position: { x: -16, y: -26 },
 }
 
 describe("breadboard explicit wire connectivity", () => {

@@ -56,6 +56,10 @@ describe("componentDefinitions — canonical pin integration", () => {
 
     expect(componentPin).not.toBe(canonicalPin)
     expect(canonicalPin).toEqual({ id: "anode", role: "input" })
-    expect(componentPin).toMatchObject({ id: "anode", role: "input", label: "Anode", dx: 0, dy: 20 })
+    // [FT-C-001-A] Géométrie de présentation LED migrée vers le contrat
+    // physique actuel (anode/cathode au bout des pattes, écart 24 = 2·pitch) —
+    // l'ancien 0/20 n'est plus la vérité. L'invariant testé ici (la
+    // présentation ne MUTE pas l'objet canonique { id, role }) est inchangé.
+    expect(componentPin).toMatchObject({ id: "anode", role: "input", label: "Anode", dx: 28, dy: 62 })
   })
 })

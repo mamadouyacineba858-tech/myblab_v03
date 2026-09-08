@@ -15,6 +15,9 @@ import { PartRenderer } from "../components/parts/PartRenderer.jsx"
 import { getComponentPresentation } from "../visualization/defaultRegistrations.js"
 import { getPinPresentationPosition } from "../utils/pinPresentationGeometry.js"
 import { resolveWireConnectableContacts } from "../utils/contactModel.js"
+import { resolveAssemblyGeometry } from "../utils/assemblyGeometry.js"
+import { AssemblyLeadsLayer } from "../components/assembly/AssemblyLeadsLayer.jsx"
+import { getAssemblyProfile } from "../visualization/assemblyProfiles.js"
 import "./CircuitComponent.css"
 
 // MB-VIS-CANVAS-051 (Blueprint C3/D4) : React.memo — SimulationCanvas.jsx
@@ -43,7 +46,7 @@ import "./CircuitComponent.css"
 // pour un composant non déplacé pendant un drag (MB-VIS-CANVAS-051) : ce
 // fichier ne devient PAS un consommateur du state haute fréquence, seule
 // l'échelle locale de l'instance réellement focalisée change.
-function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
+function CircuitComponentImpl({ component, breadboard = null, focused = false, localScale = 1 }) {
   const {
     startDrag,
     onPinClick,
@@ -69,6 +72,23 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
   // markerless) dérivée de l'entrée de registre — remplace les anciens
   // branchements `type === "LED"` (habillage du body + masquage du marqueur).
   const presentation = useMemo(() => getComponentPresentation(type), [type])
+
+  // FT-C-001-A : géométrie d'assemblage DÉRIVÉE, LECTURE SEULE — segments
+  // root→target des pattes / cosses des composants traversants. `component` et
+  // `breadboard` sont déjà les objets preview-aware (useCircuitState.js) : la
+  // géométrie suit donc automatiquement drag → insertion → position finale →
+  // déplacement du breadboard → undo/redo, SANS aucun état Document ajouté.
+  // `resolveAssemblyGeometry` est pur (aucune lecture React/DOM, aucune
+  // mutation, aucune branche de type — profil lu via getAssemblyProfile).
+  const assembly = useMemo(
+    () => resolveAssemblyGeometry(component, breadboard),
+    [component, breadboard]
+  )
+  // Portion RASTER de pattes à masquer (stratégie de clipping §13) — vit
+  // UNIQUEMENT dans assemblyProfiles.js, appliquée génériquement ici (aucun
+  // `type ===`). `null` pour tout composant non traversant : aucun clip.
+  const bodyClipBottom =
+    getAssemblyProfile(type)?.bodyClip?.bottom ?? null
 
   const selected = isSelected({ type: 'component', id: uid })
 
@@ -255,9 +275,20 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
       onMouseDown={handleBodyMouseDown}
       onClick={(e) => e.stopPropagation()}
     >
+      {/* FT-C-001-A : pattes / cosses d'assemblage — AVANT le corps dans le DOM
+          pour que la racine soit peinte SOUS l'asset (cachée sous le corps,
+          §13) et que l'extension métallique ressorte en dessous. Renderer
+          générique (aucun `type ===`), repère local partagé avec les <Pin>. */}
+      <AssemblyLeadsLayer geometry={assembly} originX={x} originY={y} />
+
       <div
         className="circuit-component__body"
         data-bare-body={presentation.bareBody ? "" : undefined}
+        style={
+          bodyClipBottom != null
+            ? { clipPath: `inset(0 0 ${bodyClipBottom}px 0)` }
+            : undefined
+        }
       >
         <PartRenderer
           type={type}

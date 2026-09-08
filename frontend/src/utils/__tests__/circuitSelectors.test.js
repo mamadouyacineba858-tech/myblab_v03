@@ -52,14 +52,19 @@ describe('MB-VIS-LED-V5 — wire endpoint projection', () => {
   it('starts an LED wire at the physical foot while preserving the canonical pin id', () => {
     const paths = buildWirePaths([led, resistor], [wire])
     expect(paths).toHaveLength(1)
-    expect(paths[0].d.startsWith('M 28 68')).toBe(true)
+    // [FT-C-001-A] Le pied physique de l'anode LED est son PhysicalContact
+    // actuel (dx:28, dy:62) — l'ancienne projection dy:68 (LED_VISUAL_PINS,
+    // supprimée en FT-B-001-S4) n'existe plus. `wire.fromPin` reste 'anode'
+    // (identité électrique canonique inchangée).
+    expect(paths[0].d.startsWith('M 28 62')).toBe(true)
   })
 
   it('keeps non-LED wire endpoints on their canonical coordinates', () => {
     const reverse = { ...wire, fromUid: 'res-1', fromPin: 'A', toUid: 'led-1', toPin: 'cathode' }
     const paths = buildWirePaths([led, resistor], [reverse])
     expect(paths).toHaveLength(1)
-    expect(paths[0].d.startsWith('M 184 14')).toBe(true)
+    // res-1 @ x:200, pin A canonique (dx:0, dy:14) -> (200,14).
+    expect(paths[0].d.startsWith('M 200 14')).toBe(true)
   })
 })
 

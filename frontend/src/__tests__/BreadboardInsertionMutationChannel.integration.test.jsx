@@ -138,18 +138,20 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
     expect(resistorAfter.x).toBe(58)
     expect(resistorAfter.y).toBe(21)
 
-    // --- Insertion de la LED : anode ciblée sur la MÊME colonne que
-    // RESISTOR.B (col12) mais une rangée différente (row4, PAS row3) — même
-    // bus électrique, aucune collision physique (LOCK-12 : trou EXACT).
-    drag(led, { dx: 144 - led.x, dy: 28 - led.y })
+    // --- Insertion de la LED : [FT-C-001-A] contrat physique LED actuel
+    // anode (28,62) / cathode (52,62) (écart 24 = 2·pitch). Candidat (116,10)
+    // -> anode col12/row6 : MÊME colonne que RESISTOR.B (col12/row3), rangée
+    // différente -> même bus de strip, aucune collision physique (LOCK-12 :
+    // trou EXACT). Position/trous obtenus par exécution réelle de
+    // computeBreadboardPlacement() (script jetable).
+    drag(led, { dx: 116 - led.x, dy: 10 - led.y })
     pointerUp()
 
     const ledAfter = result.current.components.find((c) => c.uid === led.uid)
-    // Position déterministe (voir breadboardPlacementAdapter.test.js) : le
-    // point de recherche le plus proche de (144,28) qui résout les DEUX
-    // pins est (146,28).
-    expect(ledAfter.x).toBe(146)
-    expect(ledAfter.y).toBe(28)
+    // Position déterministe : le candidat (116,10) résout déjà les DEUX pins,
+    // computeBreadboardPlacement() le retourne inchangé.
+    expect(ledAfter.x).toBe(116)
+    expect(ledAfter.y).toBe(10)
 
     // Occupation dérivée de la position (LOCK-02/07) — aucun wire explicite
     // RESISTOR.B<->LED.anode n'a été ajouté (setupBaseCircuit ne câble que
@@ -177,7 +179,7 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
     drag(resistor, { dx: 58 - resistor.x, dy: 21 - resistor.y })
     pointerUp()
     let current = result.current.components.find((c) => c.uid === led.uid)
-    drag(current, { dx: 144 - current.x, dy: 28 - current.y })
+    drag(current, { dx: 116 - current.x, dy: 10 - current.y })
     pointerUp()
 
     act(() => {
@@ -208,7 +210,7 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
     drag(resistor, { dx: 58 - resistor.x, dy: 21 - resistor.y })
     pointerUp()
     let current = result.current.components.find((c) => c.uid === led.uid)
-    drag(current, { dx: 144 - current.x, dy: 28 - current.y })
+    drag(current, { dx: 116 - current.x, dy: 10 - current.y })
     pointerUp()
 
     // Retrait.
@@ -222,13 +224,13 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
 
     // Réinsertion : même trajectoire qu'à la première insertion (TEST 1).
     current = result.current.components.find((c) => c.uid === led.uid)
-    drag(current, { dx: 144 - current.x, dy: 28 - current.y })
+    drag(current, { dx: 116 - current.x, dy: 10 - current.y })
     pointerUp()
 
     const ledAfter = result.current.components.find((c) => c.uid === led.uid)
     // Résultat identique et déterministe à la première insertion.
-    expect(ledAfter.x).toBe(146)
-    expect(ledAfter.y).toBe(28)
+    expect(ledAfter.x).toBe(116)
+    expect(ledAfter.y).toBe(10)
     expect(isLedOn(result, led.uid)).toBe(true)
   })
 
@@ -341,7 +343,7 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
 
     drag(resistor, { dx: 58 - resistor.x, dy: 21 - resistor.y })
     pointerUp()
-    drag(led, { dx: 144 - led.x, dy: 28 - led.y })
+    drag(led, { dx: 116 - led.x, dy: 10 - led.y })
     pointerUp()
 
     act(() => {
@@ -361,20 +363,21 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
       result.current.wires.some((w) => w.fromUid === led.uid || w.toUid === led.uid)
     ).toBe(false)
 
-    // Le trou (col12/row4, absolu (146,28)) est maintenant libre : un
-    // nouveau composant 2-pins peut s'y insérer sans collision (AC-17).
+    // Les trous anode col12/row6 + cathode col14/row6 (absolu (116,10)) sont
+    // maintenant libres : un nouveau composant peut s'y insérer sans
+    // collision (AC-17).
     act(() => {
       result.current.addComponent('LED', 700, 700)
     })
     const newLed = result.current.components.find((c) => c.type === 'LED')
-    drag(newLed, { dx: 144 - newLed.x, dy: 28 - newLed.y })
+    drag(newLed, { dx: 116 - newLed.x, dy: 10 - newLed.y })
     pointerUp()
 
     const newLedAfter = result.current.components.find((c) => c.uid === newLed.uid)
     // Même position déterministe que l'insertion originale de la LED
     // supprimée (TEST 1/3) — preuve directe que le trou n'est plus occupé.
-    expect(newLedAfter.x).toBe(146)
-    expect(newLedAfter.y).toBe(28)
+    expect(newLedAfter.x).toBe(116)
+    expect(newLedAfter.y).toBe(10)
 
     // Reconnexion explicite cathode->GND (setupBaseCircuit ne câblait que la
     // LED d'origine, maintenant supprimée) — la jonction anode<->RESISTOR.B

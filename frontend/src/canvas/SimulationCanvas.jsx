@@ -265,6 +265,16 @@ export function SimulationCanvas() {
             <CircuitComponent
               key={comp.uid}
               component={comp}
+              // FT-C-001-A : le breadboard (déjà `breadboardForRender`,
+              // preview-aware — même source que `components` ci-dessus) est
+              // transmis en PROP pour que CircuitComponent dérive l'Assembly
+              // Geometry (pattes / cosses des composants traversants). Aucune
+              // logique mécanique ici : SimulationCanvas ne fait que passer la
+              // référence, CircuitComponent dérive via un helper pur
+              // (`utils/assemblyGeometry.js`). Pendant un drag de breadboard,
+              // `breadboard` et `components` bougent ensemble (aperçus
+              // solidaires) : les pattes suivent sans second état.
+              breadboard={breadboard}
               // MB-VIS-CANVAS-052 : `focused`/`localScale` en PROPS, jamais
               // via un Context — pour les 119+ composants NON focalisés,
               // ces deux valeurs restent `false`/`1` à l'identique à chaque

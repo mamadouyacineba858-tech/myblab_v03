@@ -7,13 +7,17 @@ describe('MB-VIS-LED-V5 — presentation-only pin geometry', () => {
     const component = { uid: 'led-1', type: 'LED', x: 100, y: 200 }
     const def = getComponentDef('LED')
 
+    // [FT-C-001-A] Contrat physique LED actuel : les PhysicalContacts sont au
+    // bout des deux pattes (28,62)/(52,62), écart 24 = 2·BREADBOARD_PITCH.
+    // L'ancien 0/80 (LED_VISUAL_PINS supprimé en FT-B-001-S4) n'est plus la
+    // vérité — la production n'est PAS ramenée à 80px pour ce test.
     expect(def.pins).toEqual([
-      expect.objectContaining({ id: 'anode', dx: 0, dy: 20 }),
-      expect.objectContaining({ id: 'cathode', dx: 80, dy: 20 }),
+      expect.objectContaining({ id: 'anode', dx: 28, dy: 62 }),
+      expect.objectContaining({ id: 'cathode', dx: 52, dy: 62 }),
     ])
 
-    expect(getPinPresentationPosition(component, def.pins[0])).toEqual({ x: 128, y: 268 })
-    expect(getPinPresentationPosition(component, def.pins[1])).toEqual({ x: 152, y: 268 })
+    expect(getPinPresentationPosition(component, def.pins[0])).toEqual({ x: 128, y: 262 })
+    expect(getPinPresentationPosition(component, def.pins[1])).toEqual({ x: 152, y: 262 })
   })
 
   it('falls back to canonical coordinates for non-LED components', () => {

@@ -91,24 +91,22 @@ describe('MB-BREADBOARD-002 — Breadboard.jsx (Presentation, AC-18/LOCK-08)', (
 
   // MISSION — INTÉGRATION LED MYBlab (implémentation contrôlée, zéro
   // régression) : LED n'était couvert, pour le rendu géométrique Presentation
-  // (occupiedBy via holeAt(), même mécanisme que RESISTOR ci-dessus), par
-  // aucune fixture dédiée. LED a un écart de pins de 80px (anode dx:0,
-  // cathode dx:80 — non multiple de BREADBOARD_PITCH=12, geometry NON
-  // modifiée ici, cf. componentDefinitions.js) : la position x:2,y:15
-  // ci-dessous est exactement celle déjà validée au niveau unitaire par
-  // breadboardPlacementAdapter.test.js pour ce même BREADBOARD en position
-  // (0,0) (computeBreadboardPlacement(breadboard,'LED',{x:1,y:15},[]) ->
-  // {valid:true, position:{x:2,y:15}, holes:[{pinId:'anode',column:0,row:3},
-  // {pinId:'cathode',column:7,row:3}]}) — reproduite ici en exécutant
-  // directement getComponentDef('LED')/getPinPosition()/holeAt() (mêmes
-  // fonctions que Breadboard.jsx) via un script Node jetable (supprimé après
-  // usage), jamais calculée à la main, pour confirmer 2 trous distincts
-  // occupés (anode -> col0/row3, cathode -> col7/row3).
-  it("met en évidence les deux trous occupés par les pins d'une LED (écart 80px non multiple de BREADBOARD_PITCH, algorithme de placement généralisé — géométrie LED non modifiée)", () => {
-    const led1 = { uid: 'led1', type: 'LED', x: 2, y: 15 }
+  // (occupiedBy via resolveComponentContactHoles()/holeAt(), même mécanisme
+  // que RESISTOR ci-dessus), par aucune fixture dédiée.
+  // [FT-C-001-A] Contrat physique LED actuel : anode (28,62) / cathode (52,62),
+  // écart 24 = 2·BREADBOARD_PITCH (les PhysicalContacts sont au bout des
+  // pattes ; LED_VISUAL_PINS 0/80 supprimé en FT-B-001-S4). La position
+  // x:-2,y:12 ci-dessous est exactement celle retournée par
+  // computeBreadboardPlacement(breadboard,'LED',{x:1,y:15},[]) pour ce même
+  // BREADBOARD en (0,0) -> {valid:true, position:{x:-2,y:12},
+  // holes:[{pinId:'anode',column:2,row:6},{pinId:'cathode',column:4,row:6}]}
+  // (script Node jetable, jamais calculée à la main), pour confirmer 2 trous
+  // distincts occupés (anode -> col2/row6, cathode -> col4/row6).
+  it("met en évidence les deux trous occupés par les pins d'une LED (écart 24 = 2·BREADBOARD_PITCH, algorithme de placement généralisé)", () => {
+    const led1 = { uid: 'led1', type: 'LED', x: -2, y: 12 }
     const { container } = render(<Breadboard breadboard={BREADBOARD} components={[led1]} />)
     const occupied = container.querySelectorAll('.breadboard__hole--occupied')
-    // Anode (col0/row3) et cathode (col7/row3) tombent chacune sur un trou
+    // Anode (col2/row6) et cathode (col4/row6) tombent chacune sur un trou
     // valide distinct : 2 trous occupés, aucune union de connectivité
     // (breadboardConnectivity.js non appelé par Breadboard.jsx).
     expect(occupied.length).toBe(2)

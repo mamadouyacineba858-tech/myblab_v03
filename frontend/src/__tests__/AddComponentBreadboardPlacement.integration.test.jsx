@@ -188,14 +188,12 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
   // Position attendue obtenue en exécutant le véritable
   // computeBreadboardPlacement() (breadboardPlacementAdapter.js) via un
   // script Node jetable (supprimé après usage), jamais calculée à la main —
-  // même discipline que TEST 2/3/4 ci-dessus. Le candidat brut (121,195)
-  // reproduit, translaté par l'offset du breadboard posé ici via
-  // addBreadboard(120,180), exactement le candidat (1,15) déjà validé au
-  // niveau unitaire pour un breadboard en position (0,0) dans
-  // breadboardPlacementAdapter.test.js ; la translation étant un multiple
-  // exact de BREADBOARD_PITCH=12, elle préserve colonne/rangée à
-  // l'identique (vérifié par exécution réelle, pas supposé).
-  it('TEST 8 (MISSION INTÉGRATION LED) : avec breadboard + LED (pins écart 80px, non multiple de BREADBOARD_PITCH), ADD_COMPONENT utilise la position retournée par computeBreadboardPlacement() — non-régression de la couverture existante RESISTOR/ARDUINO', () => {
+  // même discipline que TEST 2/3/4 ci-dessus.
+  // [FT-C-001-A] Contrat physique LED actuel : anode (28,62) / cathode (52,62),
+  // écart 24 = 2·BREADBOARD_PITCH (LED_VISUAL_PINS 0/80 supprimé en
+  // FT-B-001-S4). computeBreadboardPlacement(bb@(120,180),'LED',{121,195},[])
+  // -> position (118,192), holes anode col2/row6 + cathode col4/row6.
+  it("TEST 8 (MISSION INTÉGRATION LED) : avec breadboard + LED (pins écart 24 = 2·BREADBOARD_PITCH), ADD_COMPONENT utilise la position retournée par computeBreadboardPlacement() — non-régression de la couverture existante RESISTOR/ARDUINO", () => {
     const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
     act(() => {
@@ -208,8 +206,8 @@ describe('MB-BREADBOARD-003 (correctif ciblé) — placement breadboard au dép�
     expect(result.current.components.length).toBe(1)
     const led = result.current.components[0]
     expect(led.type).toBe('LED')
-    expect(led.x).toBe(122)
-    expect(led.y).toBe(195)
+    expect(led.x).toBe(118)
+    expect(led.y).toBe(192)
     // Non-régression du point de régression principal (TEST 3) : la
     // position breadboard n'est pas repassée dans snapToGrid (GRID_SIZE=20).
     expect(led.x % 20).not.toBe(0)

@@ -74,23 +74,29 @@ describe('computeBreadboardPlacement — snapping RESISTOR (UI-02, écart dx 84 
 })
 
 describe('computeBreadboardPlacement — snapping LED (UI-03, correction algorithmique disclosed)', () => {
-  it('atteint valid:true pour LED malgré un écart de pins (80px) non multiple de BREADBOARD_PITCH', () => {
+  // [FT-C-001-A] Contrat physique LED actuel : anode (28,62) / cathode (52,62),
+  // écart 24 = 2·BREADBOARD_PITCH (les PhysicalContacts sont au bout des
+  // pattes ; LED_VISUAL_PINS 0/80 supprimé en FT-B-001-S4). La recherche
+  // généralisée reste exercée : le résidu par pin n'est pas nul partout
+  // (anode/cathode ne peuvent pas tomber toutes deux à résidu 0 pour une
+  // origine arbitraire). Positions/trous obtenus par exécution réelle de
+  // computeBreadboardPlacement() (script jetable), jamais calculés à la main.
+  it('atteint valid:true pour LED (écart de pins 24 = 2·BREADBOARD_PITCH)', () => {
     const result = computeBreadboardPlacement(breadboard, 'LED', { x: 1, y: 15 }, [])
     expect(result.breadboardActive).toBe(true)
     expect(result.compatible).toBe(true)
     expect(result.valid).toBe(true)
-    expect(result.position).toEqual({ x: 2, y: 15 })
+    expect(result.position).toEqual({ x: -2, y: 12 })
     expect(result.holes).toEqual([
-      { pinId: 'anode', contactId: 'anode', column: 0, row: 3 },
-      { pinId: 'cathode', contactId: 'cathode', column: 7, row: 3 },
+      { pinId: 'anode', contactId: 'anode', column: 2, row: 6 },
+      { pinId: 'cathode', contactId: 'cathode', column: 4, row: 6 },
     ])
   })
 
   it("trouve une position valide même quand l'ancrage naïf (pins[0] à résidu 0) échouerait", () => {
-    // x=60 place pins[0] (anode, dx:0) EXACTEMENT sur un trou (résidu 0) —
-    // l'algorithme naïf du Blueprint §2 s'arrêterait là et échouerait (la
-    // cathode, dx:80, ne résout alors aucun trou). La recherche généralisée
-    // doit trouver une position valide proche malgré tout.
+    // x=60 place l'anode (dx:28 -> abs 88, résidu 88-84=4 : NON résolue) : la
+    // recherche généralisée doit tout de même trouver une position valide
+    // proche (les deux contacts résolus).
     const result = computeBreadboardPlacement(breadboard, 'LED', { x: 60, y: 15 }, [])
     expect(result.valid).toBe(true)
     expect(result.holes.every((h) => h.column !== null)).toBe(true)

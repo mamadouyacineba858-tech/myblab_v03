@@ -145,18 +145,20 @@ describe('MB-BREADBOARD-006 — Breadboard objet Canvas gouverné (CSA Ruling �
     expect(result.current.breadboard.position).toEqual({ x: 24, y: 24 })
   })
 
-  it('Scénario B : POWER (rail) + RESISTOR + LED montés sur le breadboard — le drag du breadboard les translate TOUS solidairement, mêmes trous relatifs, mêmes nets, simulation identique (§10.B/§11 du Ruling)', () => {
+  it('Scénario B : RESISTOR + LED montés sur le breadboard suivent SOLIDAIREMENT son drag ; POWER (relié PAR FIL, non enfichable) reste en place — mêmes trous relatifs, mêmes nets, simulation identique (§10.B/§11 du Ruling)', () => {
     const { result } = renderWithCanvas()
     _result = result
 
     act(() => {
       result.current.addBreadboard(0, 0)
-      // Géométrie reprise telle quelle de PowerRailPhysicalPlacement.
-      // integration.test.jsx (POWER-07/08/09), déjà prouvée : POWER sur le
-      // rail bas, RESISTOR/LED sur la bande haute.
-      result.current.addComponent('POWER', 2, 155)
+      // [FT-B-001-S5] POWER n'est plus enfichable (breadboardInsertable:false) :
+      // il est relié au breadboard PAR FIL, posé HORS empreinte (snap-to-grid).
+      // [FT-C-001-A] LED : contrat physique actuel anode (28,62) / cathode
+      // (52,62). Candidat (116,10) -> anode col12/row6, MÊME groupe de strip
+      // que RESISTOR.B (col12/row3) -> le bus ferme le circuit sans wire.
+      result.current.addComponent('POWER', 700, 500)
       result.current.addComponent('RESISTOR', 58, 21)
-      result.current.addComponent('LED', 144, 28)
+      result.current.addComponent('LED', 116, 10)
     })
 
     const power = result.current.components.find((c) => c.type === 'POWER')
@@ -185,13 +187,15 @@ describe('MB-BREADBOARD-006 — Breadboard objet Canvas gouverné (CSA Ruling �
     dragBreadboard(breadboardBefore, { dx: DELTA, dy: DELTA })
     pointerUp()
 
-    // Breadboard ET les trois composants translatés du MÊME delta —
-    // topologie relative inchangée (AC-06).
+    // Breadboard + les composants ENFICHÉS (RESISTOR, LED) translatés du MÊME
+    // delta — topologie relative inchangée (AC-06).
     expect(result.current.breadboard.position).toEqual({ x: DELTA, y: DELTA })
     const powerAfter = result.current.components.find((c) => c.uid === power.uid)
     const resistorAfter = result.current.components.find((c) => c.uid === resistor.uid)
     const ledAfter = result.current.components.find((c) => c.uid === led.uid)
-    expect({ x: powerAfter.x, y: powerAfter.y }).toEqual({ x: power.x + DELTA, y: power.y + DELTA })
+    // [FT-B-001-S5] POWER n'est pas enfiché (relié PAR FIL) : NON solidaire du
+    // breadboard, il ne suit pas son drag — il reste exactement à sa place.
+    expect({ x: powerAfter.x, y: powerAfter.y }).toEqual({ x: power.x, y: power.y })
     expect({ x: resistorAfter.x, y: resistorAfter.y }).toEqual({ x: resistor.x + DELTA, y: resistor.y + DELTA })
     expect({ x: ledAfter.x, y: ledAfter.y }).toEqual({ x: led.x + DELTA, y: led.y + DELTA })
 
