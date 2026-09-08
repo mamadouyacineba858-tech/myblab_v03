@@ -30,15 +30,37 @@
  */
 
 /**
+ * Résolution générique d'un drapeau de contact avec héritage pin-level
+ * (FT-B-001-S4) : `contact flag > pin flag > true`. Un `false` explicite (au
+ * niveau contact OU pin) est toujours respecté — jamais transformé en `true`
+ * par un `||` erroné. Seuls `null`/`undefined` retombent au niveau suivant.
+ *
+ * @param {boolean|undefined} contactFlag
+ * @param {boolean|undefined} pinFlag
+ * @returns {boolean}
+ */
+function resolveFlag(contactFlag, pinFlag) {
+  if (contactFlag === true || contactFlag === false) return contactFlag
+  if (pinFlag === true || pinFlag === false) return pinFlag
+  return true
+}
+
+/**
  * Contacts physiques d'une pin de présentation, dans l'ordre de déclaration.
  *
  * - `pinDef.contacts` présent et non vide ⇒ renvoyé tel quel, chaque entrée
- *   normalisée (`wireConnectable`/`breadboardInsertable` par défaut `true`,
- *   `dx`/`dy` repliés sur ceux de la pin si absents).
+ *   normalisée : `dx`/`dy` repliés sur ceux de la pin si absents ;
+ *   `wireConnectable`/`breadboardInsertable` = drapeau du contact, sinon
+ *   drapeau de la pin, sinon `true` (FT-B-001-S4 — héritage pin-level).
  * - sinon ⇒ un unique contact implicite `{ id: pinDef.id, dx: pinDef.dx,
- *   dy: pinDef.dy, wireConnectable: true, breadboardInsertable: true }`.
+ *   dy: pinDef.dy }` qui HÉRITE des drapeaux pin-level
+ *   (`pinDef.wireConnectable !== false` / `pinDef.breadboardInsertable !== false`).
+ *   Aucun composant du catalogue ne déclare encore de drapeau pin-level : le
+ *   comportement reste donc strictement identique (`true`/`true`) pour les
+ *   16 types actuels — cette voie n'ouvre qu'une capacité, consommée à partir
+ *   de FT-B-001-S5.
  *
- * @param {{ id:string, dx?:number, dy?:number, contacts?:Array }} pinDef
+ * @param {{ id:string, dx?:number, dy?:number, wireConnectable?:boolean, breadboardInsertable?:boolean, contacts?:Array }} pinDef
  * @returns {PhysicalContact[]}
  */
 export function resolveContacts(pinDef) {
@@ -52,8 +74,8 @@ export function resolveContacts(pinDef) {
       id: String(c?.id),
       dx: Number.isFinite(c?.dx) ? c.dx : pinDx,
       dy: Number.isFinite(c?.dy) ? c.dy : pinDy,
-      wireConnectable: c?.wireConnectable !== false,
-      breadboardInsertable: c?.breadboardInsertable !== false,
+      wireConnectable: resolveFlag(c?.wireConnectable, pinDef.wireConnectable),
+      breadboardInsertable: resolveFlag(c?.breadboardInsertable, pinDef.breadboardInsertable),
     }))
   }
 
@@ -61,8 +83,8 @@ export function resolveContacts(pinDef) {
     id: String(pinDef.id),
     dx: pinDx,
     dy: pinDy,
-    wireConnectable: true,
-    breadboardInsertable: true,
+    wireConnectable: pinDef.wireConnectable !== false,
+    breadboardInsertable: pinDef.breadboardInsertable !== false,
   }]
 }
 

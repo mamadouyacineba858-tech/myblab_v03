@@ -145,11 +145,13 @@ export function WiresLayer({ wirePaths = [] }) {
   if (wireGesture && canvasRef?.current) {
     const component = components?.find((c) => c.uid === wireGesture.uid)
     const pin = component && getComponentDef(component.type)?.pins?.find((p) => p.id === wireGesture.pinId)
-    // [FT-B-001-S2] Aperçu ancré au CONTACT PHYSIQUE cliqué (wireGesture.contactId)
-    // pour les pins multi-contacts ; sinon résolution historique inchangée.
-    const previewContact = pin && Array.isArray(pin.contacts) && pin.contacts.length > 0
-      ? resolveContact(pin, wireGesture.contactId)
-      : undefined
+    // [FT-B-001-S4] Aperçu ancré au CONTACT PHYSIQUE via résolution générique :
+    // `resolveContact` renvoie le contact cliqué (wireGesture.contactId) sinon
+    // le contact PAR DÉFAUT de la pin (mono-contact ⇒ contact implicite). Le
+    // helper getPinPresentationPosition() décide seul de la coordonnée finale
+    // (contact ⇒ ses dx/dy ; exceptions NPN/POWER/ARDUINO ⇒ *_VISUAL_PINS,
+    // TODO S5). Plus de bifurcation explicit/implicit.
+    const previewContact = pin ? resolveContact(pin, wireGesture.contactId) : undefined
     const from = pin && getPinPresentationPosition(component, pin, {
       scale: component.uid === focusedComponentId ? localScale : 1,
       contact: previewContact,

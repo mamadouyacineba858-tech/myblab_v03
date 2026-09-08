@@ -5,22 +5,33 @@
  * continue to drive simulation/connectivity/breadboard placement. This module
  * only defines where a connector is drawn and where a wire visually lands.
  *
- * [MB-VIS-COMP-005] Le cas générique (aucune projection visuelle) déléguait
- * jusqu'ici à une réimplémentation locale de la même formule
- * (`component.x + pinDef.dx`, `component.y + pinDef.dy`, même garde
- * Number.isFinite) que `geometry.js::getPinPosition()` — duplication
- * établie (byte pour byte identique) et retirée : ce fichier délègue
- * maintenant à `getPinPosition()`, la fonction géométrique canonique
- * unique. La projection visuelle LED elle-même (LED_VISUAL_PINS) est
- * volontairement conservée telle quelle : c'est une décision de
- * présentation légitime, distincte du calcul canonique, documentée depuis
- * MB-VIS-LED-V5, qui ne déplace jamais la position électrique retournée
- * par getPinPosition() (I8) — seul l'endroit où un fil est DESSINÉ change,
- * jamais la géométrie électrique.
+ * [MB-VIS-COMP-005] Le cas générique délègue à `geometry.js::getPinPosition()`,
+ * la fonction géométrique canonique unique.
+ *
+ * [FT-B-001-S4 — Physical Contact Presentation Convergence] Le point physique
+ * de présentation d'une pin est désormais résolu de façon GÉNÉRIQUE via le
+ * modèle PhysicalContact (`utils/contactModel.js`) :
+ *   1. un `contact` explicite fourni par l'appelant est prioritaire ;
+ *   2. sinon, si la pin déclare des `contacts`, on résout son contact PAR
+ *      DÉFAUT (première déclaration) — cela remplace les anciennes constantes
+ *      LED_VISUAL_PINS / BUTTON_VISUAL_PINS / BUTTON_LATCHING_VISUAL_PINS,
+ *      SUPPRIMÉES : LED == géométrie canonique, BUTTON* == contact par défaut
+ *      S2 (patte basse), tous pixel-identiques ;
+ *   3. sinon, `getPinPosition()`.
+ *
+ * EXCEPTIONS TEMPORAIRES `NPN_TRANSISTOR_VISUAL_PINS` / `POWER_VISUAL_PINS` /
+ * `ARDUINO_VISUAL_PINS` : conservées jusqu'à FT-B-001-S5. Leur point physique
+ * de présentation diverge encore de `pin.dx/dy`, or `pin.dx/dy` porte pour ces
+ * types un contrat d'attachement breadboard historique (MB-BREADBOARD-005/007
+ * pour POWER, MB-BREADBOARD-008 pour ARDUINO). Les migrer en PhysicalContact
+ * maintenant changerait la géométrie consommée par S3 pour l'enfichage — hors
+ * périmètre S4. Ces 3 branches restent des décisions de présentation pure :
+ * la position électrique retournée par getPinPosition() n'est jamais déplacée.
  */
 import { getPinPosition } from "./geometry.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { scalePointAroundCenter } from "./localScale.js"
+import { getDefaultContact } from "./contactModel.js"
 
 // [MB-VIS-CANVAS-052] Paramètre optionnel `{ scale }` de
 // getPinPresentationPosition() (déclaration plus bas) : présentation du
@@ -39,11 +50,6 @@ import { scalePointAroundCenter } from "./localScale.js"
 // qui hérite déjà de la mise à l'échelle par héritage CSS naturel (enfant
 // du wrapper transformé) — voir Delivery Report MB-VIS-CANVAS-052 §Design.
 
-const LED_VISUAL_PINS = {
-  anode: { x: 28, y: 62 },
-  cathode: { x: 52, y: 62 },
-}
-
 /**
  * [MB-VIS-COMP-034] Projection de présentation du transistor NPN (boîtier
  * raster TO-92). Les 3 pins électriques canoniques — collector en haut
@@ -54,6 +60,7 @@ const LED_VISUAL_PINS = {
  * déplacée ; seul l'endroit où un connecteur / un fil est dessiné change.
  * Projection V5 validée CSA : B=(32,60) C=(42,60) E=(51,60).
  */
+// TODO FT-B-001-S5 — legacy breadboard attachment contract.
 const NPN_TRANSISTOR_VISUAL_PINS = {
   base: { x: 32, y: 60 },
   collector: { x: 42, y: 60 },
@@ -72,6 +79,7 @@ const NPN_TRANSISTOR_VISUAL_PINS = {
  * purement décorative — elle n'a pas d'entrée ici, ce n'est pas un pin
  * logique. Projection V2 validée CSA : GND=(22,67) 5V=(35,67).
  */
+// TODO FT-B-001-S5 — legacy breadboard attachment contract (MB-BREADBOARD-005/007).
 const POWER_VISUAL_PINS = {
   GND: { x: 22, y: 67 },
   '5V': { x: 35, y: 67 },
@@ -98,6 +106,7 @@ const POWER_VISUAL_PINS = {
  * retournée par getPinPosition() n'est jamais déplacée ; seul l'endroit où
  * un connecteur / un fil est dessiné change.
  */
+// TODO FT-B-001-S5 — legacy breadboard attachment contract (MB-BREADBOARD-008).
 const ARDUINO_VISUAL_PINS = {
   D2: { x: 3, y: 50 },
   D3: { x: 15, y: 75 },
@@ -106,104 +115,69 @@ const ARDUINO_VISUAL_PINS = {
 }
 
 /**
- * [MB-VIS-BUTTON-INTERACTION-008] Projection de présentation du BUTTON
- * (poussoir tactile 4 pattes, asset raster "Tinkercad-style", cf.
- * ButtonPart.jsx). Cause racine : MB-VIS-BUTTON-ASSET-006 a remesuré `dx`
- * (14 / 46 — colonnes des pattes, correct, pixel-probe cohérent 1x/3x) mais
- * a reconduit `dy: 30` de l'ancien asset à leads latéraux. Or le nouvel
- * asset n'a PLUS de contact à mi-hauteur : le boîtier occupe canonique
- * y[9,49] et les 4 pattes métalliques verticales sortent en HAUT
- * (y[0,9]) et en BAS (y[49,60]). Résultat : le point de présentation
- * (14/46, 30) — donc l'extrémité de fil ET la cible du <Pin>, qui lisent
- * tous deux getPinPresentationPosition() — tombait au centre du corps, pas
- * sur une patte (anomalie navigateur du ticket : « fil sur le corps »).
- *
- * Même mécanisme et même statut que LED_VISUAL_PINS / NPN_TRANSISTOR_VISUAL_PINS
- * / POWER_VISUAL_PINS / ARDUINO_VISUAL_PINS : décision de PRÉSENTATION pure —
- * componentDefinitions.js (géométrie canonique / électrique / connectivité /
- * breadboard, via getPinPosition()) N'EST PAS modifié. Seul l'endroit où le
- * connecteur est dessiné et où le fil se termine change.
- *
- * `x` : inchangé (14 / 46), colonnes de pattes mesurées. `y: 58` : sur la
- * patte inférieure (bande métal canonique y[49.3,59.7]), près de son
- * extrémité — même choix que LED_VISUAL_PINS (projection sur l'extrémité
- * réelle du lead, ~97 % de la hauteur de boîte : LED 62/64, BUTTON 58/60).
- */
-const BUTTON_VISUAL_PINS = {
-  pin1: { x: 14, y: 58 },
-  pin2: { x: 46, y: 58 },
-}
-
-/**
- * [MB-VIS-BUTTON-INTERACTION-008] Même cause, même correction que
- * BUTTON_VISUAL_PINS, mesurée séparément sur button-latching.off.3x.png :
- * pattes gauche/droite en colonnes canoniques x≈12.6 / 46.9 (arrondi
- * 13 / 47, inchangé vs componentDefinitions.js) ; boîtier y[8.7,49.3],
- * pattes inférieures y[49.3,59.7]. `y: 58` identique à BUTTON (géométrie de
- * patte quasi identique entre les deux assets). Projection de présentation
- * pure — canonicalRegistry.js / componentDefinitions.js non touchés.
- */
-const BUTTON_LATCHING_VISUAL_PINS = {
-  pin1: { x: 13, y: 58 },
-  pin2: { x: 47, y: 58 },
-}
-
-/**
  * Resolve the presentation coordinate of a component pin.
- * Falls back to the canonical electrical coordinate (getPinPosition(),
- * geometry.js) for every component and every pin that has no presentation
- * override.
  *
- * [FT-B-001-S2] Paramètre optionnel `contact` : un CONTACT PHYSIQUE déjà
- * résolu (`{ dx, dy }`, via utils/contactModel.js). Quand il est fourni, la
- * position de base est `component.x/y + contact.dx/dy` — priorité sur toute
- * projection `*_VISUAL_PINS` et sur la géométrie canonique. Ce n'est PAS un
- * nouvel oracle de coordonnées : `contact.dx/dy` vient de
- * componentDefinitions.js (`PIN_PRESENTATION_BY_TYPE`). Sans `contact`
- * (appelants historiques à 2 arguments ou `{ scale }` seul), comportement
- * STRICTEMENT inchangé — les 14 types mono-contact et les projections
- * LED/NPN/POWER/ARDUINO/BUTTON* existantes ne bougent pas. La reprojection
- * `scale` (focus/localScale, MB-VIS-CANVAS-052) s'applique ensuite à
- * l'identique.
+ * Résolution générique (FT-B-001-S4). Ordre :
+ *   1. si `pinDef` déclare des `contacts` ⇒ le modèle PhysicalContact est
+ *      AUTORITAIRE pour cette pin : on utilise le `contact` demandé, sinon son
+ *      contact PAR DÉFAUT (première déclaration). Remplace LED_VISUAL_PINS
+ *      (== canonique) et BUTTON_VISUAL_PINS / BUTTON_LATCHING_VISUAL_PINS
+ *      (== contact par défaut S2, patte basse dy 58), SUPPRIMÉS ;
+ *   2. exceptions TEMPORAIRES NPN_TRANSISTOR / POWER / ARDUINO ⇒
+ *      `*_VISUAL_PINS`. Elles PRÉCÈDENT la résolution générique du contact
+ *      (§3 ci-dessous) : un contact implicite synthétisé par l'appelant
+ *      (CircuitComponent) ne doit pas court-circuiter la projection visuelle
+ *      historique tant que S5 n'a pas tranché leur contrat d'attachement
+ *      breadboard (MB-BREADBOARD-005/007 pour POWER, MB-BREADBOARD-008 pour
+ *      ARDUINO) ;
+ *   3. sinon, si un `contact` (implicite ou explicite) est fourni avec des
+ *      dx/dy finis ⇒ `component.x/y + contact.dx/dy` (LED, RESISTOR, …) ;
+ *   4. sinon ⇒ `getPinPosition()` (géométrie canonique).
+ *
+ * `contact.dx/dy` n'est jamais un nouvel oracle : il provient de
+ * componentDefinitions.js (`PIN_PRESENTATION_BY_TYPE`). La position électrique
+ * (getPinPosition, breadboard, simulation) n'est jamais déplacée. La
+ * reprojection `scale` (focus/localScale, MB-VIS-CANVAS-052) s'applique
+ * ensuite à l'identique.
  */
 export function getPinPresentationPosition(component, pinDef, { scale = 1, contact } = {}) {
   if (!component || !pinDef) return null
 
   let basePos = null
 
-  if (contact && Number.isFinite(contact.dx) && Number.isFinite(contact.dy)) {
-    const x = component.x + contact.dx
-    const y = component.y + contact.dy
-    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
-  } else if (component.type === "LED" && LED_VISUAL_PINS[pinDef.id]) {
-    const visual = LED_VISUAL_PINS[pinDef.id]
-    const x = component.x + visual.x
-    const y = component.y + visual.y
-    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+  const hasDeclaredContacts = Array.isArray(pinDef.contacts) && pinDef.contacts.length > 0
+
+  if (hasDeclaredContacts) {
+    const chosen =
+      contact && Number.isFinite(contact.dx) && Number.isFinite(contact.dy)
+        ? contact
+        : getDefaultContact(pinDef)
+    if (chosen && Number.isFinite(chosen.dx) && Number.isFinite(chosen.dy)) {
+      const x = component.x + chosen.dx
+      const y = component.y + chosen.dy
+      basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
+    }
   } else if (component.type === "NPN_TRANSISTOR" && NPN_TRANSISTOR_VISUAL_PINS[pinDef.id]) {
+    // TODO FT-B-001-S5 — legacy breadboard attachment contract.
     const visual = NPN_TRANSISTOR_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y
     basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
   } else if (component.type === "POWER" && POWER_VISUAL_PINS[pinDef.id]) {
+    // TODO FT-B-001-S5 — legacy breadboard attachment contract (MB-BREADBOARD-005/007).
     const visual = POWER_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y
     basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
   } else if (component.type === "ARDUINO" && ARDUINO_VISUAL_PINS[pinDef.id]) {
+    // TODO FT-B-001-S5 — legacy breadboard attachment contract (MB-BREADBOARD-008).
     const visual = ARDUINO_VISUAL_PINS[pinDef.id]
     const x = component.x + visual.x
     const y = component.y + visual.y
     basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
-  } else if (component.type === "BUTTON" && BUTTON_VISUAL_PINS[pinDef.id]) {
-    const visual = BUTTON_VISUAL_PINS[pinDef.id]
-    const x = component.x + visual.x
-    const y = component.y + visual.y
-    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
-  } else if (component.type === "BUTTON_LATCHING" && BUTTON_LATCHING_VISUAL_PINS[pinDef.id]) {
-    const visual = BUTTON_LATCHING_VISUAL_PINS[pinDef.id]
-    const x = component.x + visual.x
-    const y = component.y + visual.y
+  } else if (contact && Number.isFinite(contact.dx) && Number.isFinite(contact.dy)) {
+    const x = component.x + contact.dx
+    const y = component.y + contact.dy
     basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
   } else {
     basePos = getPinPosition(component, pinDef)
@@ -221,9 +195,4 @@ export function getPinPresentationPosition(component, pinDef, { scale = 1, conta
   const height = def?.height ?? 0
   const center = { x: component.x + width / 2, y: component.y + height / 2 }
   return scalePointAroundCenter(basePos, center, scale)
-}
-
-export function getLedVisualPinPosition(pinId) {
-  const visual = LED_VISUAL_PINS[pinId]
-  return visual ? { ...visual } : null
 }

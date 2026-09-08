@@ -281,28 +281,27 @@ function CircuitComponentImpl({ component, focused = false, localScale = 1 }) {
       </div>
 
       {pins.flatMap((pin) => {
-        // [FT-B-001-S2] Un hit target par CONTACT PHYSIQUE câblable. Une pin
-        // SANS `contacts` explicite ⇒ contact implicite unique : on garde
-        // alors la résolution historique (aucun argument `contact` passé à
-        // getPinPresentationPosition), donc les projections *_VISUAL_PINS
-        // existantes (LED/NPN/POWER/ARDUINO/BUTTON*) ne bougent pas. BUTTON /
-        // BUTTON_LATCHING (4 contacts / 2 pins) ⇒ 4 hit targets, chacun
-        // positionné sur sa patte via contact.dx/dy, `data-wire-contact` posé.
-        const explicit = Array.isArray(pin.contacts) && pin.contacts.length > 0
+        // [FT-B-001-S4] Un hit target par CONTACT PHYSIQUE câblable, résolu de
+        // façon GÉNÉRIQUE : le contact (implicite pour une pin mono-contact,
+        // explicite pour BUTTON / BUTTON_LATCHING) est TOUJOURS transmis à
+        // getPinPresentationPosition(). Le helper décide seul de la coordonnée
+        // (contact ⇒ ses dx/dy ; exceptions NPN/POWER/ARDUINO ⇒ *_VISUAL_PINS,
+        // TODO S5 ; sinon ⇒ géométrie canonique). Plus de bifurcation
+        // explicit/implicit ici. `data-wire-contact` reste posé UNIQUEMENT
+        // pour les pins qui modélisent des contacts nommés discrets
+        // (multi-contacts) — aucune migration Document imposée aux pins
+        // historiquement implicites (§11).
+        const explicitContacts = Array.isArray(pin.contacts) && pin.contacts.length > 0
         const contacts = resolveWireConnectableContacts(pin)
         return contacts.map((contact) => {
-          const presentationPosition = explicit
-            ? getPinPresentationPosition(component, pin, { contact })
-            : getPinPresentationPosition(component, pin)
-          const fallbackDx = explicit ? contact.dx : pin.dx
-          const fallbackDy = explicit ? contact.dy : pin.dy
-          const left = presentationPosition ? presentationPosition.x - x : fallbackDx ?? 0
-          const top = presentationPosition ? presentationPosition.y - y : fallbackDy ?? 0
+          const presentationPosition = getPinPresentationPosition(component, pin, { contact })
+          const left = presentationPosition ? presentationPosition.x - x : contact.dx ?? 0
+          const top = presentationPosition ? presentationPosition.y - y : contact.dy ?? 0
           return (
             <Pin
-              key={explicit ? `${pin.id}:${contact.id}` : pin.id}
+              key={explicitContacts ? `${pin.id}:${contact.id}` : pin.id}
               pinId={pin.id}
-              contactId={explicit ? contact.id : undefined}
+              contactId={explicitContacts ? contact.id : undefined}
               componentUid={uid}
               startWireGesture={startWireGesture}
               label={pin.label ?? pin.id}

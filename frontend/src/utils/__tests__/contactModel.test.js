@@ -100,6 +100,24 @@ describe('contactModel — contact par défaut & résolution', () => {
   })
 })
 
+describe('contactModel — FT-B-001-S4 : héritage des drapeaux pin-level', () => {
+  it('contact implicite hérite de pinDef.wireConnectable / pinDef.breadboardInsertable', () => {
+    expect(resolveContacts({ id: 'p', dx: 0, dy: 0, wireConnectable: false })[0].wireConnectable).toBe(false)
+    expect(resolveContacts({ id: 'p', dx: 0, dy: 0, breadboardInsertable: false })[0].breadboardInsertable).toBe(false)
+    // pin silencieuse -> true (comportement des 16 types actuels)
+    expect(resolveContacts({ id: 'p', dx: 0, dy: 0 })[0]).toMatchObject({ wireConnectable: true, breadboardInsertable: true })
+  })
+
+  it('contact explicite : drapeau du contact > drapeau de la pin > true, `false` toujours respecté', () => {
+    // contact false l'emporte sur pin true
+    expect(resolveContacts({ id: 'p', dx: 0, dy: 0, wireConnectable: true, contacts: [{ id: 'a', wireConnectable: false }] })[0].wireConnectable).toBe(false)
+    // contact true l'emporte sur pin false
+    expect(resolveContacts({ id: 'p', dx: 0, dy: 0, breadboardInsertable: false, contacts: [{ id: 'a', breadboardInsertable: true }] })[0].breadboardInsertable).toBe(true)
+    // contact silencieux -> hérite de la pin
+    expect(resolveContacts({ id: 'p', dx: 0, dy: 0, breadboardInsertable: false, contacts: [{ id: 'a' }] })[0].breadboardInsertable).toBe(false)
+  })
+})
+
 describe('contactModel — intégration composants réels (aucune logique par type)', () => {
   it('les 14 types mono-contact -> 1 contact implicite par pin, en pin.dx/pin.dy', () => {
     const monoTypes = ['LED', 'RESISTOR', 'ARDUINO', 'POWER', 'CAPACITOR', 'BUZZER',

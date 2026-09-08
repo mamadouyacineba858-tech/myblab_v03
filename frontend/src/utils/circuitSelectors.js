@@ -82,16 +82,16 @@ export function buildWirePaths(components, wires, focusInfo) {
     const toElectricalPos = getPinPosition(toComp, toPinDef)
     const fromScale = focusInfo && focusInfo.uid === fromComp.uid ? focusInfo.scale : 1
     const toScale = focusInfo && focusInfo.uid === toComp.uid ? focusInfo.scale : 1
-    // [FT-B-001-S2] Ancre de contact physique. Une pin avec `contacts`
-    // explicites (BUTTON / BUTTON_LATCHING) : on résout le contact demandé
-    // (`wire.fromContact`) OU, à défaut / si périmé, le contact PAR DÉFAUT de
-    // cette même pin — jamais un changement de `pinId`. Une pin mono-contact
-    // (14/16 types) : aucun `contact` transmis ⇒ résolution historique
-    // inchangée (projections *_VISUAL_PINS incluses).
-    const fromExplicit = Array.isArray(fromPinDef.contacts) && fromPinDef.contacts.length > 0
-    const toExplicit = Array.isArray(toPinDef.contacts) && toPinDef.contacts.length > 0
-    const fromContact = fromExplicit ? resolveContact(fromPinDef, wire.fromContact) : undefined
-    const toContact = toExplicit ? resolveContact(toPinDef, wire.toContact) : undefined
+    // [FT-B-001-S4] Ancre de contact physique résolue GÉNÉRIQUEMENT pour toute
+    // pin : `resolveContact` renvoie le contact demandé (`wire.fromContact`),
+    // sinon le contact PAR DÉFAUT de cette même pin (mono-contact ⇒ le contact
+    // implicite en pin.dx/dy) — jamais un changement de `pinId`. Le contact est
+    // toujours transmis à getPinPresentationPosition() : le helper décide seul
+    // (contact ⇒ ses dx/dy ; exceptions NPN/POWER/ARDUINO ⇒ *_VISUAL_PINS,
+    // TODO S5 ; sinon ⇒ géométrie canonique). Plus de bifurcation
+    // explicit/implicit ici.
+    const fromContact = resolveContact(fromPinDef, wire.fromContact)
+    const toContact = resolveContact(toPinDef, wire.toContact)
     const fromPos = getPinPresentationPosition(fromComp, fromPinDef, { scale: fromScale, contact: fromContact }) ?? fromElectricalPos
     const toPos = getPinPresentationPosition(toComp, toPinDef, { scale: toScale, contact: toContact }) ?? toElectricalPos
     if (!fromPos || !toPos) continue
