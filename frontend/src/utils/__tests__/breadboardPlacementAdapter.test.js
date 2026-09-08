@@ -171,34 +171,37 @@ describe('computeBreadboardPlacement — hors limites de colonne (repli best-eff
  * les tests ci-dessous portent donc sur cette paire, la seule physiquement
  * accessible.
  */
-describe('computeBreadboardPlacement — POWER sur rail physique (MB-BREADBOARD-005, POWER-01→06)', () => {
-  it("POWER-01/02/03 : 5V et GND résolvent SIMULTANÉMENT sur des trous de rail distincts (rail+ pour 5V, rail- pour GND)", () => {
+/**
+ * [FT-B-001-S5] MB-BREADBOARD-005 (POWER directement enfiché sur le rail) est
+ * SUPERSÉDÉ : POWER est une alimentation de paillasse reliée aux rails PAR
+ * FIL, ses contacts sont `breadboardInsertable: false`. L'insertion directe du
+ * CORPS POWER est désormais `compatible: false`. La preuve électrique
+ * "POWER -> rail -> continuité" est migrée vers breadboardConnectivity.test.js
+ * / breadboardSimulationIntegration.test.js / electricalRules.test.js sous la
+ * forme "POWER.5V --wire--> trou de rail". Le no-court-circuit 5V/GND sur les
+ * coordonnées canoniques `pin.dx/dy` (POWER-07bis) reste vérifié tel quel.
+ */
+describe('computeBreadboardPlacement — [FT-B-001-S5] POWER non directement enfichable (MB-BREADBOARD-005 supersédé)', () => {
+  it("POWER : insertion directe du corps -> incompatible, valid:false, holes:[], jamais de placement fantôme", () => {
     const result = computeBreadboardPlacement(breadboard, 'POWER', { x: 2, y: 155 }, [])
-    expect(result.breadboardActive).toBe(true)
-    expect(result.compatible).toBe(true)
-    expect(result.valid).toBe(true)
-    expect(result.holes).toEqual([
-      { pinId: '5V', contactId: '5V', column: 6, row: 16 },
-      { pinId: 'GND', contactId: 'GND', column: 5, row: 15 },
-    ])
+    expect(result.compatible).toBe(false)
+    expect(result.breadboardActive).toBe(false)
+    expect(result.valid).toBe(false)
+    expect(result.holes).toEqual([])
   })
 
-  it("POWER-05 : rail+ et rail- restent électriquement distincts (groupKey différent pour 5V et GND)", () => {
-    const result = computeBreadboardPlacement(breadboard, 'POWER', { x: 2, y: 155 }, [])
-    expect(result.valid).toBe(true)
-    const [fiveV, gnd] = result.holes
-    // Rangées ADJACENTES mais distinctes (16 vs 15) ET colonnes désormais
-    // également distinctes (6 vs 5) — donc groupKey distinct dans
-    // breadboardGeometry.js (rail:bottom:+ vs rail:bottom:-), non ré-importé
-    // ici pour ne pas dupliquer la logique de holeAt() (LOCK-02) : la seule
-    // distinction row!==row suffit déjà à prouver la non-fusion sur le rail
-    // (le groupKey de rail ne dépend que de la rangée), holeAt() étant le
-    // seul arbitre du groupKey (déjà couvert par breadboardGeometry.test.js,
-    // non modifié).
-    expect(fiveV.row).not.toBe(gnd.row)
+  it("POWER : incompatible quelle que soit la position candidate (dans l'empreinte comme hors empreinte)", () => {
+    for (const cand of [{ x: 2, y: 155 }, { x: 60, y: 22 }, { x: 5000, y: 5000 }]) {
+      const r = computeBreadboardPlacement(breadboard, 'POWER', cand, [])
+      expect(r.compatible).toBe(false)
+      expect(r.valid).toBe(false)
+      expect(r.holes).toEqual([])
+      // le composant reste positionnable librement (repli GRID_SIZE côté appelant)
+      expect(r.position).toEqual({ x: cand.x, y: cand.y })
+    }
   })
 
-  it("POWER-07bis (défaut découvert et corrigé en cours de ticket) : AUCUNE position du footprint ne fait résoudre 5V et GND sur le MÊME groupKey (pas de court-circuit 5V/GND, y compris en bande centrale)", () => {
+  it("POWER-07bis (invariant conservé) : AUCUNE position du footprint ne fait résoudre 5V et GND sur le MÊME groupKey via leurs coordonnées canoniques pin.dx/dy (pas de court-circuit 5V/GND)", () => {
     // Balayage réel (pas déduit à la main) de tout le footprint adressable :
     // pour CHAQUE position où les deux pins résolvent un trou (rail OU
     // bande), leur groupKey — recalculé via holeAt(), seul oracle, jamais
@@ -224,27 +227,19 @@ describe('computeBreadboardPlacement — POWER sur rail physique (MB-BREADBOARD-
     expect(bothResolvedCount).toBeGreaterThan(1000)
   })
 
-  it("POWER-04 : collision — valid devient false si le trou du rail+ ciblé par 5V est déjà occupé par un AUTRE composant", () => {
-    // POWER déjà posé ailleurs occupe col6/row16 (5V) et col5/row15 (GND).
+  it('POWER : un autre POWER déjà présent ne crée AUCUNE occupation de trou (breadboardInsertable:false) — aucune collision par le corps', () => {
     const others = [{ uid: 'power-other', type: 'POWER', x: 2, y: 155 }]
     const result = computeBreadboardPlacement(breadboard, 'POWER', { x: 2, y: 155 }, others)
-    expect(result.breadboardActive).toBe(true)
+    expect(result.compatible).toBe(false)
     expect(result.valid).toBe(false)
-    // Les trous restent renseignés (feedback rouge, AC-09) même invalides.
-    expect(result.holes).toEqual([
-      { pinId: '5V', contactId: '5V', column: 6, row: 16 },
-      { pinId: 'GND', contactId: 'GND', column: 5, row: 15 },
-    ])
+    expect(result.holes).toEqual([])
   })
 
-  it('POWER-06 : hors empreinte du breadboard, retourne candidatePosition inchangée (repli GRID_SIZE existant, AC-17)', () => {
-    const result = computeBreadboardPlacement(breadboard, 'POWER', { x: 5000, y: 5000 }, [])
-    expect(result).toEqual({ breadboardActive: false, compatible: true, valid: false, position: { x: 5000, y: 5000 }, holes: [] })
-  })
-
-  it('POWER-06bis : sans breadboard du tout, retourne candidatePosition inchangée (non-régression AC-17)', () => {
-    const result = computeBreadboardPlacement(null, 'POWER', { x: 700, y: 200 }, [])
-    expect(result).toEqual({ breadboardActive: false, compatible: true, valid: false, position: { x: 700, y: 200 }, holes: [] })
+  it('POWER : hors empreinte / sans breadboard -> candidatePosition inchangée, compatible:false', () => {
+    const r1 = computeBreadboardPlacement(breadboard, 'POWER', { x: 5000, y: 5000 }, [])
+    expect(r1).toEqual({ breadboardActive: false, compatible: false, valid: false, position: { x: 5000, y: 5000 }, holes: [] })
+    const r2 = computeBreadboardPlacement(null, 'POWER', { x: 700, y: 200 }, [])
+    expect(r2).toEqual({ breadboardActive: false, compatible: false, valid: false, position: { x: 700, y: 200 }, holes: [] })
   })
 })
 
@@ -261,11 +256,25 @@ describe('computeBreadboardPlacement — POWER sur rail physique (MB-BREADBOARD-
  * entrée par pin (résolue ou {column:null,row:null}).
  */
 describe('computeBreadboardPlacement — MB-BREADBOARD-008 (O8/R6/A9) : généralisation N-pins', () => {
-  it("un composant 4 pins (ARDUINO) est désormais 'compatible' (compatible dérive uniquement de def.pins.length > 0, plus de restriction === 2)", () => {
+  it("[FT-B-001-S5] ARDUINO (4 pins, breadboardInsertable:false) : insertion directe du corps -> incompatible, holes:[] (MB-BREADBOARD-008 direct placement supersédé — ARDUINO se relie au breadboard PAR FIL)", () => {
     const result = computeBreadboardPlacement(breadboard, 'ARDUINO', { x: 60, y: 22 }, [])
+    expect(result.compatible).toBe(false)
+    expect(result.breadboardActive).toBe(false)
+    expect(result.valid).toBe(false)
+    expect(result.holes).toEqual([])
+  })
+
+  it("[FT-B-001-S5] NPN_TRANSISTOR (3 pins, breadboardInsertable:true) : DEVIENT insertable via ses contacts probe-validés — placement valide à 3 trous consécutifs", () => {
+    // Origine choisie via probe S5 : B/C/E -> strip top, colonnes consécutives.
+    const result = computeBreadboardPlacement(breadboard, 'NPN_TRANSISTOR', { x: 5, y: 2 }, [])
     expect(result.compatible).toBe(true)
     expect(result.breadboardActive).toBe(true)
-    expect(result.holes).toHaveLength(4)
+    expect(result.valid).toBe(true)
+    expect(result.holes).toHaveLength(3)
+    expect(new Set(result.holes.map((h) => h.contactId))).toEqual(new Set(['B', 'C', 'E']))
+    const cols = result.holes.map((h) => h.column).sort((a, z) => a - z)
+    expect(new Set(cols).size).toBe(3)
+    expect(cols[2] - cols[0]).toBe(2) // 3 colonnes consécutives
   })
 
   it("un composant 3 pins (POTENTIOMETER) ne crashe jamais, même quand aucune position de la fenêtre ne résout les 3 pins simultanément", () => {

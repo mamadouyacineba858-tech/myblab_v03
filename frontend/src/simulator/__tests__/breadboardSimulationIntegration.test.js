@@ -15,6 +15,7 @@
 import { describe, it, expect } from 'vitest'
 import { toEngineInput } from '../engineAdapter.js'
 import { runSimulation, getLedState } from '../engine.js'
+import { makeBreadboardHoleEndpoint } from '../../utils/breadboardWireEndpoint.js'
 
 const POWER = { id: 'power1', type: 'POWER', position: { x: -300, y: -100 }, parameters: { voltage: 5 } }
 // RESISTOR.B (dx:84,dy:14 — MB-BREADBOARD-003, corrigé depuis dx:90 ; x du
@@ -98,22 +99,30 @@ describe('MB-BREADBOARD-002 — preuve end-to-end (LED/résistance)', () => {
  * (déjà fait, TEST A1) : ici, la LED doit RÉELLEMENT s'allumer, et le
  * résultat doit être identique à la même topologie entièrement câblée.
  */
-describe('MB-BREADBOARD-007 — TEST A2 : preuve simulation rail multi-colonnes', () => {
-  const POWER_RAIL = { id: 'power1', type: 'POWER', position: { x: 2, y: 155 }, parameters: { voltage: 5 } }
+describe('MB-BREADBOARD-007 — TEST A2 : preuve simulation rail multi-colonnes [FT-B-001-S5 : POWER câblé au rail PAR FIL]', () => {
+  // [FT-B-001-S5] POWER n'est plus enfiché sur le rail : POWER.5V --wire-->
+  // trou de rail (col6/row16). R_TAP (RESISTOR).A -> col24/row16, MÊME rangée
+  // rail+, colonne DIFFÉRENTE, AUCUN wire direct POWER<->R_TAP. La continuité
+  // POWER<->R_TAP transite donc par le rail (wire-to-hole + occupation).
+  const POWER_RAIL = { id: 'power1', type: 'POWER', position: { x: -500, y: -500 }, parameters: { voltage: 5 } }
   const R_TAP = { id: 'rtap', type: 'RESISTOR', position: { x: 288, y: 178 }, parameters: { resistance: 220 } }
-  // Position hors grille (aucun rôle dans la connectivité) : led1 n'est
-  // relié que par les deux wires explicites ci-dessous.
   const LED_TAP = { id: 'led1', type: 'LED', position: { x: -1000, y: -1000 } }
 
+  const railHole = makeBreadboardHoleEndpoint('bb1', 6, 16)
   const tailWires = [
     { id: 'w-tap-led', pinA: { componentId: 'rtap', pinId: 'B' }, pinB: { componentId: 'led1', pinId: 'anode' } },
     { id: 'w-ground', pinA: { componentId: 'power1', pinId: 'GND' }, pinB: { componentId: 'led1', pinId: 'cathode' } },
   ]
+  const powerToRail = {
+    id: 'w-power-rail',
+    pinA: { componentId: 'power1', pinId: '5V' },
+    pinB: { componentId: railHole.uid, pinId: railHole.pinId },
+  }
 
   const railDocument = {
     breadboard: { id: 'bb1', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' },
     components: [POWER_RAIL, R_TAP, LED_TAP],
-    wires: [...tailWires], // POWER.5V <-> R_TAP.A : uniquement via le rail (col6 <-> col24, bb1:rail:bottom:+)
+    wires: [...tailWires, powerToRail], // POWER.5V <-> R_TAP.A : via le rail (col6 <-> col24, bb1:rail:bottom:+)
   }
 
   const wiredDocument = {

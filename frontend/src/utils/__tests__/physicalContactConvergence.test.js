@@ -72,14 +72,18 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
     expect(resolveContact({ id: 'q', dx: 0, dy: 0 }, 'anything').id).toBe('q') // mono-contact
   })
 
-  it('non-régression : les 16 types du catalogue -> drapeaux implicites true/true (aucun drapeau pin-level déclaré)', () => {
+  it('les 16 types du catalogue -> drapeaux de contact booléens ; classification d\'enfichage FT-B-001-S5', () => {
+    // wireConnectable : true partout (tout composant est câblable).
+    // breadboardInsertable : false pour POWER / ARDUINO / DC_MOTOR / SERVO
+    // (drapeau pin-level ou contact explicite), true partout ailleurs.
+    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO'])
     for (const type of ALL_TYPES) {
       for (const pin of getComponentDef(type).pins) {
         for (const c of resolveContacts(pin)) {
           expect(typeof c.wireConnectable).toBe('boolean')
           expect(typeof c.breadboardInsertable).toBe('boolean')
           expect(c.wireConnectable).toBe(true)
-          expect(c.breadboardInsertable).toBe(true)
+          expect(c.breadboardInsertable).toBe(!NON_INSERTABLE.has(type))
         }
       }
     }
@@ -87,46 +91,38 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
 })
 
 // ---------------------------------------------------------------------------
-// TEST S4-B — état des registres parallèles *_VISUAL_PINS
+// TEST S4-B / S5 — les 6 registres *_VISUAL_PINS de la dette FT-B sont SUPPRIMÉS
 // ---------------------------------------------------------------------------
-describe('FT-B-001-S4 — TEST S4-B : registres *_VISUAL_PINS', () => {
+describe('FT-B-001-S5 — TEST S4-B/S5 : plus aucun registre *_VISUAL_PINS', () => {
   const rawSrc = readFileSync(resolve(__dirname, '../pinPresentationGeometry.js'), 'utf-8')
   // stripComments : retirer d'abord les `//`, puis les blocs `/* */` (ordre de
   // MB-VIS-COMP-007) — on teste le CODE, pas les commentaires explicatifs.
   const code = rawSrc.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
 
-  it('LED_VISUAL_PINS / BUTTON_VISUAL_PINS / BUTTON_LATCHING_VISUAL_PINS + getLedVisualPinPosition SUPPRIMÉS du code', () => {
-    expect(code).not.toMatch(/LED_VISUAL_PINS/)
-    expect(code).not.toMatch(/BUTTON_VISUAL_PINS/)
-    expect(code).not.toMatch(/BUTTON_LATCHING_VISUAL_PINS/)
-    expect(code).not.toMatch(/getLedVisualPinPosition/)
-  })
-
-  it('aucune branche de type LED / BUTTON / BUTTON_LATCHING dans la résolution', () => {
-    expect(code).not.toMatch(/type\s*===\s*["']LED["']/)
-    expect(code).not.toMatch(/type\s*===\s*["']BUTTON["']/)
-    expect(code).not.toMatch(/type\s*===\s*["']BUTTON_LATCHING["']/)
-  })
-
-  it('NPN_TRANSISTOR / POWER / ARDUINO _VISUAL_PINS CONSERVÉS temporairement, marqués TODO S5', () => {
-    for (const name of ['NPN_TRANSISTOR_VISUAL_PINS', 'POWER_VISUAL_PINS', 'ARDUINO_VISUAL_PINS']) {
-      expect(code).toMatch(new RegExp(`const ${name}`))
+  it('les 6 registres *_VISUAL_PINS + getLedVisualPinPosition sont SUPPRIMÉS du code', () => {
+    for (const name of [
+      'LED_VISUAL_PINS', 'BUTTON_VISUAL_PINS', 'BUTTON_LATCHING_VISUAL_PINS',
+      'NPN_TRANSISTOR_VISUAL_PINS', 'POWER_VISUAL_PINS', 'ARDUINO_VISUAL_PINS',
+      'getLedVisualPinPosition',
+    ]) {
+      expect(code, name).not.toMatch(new RegExp(name))
     }
-    expect(rawSrc).toMatch(/TODO FT-B-001-S5/)
+  })
+
+  it('aucune branche de type dans pinPresentationGeometry.js (résolution 100% générique)', () => {
+    expect(code).not.toMatch(/component\.type\s*===/)
+    for (const t of ['LED', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'POWER', 'ARDUINO']) {
+      expect(code, t).not.toMatch(new RegExp(`type\\s*===\\s*["']${t}["']`))
+    }
   })
 })
 
 // ---------------------------------------------------------------------------
-// TEST S4-C — aucune branche de type pour la coordonnée de contact générique
+// TEST S4-C / S5 — résolution de contact 100% générique, tous types
 // ---------------------------------------------------------------------------
-describe('FT-B-001-S4 — TEST S4-C : résolution de contact générique, sans branche de type', () => {
-  // Pour tout type SANS override *_VISUAL_PINS (donc tous sauf NPN/POWER/ARDUINO),
-  // getPinPresentationPosition(component, pin) doit être exactement le contact
-  // par défaut de la pin (== getPinPosition pour les mono-contacts).
-  const NON_OVERRIDE = ALL_TYPES.filter((t) => !['NPN_TRANSISTOR', 'POWER', 'ARDUINO'].includes(t))
-
-  for (const type of NON_OVERRIDE) {
-    it(`${type} : hit target == contact par défaut, sans dépendre d'un registre parallèle`, () => {
+describe('FT-B-001-S5 — TEST S4-C/S5 : résolution de contact générique, TOUS les types', () => {
+  for (const type of ALL_TYPES) {
+    it(`${type} : hit target == contact par défaut, sans registre parallèle`, () => {
       const def = getComponentDef(type)
       const comp = { uid: 'c', type, x: 100, y: 200 }
       for (const pin of def.pins) {
@@ -195,59 +191,66 @@ describe('FT-B-001-S4 — TEST S4-D : BUTTON / BUTTON_LATCHING', () => {
 })
 
 // ---------------------------------------------------------------------------
-// TEST S4-F / S4-G — POWER / ARDUINO : présentation INCHANGÉE (TODO S5)
+// TEST S4-F / S4-G / S5 — POWER / ARDUINO / NPN : présentation via PhysicalContact
 // ---------------------------------------------------------------------------
-describe('FT-B-001-S4 — TEST S4-F/G : POWER / ARDUINO présentation inchangée (contrat breadboard historique préservé)', () => {
-  it('POWER : hit target / endpoint restent sur POWER_VISUAL_PINS (35,67)/(22,67), pas sur pin.dx/dy', () => {
+describe('FT-B-001-S5 — TEST S4-F/G/S5 : POWER / ARDUINO / NPN présentation via contacts déclarés', () => {
+  it('POWER : hit target / endpoint sur les CONTACTS raster (35,67)/(22,67) ; pin.dx/dy canonique intacte', () => {
     const comp = { uid: 'p', type: 'POWER', x: 0, y: 0 }
     const def = getComponentDef('POWER')
     const p5v = def.pins.find((p) => p.id === '5V')
     const pgnd = def.pins.find((p) => p.id === 'GND')
     expect(getPinPresentationPosition(comp, p5v)).toEqual({ x: 35, y: 67 })
     expect(getPinPresentationPosition(comp, pgnd)).toEqual({ x: 22, y: 67 })
-    // pin.dx/dy (contrat breadboard MB-BREADBOARD-005) intacts et DISTINCTS
+    // pin.dx/dy (géométrie canonique / électrique, MB-BREADBOARD-005) intacte
     expect([p5v.dx, p5v.dy]).toEqual([70, 37])
     expect([pgnd.dx, pgnd.dy]).toEqual([58, 25])
-    // le contact implicite transmis par un appelant ne court-circuite pas la
-    // projection visuelle
     expect(getPinPresentationPosition(comp, p5v, { contact: getDefaultContact(p5v) })).toEqual({ x: 35, y: 67 })
   })
 
-  it('ARDUINO : hit target / endpoint restent sur ARDUINO_VISUAL_PINS', () => {
+  it('ARDUINO : hit target / endpoint sur les CONTACTS raster ; pin.dx/dy canonique intacte', () => {
     const comp = { uid: 'a', type: 'ARDUINO', x: 0, y: 0 }
     const def = getComponentDef('ARDUINO')
     const expected = { D2: [3, 50], D3: [15, 75], GND: [15, 108], '5V': [115, 50] }
+    const canon = { D2: [0, 50], D3: [0, 75], GND: [0, 110], '5V': [120, 50] }
     for (const pin of def.pins) {
       const pos = getPinPresentationPosition(comp, pin)
       expect([pos.x, pos.y]).toEqual(expected[pin.id])
+      expect([pin.dx, pin.dy]).toEqual(canon[pin.id])
       expect(getPinPresentationPosition(comp, pin, { contact: getDefaultContact(pin) })).toEqual(pos)
     }
   })
 
-  it('NPN_TRANSISTOR : présentation inchangée sur NPN_TRANSISTOR_VISUAL_PINS (non migré en S4 — TODO S5)', () => {
+  it('NPN_TRANSISTOR : présentation sur les CONTACTS probe-validés B/C/E = (31.5,58.5)/(42.5,58.5)/(53.5,58.5) ; canonique intacte', () => {
     const comp = { uid: 'n', type: 'NPN_TRANSISTOR', x: 0, y: 0 }
     const def = getComponentDef('NPN_TRANSISTOR')
-    const expected = { base: [32, 60], collector: [42, 60], emitter: [51, 60] }
+    const expected = { base: [31.5, 58.5], collector: [42.5, 58.5], emitter: [53.5, 58.5] }
+    const canon = { collector: [45, 0], base: [0, 45], emitter: [90, 45] }
     for (const pin of def.pins) {
       const pos = getPinPresentationPosition(comp, pin)
       expect([pos.x, pos.y]).toEqual(expected[pin.id])
+      expect([pin.dx, pin.dy]).toEqual(canon[pin.id])
     }
-    // identités électriques canoniques intactes
     expect(def.pins.map((p) => p.id).sort()).toEqual(['base', 'collector', 'emitter'])
   })
 })
 
 // ---------------------------------------------------------------------------
-// TEST S4-H — DC_MOTOR / BUZZER / SERVO
+// TEST S4-H / S5 — DC_MOTOR / BUZZER / SERVO
 // ---------------------------------------------------------------------------
-describe('FT-B-001-S4 — TEST S4-H : DC_MOTOR / BUZZER / SERVO', () => {
-  for (const type of ['DC_MOTOR', 'BUZZER', 'SERVO']) {
-    it(`${type} : contact implicite en pin.dx/dy, wireConnectable, breadboardInsertable (classification inchangée)`, () => {
-      const def = getComponentDef(type)
+describe('FT-B-001-S5 — TEST S4-H/S5 : DC_MOTOR / BUZZER / SERVO', () => {
+  it('BUZZER : reste enfichable (contact implicite en pin.dx/dy, breadboardInsertable:true)', () => {
+    const comp = { uid: 'c', type: 'BUZZER', x: 0, y: 0 }
+    for (const pin of getComponentDef('BUZZER').pins) {
+      expect(resolveContacts(pin)).toEqual([{ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: true }])
+      expect(getPinPresentationPosition(comp, pin)).toEqual(getPinPosition(comp, pin))
+    }
+  })
+
+  for (const type of ['DC_MOTOR', 'SERVO']) {
+    it(`${type} : contact implicite en pin.dx/dy, wireConnectable:true, breadboardInsertable:false (drapeau pin-level)`, () => {
       const comp = { uid: 'c', type, x: 0, y: 0 }
-      for (const pin of def.pins) {
-        const contacts = resolveContacts(pin)
-        expect(contacts).toEqual([{ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: true }])
+      for (const pin of getComponentDef(type).pins) {
+        expect(resolveContacts(pin)).toEqual([{ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: false }])
         expect(getPinPresentationPosition(comp, pin)).toEqual(getPinPosition(comp, pin))
       }
     })
@@ -315,6 +318,29 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact 16/16', () =
       for (const pin of getComponentDef(type).pins) {
         expect(resolveContacts(pin)).toHaveLength(1)
       }
+    }
+  })
+
+  // FT-B-001-S5 — classification d'enfichage breadboard verrouillée (§15).
+  it('classification breadboardInsertable finale S5 : 12 enfichables / 4 non-directs', () => {
+    const INSERTABLE = ['RESISTOR', 'LED', 'DIODE', 'CAPACITOR', 'LDR', 'THERMISTOR',
+      'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER']
+    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO']
+    expect([...INSERTABLE, ...NON_DIRECT].sort()).toEqual([...CATALOGUE].sort())
+
+    const insertableContactCount = (type) =>
+      getComponentDef(type).pins.reduce((n, pin) => n + resolveBreadboardInsertableContacts(pin).length, 0)
+
+    for (const type of INSERTABLE) {
+      expect(insertableContactCount(type), `${type} doit être enfichable`).toBeGreaterThan(0)
+    }
+    for (const type of NON_DIRECT) {
+      expect(insertableContactCount(type), `${type} ne doit PAS être enfichable directement`).toBe(0)
+    }
+    // wireConnectable : true pour TOUS (aucun composant n'est non-câblable)
+    for (const type of CATALOGUE) {
+      const wc = getComponentDef(type).pins.reduce((n, pin) => n + resolveWireConnectableContacts(pin).length, 0)
+      expect(wc, `${type} doit être câblable`).toBeGreaterThan(0)
     }
   })
 })

@@ -16,6 +16,7 @@ import {
   toBridgeWire,
 } from '../breadboardConnectivity.js'
 import { holeAt } from '../breadboardGeometry.js'
+import { makeBreadboardHoleEndpoint } from '../breadboardWireEndpoint.js'
 
 const breadboard = { id: 'bb1', position: { x: 0, y: 0 } }
 
@@ -93,27 +94,30 @@ describe('deriveBreadboardVirtualWires', () => {
   })
 })
 
-describe('MB-BREADBOARD-007 — TEST A1 : rail multi-colonnes (audit MB-BREADBOARD-AUDIT-CONNECTIVITE §7)', () => {
+describe('MB-BREADBOARD-007 — TEST A1 : rail multi-colonnes [FT-B-001-S5 : POWER câblé au rail PAR FIL]', () => {
   // holeAt() indexe un trou de RAIL par RANGÉE uniquement (groupKey sans
-  // colonne, breadboardGeometry.js) : deux composants DISTINCTS occupant la
-  // même rangée de rail à des colonnes DIFFÉRENTES doivent donc partager le
-  // même groupKey et être unis par une arête virtuelle — exactement le même
-  // mécanisme que pour une colonne de strip (TB-01 ci-dessus), jamais testé
-  // isolément pour un rail avant ce ticket.
+  // colonne) : un pin relié PAR FIL à un trou de rail, et un composant
+  // occupant la MÊME rangée de rail à une colonne DIFFÉRENTE, partagent le
+  // même groupKey et sont unis par une arête virtuelle.
   //
-  // POWER (dx/dy établis par MB-BREADBOARD-005, cf. componentDefinitions.js)
-  // à {x:2,y:155} : 5V -> col6/row16 (rail bas +). R_TAP (RESISTOR) à
-  // {x:288,y:178} : pin A -> col24/row16 (MÊME rangée rail+, colonne
-  // DIFFÉRENTE) ; pin B (dx84) -> col31, hors grille (>=30 colonnes,
-  // volontairement flottant).
-  const POWER_RAIL = { id: 'power1', type: 'POWER', position: { x: 2, y: 155 } }
+  // [FT-B-001-S5] POWER n'est plus enfiché : POWER.5V --wire--> trou
+  // (col6/row16, rail bas +). R_TAP (RESISTOR) à {x:288,y:178} : pin A ->
+  // col24/row16 (MÊME rangée rail+, colonne DIFFÉRENTE) ; pin B (dx84) ->
+  // col31, hors grille (volontairement flottant).
+  const POWER = { id: 'power1', type: 'POWER', position: { x: -500, y: -500 } }
   const R_TAP = { id: 'rtap', type: 'RESISTOR', position: { x: 288, y: 178 } }
   const breadboard = { id: 'bb1', position: { x: 0, y: 0 } }
+  const railHole = makeBreadboardHoleEndpoint('bb1', 6, 16)
+  const powerToRail = {
+    id: 'w-power-rail',
+    pinA: { componentId: 'power1', pinId: '5V' },
+    pinB: { componentId: railHole.uid, pinId: railHole.pinId },
+  }
 
-  it("POWER.5V (col6) et RESISTOR.A (col24) sur la MÊME rangée de rail : une arête virtuelle les unit", () => {
-    const wires = deriveBreadboardVirtualWires({ breadboard, components: [POWER_RAIL, R_TAP] })
+  it("POWER.5V --wire--> trou de rail (col6) et RESISTOR.A (col24) sur la MÊME rangée : une arête virtuelle les unit", () => {
+    const wires = deriveBreadboardVirtualWires({ breadboard, components: [POWER, R_TAP], wires: [powerToRail] })
     expect(wires).toEqual([
-      { pinA: { componentId: 'power1', pinId: '5V' }, pinB: { componentId: 'rtap', pinId: 'A' } },
+      { pinA: { componentId: 'rtap', pinId: 'A' }, pinB: { componentId: 'power1', pinId: '5V' } },
     ])
   })
 

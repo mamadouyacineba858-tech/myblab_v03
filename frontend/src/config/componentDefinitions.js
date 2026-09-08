@@ -15,11 +15,17 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "A", label: "A", dx: 0, dy: 14 },
     { id: "B", label: "B", dx: 84, dy: 14 },
   ],
+  // [FT-B-001-S5] ARDUINO n'est PAS directement enfichable dans le breadboard :
+  // c'est une carte reliée au breadboard PAR FIL. `pin.dx/dy` (géométrie
+  // canonique / électrique) reste inchangée ; les CONTACTS physiques déclarés
+  // portent les vraies positions raster des connecteurs (silhouette photo de
+  // la carte, cf. MB-VIS-COMP-037) et sont `breadboardInsertable: false`. Le
+  // registre ARDUINO_VISUAL_PINS (pinPresentationGeometry.js) est supprimé.
   ARDUINO: [
-    { id: "D2", label: "D2", dx: 0, dy: 50 },
-    { id: "D3", label: "D3", dx: 0, dy: 75 },
-    { id: "GND", label: "GND", dx: 0, dy: 110 },
-    { id: "5V", label: "5V", dx: 120, dy: 50 },
+    { id: "D2", label: "D2", dx: 0, dy: 50, contacts: [{ id: "D2", dx: 3, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D3", label: "D3", dx: 0, dy: 75, contacts: [{ id: "D3", dx: 15, dy: 75, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [{ id: "GND", dx: 15, dy: 108, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "5V", label: "5V", dx: 120, dy: 50, contacts: [{ id: "5V", dx: 115, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
   ],
   // [MB-VIS-BUTTON-ASSET-006] Remesuré depuis zéro sur le nouveau paquet
   // d'assets "Tinkercad-style" (housing carré + 4 pattes métalliques
@@ -87,9 +93,20 @@ const PIN_PRESENTATION_BY_TYPE = {
       { id: "2b", dx: 47, dy: 2, wireConnectable: true, breadboardInsertable: true },
     ] },
   ],
+  // [FT-B-001-S5] POWER n'est PAS un composant directement enfichable dans le
+  // breadboard : c'est une alimentation de paillasse reliée aux rails PAR FIL.
+  // `pin.dx/dy` (géométrie canonique / électrique héritée de MB-BREADBOARD-005)
+  // reste inchangée ; les CONTACTS physiques déclarés portent les vraies
+  // bornes raster (rouge/noire) et sont `breadboardInsertable: false`. Le
+  // registre POWER_VISUAL_PINS (pinPresentationGeometry.js) est supprimé —
+  // ces contacts sont l'unique source de présentation.
   POWER: [
-    { id: "5V", label: "+5V", dx: 70, dy: 37 },
-    { id: "GND", label: "GND", dx: 58, dy: 25 },
+    { id: "5V", label: "+5V", dx: 70, dy: 37, contacts: [
+      { id: "5V", dx: 35, dy: 67, wireConnectable: true, breadboardInsertable: false },
+    ] },
+    { id: "GND", label: "GND", dx: 58, dy: 25, contacts: [
+      { id: "GND", dx: 22, dy: 67, wireConnectable: true, breadboardInsertable: false },
+    ] },
   ],
   CAPACITOR: [
     { id: "pinA", label: "A", dx: 0, dy: 20 },
@@ -125,19 +142,35 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "G", label: "G", dx: 53, dy: 56 },
     { id: "B", label: "B", dx: 71, dy: 56 },
   ],
+  // [FT-B-001-S5] NPN_TRANSISTOR EST directement enfichable (TO-92, 3 pattes
+  // traversantes). `pin.dx/dy` (géométrie canonique / électrique : coins du
+  // boîtier) reste inchangée ; les CONTACTS physiques déclarés portent les 3
+  // pattes métalliques réelles, mesurées par pixel-probe read-only validé CSA
+  // (alpha=255 sur 1x ET 3x, pitch=12 / tolérance=±2, insertion simultanée sur
+  // 3 trous consécutifs distincts). Mapping : base→B, collector→C, emitter→E ;
+  // `pin.id` (base/collector/emitter) inchangé. Registre
+  // NPN_TRANSISTOR_VISUAL_PINS (pinPresentationGeometry.js) supprimé.
   NPN_TRANSISTOR: [
-    { id: "collector", label: "C", dx: 45, dy: 0 },
-    { id: "base", label: "B", dx: 0, dy: 45 },
-    { id: "emitter", label: "E", dx: 90, dy: 45 },
+    { id: "collector", label: "C", dx: 45, dy: 0, contacts: [{ id: "C", dx: 42.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "base", label: "B", dx: 0, dy: 45, contacts: [{ id: "B", dx: 31.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "emitter", label: "E", dx: 90, dy: 45, contacts: [{ id: "E", dx: 53.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // [FT-B-001-S5] SERVO : micro-servo SG90 avec câble/connecteur externe, non
+  // traversant. Câblable, mais PAS d'insertion breadboard directe : drapeau
+  // pin-level `breadboardInsertable: false` (aucune géométrie de connecteur
+  // parallèle créée — les coordonnées d'endpoint existantes sont conservées
+  // via le contact implicite en pin.dx/dy).
   SERVO: [
-    { id: "signal", label: "SIG", dx: 90, dy: 20 },
-    { id: "vcc", label: "VCC", dx: 90, dy: 35 },
-    { id: "gnd", label: "GND", dx: 90, dy: 50 },
+    { id: "signal", label: "SIG", dx: 90, dy: 20, breadboardInsertable: false },
+    { id: "vcc", label: "VCC", dx: 90, dy: 35, breadboardInsertable: false },
+    { id: "gnd", label: "GND", dx: 90, dy: 50, breadboardInsertable: false },
   ],
+  // [FT-B-001-S5] DC_MOTOR : cosses à souder, non traversant. Câblable, PAS
+  // d'insertion breadboard directe : drapeau pin-level `breadboardInsertable:
+  // false` ; contact implicite conservé en pin.dx/dy.
   DC_MOTOR: [
-    { id: "plus", label: "+", dx: 0, dy: 25 },
-    { id: "minus", label: "-", dx: 84, dy: 25 },
+    { id: "plus", label: "+", dx: 0, dy: 25, breadboardInsertable: false },
+    { id: "minus", label: "-", dx: 84, dy: 25, breadboardInsertable: false },
   ],
 }
 
@@ -159,10 +192,16 @@ function buildPins(type) {
       label: presentationPin.label,
       dx: presentationPin.dx,
       dy: presentationPin.dy,
+      // [FT-B-001-S5] Drapeaux pin-level `wireConnectable` / `breadboardInsertable`
+      // propagés GÉNÉRIQUEMENT s'ils sont déclarés (booléen strict) — consommés
+      // par utils/contactModel.js (héritage contact > pin > true, S4). Absents ⇒
+      // le contact hérite de `true` (comportement inchangé pour les types qui
+      // n'en déclarent pas). Aucun branchement par type.
+      ...(typeof presentationPin.wireConnectable === "boolean" ? { wireConnectable: presentationPin.wireConnectable } : {}),
+      ...(typeof presentationPin.breadboardInsertable === "boolean" ? { breadboardInsertable: presentationPin.breadboardInsertable } : {}),
       // [FT-B-001-S2] `contacts` optionnel (contacts physiques de présentation) —
       // recopié tel quel s'il est déclaré ; absent ⇒ contact implicite unique
-      // synthétisé à la lecture par utils/contactModel.js (comportement S1
-      // strictement préservé pour les 14 types mono-contact).
+      // synthétisé à la lecture par utils/contactModel.js.
       ...(Array.isArray(presentationPin.contacts) ? { contacts: presentationPin.contacts.map((c) => ({ ...c })) } : {}),
     }
   })

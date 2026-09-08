@@ -130,16 +130,20 @@ describe('MB-VIS-COMP-034 — pins : présentation projetée, électrique inchan
   const pinById = Object.fromEntries(npnDef.pins.map((p) => [p.id, p]))
   const component = { type: 'NPN_TRANSISTOR', x: 0, y: 0 }
 
-  it('TEST 7 — getPinPresentationPosition projette B=(32,60) C=(42,60) E=(51,60)', () => {
-    expect(getPinPresentationPosition(component, pinById.base)).toEqual({ x: 32, y: 60 })
-    expect(getPinPresentationPosition(component, pinById.collector)).toEqual({ x: 42, y: 60 })
-    expect(getPinPresentationPosition(component, pinById.emitter)).toEqual({ x: 51, y: 60 })
+  it('TEST 7 — [FT-B-001-S5] getPinPresentationPosition projette les CONTACTS probe-validés B=(31.5,58.5) C=(42.5,58.5) E=(53.5,58.5)', () => {
+    // Anciennes valeurs NPN_TRANSISTOR_VISUAL_PINS (32,60)/(42,60)/(51,60)
+    // remplacées par les contacts physiques déclarés (componentDefinitions.js),
+    // mesurés par pixel-probe read-only re-validé CSA en S5 : à l'intérieur
+    // des blobs métalliques, alpha=255 sur 1x et 3x, pitch=12 / tolérance=±2.
+    expect(getPinPresentationPosition(component, pinById.base)).toEqual({ x: 31.5, y: 58.5 })
+    expect(getPinPresentationPosition(component, pinById.collector)).toEqual({ x: 42.5, y: 58.5 })
+    expect(getPinPresentationPosition(component, pinById.emitter)).toEqual({ x: 53.5, y: 58.5 })
   })
 
   it('TEST 7b — la projection est relative à component.x/y (aucune coordonnée absolue codée en dur)', () => {
     const moved = { type: 'NPN_TRANSISTOR', x: 100, y: 200 }
-    expect(getPinPresentationPosition(moved, pinById.base)).toEqual({ x: 132, y: 260 })
-    expect(getPinPresentationPosition(moved, pinById.emitter)).toEqual({ x: 151, y: 260 })
+    expect(getPinPresentationPosition(moved, pinById.base)).toEqual({ x: 131.5, y: 258.5 })
+    expect(getPinPresentationPosition(moved, pinById.emitter)).toEqual({ x: 153.5, y: 258.5 })
   })
 
   it('TEST 8 — coordonnées électriques canoniques INCHANGÉES : C=(45,0) B=(0,45) E=(90,45)', () => {
@@ -191,7 +195,7 @@ describe('MB-VIS-COMP-034 — pipeline réel : 3 pins projetés sur les pattes',
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('CircuitComponent rend 3 pins aux positions de PRÉSENTATION (32,60)/(42,60)/(51,60) ; asset raster, markerless', () => {
+  it('CircuitComponent rend 3 pins aux CONTACTS physiques (31.5,58.5)/(42.5,58.5)/(53.5,58.5) ; asset raster, markerless', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('NPN_TRANSISTOR', 50, 60) })
@@ -202,7 +206,7 @@ describe('MB-VIS-COMP-034 — pipeline réel : 3 pins projetés sur les pattes',
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining([[32, 60], [42, 60], [51, 60]]))
+    expect(positions).toEqual(expect.arrayContaining([[31.5, 58.5], [42.5, 58.5], [53.5, 58.5]]))
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()

@@ -160,13 +160,18 @@ describe('resolveComponentContactHoles — TEST S3-B (BUTTON / BUTTON_LATCHING)'
 })
 
 // ---------------------------------------------------------------------------
-// TEST S3-C — delta legacy (mono-contact) vs resolveComponentPinHoles
+// TEST S3-C — delta legacy (mono-contact enfichable) vs resolveComponentPinHoles
 // ---------------------------------------------------------------------------
-describe('resolveComponentContactHoles — TEST S3-C (delta legacy mono-contact)', () => {
+describe('resolveComponentContactHoles — TEST S3-C (delta legacy mono-contact enfichable)', () => {
   const bb = { id: 'bbD', position: { x: 24, y: 36 } }
+  // [FT-B-001-S5] Restreint aux types réellement mono-contact ET
+  // `breadboardInsertable` : NPN_TRANSISTOR / POWER / ARDUINO déclarent
+  // désormais des contacts explicites ; POWER / ARDUINO / DC_MOTOR / SERVO
+  // sont `breadboardInsertable: false`. Ces cas sont couverts par le describe
+  // "FT-B-001-S5 — classification d'enfichage" plus bas.
   const monoContactTypes = [
-    'RESISTOR', 'LED', 'RGB_LED', 'NPN_TRANSISTOR', 'SERVO', 'POWER', 'CAPACITOR',
-    'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'DC_MOTOR', 'ARDUINO',
+    'RESISTOR', 'LED', 'RGB_LED', 'CAPACITOR',
+    'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE',
   ]
   const origins = [
     { label: 'pin0-aligné', mk: (def) => ({ x: bb.position.x - def.pins[0].dx, y: bb.position.y - def.pins[0].dy }) },
@@ -195,5 +200,41 @@ describe('resolveComponentContactHoles — TEST S3-C (delta legacy mono-contact)
         expect(next.anyResolved).toBe(legacy.anyResolved)
       })
     }
+  }
+})
+
+// ---------------------------------------------------------------------------
+// FT-B-001-S5 — classification d'enfichage breadboard
+// ---------------------------------------------------------------------------
+describe('resolveComponentContactHoles — FT-B-001-S5 : classification d\'enfichage', () => {
+  const bb = { id: 'bbS5', position: { x: 0, y: 0 } }
+
+  it('NPN_TRANSISTOR : 3 contacts physiques (B/C/E) résolus simultanément sur 3 trous consécutifs distincts', () => {
+    const def = getComponentDef('NPN_TRANSISTOR')
+    // origine choisie (probe S5) : B/C/E -> strip top, colonnes consécutives.
+    const out = resolveComponentContactHoles(bb, def.pins, { x: 5, y: 0 })
+    expect(out.results).toHaveLength(3)
+    expect(out.results.every((r) => r.resolved)).toBe(true)
+    expect(out.allResolved).toBe(true)
+    // 3 identités de contact distinctes, 3 pinIds canoniques distincts
+    expect(new Set(out.results.map((r) => r.contactId))).toEqual(new Set(['B', 'C', 'E']))
+    expect(new Set(out.results.map((r) => r.pinId))).toEqual(new Set(['collector', 'base', 'emitter']))
+    // 3 colonnes distinctes consécutives -> aucune union électrique automatique
+    const cols = out.results.map((r) => r.hole.column).sort((a, z) => a - z)
+    expect(new Set(cols).size).toBe(3)
+    expect(cols[1] - cols[0]).toBe(1)
+    expect(cols[2] - cols[1]).toBe(1)
+  })
+
+  for (const type of ['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO']) {
+    it(`${type} : AUCUN contact enfichable -> resolveComponentContactHoles renvoie 0 résultat quelle que soit la position`, () => {
+      const def = getComponentDef(type)
+      for (const origin of [{ x: 0, y: 0 }, { x: 24, y: 36 }, { x: 5000, y: 5000 }]) {
+        const out = resolveComponentContactHoles(bb, def.pins, origin)
+        expect(out.results).toHaveLength(0)
+        expect(out.allResolved).toBe(false)
+        expect(out.anyResolved).toBe(false)
+      }
+    })
   }
 })

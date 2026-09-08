@@ -119,14 +119,57 @@ describe('contactModel — FT-B-001-S4 : héritage des drapeaux pin-level', () =
 })
 
 describe('contactModel — intégration composants réels (aucune logique par type)', () => {
-  it('les 14 types mono-contact -> 1 contact implicite par pin, en pin.dx/pin.dy', () => {
-    const monoTypes = ['LED', 'RESISTOR', 'ARDUINO', 'POWER', 'CAPACITOR', 'BUZZER',
-      'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR', 'SERVO', 'DC_MOTOR']
+  it('les 9 types mono-contact enfichables -> 1 contact implicite par pin, en pin.dx/pin.dy, flags true/true', () => {
+    // [FT-B-001-S5] NPN_TRANSISTOR / POWER / ARDUINO déclarent des contacts
+    // explicites ; DC_MOTOR / SERVO ont un contact implicite mais
+    // `breadboardInsertable: false` (drapeau pin-level). Ces 5 cas sont
+    // couverts par le describe "FT-B-001-S5" ci-dessous.
+    const monoTypes = ['LED', 'RESISTOR', 'CAPACITOR', 'BUZZER',
+      'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED']
     for (const type of monoTypes) {
       for (const pin of getComponentDef(type).pins) {
         const contacts = resolveContacts(pin)
         expect(contacts).toHaveLength(1)
         expect(contacts[0]).toEqual({ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: true })
+      }
+    }
+  })
+
+  it('FT-B-001-S5 — NPN_TRANSISTOR : 1 contact explicite par pin (B/C/E aux pattes), pinId inchangé, enfichable', () => {
+    const def = getComponentDef('NPN_TRANSISTOR')
+    expect(def.pins.map((p) => p.id)).toEqual(['collector', 'base', 'emitter'])
+    const byPin = Object.fromEntries(def.pins.map((p) => [p.id, resolveContacts(p)]))
+    expect(byPin.base).toEqual([{ id: 'B', dx: 31.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }])
+    expect(byPin.collector).toEqual([{ id: 'C', dx: 42.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }])
+    expect(byPin.emitter).toEqual([{ id: 'E', dx: 53.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }])
+    // canonique (électrique) inchangé
+    expect(def.pins.map((p) => [p.dx, p.dy])).toEqual([[45, 0], [0, 45], [90, 45]])
+  })
+
+  it('FT-B-001-S5 — POWER / ARDUINO : contacts explicites raster, wireConnectable:true, breadboardInsertable:false ; pin.dx/dy canonique inchangée', () => {
+    const power = getComponentDef('POWER')
+    for (const pin of power.pins) {
+      const [c] = resolveContacts(pin)
+      expect(c.wireConnectable).toBe(true)
+      expect(c.breadboardInsertable).toBe(false)
+    }
+    expect(power.pins.map((p) => [p.dx, p.dy])).toEqual([[70, 37], [58, 25]]) // MB-BREADBOARD-005, inchangé
+    expect(resolveContacts(power.pins.find((p) => p.id === '5V'))[0]).toMatchObject({ dx: 35, dy: 67 })
+
+    const arduino = getComponentDef('ARDUINO')
+    for (const pin of arduino.pins) {
+      const [c] = resolveContacts(pin)
+      expect(c.wireConnectable).toBe(true)
+      expect(c.breadboardInsertable).toBe(false)
+    }
+  })
+
+  it('FT-B-001-S5 — DC_MOTOR / SERVO : contact implicite en pin.dx/dy, wireConnectable:true, breadboardInsertable:false (drapeau pin-level hérité)', () => {
+    for (const type of ['DC_MOTOR', 'SERVO']) {
+      for (const pin of getComponentDef(type).pins) {
+        const contacts = resolveContacts(pin)
+        expect(contacts).toHaveLength(1)
+        expect(contacts[0]).toEqual({ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: false })
       }
     }
   })

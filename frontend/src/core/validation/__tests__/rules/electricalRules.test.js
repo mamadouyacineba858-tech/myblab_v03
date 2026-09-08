@@ -5,6 +5,7 @@ import { VoltageDefinedRule } from '../../rules/electrical/VoltageDefinedRule.js
 import { OutputToOutputRule } from '../../rules/electrical/OutputToOutputRule.js'
 import { PowerSourcePresenceRule } from '../../rules/electrical/PowerSourcePresenceRule.js'
 import { PowerGroundShortCircuitRule } from '../../rules/electrical/PowerGroundShortCircuitRule.js'
+import { makeBreadboardHoleEndpoint } from '../../../../utils/breadboardWireEndpoint.js'
 
 const component = (id, type, parameters = {}) => ({ id, type, position: { x: 0, y: 0 }, parameters })
 const wire = (id, fromId, fromPin, toId, toPin) => ({
@@ -151,24 +152,41 @@ describe('ELE-007 PowerGroundShortCircuitRule', () => {
    * jonction n'est portée par AUCUN wire explicite, uniquement par le bus
    * du rail.
    */
-  it('détecte un court-circuit dont la seule jonction transite par le rail du breadboard (aucun wire explicite)', () => {
-    const V1 = { id: 'V1', type: 'POWER', position: { x: 2, y: 155 } } // 5V -> col6/row16 (rail+)
-    // dx GND=58,dy=25 ; pour atterrir sur col15/row16 : x+58=15*12=180 -> x=122 ; y+25=16*12=192 -> y=167.
-    const V2 = { id: 'V2', type: 'POWER', position: { x: 122, y: 167 } } // GND -> col15/row16 (rail+, MÊME groupKey que V1.5V)
+  it('[FT-B-001-S5] détecte un court-circuit dont la seule jonction transite par le rail du breadboard (POWER câblés au rail PAR FIL)', () => {
+    // POWER n'est plus enfiché : V1.5V --wire--> trou (col6/row16, rail+) et
+    // V2.GND --wire--> trou (col15/row16, MÊME rangée rail+, MÊME groupKey).
+    // La jonction 5V/GND est portée uniquement par le bus du rail, aucun wire
+    // direct entre V1 et V2.
+    const V1 = { id: 'V1', type: 'POWER', position: { x: -500, y: -500 } }
+    const V2 = { id: 'V2', type: 'POWER', position: { x: -500, y: -400 } }
+    const h1 = makeBreadboardHoleEndpoint('bb1', 6, 16)
+    const h2 = makeBreadboardHoleEndpoint('bb1', 15, 16)
     const document = {
       breadboard: { id: 'bb1', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' },
       components: [V1, V2],
-      wires: [], // aucune liaison explicite : uniquement le rail
+      wires: [
+        { id: 'w1', pinA: { componentId: 'V1', pinId: '5V' }, pinB: { componentId: h1.uid, pinId: h1.pinId } },
+        { id: 'w2', pinA: { componentId: 'V2', pinId: 'GND' }, pinB: { componentId: h2.uid, pinId: h2.pinId } },
+      ],
     }
     const problem = PowerGroundShortCircuitRule.validate(document, null)
     expect(problem).not.toBeNull()
     expect(problem.level ?? PowerGroundShortCircuitRule.level).toBe('ERROR')
   })
 
-  it('non-régression : le même document SANS breadboard ne signale aucun court-circuit (les pins ne sont plus reliées par rien)', () => {
-    const V1 = { id: 'V1', type: 'POWER', position: { x: 2, y: 155 } }
-    const V2 = { id: 'V2', type: 'POWER', position: { x: 122, y: 167 } }
-    const document = { breadboard: null, components: [V1, V2], wires: [] }
+  it('non-régression : le même document SANS breadboard ne signale aucun court-circuit (les endpoints trou ne résolvent plus)', () => {
+    const V1 = { id: 'V1', type: 'POWER', position: { x: -500, y: -500 } }
+    const V2 = { id: 'V2', type: 'POWER', position: { x: -500, y: -400 } }
+    const h1 = makeBreadboardHoleEndpoint('bb1', 6, 16)
+    const h2 = makeBreadboardHoleEndpoint('bb1', 15, 16)
+    const document = {
+      breadboard: null,
+      components: [V1, V2],
+      wires: [
+        { id: 'w1', pinA: { componentId: 'V1', pinId: '5V' }, pinB: { componentId: h1.uid, pinId: h1.pinId } },
+        { id: 'w2', pinA: { componentId: 'V2', pinId: 'GND' }, pinB: { componentId: h2.uid, pinId: h2.pinId } },
+      ],
+    }
     expect(PowerGroundShortCircuitRule.validate(document, null)).toBeNull()
   })
 })

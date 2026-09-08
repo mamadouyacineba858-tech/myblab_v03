@@ -8,25 +8,21 @@
  * [MB-VIS-COMP-005] Le cas générique délègue à `geometry.js::getPinPosition()`,
  * la fonction géométrique canonique unique.
  *
- * [FT-B-001-S4 — Physical Contact Presentation Convergence] Le point physique
- * de présentation d'une pin est désormais résolu de façon GÉNÉRIQUE via le
- * modèle PhysicalContact (`utils/contactModel.js`) :
+ * [FT-B-001-S4/S5 — Physical Contact Presentation Convergence] Le point
+ * physique de présentation d'une pin est résolu de façon GÉNÉRIQUE via le
+ * modèle PhysicalContact (`utils/contactModel.js`), SANS aucune branche de
+ * type :
  *   1. un `contact` explicite fourni par l'appelant est prioritaire ;
  *   2. sinon, si la pin déclare des `contacts`, on résout son contact PAR
- *      DÉFAUT (première déclaration) — cela remplace les anciennes constantes
- *      LED_VISUAL_PINS / BUTTON_VISUAL_PINS / BUTTON_LATCHING_VISUAL_PINS,
- *      SUPPRIMÉES : LED == géométrie canonique, BUTTON* == contact par défaut
- *      S2 (patte basse), tous pixel-identiques ;
+ *      DÉFAUT (première déclaration) ;
  *   3. sinon, `getPinPosition()`.
  *
- * EXCEPTIONS TEMPORAIRES `NPN_TRANSISTOR_VISUAL_PINS` / `POWER_VISUAL_PINS` /
- * `ARDUINO_VISUAL_PINS` : conservées jusqu'à FT-B-001-S5. Leur point physique
- * de présentation diverge encore de `pin.dx/dy`, or `pin.dx/dy` porte pour ces
- * types un contrat d'attachement breadboard historique (MB-BREADBOARD-005/007
- * pour POWER, MB-BREADBOARD-008 pour ARDUINO). Les migrer en PhysicalContact
- * maintenant changerait la géométrie consommée par S3 pour l'enfichage — hors
- * périmètre S4. Ces 3 branches restent des décisions de présentation pure :
- * la position électrique retournée par getPinPosition() n'est jamais déplacée.
+ * Les 6 registres `*_VISUAL_PINS` de la dette FT-B sont SUPPRIMÉS :
+ * LED_VISUAL_PINS (== géométrie canonique), BUTTON_VISUAL_PINS /
+ * BUTTON_LATCHING_VISUAL_PINS (== contact par défaut S2, patte basse) en S4 ;
+ * NPN_TRANSISTOR_VISUAL_PINS / POWER_VISUAL_PINS / ARDUINO_VISUAL_PINS en S5
+ * (leurs coordonnées vivent dans les `contacts` déclarés). `pin.dx/dy`
+ * (géométrie électrique canonique) n'est jamais déplacée.
  */
 import { getPinPosition } from "./geometry.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
@@ -51,88 +47,19 @@ import { getDefaultContact } from "./contactModel.js"
 // du wrapper transformé) — voir Delivery Report MB-VIS-CANVAS-052 §Design.
 
 /**
- * [MB-VIS-COMP-034] Projection de présentation du transistor NPN (boîtier
- * raster TO-92). Les 3 pins électriques canoniques — collector en haut
- * (45,0), base à gauche (0,45), emitter à droite (90,45) — sont DESSINÉS
- * sur les 3 véritables pattes verticales du raster, en bas du composant.
- * Décision de présentation uniquement (même statut que LED_VISUAL_PINS) :
- * la position électrique retournée par getPinPosition() n'est jamais
- * déplacée ; seul l'endroit où un connecteur / un fil est dessiné change.
- * Projection V5 validée CSA : B=(32,60) C=(42,60) E=(51,60).
- */
-// TODO FT-B-001-S5 — legacy breadboard attachment contract.
-const NPN_TRANSISTOR_VISUAL_PINS = {
-  base: { x: 32, y: 60 },
-  collector: { x: 42, y: 60 },
-  emitter: { x: 51, y: 60 },
-}
-
-/**
- * [MB-VIS-COMP-036] Projection de présentation de l'alimentation POWER
- * (boîtier raster benchtop DC lab supply). Les 2 pins électriques
- * canoniques — 5V (70,37), GND (58,25) — sont DESSINÉS sur les 2 bornes
- * réelles du raster (rouge/noire), en bas du composant. Décision de
- * présentation uniquement (même statut que LED_VISUAL_PINS /
- * NPN_TRANSISTOR_VISUAL_PINS) : la position électrique retournée par
- * getPinPosition() n'est jamais déplacée ; seul l'endroit où un connecteur /
- * un fil est dessiné change. La borne verte EARTH visible sur l'asset est
- * purement décorative — elle n'a pas d'entrée ici, ce n'est pas un pin
- * logique. Projection V2 validée CSA : GND=(22,67) 5V=(35,67).
- */
-// TODO FT-B-001-S5 — legacy breadboard attachment contract (MB-BREADBOARD-005/007).
-const POWER_VISUAL_PINS = {
-  GND: { x: 22, y: 67 },
-  '5V': { x: 35, y: 67 },
-}
-
-/**
- * [MB-VIS-COMP-037] Projection de présentation d'ARDUINO (carte raster
- * photoréaliste, vue de dessus). Contrairement aux composants précédents
- * (LED/NPN/POWER, dont l'asset colle aux 4 bords du canevas canonique),
- * l'asset ARDUINO est une PHOTO d'une carte complète, légèrement pivotée et
- * cadrée avec marge dans le canevas 120×140 — son silhouette réel ne
- * coïncide PAS avec les 4 coordonnées électriques canoniques D2(0,50),
- * D3(0,75), GND(0,110), 5V(120,50). Coordonnées déterminées par pixel-probe
- * indépendant du silhouette réel de l'asset installé (alpha du PNG,
- * décodeur maison, recoupé 1x et 3x/3 — cohérent à ±1 px) :
- *   - D2  : bord gauche réel de la carte à y=50  -> x≈3
- *   - D3  : bord gauche réel de la carte à y=75  -> x≈15
- *   - GND : la carte NE S'ÉTEND PAS jusqu'à y=110 (dernière ligne opaque
- *           y≈108) -> projeté sur le bord gauche réel à cette dernière
- *           ligne visible, x≈15
- *   - 5V  : bord droit réel de la carte à y=50   -> x≈115
- * Décision de présentation uniquement (même statut que LED_VISUAL_PINS /
- * NPN_TRANSISTOR_VISUAL_PINS / POWER_VISUAL_PINS) : la position électrique
- * retournée par getPinPosition() n'est jamais déplacée ; seul l'endroit où
- * un connecteur / un fil est dessiné change.
- */
-// TODO FT-B-001-S5 — legacy breadboard attachment contract (MB-BREADBOARD-008).
-const ARDUINO_VISUAL_PINS = {
-  D2: { x: 3, y: 50 },
-  D3: { x: 15, y: 75 },
-  GND: { x: 15, y: 108 },
-  '5V': { x: 115, y: 50 },
-}
-
-/**
  * Resolve the presentation coordinate of a component pin.
  *
- * Résolution générique (FT-B-001-S4). Ordre :
+ * Résolution GÉNÉRIQUE, sans aucune branche de type (FT-B-001-S5 : les 6
+ * registres `*_VISUAL_PINS` de la dette FT-B — LED / BUTTON / BUTTON_LATCHING
+ * en S4, NPN_TRANSISTOR / POWER / ARDUINO en S5 — sont SUPPRIMÉS ; leurs
+ * coordonnées vivent désormais dans les `contacts` déclarés de
+ * componentDefinitions.js). Ordre :
  *   1. si `pinDef` déclare des `contacts` ⇒ le modèle PhysicalContact est
- *      AUTORITAIRE pour cette pin : on utilise le `contact` demandé, sinon son
- *      contact PAR DÉFAUT (première déclaration). Remplace LED_VISUAL_PINS
- *      (== canonique) et BUTTON_VISUAL_PINS / BUTTON_LATCHING_VISUAL_PINS
- *      (== contact par défaut S2, patte basse dy 58), SUPPRIMÉS ;
- *   2. exceptions TEMPORAIRES NPN_TRANSISTOR / POWER / ARDUINO ⇒
- *      `*_VISUAL_PINS`. Elles PRÉCÈDENT la résolution générique du contact
- *      (§3 ci-dessous) : un contact implicite synthétisé par l'appelant
- *      (CircuitComponent) ne doit pas court-circuiter la projection visuelle
- *      historique tant que S5 n'a pas tranché leur contrat d'attachement
- *      breadboard (MB-BREADBOARD-005/007 pour POWER, MB-BREADBOARD-008 pour
- *      ARDUINO) ;
- *   3. sinon, si un `contact` (implicite ou explicite) est fourni avec des
- *      dx/dy finis ⇒ `component.x/y + contact.dx/dy` (LED, RESISTOR, …) ;
- *   4. sinon ⇒ `getPinPosition()` (géométrie canonique).
+ *      AUTORITAIRE : `contact` demandé, sinon contact PAR DÉFAUT (première
+ *      déclaration) ;
+ *   2. sinon, si un `contact` (implicite, synthétisé par l'appelant) est
+ *      fourni avec des dx/dy finis ⇒ `component.x/y + contact.dx/dy` ;
+ *   3. sinon ⇒ `getPinPosition()` (géométrie canonique).
  *
  * `contact.dx/dy` n'est jamais un nouvel oracle : il provient de
  * componentDefinitions.js (`PIN_PRESENTATION_BY_TYPE`). La position électrique
@@ -157,24 +84,6 @@ export function getPinPresentationPosition(component, pinDef, { scale = 1, conta
       const y = component.y + chosen.dy
       basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
     }
-  } else if (component.type === "NPN_TRANSISTOR" && NPN_TRANSISTOR_VISUAL_PINS[pinDef.id]) {
-    // TODO FT-B-001-S5 — legacy breadboard attachment contract.
-    const visual = NPN_TRANSISTOR_VISUAL_PINS[pinDef.id]
-    const x = component.x + visual.x
-    const y = component.y + visual.y
-    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
-  } else if (component.type === "POWER" && POWER_VISUAL_PINS[pinDef.id]) {
-    // TODO FT-B-001-S5 — legacy breadboard attachment contract (MB-BREADBOARD-005/007).
-    const visual = POWER_VISUAL_PINS[pinDef.id]
-    const x = component.x + visual.x
-    const y = component.y + visual.y
-    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
-  } else if (component.type === "ARDUINO" && ARDUINO_VISUAL_PINS[pinDef.id]) {
-    // TODO FT-B-001-S5 — legacy breadboard attachment contract (MB-BREADBOARD-008).
-    const visual = ARDUINO_VISUAL_PINS[pinDef.id]
-    const x = component.x + visual.x
-    const y = component.y + visual.y
-    basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
   } else if (contact && Number.isFinite(contact.dx) && Number.isFinite(contact.dy)) {
     const x = component.x + contact.dx
     const y = component.y + contact.dy

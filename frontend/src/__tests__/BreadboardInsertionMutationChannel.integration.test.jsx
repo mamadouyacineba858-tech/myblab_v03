@@ -270,18 +270,12 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
     expect(resistorStillThere.y).toBe(21)
   })
 
-  // MB-BREADBOARD-008 (O8/R6, CSA — "La limitation actuelle à deux pins ne
-  // doit pas être reproduite") : ce test couvrait auparavant "ARDUINO (>2
-  // pins) = incompatible, repli snap-to-grid inconditionnel". La
-  // restriction pins.length === 2 est précisément ce que ce ticket
-  // supprime (breadboardPlacementAdapter.js) — ARDUINO (4 pins) est
-  // désormais "compatible" et engage la logique de placement breadboard
-  // (feedback vert/rouge inclus) au lieu du repli GRID_SIZE immédiat.
-  // Aucune garantie que `valid` devienne true (la géométrie dx/dy d'ARDUINO
-  // n'a pas été retouchée par ce ticket, hors scope, Blueprint §1.7) : seul
-  // l'ENGAGEMENT du mécanisme (breadboardActive, feedback non-null) est
-  // prouvé ici, et l'absence de crash/corruption au relâchement.
-  it('TEST 5 (MB-BREADBOARD-008, remplace l\'ancien "type incompatible") : un composant >2 pins (ARDUINO) engage désormais le placement breadboard au lieu du repli snap-to-grid inconditionnel', () => {
+  // [FT-B-001-S5] ARDUINO n'est PAS directement enfichable (contacts
+  // `breadboardInsertable: false`, relié au breadboard PAR FIL). Un drag du
+  // corps ARDUINO au-dessus de l'empreinte du breadboard n'engage AUCUN
+  // feedback d'insertion : c'est un déplacement libre (snap-to-grid), sans
+  // alignement sur des trous, sans crash.
+  it('TEST 5 ([FT-B-001-S5], ARDUINO non enfichable) : un drag du corps ARDUINO au-dessus du breadboard NE produit AUCUN feedback d\'insertion (déplacement libre)', () => {
     const { result } = renderWithCanvas()
     _result = result
     act(() => {
@@ -290,16 +284,13 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
     })
     const arduino = result.current.components[0]
 
-    // Cible à l'intérieur de l'empreinte du breadboard.
     drag(arduino, { dx: 60 - arduino.x, dy: 22 - arduino.y })
 
-    expect(result.current.breadboardFeedback).not.toBe(null)
-    expect(result.current.breadboardFeedback.draggedIds.has(arduino.uid)).toBe(true)
+    // Aucun feedback vert/rouge d'insertion : ARDUINO n'est pas enfichable.
+    expect(result.current.breadboardFeedback).toBe(null)
 
     pointerUp()
 
-    // Aucun crash, aucune corruption au relâchement — le composant reste
-    // un objet cohérent, quelle que soit la validité finale du placement.
     const after = result.current.components.find((c) => c.uid === arduino.uid)
     expect(after).toBeDefined()
     expect(Number.isFinite(after.x)).toBe(true)

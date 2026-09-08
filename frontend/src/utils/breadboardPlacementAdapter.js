@@ -17,12 +17,27 @@
  * reste exclusivement déterminée par holeAt().
  */
 import { getComponentDef } from "../config/componentDefinitions.js"
+import { resolveBreadboardInsertableContacts } from "./contactModel.js"
 import {
   BREADBOARD_PITCH,
   STANDARD_V1_LAYOUT,
   STANDARD_V1_TOTAL_ROWS,
   resolveComponentContactHoles,
 } from "./breadboardGeometry.js"
+
+/**
+ * FT-B-001-S5 — un composant est COMPATIBLE avec l'insertion breadboard
+ * directe ssi il expose au moins un CONTACT physique `breadboardInsertable`.
+ * Générique (aucun `type ===`) : dérivé de `resolveBreadboardInsertableContacts`
+ * (contactModel.js) sur `def.pins`. POWER / ARDUINO / DC_MOTOR / SERVO
+ * (contacts `breadboardInsertable: false` en S5) ⇒ 0 contact enfichable ⇒
+ * incompatible ⇒ jamais de placement/occupation/collision par le CORPS ;
+ * ils restent reliés au breadboard PAR FIL.
+ */
+function countInsertableContacts(def) {
+  if (!def || !Array.isArray(def.pins)) return 0
+  return def.pins.reduce((n, pin) => n + resolveBreadboardInsertableContacts(pin).length, 0)
+}
 
 function isWithinFootprint(breadboard, position, pins) {
   if (!breadboard || !breadboard.position || !position) return false
@@ -62,8 +77,12 @@ function resolveAllHoles(breadboard, pins, position) {
   // dès le premier contact non résolu, sinon la liste complète
   // {pinId, contactId, column, row} (métadonnée `contactId` strictement
   // additive — pour un type mono-contact, contactId === pinId).
+  // FT-B-001-S5 : `results` vide (aucun contact enfichable) ⇒ null — jamais un
+  // placement fantôme `valid:true` avec `holes:[]`.
+  const { results } = resolveComponentContactHoles(breadboard, pins, position)
+  if (results.length === 0) return null
   const holes = []
-  for (const { pinId, contactId, hole } of resolveComponentContactHoles(breadboard, pins, position).results) {
+  for (const { pinId, contactId, hole } of results) {
     if (!hole) return null
     holes.push({ pinId, contactId, column: hole.column, row: hole.row })
   }
@@ -132,7 +151,13 @@ export function computeBreadboardPlacement(breadboard, componentType, candidateP
       : { x: 0, y: 0 }
 
   const def = getComponentDef(componentType)
-  const compatible = !!def && Array.isArray(def.pins) && def.pins.length > 0
+  // FT-B-001-S5 : `compatible` dérive du nombre de CONTACTS physiques
+  // enfichables (générique, aucun `type ===`), plus seulement de la présence
+  // de pins. Un composant sans contact `breadboardInsertable` (POWER, ARDUINO,
+  // DC_MOTOR, SERVO) est incompatible avec l'insertion directe : retour
+  // immédiat `breadboardActive:false, valid:false, holes:[]` — il reste
+  // déplaçable librement sur le canvas et reliable au breadboard PAR FIL.
+  const compatible = !!def && Array.isArray(def.pins) && countInsertableContacts(def) > 0
 
   const hasBreadboard = !!breadboard && !!breadboard.position
   const withinFootprint = hasBreadboard && isWithinFootprint(breadboard, candidatePosition, def?.pins)
