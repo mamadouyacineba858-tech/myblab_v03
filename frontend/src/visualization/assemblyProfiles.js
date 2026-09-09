@@ -45,14 +45,14 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 54, dy: 29 }, style: "wire" },
     },
   },
-  // THERMISTOR — même stratégie validée sur la LDR : tête raster conservée,
-  // anciennes pattes latérales masquées par le renderer, deux pattes dynamiques
-  // verticales avec l'entraxe LED/LDR de 24 unités.
+  // THERMISTOR — corps NTC réaliste vertical validé CSA. Les deux pattes
+  // dynamiques naissent juste sous la pastille noire puis rejoignent les
+  // PhysicalContacts inchangés, toujours avec l'entraxe de 24 unités.
   THERMISTOR: {
     kind: "through-hole",
     leads: {
-      A: { root: { dx: 30, dy: 29 }, style: "wire" },
-      B: { root: { dx: 54, dy: 29 }, style: "wire" },
+      A: { root: { dx: 30, dy: 31 }, style: "wire" },
+      B: { root: { dx: 54, dy: 31 }, style: "wire" },
     },
   },
   NPN_TRANSISTOR: {
