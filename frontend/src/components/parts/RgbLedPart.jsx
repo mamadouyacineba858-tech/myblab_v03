@@ -1,5 +1,4 @@
 import React from 'react'
-import { getComponentDef } from '../../config/componentDefinitions.js'
 
 const ASSET_DIR = '/assets/components/rgb-led'
 const STATES = ['off', 'red', 'green', 'blue', 'yellow', 'magenta', 'cyan', 'white']
@@ -26,26 +25,32 @@ function stateFor(r, g, b) {
 }
 
 export function RgbLedPart({ r, g, b } = {}) {
-  const def = getComponentDef('RGB_LED')
-  const width = def?.width ?? 90
-  const height = def?.height ?? 56
   const state = stateFor(r, g, b)
   const source = ASSET_SOURCES[state]
 
   return (
-    <div className="part-rgb-led" aria-label="LED RGB" data-state={state} style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div className="part-rgb-led" aria-label="LED RGB" data-state={state} style={{ position: 'relative', width: '100%', height: '100%', overflow: 'visible' }}>
       <picture>
         <source type="image/webp" srcSet={source.webp} />
         <img
           className="part-rgb-led__img"
           src={source.fallback}
           srcSet={source.png}
-          width={width}
-          height={height}
+          width={90}
+          height={56}
           draggable={false}
           alt=""
           aria-hidden="true"
-          style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: 90,
+            height: 56,
+            display: 'block',
+            pointerEvents: 'none',
+            clipPath: 'inset(0 0 26px 0)',
+          }}
         />
       </picture>
     </div>
