@@ -31,6 +31,13 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 54, dy: 29 }, style: "wire" },
     },
   },
+  THERMISTOR: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 30, dy: 31 }, style: "wire" },
+      B: { root: { dx: 54, dy: 31 }, style: "wire" },
+    },
+  },
   NPN_TRANSISTOR: {
     kind: "through-hole",
     leads: {
