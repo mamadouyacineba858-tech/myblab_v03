@@ -2,59 +2,80 @@ import React from 'react'
 import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
- * Rendu visuel Condensateur — backend RASTER (MB-VIS-PROTOTYPE-004).
+ * CAPACITOR — rendu FT-C radial électrolytique vertical.
  *
- * Remplace l'ancien rendu SVG volumétrique (MB-VIS-COMP-011 : `<defs>` + 3
- * gradients namespacés par `uid`, corps céramique ambre, marquage « 104 »)
- * par l'asset raster produit et vérifié pour MB-VIS-PROTOTYPE-004, intégré
- * via le mécanisme déclaratif de MB-VIS-INDUSTRIAL-001
- * (`defaultRegistrations` → `visual: { backend: 'raster' }` →
- * `getComponentPresentation('CAPACITOR')` → wrapper `data-bare-body` + pins
- * `markerless`, sans aucun `type === "CAPACITOR"` ni règle CSS spécifique).
+ * L'ancien asset axial/céramique « 104 » est abandonné : sa silhouette ne
+ * correspond pas à la cible produit validée. Le corps visible est maintenant
+ * un petit cylindre électrolytique vertical centré au-dessus des deux pattes
+ * dynamiques rendues par AssemblyLeadsLayer.
  *
- * Patron identique à `ResistorPart.jsx` / `DiodePart.jsx` / `LedPart.jsx` :
- * `frontend/public/` est servi à la racine web → `/assets/components/capacitor/…`,
- * priorité WebP via `<picture>`, fallback PNG, aucune logique JS de sélection
- * d'asset. Composant STATIQUE (état unique `default`) — pas de variante `{state}`.
- *
- * Contrat inchangé :
- *  - dimensions dérivées de `getComponentDef("CAPACITOR")` (70×40) — aucune
- *    valeur recopiée, `componentDefinitions.js` NON modifié ;
- *  - pins pinA(0,20) / pinB(70,20) : produits par CircuitComponent/Pin,
- *    jamais dessinés dans l'asset ni ici ;
- *  - l'`<img>` ne porte AUCUN gestionnaire, `draggable={false}`,
- *    `pointer-events: none` → drag / sélection / câblage / hit-test / zoom
- *    restent la responsabilité du wrapper `.circuit-component` ;
- *  - `uid` reste accepté (contrat de props inchangé) mais n'est plus consommé
- *    (plus de `<defs>` à namespacer) → rendu déterministe pour toute instance,
- *    aucune collision d'id entre deux condensateurs simultanés.
+ * Invariants :
+ * - identité électrique historique pinA/pinB inchangée ;
+ * - entraxe mécanique = 24 unités, identique LED/LDR/THERMISTOR ;
+ * - PhysicalContacts : x=23 / x=47, y=38 ;
+ * - aucune polarité électrique inventée dans le renderer ;
+ * - aucune logique de simulation ici.
  */
-const ASSET_DIR = '/assets/components/capacitor'
-const WEBP_SRCSET = `${ASSET_DIR}/capacitor.default.1x.webp 1x, ${ASSET_DIR}/capacitor.default.3x.webp 3x`
-const PNG_SRCSET = `${ASSET_DIR}/capacitor.default.1x.png 1x, ${ASSET_DIR}/capacitor.default.3x.png 3x`
-const PNG_FALLBACK = `${ASSET_DIR}/capacitor.default.3x.png`
-
-export function CapacitorPart({ uid } = {}) {
-  const def = getComponentDef("CAPACITOR")
+export function CapacitorPart() {
+  const def = getComponentDef('CAPACITOR')
   const width = def?.width ?? 70
   const height = def?.height ?? 40
 
   return (
-    <div className="part-capacitor" aria-label="Condensateur">
-      <picture className="part-capacitor__picture">
-        <source type="image/webp" srcSet={WEBP_SRCSET} />
-        <img
-          className="part-capacitor__img"
-          src={PNG_FALLBACK}
-          srcSet={PNG_SRCSET}
-          width={width}
-          height={height}
-          draggable={false}
-          alt=""
-          aria-hidden="true"
-          style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
+    <div
+      className="part-capacitor"
+      aria-label="Condensateur électrolytique radial"
+      style={{
+        position: 'relative',
+        width,
+        height,
+        pointerEvents: 'none',
+      }}
+    >
+      <div
+        className="part-capacitor__body"
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          left: 20,
+          top: 1,
+          width: 30,
+          height: 27,
+          boxSizing: 'border-box',
+          borderRadius: '44% 44% 24% 24% / 18% 18% 12% 12%',
+          background: 'linear-gradient(90deg, #08192f 0%, #153b67 20%, #245982 42%, #12395e 68%, #07172b 100%)',
+          border: '1px solid rgba(210,230,245,0.22)',
+          boxShadow: 'inset 3px 0 5px rgba(255,255,255,0.10), inset -4px 0 6px rgba(0,0,0,0.42), 0 1px 2px rgba(0,0,0,0.35)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#e7edf3',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontSize: 6.5,
+          lineHeight: 1.05,
+          fontWeight: 600,
+          letterSpacing: 0.05,
+          textAlign: 'center',
+          userSelect: 'none',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            left: 2,
+            right: 2,
+            top: 1,
+            height: 4,
+            borderRadius: '50%',
+            background: 'linear-gradient(180deg, #b8c0c8 0%, #6f7881 48%, #c7ced5 100%)',
+            opacity: 0.92,
+          }}
         />
-      </picture>
+        <span style={{ marginTop: 4 }}>100µF</span>
+        <span>25V</span>
+      </div>
     </div>
   )
 }
