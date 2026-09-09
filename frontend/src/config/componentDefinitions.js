@@ -129,9 +129,13 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "A", label: "A", dx: 0, dy: 18, contacts: [{ id: "A", dx: 30, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
     { id: "B", label: "B", dx: 84, dy: 18, contacts: [{ id: "B", dx: 54, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // FT-C — THERMISTOR traversante verticale : même entraxe mécanique validé
+  // que LED/LDR (24 unités), centré sur le composant. Les pins logiques A/B
+  // restent inchangés ; seuls les PhysicalContacts de présentation/insertion
+  // sont déplacés sous le corps réel.
   THERMISTOR: [
-    { id: "A", label: "A", dx: 0, dy: 18 },
-    { id: "B", label: "B", dx: 84, dy: 18 },
+    { id: "A", label: "A", dx: 0, dy: 18, contacts: [{ id: "A", dx: 30, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "B", label: "B", dx: 84, dy: 18, contacts: [{ id: "B", dx: 54, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
   ],
   DIODE: [
     { id: "anode", label: "A", dx: 0, dy: 15 },
@@ -196,16 +200,8 @@ function buildPins(type) {
       label: presentationPin.label,
       dx: presentationPin.dx,
       dy: presentationPin.dy,
-      // [FT-B-001-S5] Drapeaux pin-level `wireConnectable` / `breadboardInsertable`
-      // propagés GÉNÉRIQUEMENT s'ils sont déclarés (booléen strict) — consommés
-      // par utils/contactModel.js (héritage contact > pin > true, S4). Absents ⇒
-      // le contact hérite de `true` (comportement inchangé pour les types qui
-      // n'en déclarent pas). Aucun branchement par type.
       ...(typeof presentationPin.wireConnectable === "boolean" ? { wireConnectable: presentationPin.wireConnectable } : {}),
       ...(typeof presentationPin.breadboardInsertable === "boolean" ? { breadboardInsertable: presentationPin.breadboardInsertable } : {}),
-      // [FT-B-001-S2] `contacts` optionnel (contacts physiques de présentation) —
-      // recopié tel quel s'il est déclaré ; absent ⇒ contact implicite unique
-      // synthétisé à la lecture par utils/contactModel.js.
       ...(Array.isArray(presentationPin.contacts) ? { contacts: presentationPin.contacts.map((c) => ({ ...c })) } : {}),
     }
   })
@@ -222,7 +218,7 @@ export const COMPONENT_TYPES = {
   BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 70, height: 50, pins: buildPins("BUZZER") },
   POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 90, height: 50, pins: buildPins("POTENTIOMETER") },
   LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 64, pins: buildPins("LDR") },
-  THERMISTOR: { id: "THERMISTOR", label: "Thermistance", icon: "🌡", width: 84, height: 36, pins: buildPins("THERMISTOR") },
+  THERMISTOR: { id: "THERMISTOR", label: "Thermistance", icon: "🌡", width: 84, height: 64, pins: buildPins("THERMISTOR") },
   DIODE: { id: "DIODE", label: "Diode", icon: "↦|", width: 84, height: 30, pins: buildPins("DIODE") },
   RGB_LED: { id: "RGB_LED", label: "LED RGB", icon: "🌈", width: 90, height: 56, pins: buildPins("RGB_LED") },
   NPN_TRANSISTOR: { id: "NPN_TRANSISTOR", label: "Transistor NPN", icon: "NPN", width: 90, height: 60, pins: buildPins("NPN_TRANSISTOR") },
