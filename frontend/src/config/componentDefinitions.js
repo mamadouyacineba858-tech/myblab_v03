@@ -52,10 +52,11 @@ const PIN_PRESENTATION_BY_TYPE = {
   // exact, donc enfichable proprement. Les pattes cuites dans le raster
   // sont masquées par `bodyClip` (assemblyProfiles.js) ; la géométrie
   // finale des pattes est rendue par AssemblyLeadsLayer entre `root`
-  // (assemblyProfiles.js) et ces contacts.
+  // (assemblyProfiles.js) et ces contacts. La longueur fonctionnelle est
+  // harmonisée avec LED/LDR/THERMISTOR : root y=48 → contact y=80 (~32 px).
   POLARIZED_CAPACITOR: [
-    { id: "plus", label: "+", dx: 28, dy: 112, contacts: [{ id: "plus", dx: 28, dy: 112, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "minus", label: "−", dx: 4, dy: 112, contacts: [{ id: "minus", dx: 4, dy: 112, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "plus", label: "+", dx: 28, dy: 80, contacts: [{ id: "plus", dx: 28, dy: 80, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "minus", label: "−", dx: 4, dy: 80, contacts: [{ id: "minus", dx: 4, dy: 80, wireConnectable: true, breadboardInsertable: true }] },
   ],
   BUZZER: [
     { id: "plus", label: "+", dx: 10, dy: 50 },
