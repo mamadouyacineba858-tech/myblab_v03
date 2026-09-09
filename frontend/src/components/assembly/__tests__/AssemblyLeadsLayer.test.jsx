@@ -155,7 +155,7 @@ describe("AssemblyLeadsLayer — intégration CircuitComponent : bout de patte =
 
     const body = container.querySelector(".circuit-component__body")
     expect(body.style.clipPath).toMatch(/^inset\(/)
-    expect(body.style.clipPath).toContain("26px")
+    expect(body.style.clipPath).toContain("28px")
 
     const pins = pinTips(container)
     const leads = leadTips(container)
