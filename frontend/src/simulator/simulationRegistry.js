@@ -7,6 +7,7 @@ import { ThermistorModel } from './models/ThermistorModel.js'
 import { DiodeModel } from './models/DiodeModel.js'
 import { DcMotorModel } from './models/DcMotorModel.js'
 import { CapacitorModel } from './models/CapacitorModel.js'
+import { PolarizedCapacitorModel } from './models/PolarizedCapacitorModel.js'
 import { PotentiometerModel } from './models/PotentiometerModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
 import {
@@ -98,6 +99,7 @@ const defaultRegistry = createSimulationRegistry({
     DiodeModel,
     DcMotorModel,
     CapacitorModel,
+    PolarizedCapacitorModel,
     PotentiometerModel,
     NpnTransistorModel,
   ],

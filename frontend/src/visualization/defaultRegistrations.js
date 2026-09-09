@@ -27,6 +27,7 @@ import { ButtonPart } from '../components/parts/ButtonPart.jsx';
 import { LatchingButtonPart } from '../components/parts/LatchingButtonPart.jsx';
 import { PowerPart } from '../components/parts/PowerPart.jsx';
 import { CapacitorPart } from '../components/parts/CapacitorPart.jsx';
+import { PolarizedCapacitorPart } from '../components/parts/PolarizedCapacitorPart.jsx';
 import { BuzzerPart } from '../components/parts/BuzzerPart.jsx';
 import { PotentiometerPart } from '../components/parts/PotentiometerPart.jsx';
 import { LdrPart } from '../components/parts/LdrPart.jsx';
@@ -159,6 +160,13 @@ export const DEFAULT_REGISTRATIONS = [
   // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
   // LED / CAPACITOR / LDR / THERMISTOR.
   { type: 'DC_MOTOR', component: DcMotorPart, visual: { backend: 'raster' } },
+  // POLARIZED_CAPACITOR : FT-C-COMP-002 — condensateur électrolytique polarisé,
+  // NOUVEAU composant distinct de CAPACITOR (céramique 104, non polarisé, qui
+  // reste inchangé). Backend raster (asset bleu validé, état unique `default`,
+  // paquet `polarized-capacitor/`). raster => bareBody + markerless dérivés,
+  // même mécanisme déclaratif que RESISTOR / CAPACITOR / LED — aucun code
+  // central spécifique, aucune condition `type === "POLARIZED_CAPACITOR"`.
+  { type: 'POLARIZED_CAPACITOR', component: PolarizedCapacitorPart, visual: { backend: 'raster' } },
 ];
 
 /**

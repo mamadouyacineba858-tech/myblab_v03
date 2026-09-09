@@ -44,6 +44,19 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "pinA", label: "A", dx: 0, dy: 20, contacts: [{ id: "pinA", dx: 23, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
     { id: "pinB", label: "B", dx: 70, dy: 20, contacts: [{ id: "pinB", dx: 47, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // FT-C-COMP-002 — condensateur électrolytique radial polarisé. Boîte
+  // canonique 33×120 = pixels natifs @1x de l'asset raster (portrait, corps
+  // bleu + bande négative à GAUCHE + deux pattes). PhysicalContacts =
+  // extrémités FONCTIONNELLES des pattes : `minus` (côté bande négative,
+  // gauche) et `plus` (droite), entraxe 24 = 2 × BREADBOARD_PITCH (12) —
+  // exact, donc enfichable proprement. Les pattes cuites dans le raster
+  // sont masquées par `bodyClip` (assemblyProfiles.js) ; la géométrie
+  // finale des pattes est rendue par AssemblyLeadsLayer entre `root`
+  // (assemblyProfiles.js) et ces contacts.
+  POLARIZED_CAPACITOR: [
+    { id: "plus", label: "+", dx: 28, dy: 112, contacts: [{ id: "plus", dx: 28, dy: 112, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "minus", label: "−", dx: 4, dy: 112, contacts: [{ id: "minus", dx: 4, dy: 112, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   BUZZER: [
     { id: "plus", label: "+", dx: 10, dy: 50 },
     { id: "minus", label: "-", dx: 60, dy: 50 },
@@ -132,9 +145,10 @@ export const COMPONENT_TYPES = {
   NPN_TRANSISTOR: { id: "NPN_TRANSISTOR", label: "Transistor NPN", icon: "NPN", width: 90, height: 60, pins: buildPins("NPN_TRANSISTOR") },
   SERVO: { id: "SERVO", label: "Micro Servo", icon: "⚙️", width: 90, height: 70, pins: buildPins("SERVO") },
   DC_MOTOR: { id: "DC_MOTOR", label: "Moteur DC", icon: "🌀", width: 84, height: 50, pins: buildPins("DC_MOTOR") },
+  POLARIZED_CAPACITOR: { id: "POLARIZED_CAPACITOR", label: "Condensateur polarisé", icon: "⊕║", width: 33, height: 120, pins: buildPins("POLARIZED_CAPACITOR") },
 }
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

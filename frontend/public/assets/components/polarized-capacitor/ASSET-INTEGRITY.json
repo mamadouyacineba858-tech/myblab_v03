@@ -1,0 +1,27 @@
+{
+  "component": "POLARIZED_CAPACITOR",
+  "version": "1.0.0",
+  "algorithm": "SHA-256",
+  "files": [
+    {
+      "file": "polarized-capacitor.default.1x.png",
+      "bytes": 6974,
+      "sha256": "63702df1fffe712627167b81c506b52353ab0dc01a020745699b9bb2c6ae6833"
+    },
+    {
+      "file": "polarized-capacitor.default.1x.webp",
+      "bytes": 5992,
+      "sha256": "a14418c0485dfc460e14754573ec0dc538b6373db0c8ac18ee7f1c3fde1b993d"
+    },
+    {
+      "file": "polarized-capacitor.default.3x.png",
+      "bytes": 42496,
+      "sha256": "6c8b0498d774f061ec6653b510b66eb73d0ab38454e5d3069648129b1a2c6910"
+    },
+    {
+      "file": "polarized-capacitor.default.3x.webp",
+      "bytes": 32594,
+      "sha256": "45ced712962422628679c9966cc1e648bd6fbc5ffa5c103b3c723f332cff7447"
+    }
+  ]
+}

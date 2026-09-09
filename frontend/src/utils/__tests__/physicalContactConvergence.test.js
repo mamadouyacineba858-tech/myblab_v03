@@ -265,11 +265,11 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032',
     'LED', 'RESISTOR', 'ARDUINO', 'BUTTON', 'BUTTON_LATCHING', 'POWER', 'CAPACITOR',
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR',
-    'SERVO', 'DC_MOTOR',
+    'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR',
   ]
 
-  it('le catalogue compte exactement 19 types', () => {
-    expect(new Set(CATALOGUE).size).toBe(19)
+  it('le catalogue compte exactement 20 types', () => {
+    expect(new Set(CATALOGUE).size).toBe(20)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -323,9 +323,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
   })
 
   // FT-B-001-S5 — classification d'enfichage breadboard verrouillée (§15).
-  it('classification breadboardInsertable finale S5 : 12 enfichables / 7 non-directs', () => {
+  it('classification breadboardInsertable finale S5 : 13 enfichables / 7 non-directs', () => {
     const INSERTABLE = ['RESISTOR', 'LED', 'DIODE', 'CAPACITOR', 'LDR', 'THERMISTOR',
-      'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER']
+      'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER',
+      'POLARIZED_CAPACITOR']
     const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032']
     expect([...INSERTABLE, ...NON_DIRECT].sort()).toEqual([...CATALOGUE].sort())
 

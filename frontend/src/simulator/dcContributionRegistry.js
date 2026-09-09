@@ -87,12 +87,29 @@ function diodeDc({ pins, params, supplyVoltage }) {
   return { voltage: supplyVoltage, current: effectiveVoltage / params.onResistance }
 }
 
-function capacitorDc({ pins, supplyVoltage }) {
-  // MB-SIM-008 v2 : régime DC établi uniquement. I = 0 quelle que soit la
-  // polarité dès lors que le composant est alimenté (circuit ouvert) — un
-  // résultat physiquement correct, pas une simplification arbitraire.
-  if (!isSimplePoweredLoop(pins.pinA, pins.pinB)) return null
+/**
+ * Contribution DC générique pour un composant « circuit ouvert en régime DC
+ * établi » à deux bornes : I = 0 quelle que soit la polarité dès lors que le
+ * composant est alimenté — un résultat physiquement correct, pas une
+ * simplification arbitraire. Réutilisée par CAPACITOR (bornes pinA/pinB) et
+ * POLARIZED_CAPACITOR (bornes plus/minus) : même physique, seuls les noms de
+ * broches diffèrent selon le type appelant (même patron que
+ * `resistiveTwoTerminalDc`).
+ */
+function openCircuitTwoTerminalDc(termA, termB, supplyVoltage) {
+  if (!isSimplePoweredLoop(termA, termB)) return null
   return { voltage: supplyVoltage, current: 0 }
+}
+
+function capacitorDc({ pins, supplyVoltage }) {
+  return openCircuitTwoTerminalDc(pins.pinA, pins.pinB, supplyVoltage)
+}
+
+function polarizedCapacitorDc({ pins, supplyVoltage }) {
+  // FT-C-COMP-002 : régime DC établi uniquement, comportement identique à
+  // CAPACITOR. La polarité est conservée structurellement (bornes plus/minus)
+  // mais n'a aucune conséquence DC : circuit ouvert dans les deux sens.
+  return openCircuitTwoTerminalDc(pins.plus, pins.minus, supplyVoltage)
 }
 
 function potentiometerDc({ pins, params, supplyVoltage }) {
@@ -141,6 +158,7 @@ const DC_CONTRIBUTIONS = new Map([
   ["DC_MOTOR", dcMotorDc],
   ["DIODE", diodeDc],
   ["CAPACITOR", capacitorDc],
+  ["POLARIZED_CAPACITOR", polarizedCapacitorDc],
   ["POTENTIOMETER", potentiometerDc],
   ["NPN_TRANSISTOR", npnTransistorDc],
 ])

@@ -23,6 +23,7 @@ import { render } from "@testing-library/react"
 import { ResistorPart } from "../ResistorPart.jsx"
 import { LedPart } from "../LedPart.jsx"
 import { CapacitorPart } from "../CapacitorPart.jsx"
+import { PolarizedCapacitorPart } from "../PolarizedCapacitorPart.jsx"
 import { DiodePart } from "../DiodePart.jsx"
 import { ArduinoPart } from "../ArduinoPart.jsx"
 import { ButtonPart } from "../ButtonPart.jsx"
@@ -39,7 +40,8 @@ import { DcMotorPart } from "../DcMotorPart.jsx"
 import { COMPONENT_TYPES, getComponentDef } from "../../../config/componentDefinitions.js"
 import { getComponentPresentation } from "../../../visualization/defaultRegistrations.js"
 
-// Catalogue complet (16). MB-VIS-INDUSTRIAL-001 : la répartition
+// Catalogue complet (17, dont POLARIZED_CAPACITOR — FT-C-COMP-002).
+// MB-VIS-INDUSTRIAL-001 : la répartition
 // SVG / RASTER est DÉRIVÉE du registre (`getComponentPresentation().backend`),
 // plus jamais une liste de types codée en dur. Les renderers SVG sont
 // vérifiés sur leur <svg> racine dimensionné ; les renderers raster (RESISTOR,
@@ -50,6 +52,7 @@ const CATALOG = [
   { type: "RESISTOR", Component: ResistorPart },
   { type: "LED", Component: LedPart },
   { type: "CAPACITOR", Component: CapacitorPart },
+  { type: "POLARIZED_CAPACITOR", Component: PolarizedCapacitorPart },
   { type: "DIODE", Component: DiodePart },
   { type: "ARDUINO", Component: ArduinoPart },
   { type: "BUTTON", Component: ButtonPart },

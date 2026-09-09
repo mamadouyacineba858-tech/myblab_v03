@@ -1,0 +1,85 @@
+{
+  "component": "POLARIZED_CAPACITOR",
+  "backend": "raster",
+  "state": "default",
+  "complexity": "complex",
+  "version": "1.0.0",
+  "assetFamily": "polarized-capacitor",
+  "technology": "radial electrolytic",
+  "nominalCapacitance": "100uF",
+  "ratedVoltage": "25V",
+  "polarity": true,
+  "negativeStripeSide": "left",
+  "canonical": {
+    "width": 33,
+    "height": 120,
+    "origin": "top-left",
+    "pins": {
+      "plus": [
+        28,
+        112
+      ],
+      "minus": [
+        4,
+        112
+      ]
+    }
+  },
+  "states": [
+    "default"
+  ],
+  "formats": [
+    "png",
+    "webp"
+  ],
+  "resolutions": [
+    "1x",
+    "3x"
+  ],
+  "assets": [
+    {
+      "file": "polarized-capacitor.default.1x.png",
+      "state": "default",
+      "scale": 1,
+      "format": "png",
+      "width": 33,
+      "height": 120,
+      "bytes": 6974,
+      "sha256": "63702df1fffe712627167b81c506b52353ab0dc01a020745699b9bb2c6ae6833",
+      "alpha": true
+    },
+    {
+      "file": "polarized-capacitor.default.1x.webp",
+      "state": "default",
+      "scale": 1,
+      "format": "webp",
+      "width": 33,
+      "height": 120,
+      "bytes": 5992,
+      "sha256": "a14418c0485dfc460e14754573ec0dc538b6373db0c8ac18ee7f1c3fde1b993d",
+      "alpha": true
+    },
+    {
+      "file": "polarized-capacitor.default.3x.png",
+      "state": "default",
+      "scale": 3,
+      "format": "png",
+      "width": 99,
+      "height": 360,
+      "bytes": 42496,
+      "sha256": "6c8b0498d774f061ec6653b510b66eb73d0ab38454e5d3069648129b1a2c6910",
+      "alpha": true
+    },
+    {
+      "file": "polarized-capacitor.default.3x.webp",
+      "state": "default",
+      "scale": 3,
+      "format": "webp",
+      "width": 99,
+      "height": 360,
+      "bytes": 32594,
+      "sha256": "45ced712962422628679c9966cc1e648bd6fbc5ffa5c103b3c723f332cff7447",
+      "alpha": true
+    }
+  ]
+}

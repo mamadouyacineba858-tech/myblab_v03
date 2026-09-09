@@ -13,8 +13,8 @@ import { Signal } from "../signals.js"
 const SUPPLY = 5
 
 describe("dcContributionRegistry — registre générique", () => {
-  it("expose une fonction de contribution pour les 8 types DC attendus", () => {
-    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "DIODE", "CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR"]
+  it("expose une fonction de contribution pour les 9 types DC attendus", () => {
+    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR"]
     expect([...getAllDcContributionTypes()].sort()).toEqual([...expected].sort())
     for (const type of expected) {
       expect(hasDcContribution(type)).toBe(true)
@@ -84,6 +84,27 @@ describe("dcContributionRegistry — CAPACITOR", () => {
   it("le paramètre capacitance n'influence jamais le courant DC", () => {
     const a = contribute({ pins: { pinA: Signal.HIGH, pinB: Signal.LOW }, params: { capacitance: 1e-12 }, supplyVoltage: SUPPLY })
     const b = contribute({ pins: { pinA: Signal.HIGH, pinB: Signal.LOW }, params: { capacitance: 1 }, supplyVoltage: SUPPLY })
+    expect(a.current).toBe(0)
+    expect(b.current).toBe(0)
+  })
+})
+
+describe("dcContributionRegistry — POLARIZED_CAPACITOR (FT-C-COMP-002)", () => {
+  const contribute = getDcContribution("POLARIZED_CAPACITOR")
+  const params = { capacitance: 0.0001 }
+
+  it("I = 0 en régime DC établi, quelle que soit la polarité, si alimenté (circuit ouvert, identique à CAPACITOR)", () => {
+    expect(contribute({ pins: { plus: Signal.HIGH, minus: Signal.LOW }, params, supplyVoltage: SUPPLY })).toEqual({ voltage: SUPPLY, current: 0 })
+    expect(contribute({ pins: { plus: Signal.LOW, minus: Signal.HIGH }, params, supplyVoltage: SUPPLY })).toEqual({ voltage: SUPPLY, current: 0 })
+  })
+
+  it("ne contribue rien si non alimenté (pas de circuit ouvert observable)", () => {
+    expect(contribute({ pins: { plus: Signal.UNKNOWN, minus: Signal.UNKNOWN }, params, supplyVoltage: SUPPLY })).toBeNull()
+  })
+
+  it("le paramètre capacitance n'influence jamais le courant DC", () => {
+    const a = contribute({ pins: { plus: Signal.HIGH, minus: Signal.LOW }, params: { capacitance: 1e-12 }, supplyVoltage: SUPPLY })
+    const b = contribute({ pins: { plus: Signal.HIGH, minus: Signal.LOW }, params: { capacitance: 1 }, supplyVoltage: SUPPLY })
     expect(a.current).toBe(0)
     expect(b.current).toBe(0)
   })

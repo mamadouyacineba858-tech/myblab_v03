@@ -11,11 +11,12 @@ import * as CanonicalRegistry from '../canonicalRegistry.js';
 import { COMPONENT_TYPES } from '../../config/componentDefinitions.js';
 
 describe('canonicalRegistry — contract shape', () => {
-  it('exposes all 19 declared types', () => {
-    expect(getAllCanonicalTypes()).toHaveLength(19);
+  it('exposes all 20 declared types', () => {
+    expect(getAllCanonicalTypes()).toHaveLength(20);
     expect(getAllCanonicalTypes()).toContain('LED');
     expect(getAllCanonicalTypes()).toContain('POWER');
     expect(getAllCanonicalTypes()).toContain('RESISTOR');
+    expect(getAllCanonicalTypes()).toContain('POLARIZED_CAPACITOR');
   });
 
   it('POWER entry exposes the complete declarative contract', () => {
@@ -120,6 +121,27 @@ describe('canonicalRegistry — contract shape', () => {
     expect(entry.modelAvailable).toBe(true);
   });
 
+  it('FT-C-COMP-002 : POLARIZED_CAPACITOR entry exposes the complete declarative contract (pins plus/minus, capacitance 0.0001 F, modèle DC disponible)', () => {
+    const entry = getCanonicalEntry('POLARIZED_CAPACITOR');
+    expect(entry.type).toBe('POLARIZED_CAPACITOR');
+    expect(entry.pins).toEqual(COMPONENT_TYPES.POLARIZED_CAPACITOR.pins.map(({ id, role }) => ({ id, role })));
+    expect(entry.pins.map((p) => p.id)).toEqual(['plus', 'minus']);
+    expect(entry.parameterSchema).toEqual([
+      { key: 'capacitance', parameterType: 'capacitance', unit: 'F', minimum: 1e-12, maximum: 1, defaultValue: 0.0001, description: expect.stringMatching(/DC établi/i) },
+    ]);
+    expect(entry.parameterSchema[0].description).toMatch(/circuit ouvert/i);
+    expect(entry.defaultParameters).toEqual({ capacitance: 0.0001 });
+    expect(entry.capabilities).toEqual(['digital', 'dc']);
+    expect(entry.modelAvailable).toBe(true);
+  });
+
+  it('FT-C-COMP-002 : CAPACITOR (céramique 104, non polarisé) reste inchangé — pinA/pinB, aucune polarité', () => {
+    const entry = getCanonicalEntry('CAPACITOR');
+    expect(entry.pins.map((p) => p.id)).toEqual(['pinA', 'pinB']);
+    expect(entry.pins.some((p) => p.id === 'plus' || p.id === 'minus')).toBe(false);
+    expect(entry.defaultParameters).toEqual({ capacitance: 0.0001 });
+  });
+
   it('MB-SIM-008 v2 : POTENTIOMETER entry exposes the complete declarative contract', () => {
     const entry = getCanonicalEntry('POTENTIOMETER');
     expect(entry.pins).toEqual(COMPONENT_TYPES.POTENTIOMETER.pins.map(({ id, role }) => ({ id, role })));
@@ -169,7 +191,7 @@ describe('canonicalRegistry — contract shape', () => {
     expect(hasCanonicalType('NOT_A_REAL_TYPE')).toBe(false);
   });
 
-  it('every declared pin (19 types) matches componentDefinitions.js exactly', () => {
+  it('every declared pin (20 types) matches componentDefinitions.js exactly', () => {
     for (const type of Object.keys(COMPONENT_TYPES)) {
       const entry = getCanonicalEntry(type);
       expect(entry, `entry missing for ${type}`).not.toBeNull();
@@ -177,8 +199,8 @@ describe('canonicalRegistry — contract shape', () => {
     }
   });
 
-  it('getAllCanonicalEntries returns all 19 entries', () => {
-    expect(getAllCanonicalEntries()).toHaveLength(19);
+  it('getAllCanonicalEntries returns all 20 entries', () => {
+    expect(getAllCanonicalEntries()).toHaveLength(20);
   });
 });
 

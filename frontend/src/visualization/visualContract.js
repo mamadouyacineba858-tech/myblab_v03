@@ -102,6 +102,9 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'RESISTOR',       box: [84, 28],   physicalMm: [6.3, 2.5],  ref: 'axial 1/4 W (pattes comprises ~25 mm)',          impliedUnitsPerMm: 3.4 },
   { type: 'DIODE',          box: [84, 30],   physicalMm: [4, 2],      ref: '1N4148 DO-35 (pattes comprises ~25 mm)',          impliedUnitsPerMm: 3.4 },
   { type: 'CAPACITOR',      box: [70, 40],   physicalMm: [5, 5],      ref: 'céramique disque Ø5 (pattes comprises ~22 mm)',   impliedUnitsPerMm: 3.2 },
+  // FT-C-COMP-002 : électrolytique radial polarisé, boîte portrait 33×120
+  // (corps + longues pattes verticales). Corps ~Ø6.3 × 11 mm, pattes ~+15 mm.
+  { type: 'POLARIZED_CAPACITOR', box: [33, 120], physicalMm: [6.3, 26], ref: 'électrolytique radial Ø6.3 (pattes comprises ~26 mm)', impliedUnitsPerMm: 120 / 26 },
   { type: 'LDR',            box: [84, 36],   physicalMm: [5, 5],      ref: 'GL5528 Ø5 (pattes comprises ~24 mm)',             impliedUnitsPerMm: 3.5 },
   { type: 'THERMISTOR',     box: [84, 36],   physicalMm: [3, 3],      ref: 'perle NTC Ø3, époxy ~5 (pattes comprises ~24 mm)', impliedUnitsPerMm: 3.5 },
   { type: 'BUTTON',         box: [60, 60],   physicalMm: [6.5, 6.5],  ref: 'tact switch 6×6',                                 impliedUnitsPerMm: 9.2 },
