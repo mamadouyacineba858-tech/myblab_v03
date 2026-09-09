@@ -58,8 +58,8 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "B", label: "B", dx: 84, dy: 18, contacts: [{ id: "B", dx: 54, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
   ],
   THERMISTOR: [
-    { id: "A", label: "A", dx: 0, dy: 18 },
-    { id: "B", label: "B", dx: 84, dy: 18 },
+    { id: "A", label: "A", dx: 0, dy: 18, contacts: [{ id: "A", dx: 30, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "B", label: "B", dx: 84, dy: 18, contacts: [{ id: "B", dx: 54, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
   ],
   DIODE: [
     { id: "anode", label: "A", dx: 0, dy: 15 },
