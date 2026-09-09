@@ -66,10 +66,10 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "cathode", label: "K", dx: 84, dy: 15 },
   ],
   RGB_LED: [
-    { id: "R", label: "R", dx: 19, dy: 56 },
-    { id: "common", label: "COM", dx: 35, dy: 56 },
-    { id: "G", label: "G", dx: 53, dy: 56 },
-    { id: "B", label: "B", dx: 71, dy: 56 },
+    { id: "R", label: "R", dx: 19, dy: 56, contacts: [{ id: "R", dx: 19, dy: 72, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "common", label: "COM", dx: 35, dy: 56, contacts: [{ id: "common", dx: 35, dy: 72, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "G", label: "G", dx: 53, dy: 56, contacts: [{ id: "G", dx: 53, dy: 72, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "B", label: "B", dx: 71, dy: 56, contacts: [{ id: "B", dx: 71, dy: 72, wireConnectable: true, breadboardInsertable: true }] },
   ],
   NPN_TRANSISTOR: [
     { id: "collector", label: "C", dx: 45, dy: 0, contacts: [{ id: "C", dx: 42.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }] },
