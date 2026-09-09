@@ -41,8 +41,8 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "GND", label: "GND", dx: 58, dy: 25, contacts: [{ id: "GND", dx: 22, dy: 67, wireConnectable: true, breadboardInsertable: false }] },
   ],
   CAPACITOR: [
-    { id: "pinA", label: "A", dx: 0, dy: 20 },
-    { id: "pinB", label: "B", dx: 70, dy: 20 },
+    { id: "pinA", label: "A", dx: 0, dy: 20, contacts: [{ id: "pinA", dx: 23, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "pinB", label: "B", dx: 70, dy: 20, contacts: [{ id: "pinB", dx: 47, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
   ],
   BUZZER: [
     { id: "plus", label: "+", dx: 10, dy: 50 },
