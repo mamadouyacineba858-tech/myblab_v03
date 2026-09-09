@@ -16,10 +16,6 @@
 
 /** @type {Record<string, AssemblyProfile>} */
 const ASSEMBLY_PROFILES = {
-  // FT-C reconciliation V2 — the LED raster body is presentation-scaled by
-  // LedPart. The old baked-in lead stubs therefore have to be clipped higher
-  // than the original FT-C-001-A threshold. Roots start slightly under the
-  // visible collar so the dynamic leads remain visually attached to the body.
   LED: {
     kind: "through-hole",
     leads: {
@@ -27,6 +23,13 @@ const ASSEMBLY_PROFILES = {
       cathode: { root: { dx: 52, dy: 32 }, style: "wire" },
     },
     bodyClip: { bottom: 31 },
+  },
+  LDR: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 30, dy: 29 }, style: "wire" },
+      B: { root: { dx: 54, dy: 29 }, style: "wire" },
+    },
   },
   NPN_TRANSISTOR: {
     kind: "through-hole",
