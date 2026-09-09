@@ -12,14 +12,15 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  * - identité électrique historique pinA/pinB inchangée ;
  * - composant non polarisé : aucune borne + / - ;
  * - entraxe mécanique = 24 unités, identique LED/LDR/THERMISTOR ;
- * - PhysicalContacts inchangés : x=23 / x=47, y=38 ;
+ * - PhysicalContacts : x=23 / x=47, y=62 ;
+ * - longueur visuelle des pattes = THERMISTOR (31 unités : y=31 → y=62) ;
  * - les pattes sont rendues par AssemblyLeadsLayer ;
  * - aucune logique de simulation dans ce renderer.
  */
 export function CapacitorPart() {
   const def = getComponentDef('CAPACITOR')
   const width = def?.width ?? 70
-  const height = def?.height ?? 40
+  const height = def?.height ?? 64
 
   return (
     <div
@@ -38,7 +39,7 @@ export function CapacitorPart() {
         style={{
           position: 'absolute',
           left: 20,
-          top: 1,
+          top: 4,
           width: 30,
           height: 27,
           boxSizing: 'border-box',
