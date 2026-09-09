@@ -37,6 +37,16 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 31 },
   },
+  // CAPACITOR radial — corps vertical centré dans la boîte 70×40. Les deux
+  // pattes descendent sous le boîtier vers les PhysicalContacts séparés de
+  // 24 unités, même entraxe mécanique que LED/LDR/THERMISTOR.
+  CAPACITOR: {
+    kind: "through-hole",
+    leads: {
+      pinA: { root: { dx: 23, dy: 25 }, style: "wire" },
+      pinB: { root: { dx: 47, dy: 25 }, style: "wire" },
+    },
+  },
   // LDR — même entraxe validé que la LED (24 unités), centré sur x=42.
   LDR: {
     kind: "through-hole",
