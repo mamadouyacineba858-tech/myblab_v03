@@ -1,19 +1,6 @@
 /**
  * AssemblyLeadsLayer.test.jsx — FT-C-001-A (§35).
- *
- * Preuves de rendu de la couche générique de pattes / cosses :
- *  - nombre correct de <line> (1 par contact câblable) ;
- *  - racines et targets corrects (repère local, origin soustraite) ;
- *  - style dérivé (`--wire` / `--lug`), aucun `type ===` ;
- *  - géométrie vide ⇒ AUCUN <svg> (pas de patte fantôme) ;
- *  - `data-inserted` reflète l'état d'insertion ;
- *  - INTÉGRATION CircuitComponent : pour LED / NPN / POTENTIOMETER, le bout de
- *    chaque patte (`line` x2/y2) coïncide EXACTEMENT avec le hit target du
- *    <Pin> correspondant ; RESISTOR (non traversant) ne rend aucune patte.
  */
-// React requis en portée pour le JSX rendu sous la config vitest secondaire
-// (sans @vitejs/plugin-react), comme les autres tests de rendu du dépôt
-// (CircuitComponent.interaction.test.jsx, …).
 // eslint-disable-next-line no-unused-vars
 import React from "react"
 import { describe, it, expect, afterEach } from "vitest"
@@ -39,11 +26,11 @@ describe("AssemblyLeadsLayer — rendu direct", () => {
     expect(lines).toHaveLength(2)
 
     const anode = container.querySelector('line[data-pin="anode"]')
-    // target anode = (128,262) abs -> local (28,62) ; root = (128,236) -> (28,36)
+    // target anode = (128,262) abs -> local (28,62) ; root sous la collerette = (28,32)
     expect(anode.getAttribute("x2")).toBe("28")
     expect(anode.getAttribute("y2")).toBe("62")
     expect(anode.getAttribute("x1")).toBe("28")
-    expect(anode.getAttribute("y1")).toBe("36")
+    expect(anode.getAttribute("y1")).toBe("32")
   })
 
   it("style dérivé du profil : LED -> --wire, POTENTIOMETER -> --lug (aucun type=== dans la couche)", () => {
@@ -51,8 +38,6 @@ describe("AssemblyLeadsLayer — rendu direct", () => {
     const { container } = render(<AssemblyLeadsLayer geometry={potGeom} originX={0} originY={0} />)
     expect(container.querySelectorAll("line.assembly-leads__lead--lug")).toHaveLength(3)
     expect(container.querySelectorAll("line.assembly-leads__lead--wire")).toHaveLength(0)
-    // le code source de la couche ne contient aucun littéral de type composant
-    // (garantie visuelle : le style vient de la classe posée d'après le profil)
   })
 
   it("géométrie vide ⇒ aucun <svg> rendu", () => {
@@ -70,24 +55,14 @@ describe("AssemblyLeadsLayer — rendu direct", () => {
   })
 })
 
-// ---------------------------------------------------------------------------
-// Intégration CircuitComponent : bout de patte == hit target du <Pin>
-// ---------------------------------------------------------------------------
 function Harness({ breadboard, onReady }) {
   const circuit = useCircuit()
   const { components } = useCircuitInteraction()
   onReady(circuit)
-  return (
-    <>
-      {components.map((comp) => (
-        <CircuitComponent key={comp.uid} component={comp} breadboard={breadboard} />
-      ))}
-    </>
-  )
+  return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} breadboard={breadboard} />)}</>
 }
 
 function pinTips(container) {
-  // <Pin> = <button class="myblab-pin" style="left:..;top:..">
   return [...container.querySelectorAll("button.myblab-pin")].map((el) => ({
     pin: el.getAttribute("data-wire-pin"),
     left: parseFloat(el.style.left),
@@ -106,22 +81,14 @@ describe("AssemblyLeadsLayer — intégration CircuitComponent : bout de patte =
   for (const type of ["LED", "NPN_TRANSISTOR", "POTENTIOMETER"]) {
     it(`${type} libre : chaque bout de patte coïncide avec le <Pin> de même pinId`, () => {
       let api = null
-      const { container } = render(
-        <CircuitProvider>
-          <Harness breadboard={null} onReady={(a) => (api = a)} />
-        </CircuitProvider>,
-      )
+      const { container } = render(<CircuitProvider><Harness breadboard={null} onReady={(a) => (api = a)} /></CircuitProvider>)
       act(() => api.addComponent(type, 300, 300))
-
       const pins = pinTips(container)
       const leads = leadTips(container)
       expect(leads.length).toBe(pins.length)
-
       for (const lead of leads) {
         const pin = pins.find((p) => p.pin === lead.pin)
         expect(pin).toBeDefined()
-        // <Pin> left/top sont en repère local (relatifs à component.x/y),
-        // exactement comme line x2/y2 -> coïncidence EXACTE attendue.
         expect(lead.x2).toBeCloseTo(pin.left, 5)
         expect(lead.y2).toBeCloseTo(pin.top, 5)
       }
@@ -130,32 +97,21 @@ describe("AssemblyLeadsLayer — intégration CircuitComponent : bout de patte =
 
   it("RESISTOR (non traversant) : aucune patte d'assemblage rendue", () => {
     let api = null
-    const { container } = render(
-      <CircuitProvider>
-        <Harness breadboard={null} onReady={(a) => (api = a)} />
-      </CircuitProvider>,
-    )
+    const { container } = render(<CircuitProvider><Harness breadboard={null} onReady={(a) => (api = a)} /></CircuitProvider>)
     act(() => api.addComponent("RESISTOR", 300, 300))
     expect(container.querySelector(".assembly-leads")).toBeNull()
-    // les <Pin> RESISTOR, eux, restent rendus normalement
     expect(container.querySelectorAll("button.myblab-pin").length).toBe(2)
   })
 
-  it("LED insérée : le corps est clippé (raster) et les pattes rejoignent toujours les <Pin>", () => {
+  it("LED insérée : le raster sous la collerette est entièrement masqué et les pattes rejoignent toujours les <Pin>", () => {
     let api = null
-    const { container } = render(
-      <CircuitProvider>
-        <Harness breadboard={bb} onReady={(a) => (api = a)} />
-      </CircuitProvider>,
-    )
-    // addComponent applique computeBreadboardPlacement (breadboard actif) :
-    // la LED est enfichée, position déterministe.
+    const { container } = render(<CircuitProvider><Harness breadboard={bb} onReady={(a) => (api = a)} /></CircuitProvider>)
     act(() => api.addBreadboard(0, 0))
     act(() => api.addComponent("LED", 116, 10))
 
     const body = container.querySelector(".circuit-component__body")
     expect(body.style.clipPath).toMatch(/^inset\(/)
-    expect(body.style.clipPath).toContain("28px")
+    expect(body.style.clipPath).toContain("31px")
 
     const pins = pinTips(container)
     const leads = leadTips(container)
