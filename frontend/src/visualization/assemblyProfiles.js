@@ -45,6 +45,16 @@ const ASSEMBLY_PROFILES = {
       pinB: { root: { dx: 47, dy: 27 }, style: "wire" },
     },
   },
+  RGB_LED: {
+    kind: "through-hole",
+    leads: {
+      R: { root: { dx: 32, dy: 29 }, style: "wire" },
+      common: { root: { dx: 41, dy: 29 }, style: "wire" },
+      G: { root: { dx: 49, dy: 29 }, style: "wire" },
+      B: { root: { dx: 58, dy: 29 }, style: "wire" },
+    },
+    bodyClip: { bottom: 26 },
+  },
   NPN_TRANSISTOR: {
     kind: "through-hole",
     leads: {
