@@ -1,22 +1,5 @@
 /**
  * assemblyProfiles.js — FT-C-001-A.
- *
- * Profil MÉCANIQUE de PRÉSENTATION d'un composant traversant : où les pattes /
- * cosses NAISSENT visuellement sous le corps (« racine »), et de quel style
- * elles sont dessinées. C'est de la présentation d'assemblage PURE.
- *
- * INVARIANTS (ruling FT-C-001-R1 §10) :
- *  - une `root` n'est JAMAIS un PhysicalContact, jamais un nœud électrique,
- *    jamais un net, jamais stockée dans le Document ;
- *  - `root.dx` / `root.dy` sont dans le repère LOCAL du composant, même origine
- *    que `pin.dx/dy` (`componentDefinitions.js`) — mais ne participent à AUCUN
- *    calcul électrique / de simulation / de résolution de trou ;
- *  - aucun `*_VISUAL_PINS`, aucune coordonnée de contact ici : l'extrémité
- *    d'une patte reste résolue par le modèle PhysicalContact
- *    (`utils/contactModel.js`) — ce module ne fournit que le POINT DE DÉPART
- *    mécanique et un `bodyClip` optionnel ;
- *  - aucune branche `type === …` chez les consommateurs : ils lisent
- *    `getAssemblyProfile(type)` (peut renvoyer `null`).
  */
 
 /** @typedef {{ dx: number, dy: number }} LocalPoint */
@@ -37,17 +20,16 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 31 },
   },
-  // CAPACITOR radial — corps vertical centré dans la boîte 70×40. Les deux
-  // pattes descendent sous le boîtier vers les PhysicalContacts séparés de
-  // 24 unités, même entraxe mécanique que LED/LDR/THERMISTOR.
+  // CAPACITOR céramique non polarisé — même longueur mécanique de pattes que
+  // le THERMISTOR : racines à y=31 et PhysicalContacts à y=62. L'entraxe reste
+  // 24 unités et l'identité électrique pinA/pinB reste inchangée.
   CAPACITOR: {
     kind: "through-hole",
     leads: {
-      pinA: { root: { dx: 23, dy: 25 }, style: "wire" },
-      pinB: { root: { dx: 47, dy: 25 }, style: "wire" },
+      pinA: { root: { dx: 23, dy: 31 }, style: "wire" },
+      pinB: { root: { dx: 47, dy: 31 }, style: "wire" },
     },
   },
-  // LDR — même entraxe validé que la LED (24 unités), centré sur x=42.
   LDR: {
     kind: "through-hole",
     leads: {
@@ -55,9 +37,6 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 54, dy: 29 }, style: "wire" },
     },
   },
-  // THERMISTOR — corps NTC réaliste vertical validé CSA. Les deux pattes
-  // dynamiques naissent juste sous la pastille noire puis rejoignent les
-  // PhysicalContacts inchangés, toujours avec l'entraxe de 24 unités.
   THERMISTOR: {
     kind: "through-hole",
     leads: {
