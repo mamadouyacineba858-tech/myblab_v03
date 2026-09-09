@@ -2,59 +2,61 @@ import React from 'react'
 import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
- * Rendu visuel Thermistance / THERMISTOR NTC — backend RASTER (MB-VIS-PROTOTYPE-006).
+ * Rendu visuel Thermistance / THERMISTOR NTC — backend RASTER.
  *
- * Remplace l'ancien rendu SVG volumétrique (MB-VIS-LED-014 : `<defs>` + 3
- * gradients namespacés par `uid` — metal / bead / edge —, perle époxy en
- * `<circle>`) par l'asset raster produit et vérifié pour MB-VIS-PROTOTYPE-006,
- * intégré via le mécanisme déclaratif de MB-VIS-INDUSTRIAL-001
- * (`defaultRegistrations` → `visual: { backend: 'raster' }` →
- * `getComponentPresentation('THERMISTOR')` → wrapper `data-bare-body` + pins
- * `markerless`, sans aucun `type === "THERMISTOR"` ni règle CSS spécifique).
- *
- * Patron identique à `ResistorPart.jsx` / `DiodePart.jsx` / `LedPart.jsx` /
- * `CapacitorPart.jsx` / `LdrPart.jsx` : `frontend/public/` est servi à la
- * racine web → `/assets/components/thermistor/…`, priorité WebP via
- * `<picture>`, fallback PNG, aucune logique JS de sélection d'asset. Composant
- * STATIQUE (état unique `default`) — aucun état ON/OFF, aucune animation,
- * aucun effet CSS.
- *
- * Contrat inchangé :
- *  - dimensions dérivées de `getComponentDef("THERMISTOR")` (84×36) — aucune
- *    valeur recopiée, `componentDefinitions.js` NON modifié ;
- *  - pins A(0,18) / B(84,18) : produits par CircuitComponent/Pin, jamais
- *    dessinés dans l'asset ni ici ;
- *  - l'`<img>` ne porte AUCUN gestionnaire, `draggable={false}`,
- *    `pointer-events: none` → drag / sélection / câblage / hit-test / zoom
- *    restent la responsabilité du wrapper `.circuit-component` ;
- *  - `uid` reste accepté (contrat de props inchangé) mais n'est plus consommé
- *    (plus de `<defs>` à namespacer) → rendu déterministe pour toute instance,
- *    aucune collision d'id entre deux thermistances simultanées.
+ * FT-C : même stratégie validée sur la LDR. L'asset historique reste utilisé
+ * pour la tête NTC ; les anciennes pattes latérales raster sont masquées.
+ * AssemblyLeadsLayer rend ensuite deux pattes physiques verticales avec
+ * l'entraxe validé LED/LDR de 24 unités, sans modifier l'identité électrique A/B.
  */
 const ASSET_DIR = '/assets/components/thermistor'
 const WEBP_SRCSET = `${ASSET_DIR}/thermistor.default.1x.webp 1x, ${ASSET_DIR}/thermistor.default.3x.webp 3x`
 const PNG_SRCSET = `${ASSET_DIR}/thermistor.default.1x.png 1x, ${ASSET_DIR}/thermistor.default.3x.png 3x`
 const PNG_FALLBACK = `${ASSET_DIR}/thermistor.default.3x.png`
 
+const NATIVE_ASSET_WIDTH = 84
+const NATIVE_ASSET_HEIGHT = 36
+const SIDE_LEAD_CROP = 24
+
 export function ThermistorPart({ uid } = {}) {
   const def = getComponentDef("THERMISTOR")
   const width = def?.width ?? 84
-  const height = def?.height ?? 36
+  const height = def?.height ?? 64
 
   return (
-    <div className="part-thermistor" aria-label="Thermistance">
-      <picture className="part-thermistor__picture">
+    <div
+      className="part-thermistor"
+      aria-label="Thermistance"
+      style={{ position: 'relative', width, height }}
+    >
+      <picture
+        className="part-thermistor__picture"
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: NATIVE_ASSET_WIDTH,
+          height: NATIVE_ASSET_HEIGHT,
+          display: 'block',
+        }}
+      >
         <source type="image/webp" srcSet={WEBP_SRCSET} />
         <img
           className="part-thermistor__img"
           src={PNG_FALLBACK}
           srcSet={PNG_SRCSET}
-          width={width}
-          height={height}
+          width={NATIVE_ASSET_WIDTH}
+          height={NATIVE_ASSET_HEIGHT}
           draggable={false}
           alt=""
           aria-hidden="true"
-          style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
+          style={{
+            width: NATIVE_ASSET_WIDTH,
+            height: NATIVE_ASSET_HEIGHT,
+            display: 'block',
+            pointerEvents: 'none',
+            clipPath: `inset(0 ${SIDE_LEAD_CROP}px 0 ${SIDE_LEAD_CROP}px)`,
+          }}
         />
       </picture>
     </div>
