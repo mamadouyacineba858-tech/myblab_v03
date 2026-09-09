@@ -41,15 +41,17 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 54, dy: 31 }, style: "wire" },
     },
   },
-  // RGB LED — preserve canonical R/common/G/B identities while replacing the
-  // short baked-in legs with four long breadboard-ready dynamic leads.
+  // Real 5 mm RGB LED package: the four leads leave the epoxy base close
+  // together and fan slightly outward toward the breadboard holes. Keeping
+  // roots tighter than contacts reproduces the real package silhouette while
+  // canonical electrical identities R/common/G/B remain unchanged.
   RGB_LED: {
     kind: "through-hole",
     leads: {
-      R: { root: { dx: 19, dy: 30 }, style: "wire" },
-      common: { root: { dx: 35, dy: 30 }, style: "wire" },
-      G: { root: { dx: 53, dy: 30 }, style: "wire" },
-      B: { root: { dx: 71, dy: 30 }, style: "wire" },
+      R: { root: { dx: 32, dy: 29 }, style: "wire" },
+      common: { root: { dx: 41, dy: 29 }, style: "wire" },
+      G: { root: { dx: 49, dy: 29 }, style: "wire" },
+      B: { root: { dx: 58, dy: 29 }, style: "wire" },
     },
     bodyClip: { bottom: 26 },
   },
