@@ -26,7 +26,8 @@
  *
  * Racines mesurées par pixel-probe read-only (alpha ≥ 64, 1x + 3x concordants,
  * dev server) — cf. rapport FT-C-001 §3 :
- *  - LED  (80×64) : dôme jusqu'à y ≈ 37-38, pattes raster centrées x ≈ 33 / 46 ;
+ *  - LED  (80×64) : dôme/collerette utile jusqu'à y ≈ 32-33 ; anciennes pattes
+ *    raster sous cette zone ;
  *  - NPN  (90×60) : boîtier TO-92 jusqu'à y ≈ 24-25 ;
  *  - POT  (90×50) : corps jusqu'à y ≈ 40, 3 cosses discrètes x ≈ 10 / 45 / 80.
  *
@@ -48,17 +49,17 @@
 
 /** @type {Record<string, AssemblyProfile>} */
 const ASSEMBLY_PROFILES = {
-  // La racine dynamique reste à y=36. Le clip commence désormais exactement
-  // à cette ligne : cela masque les derniers pixels des anciennes pattes
-  // raster encore visibles sous la collerette, sans toucher aux PhysicalContacts
-  // ni à l'écart anode/cathode validé pour le breadboard.
+  // La portion raster visible s'arrête juste sous la collerette. Les pattes
+  // dynamiques démarrent à y=32 derrière celle-ci puis rejoignent les mêmes
+  // PhysicalContacts qu'avant. On supprime ainsi les moignons des anciennes
+  // pattes sans modifier ni l'écart validé, ni les hit-targets, ni l'électricité.
   LED: {
     kind: "through-hole",
     leads: {
-      anode: { root: { dx: 28, dy: 36 }, style: "wire" },
-      cathode: { root: { dx: 52, dy: 36 }, style: "wire" },
+      anode: { root: { dx: 28, dy: 32 }, style: "wire" },
+      cathode: { root: { dx: 52, dy: 32 }, style: "wire" },
     },
-    bodyClip: { bottom: 28 }, // asset 80×64 : masque y ∈ [36, 64] (résidus + anciennes pattes raster)
+    bodyClip: { bottom: 31 }, // asset 80×64 : masque y ∈ [33, 64] (anciennes pattes raster)
   },
   NPN_TRANSISTOR: {
     kind: "through-hole",
