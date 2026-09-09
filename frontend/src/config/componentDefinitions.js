@@ -40,12 +40,13 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "5V", label: "+5V", dx: 70, dy: 37, contacts: [{ id: "5V", dx: 35, dy: 67, wireConnectable: true, breadboardInsertable: false }] },
     { id: "GND", label: "GND", dx: 58, dy: 25, contacts: [{ id: "GND", dx: 22, dy: 67, wireConnectable: true, breadboardInsertable: false }] },
   ],
-  // FT-C — condensateur radial vertical. L'identité électrique historique
-  // pinA/pinB reste inchangée. Les PhysicalContacts sont centrés sous le corps
-  // avec l'entraxe 24 validé sur LED/LDR/THERMISTOR.
+  // FT-C — condensateur céramique radial non polarisé. Les deux contacts
+  // physiques reprennent maintenant la même ligne basse que le THERMISTOR
+  // (dy=62) afin d'obtenir des pattes visuellement de longueur comparable,
+  // tout en conservant l'entraxe 24 et l'identité électrique pinA/pinB.
   CAPACITOR: [
-    { id: "pinA", label: "A", dx: 0, dy: 20, contacts: [{ id: "pinA", dx: 23, dy: 38, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "pinB", label: "B", dx: 70, dy: 20, contacts: [{ id: "pinB", dx: 47, dy: 38, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "pinA", label: "A", dx: 0, dy: 20, contacts: [{ id: "pinA", dx: 23, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "pinB", label: "B", dx: 70, dy: 20, contacts: [{ id: "pinB", dx: 47, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
   ],
   BUZZER: [
     { id: "plus", label: "+", dx: 10, dy: 50 },
@@ -122,7 +123,7 @@ export const COMPONENT_TYPES = {
   BUTTON: { id: "BUTTON", label: "Bouton", icon: "🔘", width: 60, height: 60, pins: buildPins("BUTTON"), interaction: { type: "momentary" }, initialState: "released" },
   BUTTON_LATCHING: { id: "BUTTON_LATCHING", label: "Interrupteur", icon: "🔲", width: 60, height: 60, pins: buildPins("BUTTON_LATCHING"), interaction: { type: "latching" }, initialState: "off" },
   POWER: { id: "POWER", label: "Alimentation", icon: "⚡", width: 70, height: 90, pins: buildPins("POWER") },
-  CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 40, pins: buildPins("CAPACITOR") },
+  CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 64, pins: buildPins("CAPACITOR") },
   BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 70, height: 50, pins: buildPins("BUZZER") },
   POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 90, height: 50, pins: buildPins("POTENTIOMETER") },
   LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 64, pins: buildPins("LDR") },
