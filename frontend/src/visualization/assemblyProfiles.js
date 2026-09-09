@@ -38,6 +38,13 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 54, dy: 31 }, style: "wire" },
     },
   },
+  CAPACITOR: {
+    kind: "through-hole",
+    leads: {
+      pinA: { root: { dx: 23, dy: 27 }, style: "wire" },
+      pinB: { root: { dx: 47, dy: 27 }, style: "wire" },
+    },
+  },
   NPN_TRANSISTOR: {
     kind: "through-hole",
     leads: {
