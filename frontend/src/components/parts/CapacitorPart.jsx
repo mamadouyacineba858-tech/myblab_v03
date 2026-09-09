@@ -2,19 +2,19 @@ import React from 'react'
 import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
- * CAPACITOR — rendu FT-C radial électrolytique vertical.
+ * CAPACITOR — rendu FT-C céramique radial NON POLARISÉ.
  *
- * L'ancien asset axial/céramique « 104 » est abandonné : sa silhouette ne
- * correspond pas à la cible produit validée. Le corps visible est maintenant
- * un petit cylindre électrolytique vertical centré au-dessus des deux pattes
- * dynamiques rendues par AssemblyLeadsLayer.
+ * Référence visuelle validée CSA : petit condensateur céramique disque orange,
+ * marquage « 104 », deux pattes verticales parallèles insérées dans le
+ * breadboard. Aucune polarité n'est affichée ni suggérée.
  *
  * Invariants :
  * - identité électrique historique pinA/pinB inchangée ;
+ * - composant non polarisé : aucune borne + / - ;
  * - entraxe mécanique = 24 unités, identique LED/LDR/THERMISTOR ;
- * - PhysicalContacts : x=23 / x=47, y=38 ;
- * - aucune polarité électrique inventée dans le renderer ;
- * - aucune logique de simulation ici.
+ * - PhysicalContacts inchangés : x=23 / x=47, y=38 ;
+ * - les pattes sont rendues par AssemblyLeadsLayer ;
+ * - aucune logique de simulation dans ce renderer.
  */
 export function CapacitorPart() {
   const def = getComponentDef('CAPACITOR')
@@ -24,7 +24,7 @@ export function CapacitorPart() {
   return (
     <div
       className="part-capacitor"
-      aria-label="Condensateur électrolytique radial"
+      aria-label="Condensateur céramique non polarisé"
       style={{
         position: 'relative',
         width,
@@ -42,39 +42,24 @@ export function CapacitorPart() {
           width: 30,
           height: 27,
           boxSizing: 'border-box',
-          borderRadius: '44% 44% 24% 24% / 18% 18% 12% 12%',
-          background: 'linear-gradient(90deg, #08192f 0%, #153b67 20%, #245982 42%, #12395e 68%, #07172b 100%)',
-          border: '1px solid rgba(210,230,245,0.22)',
-          boxShadow: 'inset 3px 0 5px rgba(255,255,255,0.10), inset -4px 0 6px rgba(0,0,0,0.42), 0 1px 2px rgba(0,0,0,0.35)',
+          borderRadius: '49% 49% 44% 44% / 47% 47% 53% 53%',
+          background: 'radial-gradient(circle at 34% 24%, #ff9b4d 0%, #e86f24 34%, #c94e12 70%, #9e3309 100%)',
+          border: '1px solid rgba(255,210,170,0.48)',
+          boxShadow: 'inset 2px 2px 4px rgba(255,255,255,0.18), inset -3px -4px 5px rgba(103,35,5,0.32), 0 1px 2px rgba(0,0,0,0.30)',
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#e7edf3',
+          color: '#1d120c',
           fontFamily: 'Arial, Helvetica, sans-serif',
-          fontSize: 6.5,
-          lineHeight: 1.05,
-          fontWeight: 600,
-          letterSpacing: 0.05,
+          fontSize: 9,
+          lineHeight: 1,
+          fontWeight: 700,
+          letterSpacing: 0.15,
           textAlign: 'center',
           userSelect: 'none',
-          overflow: 'hidden',
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            left: 2,
-            right: 2,
-            top: 1,
-            height: 4,
-            borderRadius: '50%',
-            background: 'linear-gradient(180deg, #b8c0c8 0%, #6f7881 48%, #c7ced5 100%)',
-            opacity: 0.92,
-          }}
-        />
-        <span style={{ marginTop: 4 }}>100µF</span>
-        <span>25V</span>
+        <span>104</span>
       </div>
     </div>
   )
