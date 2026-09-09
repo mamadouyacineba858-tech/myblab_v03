@@ -45,15 +45,12 @@ const ASSEMBLY_PROFILES = {
       pinB: { root: { dx: 47, dy: 27 }, style: "wire" },
     },
   },
-  // FT-C-COMP-002 — condensateur électrolytique polarisé. Boîte canonique
-  // 33×120 (pixels natifs @1x de l'asset). Le raster montre déjà de longues
-  // pattes cuites : `bodyClip.bottom = 68` masque tout ce qui est SOUS
-  // y=52 (natif) — là où le corps bleu se termine et où commencent les
-  // pattes cuites. La géométrie fonctionnelle des pattes est ensuite dessinée
-  // par AssemblyLeadsLayer entre `root` (naissance mécanique sous le corps,
-  // y=48, peinte SOUS l'asset donc cachée) et le PhysicalContact (extrémité,
-  // y=112). Racines alignées en x sur les contacts `plus` (28) / `minus`
-  // (4, côté bande négative) → pattes verticales, aucune double patte.
+  // FT-C-COMP-002 — condensateur électrolytique polarisé. Le raster montre
+  // déjà de longues pattes cuites : `bodyClip.bottom = 68` masque tout ce qui
+  // est sous y=52. AssemblyLeadsLayer dessine ensuite les pattes fonctionnelles
+  // depuis y=48 jusqu'aux PhysicalContacts y=80, soit ~32 px — longueur
+  // harmonisée avec LED/LDR/THERMISTOR (~30–33 px). Racines alignées en x sur
+  // les contacts `plus` (28) / `minus` (4, côté bande négative).
   POLARIZED_CAPACITOR: {
     kind: "through-hole",
     leads: {
