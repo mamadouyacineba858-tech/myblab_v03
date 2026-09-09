@@ -17,33 +17,17 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "5V", label: "5V", dx: 120, dy: 50, contacts: [{ id: "5V", dx: 115, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
   ],
   BUTTON: [
-    { id: "pin1", label: "1", dx: 14, dy: 30, contacts: [
-      { id: "1a", dx: 14, dy: 58, wireConnectable: true, breadboardInsertable: true },
-      { id: "1b", dx: 14, dy: 2, wireConnectable: true, breadboardInsertable: true },
-    ] },
-    { id: "pin2", label: "2", dx: 46, dy: 30, contacts: [
-      { id: "2a", dx: 46, dy: 58, wireConnectable: true, breadboardInsertable: true },
-      { id: "2b", dx: 46, dy: 2, wireConnectable: true, breadboardInsertable: true },
-    ] },
+    { id: "pin1", label: "1", dx: 14, dy: 30, contacts: [{ id: "1a", dx: 14, dy: 58, wireConnectable: true, breadboardInsertable: true }, { id: "1b", dx: 14, dy: 2, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "pin2", label: "2", dx: 46, dy: 30, contacts: [{ id: "2a", dx: 46, dy: 58, wireConnectable: true, breadboardInsertable: true }, { id: "2b", dx: 46, dy: 2, wireConnectable: true, breadboardInsertable: true }] },
   ],
   BUTTON_LATCHING: [
-    { id: "pin1", label: "1", dx: 13, dy: 30, contacts: [
-      { id: "1a", dx: 13, dy: 58, wireConnectable: true, breadboardInsertable: true },
-      { id: "1b", dx: 13, dy: 2, wireConnectable: true, breadboardInsertable: true },
-    ] },
-    { id: "pin2", label: "2", dx: 47, dy: 30, contacts: [
-      { id: "2a", dx: 47, dy: 58, wireConnectable: true, breadboardInsertable: true },
-      { id: "2b", dx: 47, dy: 2, wireConnectable: true, breadboardInsertable: true },
-    ] },
+    { id: "pin1", label: "1", dx: 13, dy: 30, contacts: [{ id: "1a", dx: 13, dy: 58, wireConnectable: true, breadboardInsertable: true }, { id: "1b", dx: 13, dy: 2, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "pin2", label: "2", dx: 47, dy: 30, contacts: [{ id: "2a", dx: 47, dy: 58, wireConnectable: true, breadboardInsertable: true }, { id: "2b", dx: 47, dy: 2, wireConnectable: true, breadboardInsertable: true }] },
   ],
   POWER: [
     { id: "5V", label: "+5V", dx: 70, dy: 37, contacts: [{ id: "5V", dx: 35, dy: 67, wireConnectable: true, breadboardInsertable: false }] },
     { id: "GND", label: "GND", dx: 58, dy: 25, contacts: [{ id: "GND", dx: 22, dy: 67, wireConnectable: true, breadboardInsertable: false }] },
   ],
-  // FT-C — condensateur céramique radial non polarisé. Les deux contacts
-  // physiques reprennent maintenant la même ligne basse que le THERMISTOR
-  // (dy=62) afin d'obtenir des pattes visuellement de longueur comparable,
-  // tout en conservant l'entraxe 24 et l'identité électrique pinA/pinB.
   CAPACITOR: [
     { id: "pinA", label: "A", dx: 0, dy: 20, contacts: [{ id: "pinA", dx: 23, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
     { id: "pinB", label: "B", dx: 70, dy: 20, contacts: [{ id: "pinB", dx: 47, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
@@ -70,10 +54,10 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "cathode", label: "K", dx: 84, dy: 15 },
   ],
   RGB_LED: [
-    { id: "R", label: "R", dx: 19, dy: 56 },
-    { id: "common", label: "COM", dx: 35, dy: 56 },
-    { id: "G", label: "G", dx: 53, dy: 56 },
-    { id: "B", label: "B", dx: 71, dy: 56 },
+    { id: "R", label: "R", dx: 19, dy: 72, contacts: [{ id: "R", dx: 19, dy: 72, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "common", label: "COM", dx: 35, dy: 72, contacts: [{ id: "common", dx: 35, dy: 72, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "G", label: "G", dx: 53, dy: 72, contacts: [{ id: "G", dx: 53, dy: 72, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "B", label: "B", dx: 71, dy: 72, contacts: [{ id: "B", dx: 71, dy: 72, wireConnectable: true, breadboardInsertable: true }] },
   ],
   NPN_TRANSISTOR: [
     { id: "collector", label: "C", dx: 45, dy: 0, contacts: [{ id: "C", dx: 42.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }] },
@@ -129,7 +113,7 @@ export const COMPONENT_TYPES = {
   LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 64, pins: buildPins("LDR") },
   THERMISTOR: { id: "THERMISTOR", label: "Thermistance", icon: "🌡", width: 84, height: 64, pins: buildPins("THERMISTOR") },
   DIODE: { id: "DIODE", label: "Diode", icon: "↦|", width: 84, height: 30, pins: buildPins("DIODE") },
-  RGB_LED: { id: "RGB_LED", label: "LED RGB", icon: "🌈", width: 90, height: 56, pins: buildPins("RGB_LED") },
+  RGB_LED: { id: "RGB_LED", label: "LED RGB", icon: "🌈", width: 90, height: 76, pins: buildPins("RGB_LED") },
   NPN_TRANSISTOR: { id: "NPN_TRANSISTOR", label: "Transistor NPN", icon: "NPN", width: 90, height: 60, pins: buildPins("NPN_TRANSISTOR") },
   SERVO: { id: "SERVO", label: "Micro Servo", icon: "⚙️", width: 90, height: 70, pins: buildPins("SERVO") },
   DC_MOTOR: { id: "DC_MOTOR", label: "Moteur DC", icon: "🌀", width: 84, height: 50, pins: buildPins("DC_MOTOR") },
