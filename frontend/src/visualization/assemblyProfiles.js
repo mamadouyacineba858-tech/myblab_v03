@@ -61,6 +61,17 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 31 }, // asset 80×64 : masque y ∈ [33, 64] (anciennes pattes raster)
   },
+  // LDR — FT-C : même entraxe validé que la LED (24 unités), centré sur x=42.
+  // Le raster historique est conservé uniquement pour la tête photosensible ;
+  // les anciennes pattes latérales sont masquées dans LdrPart.jsx et ces deux
+  // pattes dynamiques descendent verticalement vers les PhysicalContacts.
+  LDR: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 30, dy: 29 }, style: "wire" },
+      B: { root: { dx: 54, dy: 29 }, style: "wire" },
+    },
+  },
   NPN_TRANSISTOR: {
     kind: "through-hole",
     leads: {
