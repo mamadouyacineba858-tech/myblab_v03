@@ -48,16 +48,17 @@
 
 /** @type {Record<string, AssemblyProfile>} */
 const ASSEMBLY_PROFILES = {
-  // Racine posée ~2 unités AU-DESSUS de la ligne de clip pour que le haut de
-  // la patte dynamique passe sous la portion de corps encore visible — aucune
-  // rupture, aucun interstice corps/patte (AC-C-020).
+  // La racine dynamique reste à y=36. Le clip commence désormais exactement
+  // à cette ligne : cela masque les derniers pixels des anciennes pattes
+  // raster encore visibles sous la collerette, sans toucher aux PhysicalContacts
+  // ni à l'écart anode/cathode validé pour le breadboard.
   LED: {
     kind: "through-hole",
     leads: {
       anode: { root: { dx: 28, dy: 36 }, style: "wire" },
       cathode: { root: { dx: 52, dy: 36 }, style: "wire" },
     },
-    bodyClip: { bottom: 26 }, // asset 80×64 : masque y ∈ [38, 64] (pattes raster)
+    bodyClip: { bottom: 28 }, // asset 80×64 : masque y ∈ [36, 64] (résidus + anciennes pattes raster)
   },
   NPN_TRANSISTOR: {
     kind: "through-hole",
