@@ -121,9 +121,13 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "wiper", label: "W", dx: 45, dy: 50 },
     { id: "right", label: "R", dx: 80, dy: 50 },
   ],
+  // FT-C — LDR traversante verticale : on conserve les pins logiques A/B,
+  // mais les contacts physiques visibles reprennent l'entraxe LED validé
+  // (24 unités), centré sur le composant. Les fils, hit-targets et trous
+  // utilisent ces PhysicalContacts ; l'identité électrique A/B ne change pas.
   LDR: [
-    { id: "A", label: "A", dx: 0, dy: 18 },
-    { id: "B", label: "B", dx: 84, dy: 18 },
+    { id: "A", label: "A", dx: 0, dy: 18, contacts: [{ id: "A", dx: 30, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "B", label: "B", dx: 84, dy: 18, contacts: [{ id: "B", dx: 54, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
   ],
   THERMISTOR: [
     { id: "A", label: "A", dx: 0, dy: 18 },
@@ -217,7 +221,7 @@ export const COMPONENT_TYPES = {
   CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 40, pins: buildPins("CAPACITOR") },
   BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 70, height: 50, pins: buildPins("BUZZER") },
   POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 90, height: 50, pins: buildPins("POTENTIOMETER") },
-  LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 36, pins: buildPins("LDR") },
+  LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 64, pins: buildPins("LDR") },
   THERMISTOR: { id: "THERMISTOR", label: "Thermistance", icon: "🌡", width: 84, height: 36, pins: buildPins("THERMISTOR") },
   DIODE: { id: "DIODE", label: "Diode", icon: "↦|", width: 84, height: 30, pins: buildPins("DIODE") },
   RGB_LED: { id: "RGB_LED", label: "LED RGB", icon: "🌈", width: 90, height: 56, pins: buildPins("RGB_LED") },
