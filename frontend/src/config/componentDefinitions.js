@@ -1,11 +1,6 @@
 import { createUid } from "../utils/ids.js"
 import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
 
-/**
- * Présentation locale des pins. Les identifiants et rôles sont canoniques dans
- * simulator/canonicalRegistry.js ; ce tableau ne contient que la clé de jointure
- * id et les propriétés propres à l'affichage et au positionnement.
- */
 const PIN_PRESENTATION_BY_TYPE = {
   LED: [
     { id: "anode", label: "Anode", dx: 28, dy: 62 },
@@ -15,50 +10,12 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "A", label: "A", dx: 0, dy: 14 },
     { id: "B", label: "B", dx: 84, dy: 14 },
   ],
-  // [FT-B-001-S5] ARDUINO n'est PAS directement enfichable dans le breadboard :
-  // c'est une carte reliée au breadboard PAR FIL. `pin.dx/dy` (géométrie
-  // canonique / électrique) reste inchangée ; les CONTACTS physiques déclarés
-  // portent les vraies positions raster des connecteurs (silhouette photo de
-  // la carte, cf. MB-VIS-COMP-037) et sont `breadboardInsertable: false`. Le
-  // registre ARDUINO_VISUAL_PINS (pinPresentationGeometry.js) est supprimé.
   ARDUINO: [
     { id: "D2", label: "D2", dx: 0, dy: 50, contacts: [{ id: "D2", dx: 3, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
     { id: "D3", label: "D3", dx: 0, dy: 75, contacts: [{ id: "D3", dx: 15, dy: 75, wireConnectable: true, breadboardInsertable: false }] },
     { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [{ id: "GND", dx: 15, dy: 108, wireConnectable: true, breadboardInsertable: false }] },
     { id: "5V", label: "5V", dx: 120, dy: 50, contacts: [{ id: "5V", dx: 115, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
   ],
-  // [MB-VIS-BUTTON-ASSET-006] Remesuré depuis zéro sur le nouveau paquet
-  // d'assets "Tinkercad-style" (housing carré + 4 pattes métalliques
-  // physiques, cf. ButtonPart.jsx) — les anciennes valeurs (dx:8/51, héritées
-  // de MB-VIS-CONTACT-FOUNDATION-001) mesuraient un asset visuellement
-  // différent et n'ont explicitement PAS été considérées valides pour ce
-  // remplacement (mandat CSA). Méthode : pixel-probe navigateur
-  // (canvas.getImageData sur button.released.3x.png, alpha>16), centre de
-  // masse pondéré par alpha calculé séparément sur chaque patte (colonnes
-  // isolées aux lignes "hors boîtier", au-dessus/en-dessous du corps) pour
-  // le dx, et sur la même colonne pour le dy — évite le bruit de
-  // quantification d'un simple bbox. Pattes gauche/droite mesurées à
-  // x≈40.7/139.3 (échelle 3x, soit ≈13.6/46.4 en 1x) — somme ≈180 (3x) /
-  // 60 (1x) : symétrie quasi parfaite, cohérente avec le housing carré
-  // centré. dy mesuré ≈90.7 (3x) / ≈30.2 (1x) — quasiment inchangé par
-  // rapport à l'ancienne valeur (30), le nouvel asset restant centré
-  // verticalement dans sa boîte 60×60. Valeurs arrondies à l'entier le plus
-  // proche en conservant la symétrie gauche/droite (14+46=60). Toujours
-  // exactement 2 pins logiques (mandat §7/§8) : les 4 pattes visibles sont
-  // une représentation physique pure, non électrique.
-  // [FT-B-001-S2] `contacts` : 4 pattes métalliques physiques / 2 pins
-  // électriques canoniques (canonicalRegistry.js INCHANGÉ). Les deux pattes
-  // d'un même côté (gauche = pin1, droite = pin2) sont électriquement
-  // reliées dans le boîtier ; leurs `contact.id` ("1a"/"1b", "2a"/"2b") sont
-  // une identité de PRÉSENTATION uniquement, jamais un nœud électrique.
-  // Coordonnées = centroïdes pondérés par alpha des 4 blobs métalliques hors
-  // boîtier, mesurés sur button.released.3x.png (pixel-probe, cohérent 1x/3x)
-  // : gauche x≈13.6 → 14, droite x≈46.4 → 46 ; patte haute y≈4.95, patte
-  // basse y≈53.9. Le contact PAR DÉFAUT (premier déclaré, "1a"/"2a") est la
-  // patte BASSE à dy:58 — valeur exacte de l'ancienne projection
-  // BUTTON_VISUAL_PINS (MB-VIS-BUTTON-INTERACTION-008), donc les fils legacy
-  // sans contactId restent pixel-identiques. La patte haute ("1b"/"2b") est
-  // à dy:2 (miroir, extrémité de la patte supérieure).
   BUTTON: [
     { id: "pin1", label: "1", dx: 14, dy: 30, contacts: [
       { id: "1a", dx: 14, dy: 58, wireConnectable: true, breadboardInsertable: true },
@@ -69,20 +26,6 @@ const PIN_PRESENTATION_BY_TYPE = {
       { id: "2b", dx: 46, dy: 2, wireConnectable: true, breadboardInsertable: true },
     ] },
   ],
-  // [MB-VIS-BUTTON-ASSET-006] Même méthode, mesurée séparément sur
-  // button-latching.off.3x.png : pattes gauche/droite à x≈37.9/140.7
-  // (3x, soit ≈12.6/46.9 en 1x) — somme ≈178.6 (3x) / ≈59.5 (1x), légère
-  // asymétrie réelle de l'asset rocker (pas une erreur de mesure — déjà
-  // noté par la version précédente : "l'asset (rocker plus large) diffère
-  // physiquement" de BUTTON, toujours vrai avec ce nouvel asset). dy
-  // mesuré ≈90.7 (3x) / ≈30.2 (1x), identique à BUTTON. Valeurs arrondies
-  // en conservant la somme symétrique 60 (13+47) la plus proche de la
-  // mesure. Toujours exactement 2 pins logiques.
-  // [FT-B-001-S2] Même modèle que BUTTON — 4 pattes / 2 pins électriques.
-  // Mesuré séparément sur button-latching.off.3x.png : gauche x≈12.7 → 13,
-  // droite x≈46.9 → 47 ; patte haute y≈4.7, patte basse y≈53.9. Contact par
-  // défaut ("1a"/"2a") = patte basse à dy:58 = ancienne projection
-  // BUTTON_LATCHING_VISUAL_PINS (legacy pixel-identique).
   BUTTON_LATCHING: [
     { id: "pin1", label: "1", dx: 13, dy: 30, contacts: [
       { id: "1a", dx: 13, dy: 58, wireConnectable: true, breadboardInsertable: true },
@@ -93,24 +36,16 @@ const PIN_PRESENTATION_BY_TYPE = {
       { id: "2b", dx: 47, dy: 2, wireConnectable: true, breadboardInsertable: true },
     ] },
   ],
-  // [FT-B-001-S5] POWER n'est PAS un composant directement enfichable dans le
-  // breadboard : c'est une alimentation de paillasse reliée aux rails PAR FIL.
-  // `pin.dx/dy` (géométrie canonique / électrique héritée de MB-BREADBOARD-005)
-  // reste inchangée ; les CONTACTS physiques déclarés portent les vraies
-  // bornes raster (rouge/noire) et sont `breadboardInsertable: false`. Le
-  // registre POWER_VISUAL_PINS (pinPresentationGeometry.js) est supprimé —
-  // ces contacts sont l'unique source de présentation.
   POWER: [
-    { id: "5V", label: "+5V", dx: 70, dy: 37, contacts: [
-      { id: "5V", dx: 35, dy: 67, wireConnectable: true, breadboardInsertable: false },
-    ] },
-    { id: "GND", label: "GND", dx: 58, dy: 25, contacts: [
-      { id: "GND", dx: 22, dy: 67, wireConnectable: true, breadboardInsertable: false },
-    ] },
+    { id: "5V", label: "+5V", dx: 70, dy: 37, contacts: [{ id: "5V", dx: 35, dy: 67, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "GND", label: "GND", dx: 58, dy: 25, contacts: [{ id: "GND", dx: 22, dy: 67, wireConnectable: true, breadboardInsertable: false }] },
   ],
+  // FT-C — condensateur radial vertical. L'identité électrique historique
+  // pinA/pinB reste inchangée. Les PhysicalContacts sont centrés sous le corps
+  // avec l'entraxe 24 validé sur LED/LDR/THERMISTOR.
   CAPACITOR: [
-    { id: "pinA", label: "A", dx: 0, dy: 20 },
-    { id: "pinB", label: "B", dx: 70, dy: 20 },
+    { id: "pinA", label: "A", dx: 0, dy: 20, contacts: [{ id: "pinA", dx: 23, dy: 38, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "pinB", label: "B", dx: 70, dy: 20, contacts: [{ id: "pinB", dx: 47, dy: 38, wireConnectable: true, breadboardInsertable: true }] },
   ],
   BUZZER: [
     { id: "plus", label: "+", dx: 10, dy: 50 },
@@ -121,18 +56,10 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "wiper", label: "W", dx: 45, dy: 50 },
     { id: "right", label: "R", dx: 80, dy: 50 },
   ],
-  // FT-C — LDR traversante verticale : on conserve les pins logiques A/B,
-  // mais les contacts physiques visibles reprennent l'entraxe LED validé
-  // (24 unités), centré sur le composant. Les fils, hit-targets et trous
-  // utilisent ces PhysicalContacts ; l'identité électrique A/B ne change pas.
   LDR: [
     { id: "A", label: "A", dx: 0, dy: 18, contacts: [{ id: "A", dx: 30, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
     { id: "B", label: "B", dx: 84, dy: 18, contacts: [{ id: "B", dx: 54, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
   ],
-  // FT-C — THERMISTOR traversante verticale : même entraxe mécanique validé
-  // que LED/LDR (24 unités), centré sur le composant. Les pins logiques A/B
-  // restent inchangés ; seuls les PhysicalContacts de présentation/insertion
-  // sont déplacés sous le corps réel.
   THERMISTOR: [
     { id: "A", label: "A", dx: 0, dy: 18, contacts: [{ id: "A", dx: 30, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
     { id: "B", label: "B", dx: 84, dy: 18, contacts: [{ id: "B", dx: 54, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
@@ -142,40 +69,21 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "cathode", label: "K", dx: 84, dy: 15 },
   ],
   RGB_LED: [
-    // MB-VIS-COMP-033 correction physique : les 4 pattes sont rapprochées
-    // sous le dôme, conformément à la LED RGB réelle de référence. Les
-    // coordonnées canoniques précédentes 12/34/56/78 étaient trop écartées.
     { id: "R", label: "R", dx: 19, dy: 56 },
     { id: "common", label: "COM", dx: 35, dy: 56 },
     { id: "G", label: "G", dx: 53, dy: 56 },
     { id: "B", label: "B", dx: 71, dy: 56 },
   ],
-  // [FT-B-001-S5] NPN_TRANSISTOR EST directement enfichable (TO-92, 3 pattes
-  // traversantes). `pin.dx/dy` (géométrie canonique / électrique : coins du
-  // boîtier) reste inchangée ; les CONTACTS physiques déclarés portent les 3
-  // pattes métalliques réelles, mesurées par pixel-probe read-only validé CSA
-  // (alpha=255 sur 1x ET 3x, pitch=12 / tolérance=±2, insertion simultanée sur
-  // 3 trous consécutifs distincts). Mapping : base→B, collector→C, emitter→E ;
-  // `pin.id` (base/collector/emitter) inchangé. Registre
-  // NPN_TRANSISTOR_VISUAL_PINS (pinPresentationGeometry.js) supprimé.
   NPN_TRANSISTOR: [
     { id: "collector", label: "C", dx: 45, dy: 0, contacts: [{ id: "C", dx: 42.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }] },
     { id: "base", label: "B", dx: 0, dy: 45, contacts: [{ id: "B", dx: 31.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }] },
     { id: "emitter", label: "E", dx: 90, dy: 45, contacts: [{ id: "E", dx: 53.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }] },
   ],
-  // [FT-B-001-S5] SERVO : micro-servo SG90 avec câble/connecteur externe, non
-  // traversant. Câblable, mais PAS d'insertion breadboard directe : drapeau
-  // pin-level `breadboardInsertable: false` (aucune géométrie de connecteur
-  // parallèle créée — les coordonnées d'endpoint existantes sont conservées
-  // via le contact implicite en pin.dx/dy).
   SERVO: [
     { id: "signal", label: "SIG", dx: 90, dy: 20, breadboardInsertable: false },
     { id: "vcc", label: "VCC", dx: 90, dy: 35, breadboardInsertable: false },
     { id: "gnd", label: "GND", dx: 90, dy: 50, breadboardInsertable: false },
   ],
-  // [FT-B-001-S5] DC_MOTOR : cosses à souder, non traversant. Câblable, PAS
-  // d'insertion breadboard directe : drapeau pin-level `breadboardInsertable:
-  // false` ; contact implicite conservé en pin.dx/dy.
   DC_MOTOR: [
     { id: "plus", label: "+", dx: 0, dy: 25, breadboardInsertable: false },
     { id: "minus", label: "-", dx: 84, dy: 25, breadboardInsertable: false },
