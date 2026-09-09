@@ -20,14 +20,15 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 31 },
   },
-  // CAPACITOR céramique non polarisé — même longueur mécanique de pattes que
-  // le THERMISTOR : racines à y=31 et PhysicalContacts à y=62. L'entraxe reste
-  // 24 unités et l'identité électrique pinA/pinB reste inchangée.
+  // CAPACITOR céramique non polarisé — les racines de pattes sont volontairement
+  // engagées d'1 px sous le bord inférieur du disque (body: top=1, height=27,
+  // donc bord visuel à y=28). Cela évite tout jour optique entre le corps et
+  // les pattes. Les PhysicalContacts restent à y=62 et l'entraxe à 24 unités.
   CAPACITOR: {
     kind: "through-hole",
     leads: {
-      pinA: { root: { dx: 23, dy: 31 }, style: "wire" },
-      pinB: { root: { dx: 47, dy: 31 }, style: "wire" },
+      pinA: { root: { dx: 23, dy: 27 }, style: "wire" },
+      pinB: { root: { dx: 47, dy: 27 }, style: "wire" },
     },
   },
   LDR: {
