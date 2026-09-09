@@ -1,0 +1,31 @@
+{
+  "component": "COIN_CELL_CR2032",
+  "hashAlgorithm": "sha256",
+  "files": [
+    {
+      "file": "coin-cell-cr2032.default.1x.png",
+      "sha256": "57ba4373b6125ccfdc4436ece8ff714b6a264c6bc54d6162656a598404d48601",
+      "bytes": 2314
+    },
+    {
+      "file": "coin-cell-cr2032.default.1x.webp",
+      "sha256": "20ff7bf59c66ff1f726654579ab3782ecec20e6acde649cf086bc82a9385f4dd",
+      "bytes": 934
+    },
+    {
+      "file": "coin-cell-cr2032.default.3x.png",
+      "sha256": "56c83369dff986a8c48bbf0d24d189084cf7b181e6770f60b589bfc8336af003",
+      "bytes": 9429
+    },
+    {
+      "file": "coin-cell-cr2032.default.3x.webp",
+      "sha256": "7a70e930ff1cc9007fcc11b39bb72cacc7f90e36b4a8ede2e98ba1903bc36d70",
+      "bytes": 3690
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "2658e1adf3a39d7ccaddf998502771b83d9b95e504a37eb3b72923c312f2d3ad",
+      "bytes": 1530
+    }
+  ]
+}

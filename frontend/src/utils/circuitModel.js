@@ -59,6 +59,10 @@ export function normalizeComponent(component) {
     x: Number.isFinite(component.x) ? component.x : 0,
     y: Number.isFinite(component.y) ? component.y : 0,
     pins: Array.isArray(component.pins) ? [...component.pins] : [],
+    // FT-C-BAT-001-R2: structural transport only; parameter semantics belong to models.
+    ...(component.parameters && typeof component.parameters === "object" && !Array.isArray(component.parameters)
+      ? { parameters: { ...component.parameters } }
+      : {}),
     ..._normalizeInteractionState(component),
   }
 }

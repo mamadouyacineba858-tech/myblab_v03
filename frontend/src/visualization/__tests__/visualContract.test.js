@@ -110,7 +110,7 @@ describe('E — Physical Scale Contract : ancré aux dimensions canoniques réel
     expect(SCALE.confirmBy).toMatch(/PROTOTYPE/)
   })
 
-  it('SCALE_REFERENCE couvre exactement les 16 types enregistrés', () => {
+  it('SCALE_REFERENCE couvre exactement tous les types enregistrés', () => {
     const registered = DEFAULT_REGISTRATIONS.map((e) => e.type).sort()
     const referenced = SCALE_REFERENCE.map((e) => e.type).sort()
     expect(referenced).toEqual(registered)
@@ -254,11 +254,11 @@ describe('G — Backend Contract', () => {
     }
   })
 
-  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + CAPACITOR (004) + LDR (005) + THERMISTOR (006) + DC_MOTOR (007) + BUTTON + BUTTON_LATCHING (008) + BUZZER (031) + POTENTIOMETER (032) + RGB_LED (033) + NPN_TRANSISTOR (034) + SERVO (035) + POWER (036) + ARDUINO (037) — les 16 composants du catalogue sont désormais raster, plus aucun type ne reste en svg', () => {
+  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + CAPACITOR (004) + LDR (005) + THERMISTOR (006) + DC_MOTOR (007) + BUTTON + BUTTON_LATCHING (008) + BUZZER (031) + POTENTIOMETER (032) + RGB_LED (033) + NPN_TRANSISTOR (034) + SERVO (035) + POWER (036) + ARDUINO (037) — les composants du catalogue sont désormais raster, plus aucun type ne reste en svg', () => {
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'THERMISTOR'])
+    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'THERMISTOR'])
     expect(rasterTypes.length).toBe(DEFAULT_REGISTRATIONS.length)
   })
 })

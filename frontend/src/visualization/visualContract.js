@@ -92,6 +92,12 @@ export const SCALE = Object.freeze({
  * Sert à l'audit d'échelle relative (§E) — voir SCALE_AUDIT.
  */
 export const SCALE_REFERENCE = Object.freeze([
+    // FT-C-BAT-001-R1: front-view envelopes; holder/tab estimates are indicative.
+    // PP3: Energizer 522 datasheet, https://data.energizer.com/pdfs/522.pdf.
+    { type: 'BATTERY_9V', box: [70, 90], physicalMm: [26.5, 48.5], ref: 'pile PP3, face avant avec bornes', impliedUnitsPerMm: 90 / 48.5 },
+    { type: 'COIN_CELL_CR2032', box: [60, 60], physicalMm: [20, 24], ref: 'CR2032 vue de face, deux languettes comprises (~24 mm, indicatif)', impliedUnitsPerMm: 60 / 24 },
+    // AA cell is 50.5 x 14.5 mm (Energizer E91); the visible holder is larger.
+    { type: 'BATTERY_AA', box: [40, 100], physicalMm: [20, 60], ref: 'pile AA dans support, enveloppe du support ~20 x 60 mm (indicatif)', impliedUnitsPerMm: 100 / 60 },
   { type: 'LED',            box: [80, 64],   physicalMm: [5, 8.7],    ref: 'LED 5 mm traversante (pattes comprises ~30 mm)', impliedUnitsPerMm: 2.7 },
   { type: 'RESISTOR',       box: [84, 28],   physicalMm: [6.3, 2.5],  ref: 'axial 1/4 W (pattes comprises ~25 mm)',          impliedUnitsPerMm: 3.4 },
   { type: 'DIODE',          box: [84, 30],   physicalMm: [4, 2],      ref: '1N4148 DO-35 (pattes comprises ~25 mm)',          impliedUnitsPerMm: 3.4 },

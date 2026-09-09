@@ -57,10 +57,13 @@ function extractRootSvgOpenTag(codeOnly) {
 }
 
 describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> racine non codées en dur", () => {
-  it("la liste des fichiers scannés couvre bien les 16 Part renderers connus (aucun oubli silencieux)", () => {
+  it("la liste des fichiers scannés couvre bien tous les Part renderers connus (aucun oubli silencieux)", () => {
     expect(PART_FILES.sort()).toEqual(
       [
         "ArduinoPart.jsx",
+        "Battery9VPart.jsx",
+        "BatteryAaPart.jsx",
+        "CoinCellCr2032Part.jsx",
         "ButtonPart.jsx",
         "BuzzerPart.jsx",
         "CapacitorPart.jsx",

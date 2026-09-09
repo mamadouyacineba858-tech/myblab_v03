@@ -1,3 +1,4 @@
+import { getDcSource } from '../simulator/dcSourceRegistry.js'
 /**
  * componentLibraryRolloutGate.test.js — MB-VIS-COMP-008 (Phase 4, TEST G1-G10)
  *
@@ -79,14 +80,9 @@ describe("MB-VIS-COMP-008 — TEST G1-G4 : cohérence croisée des registres dé
   })
 
   it("G4 : chaque type canonique avec modelAvailable=true ET capability 'dc' a une contribution DC enregistrée (dcContributionRegistry.js), sinon computeDcAnalysis() l'ignorerait silencieusement (aucune erreur, mais composant électriquement inerte)", () => {
-    // POWER est l'unique exception légitime : c'est la SOURCE (seedée
-    // directement par resolveSignals(), voir resolution.js ligne "comp.type
-    // !== POWER"), jamais un consommateur passif itéré par
-    // computeDcAnalysis() via getDcContribution() — son absence de
-    // dcContributionRegistry.js est donc structurelle, pas un oubli.
-    const KNOWN_SOURCE_EXCEPTIONS = new Set(["POWER"])
+    // Registered DC sources seed signals; consumers contribute DC analysis.
     const missing = getAllCanonicalTypes().filter((type) => {
-      if (KNOWN_SOURCE_EXCEPTIONS.has(type)) return false
+      if (getDcSource({ type })) return false
       const entry = getCanonicalEntry(type)
       return entry.modelAvailable && entry.capabilities?.includes("dc") && !hasDcContribution(type)
     })

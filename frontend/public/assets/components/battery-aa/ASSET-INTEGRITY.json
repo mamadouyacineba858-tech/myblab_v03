@@ -1,0 +1,31 @@
+{
+  "component": "BATTERY_AA",
+  "hashAlgorithm": "sha256",
+  "files": [
+    {
+      "file": "battery-aa.default.1x.png",
+      "sha256": "b8d803074fd97ec5acffb86270cc6acaca125617871fe00c0c89f383ab6abfc4",
+      "bytes": 1329
+    },
+    {
+      "file": "battery-aa.default.1x.webp",
+      "sha256": "c95e350d6a925467dd48f1d7700bb551efbd8b8b3a7b01b832a5ce7557f938f4",
+      "bytes": 830
+    },
+    {
+      "file": "battery-aa.default.3x.png",
+      "sha256": "4d313738b6574b0cd7ac64c1cb9a1d679842b820a01266d4a92662e9f45d7062",
+      "bytes": 4066
+    },
+    {
+      "file": "battery-aa.default.3x.webp",
+      "sha256": "2a1f3ead252008b4eb832b5ebd1de1b489406278d82fc71dd34e47b823623fad",
+      "bytes": 2248
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "3408b10d22e9393bf6b224326393c5fbf471ca75aaf68bb8328897fd74ed36a5",
+      "bytes": 1505
+    }
+  ]
+}

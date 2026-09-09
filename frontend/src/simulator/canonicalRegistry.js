@@ -1,4 +1,7 @@
 const DECLARED_TYPES_PINS = {
+  BATTERY_AA:[{id:'plus',role:'power_out'},{id:'minus',role:'ground_out'}],
+  COIN_CELL_CR2032:[{id:'plus',role:'power_out'},{id:'minus',role:'ground_out'}],
+  BATTERY_9V:[{id:'plus',role:'power_out'},{id:'minus',role:'ground_out'}],
   LED:[{id:'anode',role:'input'},{id:'cathode',role:'input'}],
   RESISTOR:[{id:'A',role:'passive'},{id:'B',role:'passive'}],
   ARDUINO:[{id:'D2',role:'gpio'},{id:'D3',role:'gpio'},{id:'GND',role:'ground'},{id:'5V',role:'power'}],
@@ -17,9 +20,12 @@ const DECLARED_TYPES_PINS = {
   DC_MOTOR:[{id:'plus',role:'input'},{id:'minus',role:'input'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR']
 
 const DECLARED_PARAMETER_SCHEMA = {
+  BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
+  COIN_CELL_CR2032:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:3,maximum:3,defaultValue:3,description:'Tension nominale fixe de la pile'}],
+  BATTERY_9V:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:9,maximum:9,defaultValue:9,description:'Tension nominale fixe de la pile'}],
   POWER:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:0.001,maximum:1000,defaultValue:5,description:'Tension de sortie de la source en Volts'}],
   RESISTOR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e9,defaultValue:220,description:'Valeur de la résistance en Ohms'}],
   LDR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:100,maximum:10000000,defaultValue:10000,description:'Résistance fixe (mode simplifié MB-SIM-008) : cette LDR est modélisée par une résistance constante et ne dépend pas de la lumière — la relation éclairement → résistance est hors périmètre de MB-SIM-008.'}],
@@ -38,6 +44,9 @@ const DECLARED_PARAMETER_SCHEMA = {
 }
 
 const DECLARED_DEFAULT_PARAMETERS = {
+  BATTERY_AA:{voltage:1.5},
+  COIN_CELL_CR2032:{voltage:3},
+  BATTERY_9V:{voltage:9},
   POWER:{voltage:5},
   RESISTOR:{resistance:220},
   LDR:{resistance:10000},
@@ -50,6 +59,9 @@ const DECLARED_DEFAULT_PARAMETERS = {
 }
 
 const DECLARED_CAPABILITIES = {
+  BATTERY_AA:['digital','dc'],
+  COIN_CELL_CR2032:['digital','dc'],
+  BATTERY_9V:['digital','dc'],
   POWER:['digital','dc'],
   RESISTOR:['digital','dc'],
   LDR:['digital','dc'],
@@ -62,6 +74,9 @@ const DECLARED_CAPABILITIES = {
 }
 
 const DECLARED_MODEL_AVAILABLE = {
+  BATTERY_AA:true,
+  COIN_CELL_CR2032:true,
+  BATTERY_9V:true,
   POWER:true,
   RESISTOR:true,
   LDR:true,

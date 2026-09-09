@@ -1,3 +1,4 @@
+import { createVoltageSourceModel } from './models/VoltageSourceModel.js'
 import * as defaultCanonicalRegistry from './canonicalRegistry.js'
 import { PowerModel } from './models/PowerModel.js'
 import { ResistorModel } from './models/ResistorModel.js'
@@ -87,6 +88,10 @@ export function createSimulationRegistry({
 const defaultRegistry = createSimulationRegistry({
   models: [
     PowerModel,
+    createVoltageSourceModel('BATTERY_9V'),
+    createVoltageSourceModel('COIN_CELL_CR2032'),
+    createVoltageSourceModel('BATTERY_AA'),
+
     ResistorModel,
     LdrModel,
     ThermistorModel,

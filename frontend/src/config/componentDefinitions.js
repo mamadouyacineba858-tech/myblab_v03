@@ -7,6 +7,21 @@ import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
  * id et les propriétés propres à l'affichage et au positionnement.
  */
 const PIN_PRESENTATION_BY_TYPE = {
+  // FT-C-BAT-001: measured opaque terminal centers, verified on 1x and 3x PNGs.
+  BATTERY_AA: [
+    { id: "plus", label: "+", dx: 28.5, dy: 10.5, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "plus", dx: 28.5, dy: 10.5, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "minus", label: "−", dx: 12.5, dy: 10.5, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 12.5, dy: 10.5, wireConnectable: true, breadboardInsertable: false }] },
+  ],
+  // FT-C-BAT-001: measured opaque terminal centers, verified on 1x and 3x PNGs.
+  COIN_CELL_CR2032: [
+    { id: "plus", label: "+", dx: 30.5, dy: 8.5, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "plus", dx: 30.5, dy: 8.5, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "minus", label: "−", dx: 30.5, dy: 52.5, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 30.5, dy: 52.5, wireConnectable: true, breadboardInsertable: false }] },
+  ],
+  // FT-C-BAT-001: measured opaque terminal centers, verified on 1x and 3x PNGs.
+  BATTERY_9V: [
+    { id: "plus", label: "+", dx: 50.5, dy: 12.5, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "plus", dx: 50.5, dy: 12.5, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "minus", label: "−", dx: 20.5, dy: 12.5, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 20.5, dy: 12.5, wireConnectable: true, breadboardInsertable: false }] },
+  ],
   LED: [
     { id: "anode", label: "Anode", dx: 28, dy: 62 },
     { id: "cathode", label: "Cathode", dx: 52, dy: 62 },
@@ -214,6 +229,9 @@ export const COMPONENT_TYPES = {
   BUTTON: { id: "BUTTON", label: "Bouton", icon: "🔘", width: 60, height: 60, pins: buildPins("BUTTON"), interaction: { type: "momentary" }, initialState: "released" },
   BUTTON_LATCHING: { id: "BUTTON_LATCHING", label: "Interrupteur", icon: "🔲", width: 60, height: 60, pins: buildPins("BUTTON_LATCHING"), interaction: { type: "latching" }, initialState: "off" },
   POWER: { id: "POWER", label: "Alimentation", icon: "⚡", width: 70, height: 90, pins: buildPins("POWER") },
+  BATTERY_AA: { id: "BATTERY_AA", label: "Pile AA 1,5 V", icon: "🔋", width: 40, height: 100, pins: buildPins("BATTERY_AA") },
+  COIN_CELL_CR2032: { id: "COIN_CELL_CR2032", label: "Pile CR2032 3 V", icon: "🔋", width: 60, height: 60, pins: buildPins("COIN_CELL_CR2032") },
+  BATTERY_9V: { id: "BATTERY_9V", label: "Pile 9 V", icon: "🔋", width: 70, height: 90, pins: buildPins("BATTERY_9V") },
   CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 40, pins: buildPins("CAPACITOR") },
   BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 70, height: 50, pins: buildPins("BUZZER") },
   POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 90, height: 50, pins: buildPins("POTENTIOMETER") },
@@ -226,7 +244,7 @@ export const COMPONENT_TYPES = {
   DC_MOTOR: { id: "DC_MOTOR", label: "Moteur DC", icon: "🌀", width: 84, height: 50, pins: buildPins("DC_MOTOR") },
 }
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

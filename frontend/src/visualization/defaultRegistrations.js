@@ -1,3 +1,6 @@
+import { BatteryAaPart } from '../components/parts/BatteryAaPart.jsx';
+import { CoinCellCr2032Part } from '../components/parts/CoinCellCr2032Part.jsx';
+import { Battery9VPart } from '../components/parts/Battery9VPart.jsx';
 /**
  * Registrations par défaut des composants de visualisation
  *
@@ -52,6 +55,9 @@ import { resolvePresentation } from './visualContract.js';
  * @type {Array<{type: string, component: React.ComponentType, visual?: {backend?: string, bareBody?: boolean, markerless?: boolean}}>}
  */
 export const DEFAULT_REGISTRATIONS = [
+  { type: 'BATTERY_AA', component: BatteryAaPart, visual: { backend: 'raster' } },
+  { type: 'COIN_CELL_CR2032', component: CoinCellCr2032Part, visual: { backend: 'raster' } },
+  { type: 'BATTERY_9V', component: Battery9VPart, visual: { backend: 'raster' } },
   // LED : troisième composant à backend raster (paquet d'assets validé
   // MB-VIS-PROTOTYPE-003, états `off` / `on` — luminescence cuite dans
   // `led.on.*`). raster => bareBody + markerless dérivés, via le même

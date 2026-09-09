@@ -1,0 +1,83 @@
+{
+  "component": "COIN_CELL_CR2032",
+  "version": "1.0.0",
+  "backend": "raster",
+  "states": [
+    "default"
+  ],
+  "formats": [
+    "webp",
+    "png"
+  ],
+  "scales": [
+    "1x",
+    "3x"
+  ],
+  "dimensions": {
+    "1x": {
+      "width": 60,
+      "height": 60
+    },
+    "3x": {
+      "width": 180,
+      "height": 180
+    }
+  },
+  "canonical": {
+    "width": 60,
+    "height": 60,
+    "origin": "top-left",
+    "pins": {
+      "plus": [
+        30.5,
+        8.5
+      ],
+      "minus": [
+        30.5,
+        52.5
+      ]
+    }
+  },
+  "electrical": {
+    "nominalVoltage": 3.0,
+    "wireConnectable": true,
+    "breadboardInsertable": false
+  },
+  "background": "transparent",
+  "hashAlgorithm": "sha256",
+  "complexity": "medium",
+  "variants": [
+    {
+      "file": "coin-cell-cr2032.default.1x.png",
+      "state": "default",
+      "scale": "1x",
+      "format": "png",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "coin-cell-cr2032.default.1x.webp",
+      "state": "default",
+      "scale": "1x",
+      "format": "webp",
+      "width": 60,
+      "height": 60
+    },
+    {
+      "file": "coin-cell-cr2032.default.3x.png",
+      "state": "default",
+      "scale": "3x",
+      "format": "png",
+      "width": 180,
+      "height": 180
+    },
+    {
+      "file": "coin-cell-cr2032.default.3x.webp",
+      "state": "default",
+      "scale": "3x",
+      "format": "webp",
+      "width": 180,
+      "height": 180
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import { Signal } from "./signals.js"
 import { getSimulationDefaultParameters } from "./simulationRegistry.js"
+import { getDcSource } from "./dcSourceRegistry.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
 import { getDcContribution, getUnconditionalConductionPinPair } from "./dcContributionRegistry.js"
 
@@ -51,10 +52,22 @@ export function resolveSignals(components, prepared, externalSignals = null) {
   const pinSignals = new Map()
   for (const k of allKeys) pinSignals.set(k, Signal.UNKNOWN)
 
-  for (const comp of components) {
-    if (comp.type !== "POWER") continue
-    pinSignals.set(uf.key(comp.uid, "5V"), Signal.HIGH)
-    pinSignals.set(uf.key(comp.uid, "GND"), Signal.LOW)
+  const sources = components.map((comp) => ({ comp, source: getDcSource(comp) }))
+    .filter(({ source }) => source !== null)
+
+  for (const { comp, source } of sources) {
+    pinSignals.set(uf.key(comp.uid, source.positivePin), Signal.HIGH)
+    pinSignals.set(uf.key(comp.uid, source.negativePin), Signal.LOW)
+  }
+
+  // Preserve non-ambiguous digital signals, including separate source terminals.
+  // Opposing seeded levels on one net refuse the entire resolution, independent of order.
+  const conflictingNet = [...nets.values()].some((keys) =>
+    keys.some((k) => pinSignals.get(k) === Signal.HIGH)
+    && keys.some((k) => pinSignals.get(k) === Signal.LOW))
+  if (conflictingNet) {
+    for (const key of allKeys) pinSignals.set(key, Signal.UNKNOWN)
+    return { pinSignals, dcAnalysis: new Map() }
   }
 
   if (externalSignals) {
@@ -91,7 +104,9 @@ export function resolveSignals(components, prepared, externalSignals = null) {
 
   propagatePassiveConduction(components, prepared, pinSignals)
 
-  const dcAnalysis = computeDcAnalysis(components, prepared, pinSignals)
+  const dcAnalysis = sources.length === 1
+    ? computeDcAnalysis(components, prepared, pinSignals, sources[0].source.voltage)
+    : new Map()
   return { pinSignals, dcAnalysis }
 }
 
@@ -197,9 +212,8 @@ function buildPinSignalMap(comp, uf, pinSignals) {
   return map
 }
 
-function computeDcAnalysis(components, prepared, pinSignals) {
+function computeDcAnalysis(components, prepared, pinSignals, supplyVoltage) {
   const { uf } = prepared
-  const supplyVoltage = getSimulationDefaultParameters("POWER").voltage
   const dcAnalysis = new Map()
 
   for (const comp of components) {

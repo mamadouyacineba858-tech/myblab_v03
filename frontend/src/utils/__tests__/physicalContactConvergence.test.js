@@ -72,11 +72,11 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
     expect(resolveContact({ id: 'q', dx: 0, dy: 0 }, 'anything').id).toBe('q') // mono-contact
   })
 
-  it('les 16 types du catalogue -> drapeaux de contact booléens ; classification d\'enfichage FT-B-001-S5', () => {
+  it('tous les types du catalogue -> drapeaux de contact booléens ; classification d\'enfichage FT-B-001-S5', () => {
     // wireConnectable : true partout (tout composant est câblable).
     // breadboardInsertable : false pour POWER / ARDUINO / DC_MOTOR / SERVO
     // (drapeau pin-level ou contact explicite), true partout ailleurs.
-    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO'])
+    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032'])
     for (const type of ALL_TYPES) {
       for (const pin of getComponentDef(type).pins) {
         for (const c of resolveContacts(pin)) {
@@ -258,17 +258,18 @@ describe('FT-B-001-S5 — TEST S4-H/S5 : DC_MOTOR / BUZZER / SERVO', () => {
 })
 
 // ---------------------------------------------------------------------------
-// TEST S4-K / S4-N — matrice API PhysicalContact 16/16
+// TEST S4-K / S4-N — matrice API PhysicalContact du catalogue
 // ---------------------------------------------------------------------------
-describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact 16/16', () => {
+describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue', () => {
   const CATALOGUE = [
+    'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032',
     'LED', 'RESISTOR', 'ARDUINO', 'BUTTON', 'BUTTON_LATCHING', 'POWER', 'CAPACITOR',
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR',
     'SERVO', 'DC_MOTOR',
   ]
 
-  it('le catalogue compte exactement 16 types', () => {
-    expect(new Set(CATALOGUE).size).toBe(16)
+  it('le catalogue compte exactement 19 types', () => {
+    expect(new Set(CATALOGUE).size).toBe(19)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -313,7 +314,7 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact 16/16', () =
     }
   })
 
-  it('14 autres types : exactement 1 contact physique par pin', () => {
+  it('Autres types : exactement 1 contact physique par pin', () => {
     for (const type of CATALOGUE.filter((t) => t !== 'BUTTON' && t !== 'BUTTON_LATCHING')) {
       for (const pin of getComponentDef(type).pins) {
         expect(resolveContacts(pin)).toHaveLength(1)
@@ -322,10 +323,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact 16/16', () =
   })
 
   // FT-B-001-S5 — classification d'enfichage breadboard verrouillée (§15).
-  it('classification breadboardInsertable finale S5 : 12 enfichables / 4 non-directs', () => {
+  it('classification breadboardInsertable finale S5 : 12 enfichables / 7 non-directs', () => {
     const INSERTABLE = ['RESISTOR', 'LED', 'DIODE', 'CAPACITOR', 'LDR', 'THERMISTOR',
       'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER']
-    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO']
+    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032']
     expect([...INSERTABLE, ...NON_DIRECT].sort()).toEqual([...CATALOGUE].sort())
 
     const insertableContactCount = (type) =>

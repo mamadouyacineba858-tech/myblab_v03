@@ -1,0 +1,31 @@
+{
+  "component": "BATTERY_9V",
+  "hashAlgorithm": "sha256",
+  "files": [
+    {
+      "file": "battery-9v.default.1x.png",
+      "sha256": "1378a03f8ead72e2a70a2e3426d7b75d289cc602387d93d0a3f5d44ad1a0efb7",
+      "bytes": 1789
+    },
+    {
+      "file": "battery-9v.default.1x.webp",
+      "sha256": "29c73ea3124b98e5246925026dd9abdaa7bfce3d04b22eb1988cf1170d120ac4",
+      "bytes": 870
+    },
+    {
+      "file": "battery-9v.default.3x.png",
+      "sha256": "618d2492db76dc1c88fe0a62c2a3cbd1a386a30e7f60ae7fdb3d72fc051f9a41",
+      "bytes": 5194
+    },
+    {
+      "file": "battery-9v.default.3x.webp",
+      "sha256": "b89bb1deb92a2db9d2cc3c5e0c8b0e42ea32b88482b678f80be78ead82cb807e",
+      "bytes": 2144
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "f4d438c7a76258662abea60cd93b68f6c85f815d498f98e9f323db0ef272b8c7",
+      "bytes": 1501
+    }
+  ]
+}

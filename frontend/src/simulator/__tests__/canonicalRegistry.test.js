@@ -11,8 +11,8 @@ import * as CanonicalRegistry from '../canonicalRegistry.js';
 import { COMPONENT_TYPES } from '../../config/componentDefinitions.js';
 
 describe('canonicalRegistry — contract shape', () => {
-  it('exposes all 16 declared types', () => {
-    expect(getAllCanonicalTypes()).toHaveLength(16);
+  it('exposes all 19 declared types', () => {
+    expect(getAllCanonicalTypes()).toHaveLength(19);
     expect(getAllCanonicalTypes()).toContain('LED');
     expect(getAllCanonicalTypes()).toContain('POWER');
     expect(getAllCanonicalTypes()).toContain('RESISTOR');
@@ -169,7 +169,7 @@ describe('canonicalRegistry — contract shape', () => {
     expect(hasCanonicalType('NOT_A_REAL_TYPE')).toBe(false);
   });
 
-  it('every declared pin (16 types) matches componentDefinitions.js exactly', () => {
+  it('every declared pin (19 types) matches componentDefinitions.js exactly', () => {
     for (const type of Object.keys(COMPONENT_TYPES)) {
       const entry = getCanonicalEntry(type);
       expect(entry, `entry missing for ${type}`).not.toBeNull();
@@ -177,8 +177,8 @@ describe('canonicalRegistry — contract shape', () => {
     }
   });
 
-  it('getAllCanonicalEntries returns all 16 entries', () => {
-    expect(getAllCanonicalEntries()).toHaveLength(16);
+  it('getAllCanonicalEntries returns all 19 entries', () => {
+    expect(getAllCanonicalEntries()).toHaveLength(19);
   });
 });
 

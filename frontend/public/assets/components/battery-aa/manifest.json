@@ -1,0 +1,83 @@
+{
+  "component": "BATTERY_AA",
+  "version": "1.0.0",
+  "backend": "raster",
+  "states": [
+    "default"
+  ],
+  "formats": [
+    "webp",
+    "png"
+  ],
+  "scales": [
+    "1x",
+    "3x"
+  ],
+  "dimensions": {
+    "1x": {
+      "width": 40,
+      "height": 100
+    },
+    "3x": {
+      "width": 120,
+      "height": 300
+    }
+  },
+  "canonical": {
+    "width": 40,
+    "height": 100,
+    "origin": "top-left",
+    "pins": {
+      "plus": [
+        28.5,
+        10.5
+      ],
+      "minus": [
+        12.5,
+        10.5
+      ]
+    }
+  },
+  "electrical": {
+    "nominalVoltage": 1.5,
+    "wireConnectable": true,
+    "breadboardInsertable": false
+  },
+  "background": "transparent",
+  "hashAlgorithm": "sha256",
+  "complexity": "medium",
+  "variants": [
+    {
+      "file": "battery-aa.default.1x.png",
+      "state": "default",
+      "scale": "1x",
+      "format": "png",
+      "width": 40,
+      "height": 100
+    },
+    {
+      "file": "battery-aa.default.1x.webp",
+      "state": "default",
+      "scale": "1x",
+      "format": "webp",
+      "width": 40,
+      "height": 100
+    },
+    {
+      "file": "battery-aa.default.3x.png",
+      "state": "default",
+      "scale": "3x",
+      "format": "png",
+      "width": 120,
+      "height": 300
+    },
+    {
+      "file": "battery-aa.default.3x.webp",
+      "state": "default",
+      "scale": "3x",
+      "format": "webp",
+      "width": 120,
+      "height": 300
+    }
+  ]
+}
