@@ -20,10 +20,6 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 31 },
   },
-  // CAPACITOR céramique non polarisé — les racines de pattes sont volontairement
-  // engagées d'1 px sous le bord inférieur du disque (body: top=1, height=27,
-  // donc bord visuel à y=28). Cela évite tout jour optique entre le corps et
-  // les pattes. Les PhysicalContacts restent à y=62 et l'entraxe à 24 unités.
   CAPACITOR: {
     kind: "through-hole",
     leads: {
@@ -44,6 +40,18 @@ const ASSEMBLY_PROFILES = {
       A: { root: { dx: 30, dy: 31 }, style: "wire" },
       B: { root: { dx: 54, dy: 31 }, style: "wire" },
     },
+  },
+  // RGB LED — preserve canonical R/common/G/B identities while replacing the
+  // short baked-in legs with four long breadboard-ready dynamic leads.
+  RGB_LED: {
+    kind: "through-hole",
+    leads: {
+      R: { root: { dx: 19, dy: 30 }, style: "wire" },
+      common: { root: { dx: 35, dy: 30 }, style: "wire" },
+      G: { root: { dx: 53, dy: 30 }, style: "wire" },
+      B: { root: { dx: 71, dy: 30 }, style: "wire" },
+    },
+    bodyClip: { bottom: 26 },
   },
   NPN_TRANSISTOR: {
     kind: "through-hole",
