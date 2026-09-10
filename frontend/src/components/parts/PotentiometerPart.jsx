@@ -38,6 +38,9 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  *    dessinés ici ; les cosses cuites dans le raster sont masquées par
  *    `bodyClip` (`assemblyProfiles.js`), les cosses fonctionnelles sont
  *    rendues par AssemblyLeadsLayer ;
+ *  - le raster source contient encore deux coins blancs résiduels autour de
+ *    la base des cosses. Un clip polygonal local au renderer retire uniquement
+ *    ces zones de fond aux coins inférieurs tout en conservant l'embase bleue ;
  *  - le trait blanc du bouton est une surcouche VISUELLE pure, ancrée dans
  *    la boîte canonique 120×120. Elle restaure le repère de position validé
  *    par le PO lorsque le raster redimensionné ne le rend pas suffisamment
@@ -75,7 +78,13 @@ export function PotentiometerPart() {
           draggable={false}
           alt=""
           aria-hidden="true"
-          style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            pointerEvents: 'none',
+            clipPath: 'polygon(8% 0, 92% 0, 100% 70%, 91% 84%, 86% 100%, 14% 100%, 9% 84%, 0 70%)',
+          }}
         />
       </picture>
       <span
