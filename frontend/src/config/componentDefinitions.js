@@ -63,9 +63,9 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "minus", label: "-", dx: 60, dy: 50 },
   ],
   POTENTIOMETER: [
-    { id: "left", label: "L", dx: 10, dy: 50 },
-    { id: "wiper", label: "W", dx: 45, dy: 50 },
-    { id: "right", label: "R", dx: 80, dy: 50 },
+    { id: "left", label: "L", dx: 10, dy: 72 },
+    { id: "wiper", label: "W", dx: 45, dy: 72 },
+    { id: "right", label: "R", dx: 80, dy: 72 },
   ],
   LDR: [
     { id: "A", label: "A", dx: 0, dy: 18, contacts: [{ id: "A", dx: 30, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
