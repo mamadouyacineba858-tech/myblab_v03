@@ -79,12 +79,16 @@ const ASSEMBLY_PROFILES = {
     bodyClip: { bottom: 35 },
   },
   // FT-C-COMP-003 — potentiomètre rotatif (asset 120×120). Les 3 cosses sont
-  // cuites dans le raster ; `bodyClip.bottom = 32` masque tout ce qui est
-  // sous y=88 (natif), là où l'embase bleue se termine et où les cosses
-  // apparaissent. AssemblyLeadsLayer dessine ensuite les 3 cosses
-  // fonctionnelles (style `lug`) depuis la racine visuelle (dx 42 / 60 / 78,
-  // sous l'embase, cachée) jusqu'au PhysicalContact (dx 36 / 60 / 84, dy 108)
-  // — léger évasement des cosses extérieures, `wiper` vertical.
+  // cuites dans le raster. Le clip s'arrête maintenant à y=100
+  // (`bodyClip.bottom = 20`) afin de CONSERVER toute l'embase bleue visible
+  // au-dessus des trois pattes. L'ancien clip à y=88 supprimait justement la
+  // partie basse bleue de l'asset et donnait l'impression que les cosses
+  // fonctionnelles naissaient directement sous le corps métallique.
+  // AssemblyLeadsLayer garde les racines à dx 42 / 60 / 78, dy 86 : cette
+  // portion est peinte derrière le raster puis n'émerge qu'après l'embase,
+  // vers y=100, jusqu'aux PhysicalContacts. On conserve ainsi le léger
+  // évasement des cosses extérieures et le wiper vertical, sans modifier les
+  // identités électriques left / wiper / right.
   POTENTIOMETER: {
     kind: "through-hole",
     leads: {
@@ -92,7 +96,7 @@ const ASSEMBLY_PROFILES = {
       wiper: { root: { dx: 60, dy: 86 }, style: "lug" },
       right: { root: { dx: 78, dy: 86 }, style: "lug" },
     },
-    bodyClip: { bottom: 32 },
+    bodyClip: { bottom: 20 },
   },
 }
 
