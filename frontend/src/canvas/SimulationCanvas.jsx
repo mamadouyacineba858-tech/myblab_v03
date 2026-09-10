@@ -6,9 +6,10 @@
 // avant les tests de molette scopée au focus ajoutés par ce ticket
 // (ComponentFocusLocalZoom.integration.test.jsx). Aucun changement de
 // comportement : ajout d'import pur.
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
+import { resolveComponentBreadboardAssociation } from "../utils/breadboardAssociation.js"
 import { GridBackground } from "./GridBackground.jsx"
 import { Breadboard } from "./Breadboard.jsx"
 import { BreadboardWireEndpoints } from "./BreadboardWireEndpoints.jsx"
@@ -53,9 +54,40 @@ export function SimulationCanvas() {
   // fréquence — transmis en PROP à la SEULE instance CircuitComponent
   // focalisée ci-dessous, jamais lu par les autres (D6 du Blueprint 052).
   const {
-    components, breadboard, breadboardFeedback, breadboardInsertPreview,
+    components, breadboardsForRender, breadboardFeedback, breadboardInsertPreview,
     wirePaths, viewport, marqueeRect, localScale,
   } = useCircuitInteraction()
+
+  // FT-C-BREAD-MULTI-001-D : collection preview-aware, jamais un singleton.
+  const renderedBreadboards = useMemo(
+    () => (Array.isArray(breadboardsForRender) ? breadboardsForRender : []),
+    [breadboardsForRender]
+  )
+
+  // FT-C-BREAD-MULTI-001-D : owner mécanique D1 de CHAQUE composant, dérivé de
+  // `componentsForRender` (aperçu-aware) + `breadboardsForRender` (aperçu-aware)
+  // — cohérent pendant un drag de breadboard comme de composant. Aucun stockage
+  // de `component.breadboardId` ; aucune nouvelle règle physique (réutilise D1).
+  // Map<uid, breadboardEntry|null> mémoïsée : recalcul uniquement quand la liste
+  // des composants (aperçu inclus) ou celle des breadboards change.
+  const ownerBreadboardByUid = useMemo(() => {
+    const map = new Map()
+    for (const comp of components) {
+      const assoc = resolveComponentBreadboardAssociation({
+        breadboards: renderedBreadboards,
+        componentType: comp.type,
+        position: { x: comp.x, y: comp.y },
+        mode: "ownership",
+      })
+      map.set(comp.uid, assoc.breadboard || null)
+    }
+    return map
+  }, [components, renderedBreadboards])
+
+  // FT-C-BREAD-MULTI-001-D : feedback scopé par carte. Le hook expose
+  // `breadboardFeedback` sous forme Map<breadboardId, { draggedIds, valid }>
+  // (ou null) ; chaque <Breadboard> ne reçoit QUE le sien.
+  const feedbackByBreadboardId = breadboardFeedback instanceof Map ? breadboardFeedback : null
 
   // Référence pour savoir si le marquee est actif
   const isMarqueeActiveRef = useRef(false)
@@ -251,30 +283,39 @@ export function SimulationCanvas() {
         style={{ transform: `translate(${viewport.translateX}px, ${viewport.translateY}px) scale(${viewport.zoom})` }}
       >
         {showGrid && <GridBackground />}
-        <Breadboard
-          breadboard={breadboard}
-          components={components}
-          breadboardFeedback={breadboardFeedback}
-          breadboardInsertPreview={breadboardInsertPreview}
-        />
+        {/* FT-C-BREAD-MULTI-001-D : N instances rendues dans l'ordre de
+            breadboards[] (dernier = topmost, cohérent avec D1). Chaque
+            <Breadboard> ne reçoit QUE son feedback / son aperçu d'insertion
+            (scoping par breadboard.id — 001-C a déjà posé
+            breadboardInsertPreview.breadboardId). */}
+        {renderedBreadboards.map((bb) => (
+          <Breadboard
+            key={bb.id}
+            breadboard={bb}
+            components={components}
+            breadboardFeedback={feedbackByBreadboardId ? feedbackByBreadboardId.get(bb.id) ?? null : null}
+            breadboardInsertPreview={
+              breadboardInsertPreview && breadboardInsertPreview.breadboardId === bb.id
+                ? breadboardInsertPreview
+                : null
+            }
+          />
+        ))}
         <WiresLayer wirePaths={wirePaths} />
         <BreadboardWiresLayer />
-        <BreadboardWireEndpoints breadboard={breadboard} />
+        {renderedBreadboards.map((bb) => (
+          <BreadboardWireEndpoints key={bb.id} breadboard={bb} />
+        ))}
         <div className="simulation-canvas__components">
           {components.map((comp) => (
             <CircuitComponent
               key={comp.uid}
               component={comp}
-              // FT-C-001-A : le breadboard (déjà `breadboardForRender`,
-              // preview-aware — même source que `components` ci-dessus) est
-              // transmis en PROP pour que CircuitComponent dérive l'Assembly
-              // Geometry (pattes / cosses des composants traversants). Aucune
-              // logique mécanique ici : SimulationCanvas ne fait que passer la
-              // référence, CircuitComponent dérive via un helper pur
-              // (`utils/assemblyGeometry.js`). Pendant un drag de breadboard,
-              // `breadboard` et `components` bougent ensemble (aperçus
-              // solidaires) : les pattes suivent sans second état.
-              breadboard={breadboard}
+              // FT-C-BREAD-MULTI-001-D : Assembly Geometry attachée à l'OWNER
+              // MÉCANIQUE D1 du composant (résolu à partir des collections
+              // aperçu-aware) — jamais toute la collection, jamais breadboards[0].
+              // `null` si le composant n'appartient à aucune carte.
+              breadboard={ownerBreadboardByUid.get(comp.uid) ?? null}
               // MB-VIS-CANVAS-052 : `focused`/`localScale` en PROPS, jamais
               // via un Context — pour les 119+ composants NON focalisés,
               // ces deux valeurs restent `false`/`1` à l'identique à chaque

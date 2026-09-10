@@ -15,7 +15,7 @@ import "./Sidebar.css"
  */
 export function Sidebar() {
   const {
-    addComponent, addBreadboard, breadboard, clearCircuit, isWiringActive,
+    addComponent, addBreadboard, clearCircuit, isWiringActive,
     // MB-BREADBOARD-008 (O1/O6) : signale le début/la fin d'un drag HTML5
     // natif depuis la Sidebar — voir useCircuitState.js pour le détail.
     startSidebarComponentDrag, endSidebarComponentDrag,
@@ -25,19 +25,12 @@ export function Sidebar() {
     if (type) addComponent(type, 200, 180)
   }, [addComponent])
 
-  // MB-BREADBOARD-003 (limite disclosed héritée de MB-BREADBOARD-002 §5.2,
-  // ajout demandé par l'utilisateur en aval du ticket) : addBreadboard()
-  // existait déjà dans useCircuitState.js mais n'était accessible que via
-  // la console DevTools, faute d'affordance UI. Bouton strictement additif :
-  // n'appelle rien d'autre que la commande CommandBus déjà validée et
-  // testée (AddBreadboardHandler, LOCK-01). Désactivé/relabellisé quand un
-  // breadboard est déjà posé, en cohérence avec LOCK-01 (un seul breadboard
-  // par Document, un second addBreadboard() est de toute façon rejeté par
-  // le Handler — ce désactivage n'est qu'un confort visuel, pas une
-  // nouvelle règle).
+  // FT-C-BREAD-MULTI-001-D : LOCK-01 levé (001-A). Le bouton reste TOUJOURS
+  // actif — l'utilisateur peut ajouter N breadboards. `addBreadboard()` sans
+  // argument décale automatiquement chaque nouvelle carte (useCircuitState).
   const handleAddBreadboard = useCallback(() => {
-    if (!breadboard) addBreadboard()
-  }, [addBreadboard, breadboard])
+    addBreadboard()
+  }, [addBreadboard])
 
   const handleDragStart = useCallback((e, type) => {
     if (!type) return
@@ -63,9 +56,8 @@ export function Sidebar() {
           type="button"
           className="myblab-btn myblab-btn--primary"
           onClick={handleAddBreadboard}
-          disabled={!!breadboard}
         >
-          {breadboard ? "Breadboard posé" : "Ajouter un breadboard"}
+          Ajouter un breadboard
         </button>
       </section>
 

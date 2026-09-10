@@ -162,6 +162,8 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     breadboard: state.breadboard,
     // FT-C-BREAD-MULTI-001-A : collection canonique multi-breadboard.
     breadboards: state.breadboards,
+    // FT-C-BREAD-MULTI-001-D : collection preview-aware rendue par SimulationCanvas.
+    breadboardsForRender: state.breadboardsForRender,
     breadboardFeedback: state.breadboardFeedback,
     breadboardInsertPreview: state.breadboardInsertPreview,
     wirePaths: state.wirePaths,
@@ -177,7 +179,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     // SimulationCanvas.jsx/CircuitComponent.jsx pour le mécanisme complet.
     localScale: state.localScale,
   }), [
-    state.components, state.breadboard, state.breadboards, state.breadboardFeedback, state.breadboardInsertPreview,
+    state.components, state.breadboard, state.breadboards, state.breadboardsForRender, state.breadboardFeedback, state.breadboardInsertPreview,
     state.wirePaths, state.viewport, state.zoom, state.marqueeRect, state.localScale,
     state.wireGesture,
   ])

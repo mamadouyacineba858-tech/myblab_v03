@@ -135,7 +135,9 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
       // gestion Ctrl+clic ici (mélange breadboard+composants hors scope de
       // ce ticket).
       selectOnly({ type: "breadboard", id: breadboard.id })
-      startBreadboardDrag(e)
+      // FT-C-BREAD-MULTI-001-D : la carte draggée est identifiée par son id
+      // exact (cette instance) — plus de résolution singleton côté hook.
+      startBreadboardDrag(e, breadboard.id)
     },
     [breadboard?.id, selectOnly, startBreadboardDrag]
   )

@@ -29,7 +29,14 @@ function extendBounds(bounds, x, y) {
   }
 }
 
-export function computeSceneBounds(components = [], wires = [], breadboard = null) {
+/**
+ * @param {Array} components
+ * @param {Array} wires
+ * @param {object|Array|null} breadboardOrBreadboards - FT-C-BREAD-MULTI-001-D :
+ *   accepte une carte unique (forme historique) OU un tableau `breadboards[]`.
+ *   Chaque carte étend les bounds ; jamais un fallback vers la première.
+ */
+export function computeSceneBounds(components = [], wires = [], breadboardOrBreadboards = null) {
   let bounds = null
 
   for (const c of components || []) {
@@ -47,7 +54,13 @@ export function computeSceneBounds(components = [], wires = [], breadboard = nul
     }
   }
 
-  if (breadboard && breadboard.position) {
+  const breadboards = Array.isArray(breadboardOrBreadboards)
+    ? breadboardOrBreadboards
+    : breadboardOrBreadboards
+      ? [breadboardOrBreadboards]
+      : []
+  for (const breadboard of breadboards) {
+    if (!breadboard || !breadboard.position) continue
     const padding = BREADBOARD_PITCH
     const width = (STANDARD_V1_LAYOUT.columns - 1) * BREADBOARD_PITCH + padding * 2
     const height = (STANDARD_V1_TOTAL_ROWS - 1) * BREADBOARD_PITCH + padding * 2

@@ -105,6 +105,14 @@ import { createDefaultValidationRegistry } from "../core/validation/createValida
 
 const EMPTY_MAP = new Map()
 
+// FT-C-BREAD-MULTI-001-D : placement par défaut d'un nouveau breadboard ajouté
+// depuis l'UI, décalé horizontalement selon le nombre de cartes déjà posées.
+// Presentation only — aucune règle Core, aucune modification de holeAt/pitch.
+const NEW_BREADBOARD_BASE_X = 108
+const NEW_BREADBOARD_BASE_Y = 168
+const NEW_BREADBOARD_OFFSET_X =
+  (STANDARD_V1_LAYOUT.columns - 1) * BREADBOARD_PITCH + BREADBOARD_PITCH * 2 + 48
+
 export function useCircuitState(canvasRef, injectedOrchestrators) {
   const [components, setComponents] = useState([])
   const [wires, setWires] = useState([])
@@ -441,6 +449,24 @@ const getUndoCount = useCallback(() => {
     const preview = dragPreview.get(breadboard.id)
     return preview ? { ...breadboard, position: { x: preview.x, y: preview.y } } : breadboard
   }, [breadboard, dragPreview])
+
+  // FT-C-BREAD-MULTI-001-D : projection preview-aware de la COLLECTION
+  // canonique. Chaque entrée déplacée pendant un drag de breadboard prend sa
+  // position d'aperçu (dragPreview keyé par breadboard.id — même Map que les
+  // composants solidaires, MB-BREADBOARD-006) ; les entrées non déplacées
+  // conservent leur référence exacte (aucun re-render inutile). Le Document
+  // réel n'est jamais muté pendant pointermove.
+  const breadboardsForRender = useMemo(() => {
+    if (!dragPreview || dragPreview.size === 0) return breadboards
+    let changed = false
+    const next = breadboards.map((bb) => {
+      const preview = dragPreview.get(bb.id)
+      if (!preview) return bb
+      changed = true
+      return { ...bb, position: { x: preview.x, y: preview.y } }
+    })
+    return changed ? next : breadboards
+  }, [breadboards, dragPreview])
 
   // MB-VIS-004 : buildWirePaths ne prend plus selectedWireId (géométrie pure,
   // cf. circuitSelectors.js) — la sélection est désormais lue directement par
@@ -907,17 +933,28 @@ const adapted = toEngineInput(coreDoc);
   // =========================================================================
   // MB-BREADBOARD-002 (CSA Ruling GO du 2026-08-25) : canal de mutation
   // cible — CommandBus -> AddBreadboardHandler -> HistoryService. Même
-  // patron que addComponent/addWire. LOCK-01 (un seul breadboard) est
-  // appliqué côté Handler (refus explicite) — la garde ci-dessous
-  // (documentApi.getDocument().breadboard) évite en plus un dispatch inutile
-  // depuis l'UI, même précédent que la garde wireAlreadyExists() d'addWire.
+  // patron que addComponent/addWire.
+  // FT-C-BREAD-MULTI-001-D : LOCK-01 levé (001-A). La garde singleton UI est
+  // retirée — l'utilisateur peut ajouter N breadboards. Sans position
+  // explicite, chaque nouvelle carte est décalée horizontalement (constantes
+  // NEW_BREADBOARD_* de module) selon le nombre de cartes déjà posées, pour
+  // qu'elles soient IMMÉDIATEMENT distinguables (Presentation / default
+  // placement — aucune règle Core ; le chevauchement volontaire reste
+  // possible après un drag).
   // =========================================================================
-  const addBreadboard = useCallback((x = 120, y = 180) => {
+  const addBreadboard = useCallback((x, y) => {
     if (!commandBusRef.current) return
-    if (documentApi.getDocument().breadboard) return
+    const explicit = Number.isFinite(x) && Number.isFinite(y)
+    const count = breadboardsRef.current.length
+    const position = explicit
+      ? { x, y }
+      : {
+          x: NEW_BREADBOARD_BASE_X + count * NEW_BREADBOARD_OFFSET_X,
+          y: NEW_BREADBOARD_BASE_Y,
+        }
     try {
       const coreDocument = documentApi.getDocument()
-      const command = new Command("ADD_BREADBOARD", { position: { x, y } })
+      const command = new Command("ADD_BREADBOARD", { position })
       commandBusRef.current.dispatch(command, coreDocument)
     } catch (error) {
       console.error("addBreadboard: échec du dispatch via CommandBus", error)
@@ -1433,10 +1470,17 @@ if (import.meta.env.DEV) {
   // (INV-06). Sélection exclusive (§5 du Ruling) : aucune gestion Ctrl+clic
   // ici, toujours selectOnly() côté appelant (Breadboard.jsx).
   // =========================================================================
-  const startBreadboardDrag = useCallback((event) => {
+  const startBreadboardDrag = useCallback((event, breadboardId) => {
     if (!canvasRef?.current) return
-    const currentBreadboard = breadboardRef.current
-    if (!currentBreadboard) return
+    // FT-C-BREAD-MULTI-001-D : la carte draggée est résolue par son id exact
+    // (transmis par l'instance <Breadboard> cliquée) dans la collection
+    // canonique — plus de projection singleton. `breadboardId` omis : repli sûr
+    // sur la première carte (compat appelant historique) ; introuvable : no-op.
+    const boards = breadboardsRef.current || []
+    const currentBreadboard = breadboardId
+      ? boards.find((b) => b && b.id === breadboardId) || null
+      : boards[0] || null
+    if (!currentBreadboard || !currentBreadboard.position) return
 
     // Garde I-M1 : aucune autre interaction active.
     if (marqueeSessionRef.current !== null) return
@@ -1603,20 +1647,23 @@ if (import.meta.env.DEV) {
     // raison — cf. computeBreadboardPlacement) donne un accès synchrone au
     // breadboard courant sans élargir le tableau de dépendances de ce
     // useCallback.
+    // FT-C-BREAD-MULTI-001-D : marquee sur N breadboards — même géométrie de
+    // rectangle (constantes breadboardGeometry.js), appliquée à chaque carte
+    // de la collection canonique. Plus de projection singleton.
     const breadboardIds = new Set()
-    const currentBreadboard = breadboardRef.current
-    if (currentBreadboard && currentBreadboard.position) {
-      const bbPadding = BREADBOARD_PITCH
-      const bbWidth = (STANDARD_V1_LAYOUT.columns - 1) * BREADBOARD_PITCH + bbPadding * 2
-      const bbHeight = (STANDARD_V1_TOTAL_ROWS - 1) * BREADBOARD_PITCH + bbPadding * 2
-      const bbX = currentBreadboard.position.x - bbPadding
-      const bbY = currentBreadboard.position.y - bbPadding
+    const bbPadding = BREADBOARD_PITCH
+    const bbWidth = (STANDARD_V1_LAYOUT.columns - 1) * BREADBOARD_PITCH + bbPadding * 2
+    const bbHeight = (STANDARD_V1_TOTAL_ROWS - 1) * BREADBOARD_PITCH + bbPadding * 2
+    for (const bbEntry of breadboardsRef.current || []) {
+      if (!bbEntry || !bbEntry.position) continue
+      const bbX = bbEntry.position.x - bbPadding
+      const bbY = bbEntry.position.y - bbPadding
       if (rectsOverlap(
         rect.x, rect.y, rect.width, rect.height,
         bbX, bbY, bbWidth, bbHeight,
         0.5
       )) {
-        breadboardIds.add(currentBreadboard.id)
+        breadboardIds.add(bbEntry.id)
       }
     }
 
@@ -1714,7 +1761,8 @@ if (import.meta.env.DEV) {
   const fitToContent = useCallback(() => {
     const rect = canvasRef?.current?.getBoundingClientRect()
     if (!rect) return
-    const bounds = computeSceneBounds(componentsRef.current, wiresRef.current, breadboardRef.current)
+    // FT-C-BREAD-MULTI-001-D : la scène englobe TOUTES les cartes de breadboards[].
+    const bounds = computeSceneBounds(componentsRef.current, wiresRef.current, breadboardsRef.current)
     const next = fitViewportToBounds(bounds, { width: rect.width, height: rect.height })
     if (next) setViewport(next)
   }, [canvasRef])
@@ -1728,16 +1776,20 @@ if (import.meta.env.DEV) {
 
     const selectedComponentIds = new Set()
     const selectedWireIds = new Set()
+    const selectedBreadboardIds = new Set()
     selection.forEach((key) => {
       const parsed = parseSelectionKey(key)
       if (parsed.type === 'component') selectedComponentIds.add(parsed.id)
       if (parsed.type === 'wire') selectedWireIds.add(parsed.id)
+      if (parsed.type === 'breadboard') selectedBreadboardIds.add(parsed.id)
     })
-    if (selectedComponentIds.size === 0 && selectedWireIds.size === 0) return
+    if (selectedComponentIds.size === 0 && selectedWireIds.size === 0 && selectedBreadboardIds.size === 0) return
 
     const selectedComponents = componentsRef.current.filter((c) => selectedComponentIds.has(c.uid))
     const selectedWires = wiresRef.current.filter((w) => selectedWireIds.has(w.id))
-    const bounds = computeSceneBounds(selectedComponents, selectedWires, null)
+    // FT-C-BREAD-MULTI-001-D : les breadboards sélectionnés étendent aussi les bounds.
+    const selectedBreadboards = (breadboardsRef.current || []).filter((b) => selectedBreadboardIds.has(b.id))
+    const bounds = computeSceneBounds(selectedComponents, selectedWires, selectedBreadboards)
     const next = fitViewportToBounds(bounds, { width: rect.width, height: rect.height })
     if (next) setViewport(next)
   }, [canvasRef, selection])
@@ -1929,7 +1981,11 @@ if (import.meta.env.DEV) {
       // closure sans étendre les deps de cet effect). Le breadboard ne bouge pas
       // pendant un drag de COMPOSANT, donc pas d'écart avec l'aperçu.
       const dragBreadboards = breadboardsRef.current
-      let feedback = null
+      // FT-C-BREAD-MULTI-001-D : feedback SCOPÉ par breadboard — Map<breadboardId,
+      // { draggedIds:Set<uid>, valid }>. Une multi-sélection dont les composants
+      // tombent sur des cartes différentes produit un feedback distinct par
+      // carte, sans feedback fantôme sur les autres.
+      const feedbackById = new Map()
       session.componentsStart.forEach((startPos, uid) => {
         const raw = { x: startPos.startX + deltaX, y: startPos.startY + deltaY }
         const placement = computeMultiBreadboardPlacement(
@@ -1939,11 +1995,15 @@ if (import.meta.env.DEV) {
           componentsRef.current.filter((c) => c.uid !== uid)
         )
 
-        if (placement.breadboardActive) {
+        if (placement.breadboardActive && placement.breadboardId) {
           positionsMap.set(uid, placement.position)
-          if (!feedback) feedback = { draggedIds: new Set(), valid: true }
-          feedback.draggedIds.add(uid)
-          if (!placement.valid) feedback.valid = false
+          let fb = feedbackById.get(placement.breadboardId)
+          if (!fb) {
+            fb = { draggedIds: new Set(), valid: true }
+            feedbackById.set(placement.breadboardId, fb)
+          }
+          fb.draggedIds.add(uid)
+          if (!placement.valid) fb.valid = false
         } else {
           positionsMap.set(uid, {
             x: snapToGrid(raw.x),
@@ -1951,6 +2011,7 @@ if (import.meta.env.DEV) {
           })
         }
       })
+      const feedback = feedbackById.size > 0 ? feedbackById : null
 
       if (positionsMap.size > 0) {
         session.livePositions = positionsMap
@@ -2172,6 +2233,14 @@ if (import.meta.env.DEV) {
     setWireGesture(null)
     setComponents([])
     setWires([])
+    // FT-C-BREAD-MULTI-001-D (§20) : « Effacer le circuit » vide aussi la
+    // collection canonique de breadboards ET la projection transitoire —
+    // aucun breadboard fantôme ne subsiste. Les refs se resynchronisent via
+    // leurs useEffect existants (même patron que setComponents/setWires
+    // ci-dessus, qui ne touchent pas non plus componentsRef/wiresRef ici).
+    setBreadboards([])
+    setBreadboard(null)
+    setBreadboardInsertPreview(null)
     setPendingPin(null)
     setSelection(new Set())
     setActiveItem(null)
@@ -2319,14 +2388,16 @@ if (import.meta.env.DEV) {
   // non plus l'état brut) — même patron que components/componentsForRender
   // ci-dessus, reflète l'aperçu de drag pendant un déplacement du breadboard.
   breadboard: breadboardForRender,
-  // FT-C-BREAD-MULTI-001-A : collection canonique multi-breadboard exposée
-  // pour les tests et la future Presentation N-instances (001-D). Tant que
-  // 001-D n'a pas migré le rendu, SimulationCanvas continue de consommer
-  // `breadboard` (projection = breadboards[0]) ci-dessus.
+  // FT-C-BREAD-MULTI-001-A : collection canonique multi-breadboard.
   breadboards,
-  // MB-BREADBOARD-003 (Blueprint §3/§5) : exposé pour Breadboard.jsx — null
-  // en dehors d'un drag, sinon { draggedIds, valid } (voir déclaration plus
-  // haut dans ce hook).
+  // FT-C-BREAD-MULTI-001-D : projection preview-aware de la collection —
+  // consommée par SimulationCanvas pour rendre N <Breadboard> / N
+  // <BreadboardWireEndpoints>. `breadboard` (singulier) reste une projection
+  // transitoire (breadboards[0]) pour les consommateurs résiduels.
+  breadboardsForRender,
+  // MB-BREADBOARD-003 (Blueprint §3/§5) : exposé pour Breadboard.jsx.
+  // FT-C-BREAD-MULTI-001-D : désormais Map<breadboardId, { draggedIds:Set, valid }>
+  // (feedback scopé par carte) ou null.
   breadboardFeedback,
   // MB-BREADBOARD-008 (O5) : aperçu de drop Sidebar — voir déclaration plus
   // haut dans ce hook. `null` en dehors d'un drag Sidebar actif.
@@ -2447,6 +2518,7 @@ if (import.meta.env.DEV) {
   safeWires,
   breadboardForRender,
   breadboards,
+  breadboardsForRender,
   breadboardFeedback,
   breadboardInsertPreview,
   wirePaths,

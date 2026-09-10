@@ -317,8 +317,15 @@ describe('MB-BREADBOARD-003 — insertion interactive réelle sur breadboard (UI
     expect(realDuring.x).toBe(resistor.x)
     expect(realDuring.y).toBe(resistor.y)
     expect(result.current.getUndoCount()).toBe(undoCountBefore)
+    // FT-C-BREAD-MULTI-001-D : breadboardFeedback est désormais
+    // Map<breadboardId, { draggedIds:Set<uid>, valid }> (feedback scopé par
+    // carte). Le resistor draggé apparaît dans l'entrée de SA carte.
     expect(result.current.breadboardFeedback).not.toBe(null)
-    expect(result.current.breadboardFeedback.draggedIds.has(resistor.uid)).toBe(true)
+    expect(result.current.breadboardFeedback instanceof Map).toBe(true)
+    const draggedSomewhere = [...result.current.breadboardFeedback.values()].some((fb) =>
+      fb.draggedIds.has(resistor.uid)
+    )
+    expect(draggedSomewhere).toBe(true)
 
     // L'aperçu affiché (components -> componentsForRender), lui, a bien
     // bougé — sinon le feedback visuel n'aurait aucun sens.
