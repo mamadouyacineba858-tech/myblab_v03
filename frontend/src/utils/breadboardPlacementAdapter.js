@@ -34,7 +34,10 @@ import {
  * incompatible ⇒ jamais de placement/occupation/collision par le CORPS ;
  * ils restent reliés au breadboard PAR FIL.
  */
-function countInsertableContacts(def) {
+// FT-C-BREAD-MULTI-001-C : exporté pour que le resolver d'association
+// multi-breadboard (breadboardAssociation.js) partage EXACTEMENT le même
+// décompte de contacts physiques enfichables — jamais une seconde règle.
+export function countInsertableContacts(def) {
   if (!def || !Array.isArray(def.pins)) return 0
   return def.pins.reduce((n, pin) => n + resolveBreadboardInsertableContacts(pin).length, 0)
 }

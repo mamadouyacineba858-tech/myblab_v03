@@ -1,5 +1,6 @@
 import { getComponentDef } from '../../../config/componentDefinitions.js';
 import { resolveComponentContactHoles } from '../../../utils/breadboardGeometry.js';
+import { resolveComponentBreadboardAssociation } from '../../../utils/breadboardAssociation.js';
 
 /**
  * breadboardSolidarity.js — MB-BREADBOARD-006 (CSA Ruling §4).
@@ -30,16 +31,30 @@ import { resolveComponentContactHoles } from '../../../utils/breadboardGeometry.
  * Core ({id, position:{x,y}}), puisque cette fonction est appelée des deux
  * côtés du pipeline.
  *
+ * FT-C-BREAD-MULTI-001-C : 3ᵉ argument OPTIONNEL `breadboards`. Quand il est
+ * fourni (MoveBreadboardHandler, aperçu de drag breadboard côté hook), la
+ * solidarité devient l'OWNERSHIP CANONIQUE D1 : un composant est solidaire de
+ * `breadboard` SEULEMENT si `resolveComponentBreadboardAssociation(... mode:
+ * "ownership" ...)` désigne CE breadboard — donc un seul propriétaire, même en
+ * cas de chevauchement (I-C2/I-C9). Sans ce 3ᵉ argument (appelants legacy /
+ * tests mono-breadboard), le comportement historique « au moins un contact
+ * physique enfichable résout un trou de CE breadboard » est strictement
+ * préservé — équivalent à D1 quand `breadboards === [breadboard]`.
+ *
  * @param {{id:string, position:{x:number,y:number}}|null} breadboard
  * @param {Array<object>} components - forme Presentation OU Core, mixte non
- *   supportée au sein d'un même appel (chaque appelant utilise toujours sa
- *   propre forme constante).
+ *   supportée au sein d'un même appel.
+ * @param {Array<{id:string, position:{x:number,y:number}}>} [breadboards] -
+ *   collection canonique multi-breadboard ; active la résolution d'ownership D1.
  * @returns {Set<string>} identifiants (uid ou id selon la forme fournie) des
  *   composants solidaires.
  */
-export function resolveSolidaryComponentIds(breadboard, components) {
+export function resolveSolidaryComponentIds(breadboard, components, breadboards) {
   const solidary = new Set();
   if (!breadboard || !breadboard.position) return solidary;
+
+  const boards =
+    Array.isArray(breadboards) && breadboards.length > 0 ? breadboards.filter((b) => b && b.position) : null;
 
   for (const component of components || []) {
     if (!component) continue;
@@ -54,12 +69,21 @@ export function resolveSolidaryComponentIds(breadboard, components) {
     const def = getComponentDef(component.type);
     if (!def || !Array.isArray(def.pins)) continue;
 
-    // FT-B-001-S3 : classification CONTACT PHYSIQUE -> trou centralisée.
-    // Politique SOLIDARITÉ = au moins un CONTACT physique enfichable résolu sur
-    // un trou de CE breadboard (§8). Delta zéro pour un type mono-contact :
-    // anyResolved reste équivalent à def.pins.some(pin => holeAt(...) !== null),
-    // le contact implicite étant en pin.dx/dy. Un composant multi-contacts
-    // (BUTTON) est solidaire dès qu'une seule de ses 4 pattes est enfichée.
+    if (boards) {
+      // Ownership canonique D1 : UN SEUL breadboard propriétaire.
+      const assoc = resolveComponentBreadboardAssociation({
+        breadboards: boards,
+        componentType: component.type,
+        position: { x, y },
+        mode: 'ownership',
+      });
+      if (assoc.breadboardId === breadboard.id) solidary.add(componentId);
+      continue;
+    }
+
+    // FT-B-001-S3 (legacy 2 arguments) : au moins un CONTACT physique enfichable
+    // résout un trou de CE breadboard. Un composant multi-contacts (BUTTON) est
+    // solidaire dès qu'une seule de ses pattes est enfichée.
     const { anyResolved } = resolveComponentContactHoles(breadboard, def.pins, { x, y });
     if (anyResolved) solidary.add(componentId);
   }

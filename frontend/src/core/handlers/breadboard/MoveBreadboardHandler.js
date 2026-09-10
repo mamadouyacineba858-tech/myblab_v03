@@ -55,8 +55,11 @@ export class MoveBreadboardHandler extends BaseCommandHandler {
     const deltaY = toPosition.y - fromPosition.y;
 
     // Solidarité résolue contre le Document Core AVANT mutation, pour CE
-    // breadboard uniquement (jamais un autre).
-    const solidaryIds = resolveSolidaryComponentIds(breadboard, doc.components);
+    // breadboard uniquement. FT-C-BREAD-MULTI-001-C : `doc.breadboards` en 3ᵉ
+    // argument -> OWNERSHIP CANONIQUE D1 (un seul propriétaire mécanique, même
+    // en cas de chevauchement). Déplacer B ne suit donc jamais un composant
+    // dont l'owner D1 est A.
+    const solidaryIds = resolveSolidaryComponentIds(breadboard, doc.components, doc.breadboards);
     const componentMoves = [];
 
     const newComponents = (doc.components || []).map((component) => {

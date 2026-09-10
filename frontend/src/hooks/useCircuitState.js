@@ -1,10 +1,13 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { snapToGrid, GRID_SIZE } from "../utils/grid.js"
-// MB-BREADBOARD-003 (Blueprint §3) : snapping/validité de placement pendant
-// le drag d'un composant existant. Fonction pure, aucun état — voir
-// breadboardPlacementAdapter.js pour le contrat complet.
-import { computeBreadboardPlacement } from "../utils/breadboardPlacementAdapter.js"
+// MB-BREADBOARD-003 (Blueprint §3) : snapping/validité de placement pendant le
+// drag d'un composant. FT-C-BREAD-MULTI-001-C : le hook consomme désormais le
+// resolver de placement MULTI-CANDIDAT (D1) — `computeMultiBreadboardPlacement`
+// teste chaque breadboard de `breadboards[]` via `computeBreadboardPlacement`
+// (breadboardPlacementAdapter.js, INCHANGÉE) et retourne UN gagnant. Preview et
+// drop partagent cette primitive (I-C5).
+import { computeMultiBreadboardPlacement } from "../utils/breadboardAssociation.js"
 import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js"
 import { toEngineInput } from "../simulator/engineAdapter.js"
 import {
@@ -278,8 +281,12 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
       setBreadboardInsertPreview(null)
       return
     }
-    const currentBreadboard = breadboardRef.current
-    if (!currentBreadboard) {
+    // FT-C-BREAD-MULTI-001-C : résolution du breadboard cible par le resolver
+    // multi-candidat D1 (computeMultiBreadboardPlacement) — plus la projection
+    // singleton. `breadboardsRef` a ≤1 entrée tant que 001-D n'a pas ouvert
+    // l'ajout de N breadboards : comportement identique dans ce cas.
+    const currentBreadboards = breadboardsRef.current
+    if (!Array.isArray(currentBreadboards) || currentBreadboards.length === 0) {
       setBreadboardInsertPreview(null)
       return
     }
@@ -294,7 +301,7 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
     const point = clientToCanvas({ clientX, clientY }, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
     const x = point.x - GRID_SIZE * 2
     const y = point.y - GRID_SIZE
-    const placement = computeBreadboardPlacement(currentBreadboard, session.type, { x, y }, componentsRef.current)
+    const placement = computeMultiBreadboardPlacement(currentBreadboards, session.type, { x, y }, componentsRef.current)
     if (!placement.breadboardActive) {
       setBreadboardInsertPreview(null)
       return
@@ -302,7 +309,10 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
     const holes = placement.holes
       .filter((h) => h.column !== null && h.row !== null)
       .map((h) => ({ column: h.column, row: h.row }))
-    setBreadboardInsertPreview({ holes, valid: placement.valid })
+    // FT-C-BREAD-MULTI-001-C (§20) : `breadboardId` du breadboard gagnant —
+    // métadonnée pour que 001-D scope le feedback à la bonne instance ; le
+    // preview et le drop partagent ce même resolver (I-C5).
+    setBreadboardInsertPreview({ breadboardId: placement.breadboardId, holes, valid: placement.valid })
   }, [canvasRef])
 
   // MB-BREADBOARD-008 (I-P10, même garde que dragPreview/breadboardFeedback
@@ -812,10 +822,14 @@ const adapted = toEngineInput(coreDoc);
     // componentsRef.current (il ne sera créé que par le Handler après
     // dispatch) : aucun filtre d'auto-exclusion n'est donc nécessaire,
     // contrairement au chemin MOVE.
-    const breadboard = breadboardRef.current
-    const placement = breadboard
-      ? computeBreadboardPlacement(breadboard, type, { x, y }, componentsRef.current)
-      : { breadboardActive: false }
+    // FT-C-BREAD-MULTI-001-C : drop Sidebar résolu par le resolver multi-candidat
+    // D1 — le breadboard cible n'est plus supposé unique.
+    const placement = computeMultiBreadboardPlacement(
+      breadboardsRef.current,
+      type,
+      { x, y },
+      componentsRef.current
+    )
 
     // Point de régression principal : quand breadboardActive est vrai,
     // placement.position est DÉJÀ la position physiquement alignée sur la
@@ -1435,7 +1449,9 @@ if (import.meta.env.DEV) {
     // MB-VIS-CANVAS-051 (D3) : viewportRef, même raisonnement que startDrag.
     const pointer = clientToCanvas(event, rect, viewportRef.current.zoom, viewportRef.current.translateX, viewportRef.current.translateY)
 
-    const solidaryIds = resolveSolidaryComponentIds(currentBreadboard, componentsRef.current)
+    // FT-C-BREAD-MULTI-001-C : ownership canonique D1 (3ᵉ argument breadboards) —
+    // même source de vérité que MoveBreadboardHandler côté Core (INV-06).
+    const solidaryIds = resolveSolidaryComponentIds(currentBreadboard, componentsRef.current, breadboardsRef.current)
     const componentsStart = new Map()
     componentsRef.current.forEach((c) => {
       if (solidaryIds.has(c.uid)) {
@@ -1907,18 +1923,21 @@ if (import.meta.env.DEV) {
       // strict sur le snapToGrid GRID_SIZE existant (non-régression
       // LOCK-13/AC-20).
       const positionsMap = new Map()
-      const breadboard = breadboardRef.current
+      // FT-C-BREAD-MULTI-001-C : placement pendant le drag d'un composant résolu
+      // par le resolver multi-candidat D1. `breadboardsRef` (référence synchrone
+      // canonique, même motivation que l'ancien `breadboardRef` — pas de stale
+      // closure sans étendre les deps de cet effect). Le breadboard ne bouge pas
+      // pendant un drag de COMPOSANT, donc pas d'écart avec l'aperçu.
+      const dragBreadboards = breadboardsRef.current
       let feedback = null
       session.componentsStart.forEach((startPos, uid) => {
         const raw = { x: startPos.startX + deltaX, y: startPos.startY + deltaY }
-        const placement = breadboard
-          ? computeBreadboardPlacement(
-              breadboard,
-              startPos.type,
-              raw,
-              componentsRef.current.filter((c) => c.uid !== uid)
-            )
-          : { breadboardActive: false }
+        const placement = computeMultiBreadboardPlacement(
+          dragBreadboards,
+          startPos.type,
+          raw,
+          componentsRef.current.filter((c) => c.uid !== uid)
+        )
 
         if (placement.breadboardActive) {
           positionsMap.set(uid, placement.position)
