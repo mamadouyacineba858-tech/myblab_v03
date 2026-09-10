@@ -1,11 +1,17 @@
 import { BaseCommandHandler } from '../BaseCommandHandler.js';
 import { HandlerError } from '../errors/HandlerError.js';
 import { resolveSolidaryComponentIds } from './breadboardSolidarity.js';
+import { normalizeDocumentBreadboards } from '../../../utils/normalizeDocumentBreadboards.js';
 
-// MB-BREADBOARD-006 — MOVE_BREADBOARD, Option B.
-// The Core document uses {id, position:{x,y}} for components. The React
-// presentation uses {uid, x, y}; ReactDocumentMapper performs that translation.
-// This handler MUST therefore mutate the Core shape only.
+// MB-BREADBOARD-006 — MOVE_BREADBOARD, généralisé multi-breadboard par
+// FT-C-BREAD-MULTI-001-A : cible EXACTEMENT `payload.breadboardId` dans la
+// collection canonique `document.breadboards[]`. Déplacer B ne déplace jamais
+// A ou C ; seuls les composants solidaires de B (resolveSolidaryComponentIds,
+// primitive centrale INCHANGÉE — CSA §9) suivent B.
+//
+// Le Core document utilise {id, position:{x,y}} pour les composants ; la
+// présentation React utilise {uid, x, y} — ReactDocumentMapper fait la
+// traduction. Ce handler ne mute que la forme Core.
 export class MoveBreadboardHandler extends BaseCommandHandler {
   execute(command, document) {
     this._validateMovePayload(command);
@@ -22,19 +28,21 @@ export class MoveBreadboardHandler extends BaseCommandHandler {
     }
   }
 
-  _requireBreadboard(document, breadboardId) {
-    if (!document.breadboard || document.breadboard.id !== breadboardId) {
+  _requireBreadboard(doc, breadboardId) {
+    const breadboard = (doc.breadboards || []).find((b) => b.id === breadboardId);
+    if (!breadboard) {
       throw new HandlerError(
         `Aucun breadboard "${breadboardId}" dans ce Document.`,
         'BREADBOARD_NOT_FOUND'
       );
     }
-    return document.breadboard;
+    return breadboard;
   }
 
   _applyMutation(command, document) {
     const { breadboardId, fromPosition, toPosition } = command.payload;
-    const breadboard = this._requireBreadboard(document, breadboardId);
+    const doc = normalizeDocumentBreadboards(document);
+    const breadboard = this._requireBreadboard(doc, breadboardId);
 
     if (breadboard.position.x !== fromPosition.x || breadboard.position.y !== fromPosition.y) {
       throw new HandlerError(
@@ -46,42 +54,29 @@ export class MoveBreadboardHandler extends BaseCommandHandler {
     const deltaX = toPosition.x - fromPosition.x;
     const deltaY = toPosition.y - fromPosition.y;
 
-    // Solidarity is resolved against the Core document BEFORE mutation.
-    const solidaryIds = resolveSolidaryComponentIds(breadboard, document.components);
+    // Solidarité résolue contre le Document Core AVANT mutation, pour CE
+    // breadboard uniquement (jamais un autre).
+    const solidaryIds = resolveSolidaryComponentIds(breadboard, doc.components);
     const componentMoves = [];
 
-    const newComponents = (document.components || []).map((component) => {
+    const newComponents = (doc.components || []).map((component) => {
       if (!solidaryIds.has(component.id)) return component;
 
-      const oldPosition = {
-        x: component.position.x,
-        y: component.position.y,
-      };
-      const newPosition = {
-        x: oldPosition.x + deltaX,
-        y: oldPosition.y + deltaY,
-      };
+      const oldPosition = { x: component.position.x, y: component.position.y };
+      const newPosition = { x: oldPosition.x + deltaX, y: oldPosition.y + deltaY };
 
-      componentMoves.push({
-        componentId: component.id,
-        oldPosition,
-        newPosition,
-      });
+      componentMoves.push({ componentId: component.id, oldPosition, newPosition });
 
-      return {
-        ...component,
-        position: newPosition,
-      };
+      return { ...component, position: newPosition };
     });
 
-    const newDocument = {
-      ...document,
-      breadboard: {
-        ...breadboard,
-        position: { ...toPosition },
-      },
+    const newDocument = normalizeDocumentBreadboards({
+      ...doc,
+      breadboards: doc.breadboards.map((b) =>
+        b.id === breadboardId ? { ...b, position: { ...toPosition } } : b
+      ),
       components: newComponents,
-    };
+    });
 
     return {
       success: true,
@@ -105,30 +100,27 @@ export class MoveBreadboardHandler extends BaseCommandHandler {
       throw new HandlerError('Cannot redo MoveBreadboard: missing data');
     }
 
-    if (!document.breadboard || document.breadboard.id !== breadboardId) {
-      return { success: true, document };
+    const doc = normalizeDocumentBreadboards(document);
+    if (!doc.breadboards.some((b) => b.id === breadboardId)) {
+      return { success: true, document: doc };
     }
 
     const movesByComponentId = new Map(componentMoves.map((move) => [move.componentId, move]));
-    const newComponents = (document.components || []).map((component) => {
+    const newComponents = (doc.components || []).map((component) => {
       const move = movesByComponentId.get(component.id);
       if (!move) return component;
-      return {
-        ...component,
-        position: { ...move.newPosition },
-      };
+      return { ...component, position: { ...move.newPosition } };
     });
 
     return {
       success: true,
-      document: {
-        ...document,
-        breadboard: {
-          ...document.breadboard,
-          position: { ...newBreadboardPosition },
-        },
+      document: normalizeDocumentBreadboards({
+        ...doc,
+        breadboards: doc.breadboards.map((b) =>
+          b.id === breadboardId ? { ...b, position: { ...newBreadboardPosition } } : b
+        ),
         components: newComponents,
-      },
+      }),
       breadboardId,
       oldBreadboardPosition: lastResult.oldBreadboardPosition,
       newBreadboardPosition: { ...newBreadboardPosition },
@@ -142,30 +134,27 @@ export class MoveBreadboardHandler extends BaseCommandHandler {
       throw new HandlerError('Cannot undo MoveBreadboard: missing data');
     }
 
-    if (!document.breadboard || document.breadboard.id !== breadboardId) {
-      return { success: true, document };
+    const doc = normalizeDocumentBreadboards(document);
+    if (!doc.breadboards.some((b) => b.id === breadboardId)) {
+      return { success: true, document: doc };
     }
 
     const movesByComponentId = new Map(componentMoves.map((move) => [move.componentId, move]));
-    const newComponents = (document.components || []).map((component) => {
+    const newComponents = (doc.components || []).map((component) => {
       const move = movesByComponentId.get(component.id);
       if (!move) return component;
-      return {
-        ...component,
-        position: { ...move.oldPosition },
-      };
+      return { ...component, position: { ...move.oldPosition } };
     });
 
     return {
       success: true,
-      document: {
-        ...document,
-        breadboard: {
-          ...document.breadboard,
-          position: { ...oldBreadboardPosition },
-        },
+      document: normalizeDocumentBreadboards({
+        ...doc,
+        breadboards: doc.breadboards.map((b) =>
+          b.id === breadboardId ? { ...b, position: { ...oldBreadboardPosition } } : b
+        ),
         components: newComponents,
-      },
+      }),
       restored: true,
       breadboardId,
       componentMoves,

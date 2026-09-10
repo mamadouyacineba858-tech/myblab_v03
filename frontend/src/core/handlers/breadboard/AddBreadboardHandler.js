@@ -1,24 +1,29 @@
 import { BaseCommandHandler } from '../BaseCommandHandler.js';
 import { HandlerError } from '../errors/HandlerError.js';
 import { snapToBreadboardPitch } from '../../../utils/breadboardGeometry.js';
+import { normalizeDocumentBreadboards } from '../../../utils/normalizeDocumentBreadboards.js';
 
 /**
- * AddBreadboardHandler — MB-BREADBOARD-002.
+ * AddBreadboardHandler — MB-BREADBOARD-002, généralisé multi-breadboard par
+ * FT-C-BREAD-MULTI-001-A.
  *
- * Seule commande nouvelle introduite par ce ticket (Blueprint §6) : place
- * l'entité document.breadboard. Aucune commande d'insertion/retrait
- * dédiée n'est ajoutée — l'insertion d'un composant sur le breadboard
- * réutilise ADD_COMPONENT/MOVE_COMPONENT déjà gouvernés CF3, l'occupation
- * d'un trou étant entièrement dérivée de la position (LOCK-02, LOCK-07,
- * voir frontend/src/utils/breadboardConnectivity.js).
+ * Ajoute une entrée dans la collection canonique `document.breadboards[]`
+ * SANS remplacer les précédentes. LOCK-01 (un seul breadboard par Document)
+ * est LEVÉ : `[] -> [A] -> [A,B] -> [A,B,C]`, ordre déterministe (append).
  *
- * LOCK-01 (un seul breadboard par Document) : un second ADD_BREADBOARD sur
- * un Document qui en possède déjà un est refusé explicitement (HandlerError),
- * jamais silencieusement ignoré ni remplacé.
+ * Chaque entrée conserve : `id` unique, `position` snapée
+ * (snapToBreadboardPitch, inchangé), `layout` STANDARD_V1. Undo retire
+ * l'entrée d'`id` correspondant sans toucher aux autres ; redo la ré-ajoute
+ * avec le même `id` et les mêmes données.
  *
- * Suit le même patron que AddComponentHandler/RemoveComponentHandler :
- * _applyMutation/_applyRedo/_applyInverse opèrent sur le Document Core,
- * execute() délègue à BaseCommandHandler._executeWithHistory().
+ * Le document entrant est normalisé (normalizeDocumentBreadboards, frontière
+ * UNIQUE — CSA D3) : accepte indifféremment l'ancienne forme `{ breadboard }`
+ * ou la forme canonique `{ breadboards }`. Aucune branche `if/else` legacy
+ * ici.
+ *
+ * Suit le même patron que AddComponentHandler : _applyMutation/_applyRedo/
+ * _applyInverse opèrent sur le Document Core, execute() délègue à
+ * BaseCommandHandler._executeWithHistory().
  */
 export class AddBreadboardHandler extends BaseCommandHandler {
   execute(command, document) {
@@ -27,16 +32,18 @@ export class AddBreadboardHandler extends BaseCommandHandler {
   }
 
   _applyMutation(command, document) {
-    if (document.breadboard) {
-      throw new HandlerError(
-        'Un breadboard existe déjà dans ce Document (LOCK-01 : un seul breadboard par Document).',
-        'BREADBOARD_ALREADY_EXISTS'
-      );
-    }
+    const doc = normalizeDocumentBreadboards(document);
 
     const { position = { x: 0, y: 0 } } = command.payload || {};
     const id = command.payload?.breadboardId || this._generateBreadboardId();
     command.payload = { ...command.payload, breadboardId: id, position };
+
+    if (doc.breadboards.some((b) => b.id === id)) {
+      throw new HandlerError(
+        `Un breadboard "${id}" existe déjà dans ce Document.`,
+        'BREADBOARD_ALREADY_EXISTS'
+      );
+    }
 
     const newBreadboard = {
       id,
@@ -44,10 +51,10 @@ export class AddBreadboardHandler extends BaseCommandHandler {
       layout: 'STANDARD_V1',
     };
 
-    const newDocument = {
-      ...document,
-      breadboard: newBreadboard,
-    };
+    const newDocument = normalizeDocumentBreadboards({
+      ...doc,
+      breadboards: [...doc.breadboards, newBreadboard],
+    });
 
     return {
       success: true,
@@ -68,8 +75,11 @@ export class AddBreadboardHandler extends BaseCommandHandler {
       throw new HandlerError('Cannot redo AddBreadboard: missing breadboardId');
     }
 
-    if (document.breadboard && document.breadboard.id === breadboardId) {
-      return { success: true, document, breadboardId };
+    const doc = normalizeDocumentBreadboards(document);
+
+    if (doc.breadboards.some((b) => b.id === breadboardId)) {
+      // Déjà présent : idempotent, même patron qu'AddComponentHandler._applyRedo.
+      return { success: true, document: doc, breadboardId };
     }
 
     const { position } = command.payload;
@@ -79,10 +89,10 @@ export class AddBreadboardHandler extends BaseCommandHandler {
       layout: 'STANDARD_V1',
     };
 
-    const newDocument = {
-      ...document,
-      breadboard: newBreadboard,
-    };
+    const newDocument = normalizeDocumentBreadboards({
+      ...doc,
+      breadboards: [...doc.breadboards, newBreadboard],
+    });
 
     return {
       success: true,
@@ -103,14 +113,16 @@ export class AddBreadboardHandler extends BaseCommandHandler {
       throw new HandlerError('Cannot undo AddBreadboard: missing breadboardId in lastResult');
     }
 
-    if (!document.breadboard || document.breadboard.id !== breadboardId) {
-      return { success: true, document };
+    const doc = normalizeDocumentBreadboards(document);
+
+    if (!doc.breadboards.some((b) => b.id === breadboardId)) {
+      return { success: true, document: doc };
     }
 
-    const newDocument = {
-      ...document,
-      breadboard: null,
-    };
+    const newDocument = normalizeDocumentBreadboards({
+      ...doc,
+      breadboards: doc.breadboards.filter((b) => b.id !== breadboardId),
+    });
 
     return {
       success: true,

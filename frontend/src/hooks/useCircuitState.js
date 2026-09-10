@@ -89,6 +89,7 @@ import { AddBreadboardHandler } from "../core/handlers/breadboard/AddBreadboardH
 import { MoveBreadboardHandler } from "../core/handlers/breadboard/MoveBreadboardHandler.js"
 import { DeleteBreadboardHandler } from "../core/handlers/breadboard/DeleteBreadboardHandler.js"
 import { resolveSolidaryComponentIds } from "../core/handlers/breadboard/breadboardSolidarity.js"
+import { normalizeDocumentBreadboards } from "../utils/normalizeDocumentBreadboards.js"
 import {
   snapToBreadboardPitch,
   BREADBOARD_PITCH,
@@ -113,6 +114,14 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   // à l'écran (Presentation, LOCK-08 : lecture seule, aucune logique de
   // connectivité propre).
   const [breadboard, setBreadboard] = useState(null)
+  // FT-C-BREAD-MULTI-001-A : collection canonique multi-breadboard. `breadboard`
+  // (ci-dessus) devient une PROJECTION TRANSITOIRE lecture seule
+  // (`breadboards[0] ?? null`, dérivée par normalizeDocumentBreadboards) tant
+  // que la Presentation / la connectivité / l'engine ne consomment pas encore
+  // `breadboards[]` (FT-C-BREAD-MULTI-001-B / -D). Aucune logique de mutation
+  // n'écrit `breadboard` directement à partir de cette unité : ADD/MOVE/DELETE
+  // passent par les handlers qui muent `breadboards[]`.
+  const [breadboards, setBreadboards] = useState([])
   const [pendingPin, setPendingPin] = useState(null)
   const [wireGesture, setWireGesture] = useState(null)
   const wireGestureRef = useRef(null)
@@ -509,6 +518,14 @@ const adapted = toEngineInput(coreDoc);
     breadboardRef.current = breadboard
   }, [breadboard])
 
+  // FT-C-BREAD-MULTI-001-A : référence synchrone pour la collection canonique
+  // `breadboards[]` — lue par documentApi.getDocument() pour construire le
+  // Document Core remis aux handlers ADD/MOVE/DELETE_BREADBOARD.
+  const breadboardsRef = useRef(breadboards)
+  useEffect(() => {
+    breadboardsRef.current = breadboards
+  }, [breadboards])
+
   // MB-VIS-CANVAS-050 : référence synchrone équivalente pour `viewport`,
   // consommée UNIQUEMENT par le gros effect pointermove/up/cancel/blur
   // ci-dessous. Contrairement à `zoom` (049 — changements discrets, quelques
@@ -639,15 +656,16 @@ const adapted = toEngineInput(coreDoc);
     // requis par HistoryService/HistoryCommandAdapter pour le canal de
     // mutation cible. Dérivés d'API Core existantes (ReactDocumentMapper,
     // déjà en production pour toCore) — aucune API inventée.
-    getDocument: () => ReactDocumentMapper.toCore({
+    getDocument: () => normalizeDocumentBreadboards(ReactDocumentMapper.toCore({
       components: componentsRef.current,
       wires: wiresRef.current,
-      // MB-BREADBOARD-002 : breadboardRef.current est soit null (aucun
-      // breadboard), soit {id,position,layout} — ReactDocumentMapper.toCore
-      // recopie cette propriété inconnue telle quelle (_copyUnknownProperties),
-      // aucune extension du mapping déclaratif n'est nécessaire.
-      breadboard: breadboardRef.current,
-    }),
+      // FT-C-BREAD-MULTI-001-A : la collection canonique `breadboards[]` est
+      // recopiée telle quelle par ReactDocumentMapper.toCore
+      // (_copyUnknownProperties — un tableau non nul survit). normalizeDocument-
+      // Breadboards ajoute ensuite la projection transitoire `breadboard`
+      // (`breadboards[0] ?? null`) pour les lecteurs pas encore migrés.
+      breadboards: breadboardsRef.current,
+    })),
     applyDocument: (coreDocument) => {
       const reactDocument = ReactDocumentMapper.toReact(coreDocument)
       const nextComponents = (reactDocument.components || [])
@@ -656,25 +674,29 @@ const adapted = toEngineInput(coreDoc);
       const nextWires = (reactDocument.wires || [])
         .map(normalizeWire)
         .filter((w) => w !== null)
-      // MB-BREADBOARD-002 : reactDocument.breadboard est absent (clé non
-      // copiée par _copyUnknownProperties) aussi bien quand aucun breadboard
-      // n'a jamais existé que juste après un undo (AddBreadboardHandler
-      // pose alors document.breadboard = null explicitement) — ?? null
-      // normalise les deux cas vers le même état "aucun breadboard".
-      const nextBreadboard = reactDocument.breadboard ?? null
+      // FT-C-BREAD-MULTI-001-A : frontière de normalisation UNIQUE. Le
+      // Document remonté par un handler porte `breadboards[]` (canonique) ;
+      // normalizeDocumentBreadboards absorbe indifféremment cette forme ou
+      // l'ancienne `{ breadboard }` (undo, import legacy) et re-dérive la
+      // projection transitoire `breadboard`.
+      const norm = normalizeDocumentBreadboards(reactDocument)
+      const nextBreadboards = norm.breadboards
+      const nextBreadboard = norm.breadboard
       // Synchronisation immédiate (pas seulement via l'effet MB-004.5) :
       // sans cela, deux dispatches successifs dans le même batch React (avant
       // tout rendu) liraient tous deux le même componentsRef/wiresRef périmé
       // via getDocument(), et le second applyDocument() écraserait le premier
       // (remplacement non fonctionnel de l'état). Vérifié empiriquement via
       // DeleteCommand.integration.test.jsx (deux addComponent() consécutifs
-      // dans le même act()). Même raisonnement appliqué à breadboardRef.
+      // dans le même act()). Même raisonnement appliqué à breadboard(s)Ref.
       componentsRef.current = nextComponents
       wiresRef.current = nextWires
       breadboardRef.current = nextBreadboard
+      breadboardsRef.current = nextBreadboards
       setComponents(nextComponents)
       setWires(nextWires)
       setBreadboard(nextBreadboard)
+      setBreadboards(nextBreadboards)
     },
   }), [updateComponentPositions])
 
@@ -2150,9 +2172,12 @@ if (import.meta.env.DEV) {
   // l'objet exporté et ignoré à l'import (lacune préexistante, explicitement
   // mise hors scope par MB-BREADBOARD-002 Delivery Report §5.2 faute d'AC
   // qui l'exigeait alors — AC-23 de ce ticket la rend explicitement in-scope).
+  // FT-C-BREAD-MULTI-001-A : l'export porte la collection canonique
+  // `breadboards[]` ET la projection transitoire `breadboard` (rétro-compat
+  // des consommateurs / tests pas encore migrés — retiré en 001-E).
   const exportCircuit = useCallback(
-    () => ({ version: 1, components: safeComponents, wires: safeWires, breadboard }),
-    [safeComponents, safeWires, breadboard]
+    () => ({ version: 1, components: safeComponents, wires: safeWires, breadboards, breadboard }),
+    [safeComponents, safeWires, breadboards, breadboard]
   )
 
   const importCircuit = useCallback((data) => {
@@ -2161,13 +2186,14 @@ if (import.meta.env.DEV) {
     setWireGesture(null)
     setComponents(Array.isArray(data.components) ? data.components.map(normalizeComponent).filter((c) => c !== null) : [])
     setWires(Array.isArray(data.wires) ? data.wires.map(normalizeWire).filter((w) => w !== null) : [])
-    // MB-BREADBOARD-003 (AC-23) : restaure document.breadboard tel quel (même
-    // repli ?? null qu'applyDocument, MB-BREADBOARD-002). breadboardRef se
-    // resynchronise via son propre useEffect existant (safeComponents/
-    // safeWires suivent le même patron aujourd'hui pour componentsRef/
-    // wiresRef dans importCircuit — pas de synchronisation manuelle
-    // immédiate nécessaire ici, à la différence d'applyDocument).
-    setBreadboard(data.breadboard ? data.breadboard : null)
+    // FT-C-BREAD-MULTI-001-A : normalisation legacy à l'import — accepte
+    // `{ breadboards: [...] }` (nouveau), `{ breadboard: B }` ou
+    // `{ breadboard: null }` (ancien), via la frontière UNIQUE
+    // normalizeDocumentBreadboards. breadboard(s)Ref se resynchronisent via
+    // leurs useEffect existants (même patron que componentsRef/wiresRef ici).
+    const normImport = normalizeDocumentBreadboards(data)
+    setBreadboards(normImport.breadboards)
+    setBreadboard(normImport.breadboard)
     setPendingPin(null)
     setSelection(new Set())
     setActiveItem(null)
@@ -2270,6 +2296,11 @@ if (import.meta.env.DEV) {
   // non plus l'état brut) — même patron que components/componentsForRender
   // ci-dessus, reflète l'aperçu de drag pendant un déplacement du breadboard.
   breadboard: breadboardForRender,
+  // FT-C-BREAD-MULTI-001-A : collection canonique multi-breadboard exposée
+  // pour les tests et la future Presentation N-instances (001-D). Tant que
+  // 001-D n'a pas migré le rendu, SimulationCanvas continue de consommer
+  // `breadboard` (projection = breadboards[0]) ci-dessus.
+  breadboards,
   // MB-BREADBOARD-003 (Blueprint §3/§5) : exposé pour Breadboard.jsx — null
   // en dehors d'un drag, sinon { draggedIds, valid } (voir déclaration plus
   // haut dans ce hook).
@@ -2392,6 +2423,7 @@ if (import.meta.env.DEV) {
   componentsForRender,
   safeWires,
   breadboardForRender,
+  breadboards,
   breadboardFeedback,
   breadboardInsertPreview,
   wirePaths,

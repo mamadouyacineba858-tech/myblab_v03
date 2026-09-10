@@ -354,7 +354,7 @@ describe("MB-CF1-001 — état transitoire CF1 (CSA-CF1-003-B) : l'état React h
     expect(source).toMatch(/const\s*\[\s*wires\s*,\s*setWires\s*\]\s*=\s*useState/)
   })
 
-  it("[AMENDÉ par CSA-CF3-001-A — AC-006] documentApi conserve les 6 méthodes granulaires CF1 et gagne exactement getDocument/applyDocument, dérivés d'API Core existantes (ReactDocumentMapper) — pas d'API ad hoc", () => {
+  it("[AMENDÉ par CSA-CF3-001-A — AC-006 ; puis FT-C-BREAD-MULTI-001-A] documentApi conserve les 6 méthodes granulaires CF1 et gagne getDocument/applyDocument, dérivés de ReactDocumentMapper + de la frontière de normalisation multi-breadboard — pas d'API ad hoc", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     const documentApiBlock = source.match(/const documentApi = useMemo\(\(\) => \(\{[\s\S]*?\}\), \[[^\]]*\]\)/)
     expect(documentApiBlock).not.toBeNull()
@@ -373,10 +373,13 @@ describe("MB-CF1-001 — état transitoire CF1 (CSA-CF1-003-B) : l'état React h
       expect(block).toMatch(new RegExp(`\\b${method}\\b`))
     }
 
-    // getDocument/applyDocument doivent être des dérivations directes de
-    // ReactDocumentMapper (aucune API inventée), pas une implémentation ad hoc.
-    expect(block).toMatch(/getDocument:\s*\(\)\s*=>\s*ReactDocumentMapper\.toCore\(/)
+    // getDocument/applyDocument restent des dérivations de ReactDocumentMapper
+    // (aucune API inventée). FT-C-BREAD-MULTI-001-A ajoute la frontière de
+    // normalisation UNIQUE `normalizeDocumentBreadboards` (breadboard ->
+    // breadboards[]), primitive partagée — pas une implémentation ad hoc.
+    expect(block).toMatch(/getDocument:\s*\(\)\s*=>\s*normalizeDocumentBreadboards\(ReactDocumentMapper\.toCore\(/)
     expect(block).toMatch(/ReactDocumentMapper\.toReact\(/)
+    expect(block).toMatch(/normalizeDocumentBreadboards\(reactDocument\)/)
   })
 })
 
