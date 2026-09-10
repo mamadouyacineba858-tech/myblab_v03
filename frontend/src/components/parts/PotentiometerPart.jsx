@@ -33,12 +33,15 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  *  - dimensions dérivées de `getComponentDef("POTENTIOMETER")` (120×120,
  *    FT-C-COMP-003) — aucune valeur recopiée, aucune géométrie recalculée
  *    selon le zoom ;
- *  - PhysicalContacts left(36,108) / wiper(60,108) / right(84,108) :
- *    déclarés dans `PIN_PRESENTATION_BY_TYPE` (entraxe 24 = 2 × pitch),
- *    produits par CircuitComponent/Pin, jamais dessinés ici ; les cosses
- *    cuites dans le raster sont masquées par `bodyClip`
- *    (`assemblyProfiles.js`), les cosses fonctionnelles sont rendues par
- *    AssemblyLeadsLayer ;
+ *  - PhysicalContacts left / wiper / right sont déclarés dans
+ *    `PIN_PRESENTATION_BY_TYPE`, produits par CircuitComponent/Pin, jamais
+ *    dessinés ici ; les cosses cuites dans le raster sont masquées par
+ *    `bodyClip` (`assemblyProfiles.js`), les cosses fonctionnelles sont
+ *    rendues par AssemblyLeadsLayer ;
+ *  - le trait blanc du bouton est une surcouche VISUELLE pure, ancrée dans
+ *    la boîte canonique 120×120. Elle restaure le repère de position validé
+ *    par le PO lorsque le raster redimensionné ne le rend pas suffisamment
+ *    visible ; elle ne porte aucun événement et ne modifie pas `position` ;
  *  - l'`<img>` ne porte AUCUN gestionnaire, `draggable={false}`,
  *    `pointer-events: none` → drag / sélection / câblage / hit-test / zoom
  *    restent la responsabilité du wrapper `.circuit-component` ;
@@ -56,7 +59,11 @@ export function PotentiometerPart() {
   const height = def?.height ?? 120
 
   return (
-    <div className="part-potentiometer" aria-label="Potentiomètre">
+    <div
+      className="part-potentiometer"
+      aria-label="Potentiomètre"
+      style={{ position: 'relative', width: '100%', height: '100%' }}
+    >
       <picture className="part-potentiometer__picture">
         <source type="image/webp" srcSet={WEBP_SRCSET} />
         <img
@@ -71,6 +78,22 @@ export function PotentiometerPart() {
           style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
         />
       </picture>
+      <span
+        className="part-potentiometer__indicator"
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '8%',
+          width: '4%',
+          height: '22%',
+          transform: 'translateX(-50%)',
+          borderRadius: '999px',
+          background: '#f4f4f2',
+          boxShadow: '0 0 1px rgba(0,0,0,0.65)',
+          pointerEvents: 'none',
+        }}
+      />
     </div>
   )
 }
