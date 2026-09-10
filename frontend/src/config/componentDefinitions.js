@@ -62,10 +62,19 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "plus", label: "+", dx: 10, dy: 50 },
     { id: "minus", label: "-", dx: 60, dy: 50 },
   ],
+  // FT-C-COMP-003 — potentiomètre ROTATIF réaliste (asset 120×120). Les 3
+  // cosses métalliques verticales sont cuites dans le raster autour de
+  // x≈42 / 60 / 78 (probe pixel ; PO probe 40/60/80). Pour l'insertion
+  // breadboard les 3 PhysicalContacts fonctionnels sont recalés à
+  // dx 36 / 60 / 84 (entraxe 24 = 2 × BREADBOARD_PITCH exact, `wiper` aligné
+  // sur la cosse centrale) et dy 108 (multiple exact de 12 ; = probe
+  // `canonical.pins` du manifeste). AssemblyLeadsLayer relie racine visuelle
+  // → contact avec un léger évasement des cosses extérieures. IDs, rôles et
+  // modèle électrique (left/wiper/right, resistance, position) INCHANGÉS.
   POTENTIOMETER: [
-    { id: "left", label: "L", dx: 10, dy: 50 },
-    { id: "wiper", label: "W", dx: 45, dy: 50 },
-    { id: "right", label: "R", dx: 80, dy: 50 },
+    { id: "left", label: "L", dx: 36, dy: 108, contacts: [{ id: "left", dx: 36, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "wiper", label: "W", dx: 60, dy: 108, contacts: [{ id: "wiper", dx: 60, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "right", label: "R", dx: 84, dy: 108, contacts: [{ id: "right", dx: 84, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
   ],
   LDR: [
     { id: "A", label: "A", dx: 0, dy: 18, contacts: [{ id: "A", dx: 30, dy: 62, wireConnectable: true, breadboardInsertable: true }] },
@@ -138,7 +147,7 @@ export const COMPONENT_TYPES = {
   BATTERY_9V: { id: "BATTERY_9V", label: "Pile 9 V", icon: "🔋", width: 70, height: 90, pins: buildPins("BATTERY_9V") },
   CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 40, pins: buildPins("CAPACITOR") },
   BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 70, height: 50, pins: buildPins("BUZZER") },
-  POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 90, height: 50, pins: buildPins("POTENTIOMETER") },
+  POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 120, height: 120, pins: buildPins("POTENTIOMETER") },
   LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 36, pins: buildPins("LDR") },
   THERMISTOR: { id: "THERMISTOR", label: "Thermistance", icon: "🌡", width: 84, height: 36, pins: buildPins("THERMISTOR") },
   DIODE: { id: "DIODE", label: "Diode", icon: "↦|", width: 84, height: 30, pins: buildPins("DIODE") },

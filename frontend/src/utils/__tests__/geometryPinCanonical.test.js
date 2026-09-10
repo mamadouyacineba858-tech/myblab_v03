@@ -135,10 +135,11 @@ describe("MB-VIS-COMP-005 — getPinPosition() : fonction géométrique canoniqu
     // Valeurs figées ici depuis componentDefinitions.js. Sert de garde-fou de
     // non-régression : si une future modification de la définition change ces
     // valeurs, ce test échoue intentionnellement (comportement attendu).
-    // MB-VIS-COMP-032 §8 : la PRÉSENTATION visuelle du WIPER du POTENTIOMETER
-    // passe de (45,0) à (45,50) pour aligner les 3 contacts sur le bord bas de
-    // l'asset raster réaliste — changement de présentation autorisé par le
-    // ticket (IDs, rôles, modèle électrique, canonicalRegistry inchangés).
+    // FT-C-COMP-003 : la PRÉSENTATION visuelle des 3 contacts du POTENTIOMETER
+    // passe de left/wiper/right (10/45/80)@50 à (36/60/84)@108 pour le nouvel
+    // asset ROTATIF 120×120 (entraxe 24 = 2·pitch, dy 108 multiple de 12) —
+    // changement de présentation autorisé par le ticket (IDs, rôles, modèle
+    // électrique, canonicalRegistry STRICTEMENT inchangés).
     // [MB-VIS-BUTTON-ASSET-006] BUTTON/BUTTON_LATCHING dx remesurés depuis
     // zéro sur le nouveau paquet d'assets Tinkercad-style (précédemment
     // 8/51 et 7/52 sous MB-VIS-CONTACT-FOUNDATION-001, mesurés sur un asset
@@ -152,7 +153,7 @@ describe("MB-VIS-COMP-005 — getPinPosition() : fonction géométrique canoniqu
       CAPACITOR: [{ id: "pinA", dx: 0, dy: 20 }, { id: "pinB", dx: 70, dy: 20 }],
       BUTTON: [{ id: "pin1", dx: 14, dy: 30 }, { id: "pin2", dx: 46, dy: 30 }],
       BUTTON_LATCHING: [{ id: "pin1", dx: 13, dy: 30 }, { id: "pin2", dx: 47, dy: 30 }],
-      POTENTIOMETER: [{ id: "left", dx: 10, dy: 50 }, { id: "wiper", dx: 45, dy: 50 }, { id: "right", dx: 80, dy: 50 }],
+      POTENTIOMETER: [{ id: "left", dx: 36, dy: 108 }, { id: "wiper", dx: 60, dy: 108 }, { id: "right", dx: 84, dy: 108 }],
     }
 
     const component = { x: 500, y: 300 }

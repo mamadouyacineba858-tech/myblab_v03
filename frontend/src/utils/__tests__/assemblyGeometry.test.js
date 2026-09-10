@@ -37,10 +37,11 @@ const near = (a, b, t = TOL) => Math.abs(a - b) <= t
 //    cathode col4/row6, résidus 0/0/0 ;
 //  - NPN B(31.5)/C(42.5)/E(53.5)@58.5, écarts 11/11 → x=4.5,y=1.5 : col3/4/5
 //    row5, résidus 0/-1/-2 (11 ≠ pitch : target ≠ centre du trou pour C/E) ;
-//  - POT 10/45/80@50, écarts 35/35 → x=2,y=10 : col1/4/7 row5, résidus 0/-1/-2.
+//  - POT (FT-C-COMP-003) 36/60/84@108, écarts 24/24 = 2·pitch → x=0,y=0 :
+//    col3/5/7 row9, résidus 0/0/0.
 const LED_IN = { uid: "led-in", type: "LED", x: -4, y: 10 }
 const NPN_IN = { uid: "npn-in", type: "NPN_TRANSISTOR", x: 4.5, y: 1.5 }
-const POT_IN = { uid: "pot-in", type: "POTENTIOMETER", x: 2, y: 10 }
+const POT_IN = { uid: "pot-in", type: "POTENTIOMETER", x: 0, y: 0 }
 
 // ---------------------------------------------------------------------------
 // getBreadboardHolePosition
@@ -234,9 +235,9 @@ describe("I — POTENTIOMETER : 3 cosses", () => {
     const g = resolveAssemblyGeometry(pot, null)
     expect(g.contacts).toHaveLength(3)
     const byPin = Object.fromEntries(g.contacts.map((c) => [c.pinId, c]))
-    expect(byPin.left.target).toEqual({ x: 10, y: 50 })
-    expect(byPin.wiper.target).toEqual({ x: 45, y: 50 })
-    expect(byPin.right.target).toEqual({ x: 80, y: 50 })
+    expect(byPin.left.target).toEqual({ x: 36, y: 108 })
+    expect(byPin.wiper.target).toEqual({ x: 60, y: 108 })
+    expect(byPin.right.target).toEqual({ x: 84, y: 108 })
     for (const c of g.contacts) expect(c.style).toBe("lug")
   })
 

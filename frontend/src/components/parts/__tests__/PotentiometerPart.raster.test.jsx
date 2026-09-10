@@ -49,9 +49,9 @@ describe('MB-VIS-COMP-032 — POTENTIOMETER rend l\'asset raster réaliste', () 
     expect(container.querySelector('[aria-label="Potentiomètre"]')).not.toBeNull()
   })
 
-  it('4/5 — <img> width/height dérivés de getComponentDef("POTENTIOMETER") (90×50)', () => {
+  it('4/5 — <img> width/height dérivés de getComponentDef("POTENTIOMETER") (120×120, FT-C-COMP-003)', () => {
     const def = getComponentDef('POTENTIOMETER')
-    expect([def.width, def.height]).toEqual([90, 50])
+    expect([def.width, def.height]).toEqual([120, 120])
     const { container } = render(<PotentiometerPart />)
     const img = container.querySelector('img')
     expect(img.getAttribute('width')).toBe(String(def.width))
@@ -135,7 +135,7 @@ describe('MB-VIS-COMP-032 — pipeline réel : 3 pins logiques et interactions i
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('7/8/9/10/11 — CircuitComponent produit exactement les 3 pins logiques left(10,50) / wiper(45,50) / right(80,50) ; asset raster dans le wrapper', () => {
+  it('7/8/9/10/11 — CircuitComponent produit exactement les 3 pins logiques left(36,108) / wiper(60,108) / right(84,108) ; asset raster dans le wrapper', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('POTENTIOMETER', 50, 60) })
@@ -150,7 +150,7 @@ describe('MB-VIS-COMP-032 — pipeline réel : 3 pins logiques et interactions i
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining([[10, 50], [45, 50], [80, 50]]))
+    expect(positions).toEqual(expect.arrayContaining([[36, 108], [60, 108], [84, 108]]))
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
@@ -177,9 +177,9 @@ describe('MB-VIS-COMP-032 — pipeline réel : 3 pins logiques et interactions i
     const pins = [...container.querySelectorAll('.myblab-pin')]
     expect(pins.length).toBe(6)
     const rel = pins.map((el) => `${el.style.left}/${el.style.top}`)
-    expect(rel.filter((r) => r === '10px/50px').length).toBe(2)
-    expect(rel.filter((r) => r === '45px/50px').length).toBe(2)
-    expect(rel.filter((r) => r === '80px/50px').length).toBe(2)
+    expect(rel.filter((r) => r === '36px/108px').length).toBe(2)
+    expect(rel.filter((r) => r === '60px/108px').length).toBe(2)
+    expect(rel.filter((r) => r === '84px/108px').length).toBe(2)
     expect(container.querySelectorAll('.circuit-component__body img').length).toBe(2)
     expect(container.querySelectorAll('.circuit-component__body svg').length).toBe(0)
   })

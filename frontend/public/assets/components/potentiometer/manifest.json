@@ -2,26 +2,65 @@
   "component": "POTENTIOMETER",
   "backend": "raster",
   "state": "default",
+  "complexity": "complex",
   "states": [
     "default"
   ],
   "canonical": {
-    "width": 90,
-    "height": 50,
+    "width": 120,
+    "height": 120,
     "pins": {
       "left": [
-        10,
-        50
+        40,
+        108
       ],
       "wiper": [
-        45,
-        50
+        60,
+        108
       ],
       "right": [
         80,
-        50
+        108
       ]
-    }
+    },
+    "origin": "top-left"
+  },
+  "probe": {
+    "contacts1x": {
+      "left": [
+        40,
+        108
+      ],
+      "wiper": [
+        60,
+        108
+      ],
+      "right": [
+        80,
+        108
+      ]
+    },
+    "contacts3x": {
+      "left": [
+        120,
+        324
+      ],
+      "wiper": [
+        180,
+        324
+      ],
+      "right": [
+        240,
+        324
+      ]
+    },
+    "horizontalPitch1xPx": 20,
+    "estimatedLeadHeight1xPx": 22,
+    "electricalOrder": [
+      "left",
+      "wiper",
+      "right"
+    ]
   },
   "assets": [
     {
@@ -29,33 +68,41 @@
       "state": "default",
       "scale": "1x",
       "format": "png",
-      "width": 90,
-      "height": 50
+      "width": 120,
+      "height": 120,
+      "bytes": 19835,
+      "sha256": "2a4d928215d4618bdbcede6b828340bc7afe67269da4487af491b27e96c776cb"
     },
     {
       "file": "potentiometer.default.1x.webp",
       "state": "default",
       "scale": "1x",
       "format": "webp",
-      "width": 90,
-      "height": 50
+      "width": 120,
+      "height": 120,
+      "bytes": 13336,
+      "sha256": "d39dc511406af155f8205befdcd22a1b2f925553816d035ff7999a7c3730e95e"
     },
     {
       "file": "potentiometer.default.3x.png",
       "state": "default",
       "scale": "3x",
       "format": "png",
-      "width": 270,
-      "height": 150
+      "width": 360,
+      "height": 360,
+      "bytes": 117141,
+      "sha256": "b1bb01e21848343cd6d6937817943e8ac1e982335c4ee8b027b1808ff7409ddd"
     },
     {
       "file": "potentiometer.default.3x.webp",
       "state": "default",
       "scale": "3x",
       "format": "webp",
-      "width": 270,
-      "height": 150
+      "width": 360,
+      "height": 360,
+      "bytes": 75752,
+      "sha256": "2928b6009f95e9cce69923a1622ee6c70666da2051643464d3ab2618e217924d"
     }
   ],
-  "version": "1.0.0"
+  "version": "2.0.0-rotary"
 }
