@@ -466,12 +466,16 @@ const getUndoCount = useCallback(() => {
     // prouvée correcte sur un Document construit à la main, hors du hook.
     // Découvert via BreadboardInsertionMutationChannel.integration.test.jsx
     // (TEST 1), qui exerce pour la première fois ce chemin de bout en bout.
+    // FT-C-BREAD-MULTI-001-B : la couche électrique consomme la collection
+    // canonique `breadboards[]` (deriveBreadboardVirtualWires itère tous les
+    // breadboards, groupes namespacés par id) — plus la projection transitoire
+    // `breadboard`.
     const coreDoc = ReactDocumentMapper.toCore({
       components: safeComponents,
       wires: safeWires,
-      breadboard,
+      breadboards,
     });
-    
+
     // 2. Adapter le Document Core vers le format attendu par engine.js
 const adapted = toEngineInput(coreDoc);
     
@@ -491,7 +495,7 @@ const adapted = toEngineInput(coreDoc);
     console.error("MYBlab simulation error:", error)
     return EMPTY_MAP
   }
-}, [safeComponents, safeWires, breadboard, simulationActive, orchestrators])
+}, [safeComponents, safeWires, breadboards, simulationActive, orchestrators])
 
   const isWiringActive = pendingPin !== null || wireGesture !== null
 
