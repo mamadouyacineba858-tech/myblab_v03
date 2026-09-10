@@ -2,42 +2,45 @@ import React from 'react'
 import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
- * Rendu visuel Buzzer — backend RASTER (MB-VIS-COMP-031).
+ * Rendu visuel Buzzer — backend RASTER.
  *
- * Remplace l'ancien rendu SVG schématique (MB-COMPONENT-LIBRARY-002 :
- * `<line>`×2 pattes + `<circle>`×3 boîtier/membrane/trou + `<text>` « + »)
- * par l'asset raster réaliste produit et vérifié pour MB-VIS-COMP-031
- * (probe pixel PASS : 8 fichiers, 1x 60×60 / 3x 180×180, RGBA, fond
- * transparent, coins transparents, sujet unique, 3x = 3×1x), intégré via le
- * mécanisme déclaratif de MB-VIS-INDUSTRIAL-001 (`defaultRegistrations` →
- * `visual: { backend: 'raster' }` → `getComponentPresentation('BUZZER')` →
- * wrapper `data-bare-body` + pins `markerless`, sans aucun
- * `type === "BUZZER"` ni règle CSS spécifique dans le renderer central).
+ * FT-C-COMP-004 (Buzzer Realistic Physical Reconciliation) : l'ancien asset
+ * schématique (boîte 70×50, raster 60×60) est remplacé par le buzzer piézo
+ * TRAVERSANT réaliste validé par le Product Owner — corps cylindrique noir,
+ * vue légèrement supérieure, trou acoustique central, symbole « + » discret,
+ * deux pattes métalliques verticales, fond transparent (probe : 4 fichiers,
+ * 1x 120×120 / 3x 360×360, RGBA, 3x = 3×1x). Le paquet ne contient plus que
+ * l'état `default` — les anciens assets `buzzer.on.*` sont retirés, aucun
+ * état visuel « on » n'est réintroduit (hors périmètre FT-C-COMP-004).
  *
- * Patron identique à `ResistorPart.jsx` / `DiodePart.jsx` / `CapacitorPart.jsx`
- * / `DcMotorPart.jsx` : `frontend/public/` est servi à la racine web →
+ * Intégré via le mécanisme déclaratif de MB-VIS-INDUSTRIAL-001
+ * (`defaultRegistrations` → `visual: { backend: 'raster' }` →
+ * `getComponentPresentation('BUZZER')` → wrapper `data-bare-body` + pins
+ * `markerless`), sans aucun `type === "BUZZER"` ni règle CSS spécifique dans
+ * le renderer central. Patron identique à `ResistorPart.jsx` /
+ * `PolarizedCapacitorPart.jsx` : `frontend/public/` servi à la racine web →
  * `/assets/components/buzzer/…`, priorité WebP via `<picture>`, fallback PNG,
  * aucune logique JS de sélection d'asset.
  *
- * Composant STATIQUE — comportement inchangé (MB-VIS-COMP-031 §11) : le
- * pipeline actuel n'expose AUCUN état électrique/interactif exploitable pour
- * le BUZZER (`canonicalRegistry` : 2 pins `plus`/`minus` role `input`,
- * aucun modèle d'état ; aucun resolver de Visual State Registry ; aucune
- * prop `state` posée). Le renderer se limite donc à l'état `default`. Les
- * assets `buzzer.on.*` sont livrés dans le paquet mais NON câblés ici — les
- * brancher exigerait une modification du Core/Simulation, hors périmètre.
+ * Composant STATIQUE — comportement électrique STRICTEMENT inchangé : aucune
+ * prop reçue ni consommée, état unique `default`. Le modèle électrique
+ * (`canonicalRegistry` : 2 pins `plus` / `minus` role `input`, aucun modèle
+ * d'état) n'est pas touché ; aucune simulation, aucune animation, aucun glow.
  *
- * Contrat inchangé :
- *  - dimensions dérivées de `getComponentDef("BUZZER")` (70×50) — aucune
- *    valeur recopiée, `componentDefinitions.js` NON modifié ;
- *  - pins plus(10,50) / minus(60,50) : produits par CircuitComponent/Pin,
- *    jamais dessinés dans l'asset ni ici (les deux pattes visibles dans
- *    l'asset ne sont PAS des pins logiques) ;
+ * Contrat :
+ *  - dimensions dérivées de `getComponentDef("BUZZER")` (120×120,
+ *    FT-C-COMP-004) — aucune valeur recopiée, aucune géométrie recalculée
+ *    selon le zoom ; boîte carrée = raster carré → ratio conservé ;
+ *  - PhysicalContacts plus(42,108) / minus(78,108) déclarés dans
+ *    `PIN_PRESENTATION_BY_TYPE` (entraxe 36 = 3 × BREADBOARD_PITCH), produits
+ *    par CircuitComponent/Pin, jamais dessinés ici ; les pattes cuites dans
+ *    le raster sont masquées par `bodyClip` (`assemblyProfiles.js`), les
+ *    pattes fonctionnelles sont rendues par AssemblyLeadsLayer ;
  *  - l'`<img>` ne porte AUCUN gestionnaire, `draggable={false}`,
  *    `pointer-events: none` → drag / sélection / câblage / hit-test / zoom
  *    restent la responsabilité du wrapper `.circuit-component` ;
  *  - le composant ne reçoit ni ne consomme aucune prop → rendu déterministe,
- *    aucune collision d'id entre deux buzzers simultanés (plus aucun id SVG).
+ *    aucune collision d'id entre deux buzzers simultanés (aucun id DOM).
  */
 const ASSET_DIR = '/assets/components/buzzer'
 const WEBP_SRCSET = `${ASSET_DIR}/buzzer.default.1x.webp 1x, ${ASSET_DIR}/buzzer.default.3x.webp 3x`
@@ -46,8 +49,8 @@ const PNG_FALLBACK = `${ASSET_DIR}/buzzer.default.3x.png`
 
 export function BuzzerPart() {
   const def = getComponentDef("BUZZER")
-  const width = def?.width ?? 70
-  const height = def?.height ?? 50
+  const width = def?.width ?? 120
+  const height = def?.height ?? 120
 
   return (
     <div className="part-buzzer" aria-label="Buzzer">

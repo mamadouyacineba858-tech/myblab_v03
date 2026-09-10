@@ -59,6 +59,24 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 68 },
   },
+  // FT-C-COMP-004 — buzzer piézo traversant (asset 120×120). Les deux pattes
+  // métalliques sont cuites dans le raster (x≈42 / 77, y≈79..114), suivies
+  // d'une ombre de contact pâle et large. `bodyClip.bottom = 42` masque tout
+  // ce qui est sous y=78 (les pattes cuites + l'ombre parasite) tout en
+  // CONSERVANT l'intégralité du corps cylindrique noir, le trou acoustique et
+  // le symbole « + ». AssemblyLeadsLayer dessine ensuite les deux pattes
+  // fonctionnelles fines et droites (style `wire`) depuis la racine
+  // (dx 42 / 78, dy 76, alignée sur les pieds visibles) jusqu'aux
+  // PhysicalContacts (dy 108) — longueur ~32 px, harmonisée avec
+  // LED / LDR / THERMISTOR / POLARIZED_CAPACITOR.
+  BUZZER: {
+    kind: "through-hole",
+    leads: {
+      plus: { root: { dx: 42, dy: 76 }, style: "wire" },
+      minus: { root: { dx: 78, dy: 76 }, style: "wire" },
+    },
+    bodyClip: { bottom: 42 },
+  },
   RGB_LED: {
     kind: "through-hole",
     leads: {

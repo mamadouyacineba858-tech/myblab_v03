@@ -1,12 +1,17 @@
 /**
- * BuzzerPart.raster.test.jsx — MB-VIS-COMP-031.
+ * BuzzerPart.raster.test.jsx — MB-VIS-COMP-031, mis à jour FT-C-COMP-004.
  *
  * Prouve l'intégration raster du BUZZER via le mécanisme déclaratif de
  * MB-VIS-INDUSTRIAL-001 (aucun couplage par type, aucune règle CSS spécifique),
  * en suivant EXACTEMENT le patron de
  * Resistor/Diode/Capacitor/Ldr/Thermistor/DcMotorPart.raster.test.jsx.
  *
- * Couvre les 15 points du §16 du ticket :
+ * FT-C-COMP-004 (Buzzer Realistic Physical Reconciliation) : boîte canonique
+ * 120×120 (au lieu de 70×50), asset piézo traversant réaliste, PhysicalContacts
+ * plus(42,108) / minus(78,108). Le contrat d'intégration raster (points ci-
+ * dessous) est inchangé.
+ *
+ * Couvre les 15 points du §16 du ticket d'origine :
  *  1. rend un <img> ; 2. aucun <svg> ; 3. aria-label="Buzzer" ;
  *  4/5. width/height = getComponentDef("BUZZER") ; 6. src dans /assets/components/buzzer/ ;
  *  7. <picture> ; 8. source WebP ; 9. fallback PNG ;
@@ -51,7 +56,7 @@ describe('MB-VIS-COMP-031 — BUZZER rend l\'asset raster réaliste', () => {
 
   it('4/5 — <img> width/height dérivés de getComponentDef("BUZZER")', () => {
     const def = getComponentDef('BUZZER')
-    expect([def.width, def.height]).toEqual([70, 50])
+    expect([def.width, def.height]).toEqual([120, 120])
     const { container } = render(<BuzzerPart />)
     const img = container.querySelector('img')
     expect(img.getAttribute('width')).toBe(String(def.width))
@@ -135,7 +140,7 @@ describe('MB-VIS-COMP-031 — pipeline réel : pins logiques et interactions inc
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('13 — CircuitComponent produit exactement les 2 pins logiques BUZZER plus(10,50) / minus(60,50) ; asset raster dans le wrapper', () => {
+  it('13 — CircuitComponent produit exactement les 2 pins logiques BUZZER plus(42,108) / minus(78,108) ; asset raster dans le wrapper', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('BUZZER', 50, 60) })
@@ -149,7 +154,7 @@ describe('MB-VIS-COMP-031 — pipeline réel : pins logiques et interactions inc
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining([[10, 50], [60, 50]]))
+    expect(positions).toEqual(expect.arrayContaining([[42, 108], [78, 108]]))
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
@@ -176,8 +181,8 @@ describe('MB-VIS-COMP-031 — pipeline réel : pins logiques et interactions inc
     const pins = [...container.querySelectorAll('.myblab-pin')]
     expect(pins.length).toBe(4)
     const rel = pins.map((el) => `${el.style.left}/${el.style.top}`)
-    expect(rel.filter((r) => r === '10px/50px').length).toBe(2)
-    expect(rel.filter((r) => r === '60px/50px').length).toBe(2)
+    expect(rel.filter((r) => r === '42px/108px').length).toBe(2)
+    expect(rel.filter((r) => r === '78px/108px').length).toBe(2)
     expect(container.querySelectorAll('.circuit-component__body img').length).toBe(2)
     expect(container.querySelectorAll('.circuit-component__body svg').length).toBe(0)
   })

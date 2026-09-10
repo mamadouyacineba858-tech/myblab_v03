@@ -110,7 +110,7 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'BUTTON',         box: [60, 60],   physicalMm: [6.5, 6.5],  ref: 'tact switch 6×6',                                 impliedUnitsPerMm: 9.2 },
   { type: 'BUTTON_LATCHING',box: [60, 60],   physicalMm: [13, 8],     ref: 'interrupteur à bascule ~13×8',                    impliedUnitsPerMm: 4.6 },
   { type: 'POWER',          box: [70, 90],   physicalMm: [50, 70],    ref: 'bloc alim breadboard (indicatif)',                impliedUnitsPerMm: 1.3 },
-  { type: 'BUZZER',         box: [70, 50],   physicalMm: [12, 12],    ref: 'buzzer piézo Ø12',                                impliedUnitsPerMm: 5.8 },
+  { type: 'BUZZER',         box: [120, 120], physicalMm: [12, 20],    ref: 'buzzer piézo Ø12, pattes comprises ~20 mm (FT-C-COMP-004)', impliedUnitsPerMm: 120 / 20 },
   { type: 'POTENTIOMETER',  box: [120, 120], physicalMm: [16, 26],    ref: 'potentiomètre rotatif Ø16, axe/bouton compris ~26 mm (FT-C-COMP-003)', impliedUnitsPerMm: 120 / 26 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },

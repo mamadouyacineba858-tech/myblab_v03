@@ -1,92 +1,101 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0-realistic",
   "component": "BUZZER",
   "backend": "raster",
   "assetFamily": "buzzer",
+  "complexity": "complex",
   "canonical": {
-    "width": 70,
-    "height": 50,
+    "width": 120,
+    "height": 120,
+    "origin": "top-left",
     "pins": {
       "plus": [
-        10,
-        50
+        42,
+        108
       ],
       "minus": [
-        60,
-        50
+        78,
+        108
       ]
     }
   },
   "states": [
-    "default",
-    "on"
+    "default"
   ],
-  "visualReference": "Through-hole piezo/magnetic buzzer, black cylindrical plastic case, central membrane opening, two metal legs, discrete + mark.",
-  "note": "Renderer (MB-VIS-COMP-031) uses only the \"default\" state; \"on\" assets are shipped for a later ticket that wires an electrical state without Core/Simulation changes.",
+  "visualReference": "Through-hole piezo buzzer, black cylindrical plastic case, central acoustic opening, discrete plus marking, two long metal legs.",
+  "probe": {
+    "contacts1x": {
+      "plus": [
+        42,
+        108
+      ],
+      "minus": [
+        78,
+        108
+      ]
+    },
+    "contacts3x": {
+      "plus": [
+        126,
+        324
+      ],
+      "minus": [
+        234,
+        324
+      ]
+    },
+    "horizontalPitch1xPx": 36,
+    "estimatedLeadHeight1xPx": 32,
+    "reconciliation": "FT-C-COMP-004 — PO probe plus(44,108)/minus(76,108) spacing 32 recalibrated to plus(42,108)/minus(78,108) spacing 36 = 3 x BREADBOARD_PITCH; roots dy 76 (assemblyProfiles.js), bodyClip.bottom 42.",
+    "electricalOrder": [
+      "plus",
+      "minus"
+    ]
+  },
   "variants": [
     {
       "file": "buzzer.default.1x.png",
       "state": "default",
       "scale": "1x",
       "format": "png",
-      "width": 60,
-      "height": 60
+      "width": 120,
+      "height": 120,
+      "bytes": 14524,
+      "sha256": "4ed07dad0a06e3711df88aaa1487163ee07d9a24d1da52d53299ed2a32cd6520",
+      "alpha": true
     },
     {
       "file": "buzzer.default.1x.webp",
       "state": "default",
       "scale": "1x",
       "format": "webp",
-      "width": 60,
-      "height": 60
+      "width": 120,
+      "height": 120,
+      "bytes": 9086,
+      "sha256": "a745ad733a67599e763cebd34a1b2acfceb076c3a6180b31df51d5936635d2d3",
+      "alpha": true
     },
     {
       "file": "buzzer.default.3x.png",
       "state": "default",
       "scale": "3x",
       "format": "png",
-      "width": 180,
-      "height": 180
+      "width": 360,
+      "height": 360,
+      "bytes": 78390,
+      "sha256": "d6c33eb69594d8eb67ef1153420563e9c14874ad24679e656ceb46294971b441",
+      "alpha": true
     },
     {
       "file": "buzzer.default.3x.webp",
       "state": "default",
       "scale": "3x",
       "format": "webp",
-      "width": 180,
-      "height": 180
-    },
-    {
-      "file": "buzzer.on.1x.png",
-      "state": "on",
-      "scale": "1x",
-      "format": "png",
-      "width": 60,
-      "height": 60
-    },
-    {
-      "file": "buzzer.on.1x.webp",
-      "state": "on",
-      "scale": "1x",
-      "format": "webp",
-      "width": 60,
-      "height": 60
-    },
-    {
-      "file": "buzzer.on.3x.png",
-      "state": "on",
-      "scale": "3x",
-      "format": "png",
-      "width": 180,
-      "height": 180
-    },
-    {
-      "file": "buzzer.on.3x.webp",
-      "state": "on",
-      "scale": "3x",
-      "format": "webp",
-      "width": 180,
-      "height": 180
+      "width": 360,
+      "height": 360,
+      "bytes": 49062,
+      "sha256": "ea9dbf9045ca18a8c4914d85059ff8ff1b8ff2ca8f6c84537bb82f76dd2d158d",
+      "alpha": true
     }
   ]
 }

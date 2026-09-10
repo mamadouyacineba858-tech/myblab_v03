@@ -88,7 +88,7 @@ export function resolveAssemblyGeometry(component, breadboard, options = {}) {
     options.profile !== undefined ? options.profile : getAssemblyProfile(component.type)
 
   // Assembly Geometry = composants TRAVERSANTS uniquement. Un type sans profil
-  // mécanique (RESISTOR, POWER, ARDUINO, BUZZER, CAPACITOR tant que FT-C-001-B
+  // mécanique (RESISTOR, POWER, ARDUINO, CAPACITOR tant que FT-C-001-B
   // n'a pas livré son asset radial, …) ne produit AUCUNE patte dynamique —
   // géométrie vide, `AssemblyLeadsLayer` ne rend rien (aucune patte fantôme).
   if (!profile || !profile.leads || typeof profile.leads !== "object") return EMPTY

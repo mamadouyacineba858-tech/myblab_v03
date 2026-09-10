@@ -58,9 +58,18 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "plus", label: "+", dx: 28, dy: 80, contacts: [{ id: "plus", dx: 28, dy: 80, wireConnectable: true, breadboardInsertable: true }] },
     { id: "minus", label: "−", dx: 4, dy: 80, contacts: [{ id: "minus", dx: 4, dy: 80, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // FT-C-COMP-004 — buzzer piézo TRAVERSANT réaliste (asset 120×120). Les deux
+  // pattes métalliques sont cuites dans le raster autour de x≈42 / 77, y≈79..114
+  // (probe pixel ; PO probe 44 / 76, entraxe 32). Pour l'insertion breadboard
+  // les deux PhysicalContacts fonctionnels sont recalés à dx 42 / 78 (entraxe
+  // 36 = 3 × BREADBOARD_PITCH exact, centrés sur les deux pieds visibles) et
+  // dy 108 (= probe `canonical.pins` du manifeste ; 9 × BREADBOARD_PITCH).
+  // AssemblyLeadsLayer relie racine visuelle → contact (pattes fines droites).
+  // IDs, rôles et modèle électrique (plus / minus, role input) INCHANGÉS —
+  // aucune nouvelle simulation, aucun état "on".
   BUZZER: [
-    { id: "plus", label: "+", dx: 10, dy: 50 },
-    { id: "minus", label: "-", dx: 60, dy: 50 },
+    { id: "plus", label: "+", dx: 42, dy: 108, contacts: [{ id: "plus", dx: 42, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "minus", label: "-", dx: 78, dy: 108, contacts: [{ id: "minus", dx: 78, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
   ],
   // FT-C-COMP-003 — potentiomètre ROTATIF réaliste (asset 120×120). Les 3
   // cosses métalliques verticales sont cuites dans le raster autour de
@@ -146,7 +155,7 @@ export const COMPONENT_TYPES = {
   COIN_CELL_CR2032: { id: "COIN_CELL_CR2032", label: "Pile CR2032 3 V", icon: "🔋", width: 60, height: 60, pins: buildPins("COIN_CELL_CR2032") },
   BATTERY_9V: { id: "BATTERY_9V", label: "Pile 9 V", icon: "🔋", width: 70, height: 90, pins: buildPins("BATTERY_9V") },
   CAPACITOR: { id: "CAPACITOR", label: "Condensateur", icon: "║║", width: 70, height: 40, pins: buildPins("CAPACITOR") },
-  BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 70, height: 50, pins: buildPins("BUZZER") },
+  BUZZER: { id: "BUZZER", label: "Buzzer", icon: "🔊", width: 120, height: 120, pins: buildPins("BUZZER") },
   POTENTIOMETER: { id: "POTENTIOMETER", label: "Potentiomètre", icon: "🎚", width: 120, height: 120, pins: buildPins("POTENTIOMETER") },
   LDR: { id: "LDR", label: "Photoresistance (LDR)", icon: "☀️", width: 84, height: 36, pins: buildPins("LDR") },
   THERMISTOR: { id: "THERMISTOR", label: "Thermistance", icon: "🌡", width: 84, height: 36, pins: buildPins("THERMISTOR") },
