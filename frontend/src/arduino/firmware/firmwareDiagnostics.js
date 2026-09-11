@@ -12,6 +12,9 @@ export const DiagnosticCode = Object.freeze({
   UNSUPPORTED_PIN: "UNSUPPORTED_PIN",
   UNSUPPORTED_MODE: "UNSUPPORTED_MODE",
   INVALID_LEVEL: "INVALID_LEVEL",
+  // MB-L1-ARD-003 §5/§26 : delay(<literal>) — durée non numérique, absente,
+  // négative, ou appel à arité incorrecte (0 ou 2+ arguments).
+  INVALID_DELAY_DURATION: "INVALID_DELAY_DURATION",
 })
 
 /**

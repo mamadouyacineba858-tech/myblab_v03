@@ -87,11 +87,10 @@ describe("MB-L1-ARD-002 — firmwareCompiler — TEST C1-C16", () => {
     expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_STATEMENT)
   })
 
-  it("C14 — delay(500) -> diagnostic explicite non supporté (jamais implémenté silencieusement)", () => {
+  it("C14 — [amendé MB-L1-ARD-003 §5/§21] delay(500) compile désormais en IR DELAY (n'est plus rejeté)", () => {
     const result = compileFirmware("void setup() {}\nvoid loop() { delay(500); }")
-    expect(result.ok).toBe(false)
-    expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_STATEMENT)
-    expect(result.diagnostics[0].message).toMatch(/delay/)
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop).toEqual([{ op: "DELAY", durationMs: 500 }])
   })
 
   it("C15 — accolades mal formées -> error", () => {
@@ -104,6 +103,56 @@ describe("MB-L1-ARD-002 — firmwareCompiler — TEST C1-C16", () => {
     const result = compileFirmware("void setup() {}\nvoid loop() { doSomethingUnknown(1, 2); }")
     expect(result.ok).toBe(false)
     expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_STATEMENT)
+  })
+})
+
+describe("MB-L1-ARD-003 — firmwareCompiler — TEST D1-D7 (delay)", () => {
+  it("D1 — delay(500) compile en DELAY 500", () => {
+    const result = compileFirmware("void setup() {}\nvoid loop() { delay(500); }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop).toEqual([{ op: "DELAY", durationMs: 500 }])
+  })
+
+  it("D2 — delay(0) est valide", () => {
+    const result = compileFirmware("void setup() {}\nvoid loop() { delay(0); }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop).toEqual([{ op: "DELAY", durationMs: 0 }])
+  })
+
+  it("D3 — delay négatif rejeté", () => {
+    const result = compileFirmware("void setup() {}\nvoid loop() { delay(-1); }")
+    expect(result.ok).toBe(false)
+    expect(result.diagnostics[0].code).toBe(DiagnosticCode.INVALID_DELAY_DURATION)
+  })
+
+  it("D4 — delay sans argument rejeté", () => {
+    const result = compileFirmware("void setup() {}\nvoid loop() { delay(); }")
+    expect(result.ok).toBe(false)
+    expect(result.diagnostics[0].code).toBe(DiagnosticCode.INVALID_DELAY_DURATION)
+  })
+
+  it("D5 — delay variable (non littérale) rejeté", () => {
+    const result = compileFirmware("void setup() {}\nvoid loop() { delay(foo); }")
+    expect(result.ok).toBe(false)
+    expect(result.diagnostics[0].code).toBe(DiagnosticCode.INVALID_DELAY_DURATION)
+  })
+
+  it("D6 — delay multi-arguments rejeté", () => {
+    const result = compileFirmware("void setup() {}\nvoid loop() { delay(1, 2); }")
+    expect(result.ok).toBe(false)
+    expect(result.diagnostics[0].code).toBe(DiagnosticCode.INVALID_DELAY_DURATION)
+  })
+
+  it("D7 — ordre DIGITAL_WRITE -> DELAY -> DIGITAL_WRITE conservé", () => {
+    const result = compileFirmware(
+      "void setup() { pinMode(2, OUTPUT); }\nvoid loop() { digitalWrite(2, HIGH); delay(500); digitalWrite(2, LOW); }"
+    )
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop).toEqual([
+      { op: "DIGITAL_WRITE", pin: "D2", value: "HIGH" },
+      { op: "DELAY", durationMs: 500 },
+      { op: "DIGITAL_WRITE", pin: "D2", value: "LOW" },
+    ])
   })
 })
 

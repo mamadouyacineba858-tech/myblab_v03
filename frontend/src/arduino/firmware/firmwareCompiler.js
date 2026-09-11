@@ -11,11 +11,12 @@ import { DiagnosticCode, createDiagnostic } from "./firmwareDiagnostics.js"
  * syntaxiquement invalide (seule une entrée non-string produit une
  * exception de garde, cas défensif).
  *
- * Subset V1 strict (§5) :
+ * Subset V1 strict (§5, étendu par MB-L1-ARD-003 §21) :
  *   void setup() { ... }
  *   void loop() { ... }
  *   pinMode(2|3, OUTPUT);
  *   digitalWrite(2|3, HIGH|LOW);
+ *   delay(<littérale numérique finie >= 0>);
  *
  * Aucune interprétation directe du texte (§8) : `eval`/`new Function`/
  * recherche de sous-chaîne littérale sont interdits et absents de ce
@@ -124,10 +125,26 @@ function parseStatement(text, source, offset, diagnostics) {
     return Object.freeze({ op: "DIGITAL_WRITE", pin, value: level })
   }
 
+  // MB-L1-ARD-003 §5/§21 : delay(<literal numérique>) — seule extension du
+  // subset V1 apportée par ce ticket. Arité et type stricts : exactement un
+  // argument, une littérale numérique finie >= 0 (jamais une variable, un
+  // nom, ou plusieurs arguments — §26 D3-D6).
+  const delayMatch = text.match(/^delay\s*\(([^)]*)\)$/)
+  if (delayMatch) {
+    const arg = delayMatch[1].trim()
+    const isNumericLiteral = /^\d+(\.\d+)?$/.test(arg)
+    const durationMs = isNumericLiteral ? Number(arg) : NaN
+    if (!isNumericLiteral || !Number.isFinite(durationMs) || durationMs < 0) {
+      diagnostics.push(createDiagnostic(DiagnosticCode.INVALID_DELAY_DURATION, `delay() requires exactly one finite numeric literal argument >= 0, got "${arg}"`, line))
+      return null
+    }
+    return Object.freeze({ op: "DELAY", durationMs })
+  }
+
   // Catch-all déterministe pour toute instruction hors subset V1 — inclut
-  // explicitement delay(), Serial.*, analogWrite(), digitalRead(),
-  // analogRead() et tout appel inconnu (§19/§27) : aucun de ces cas n'est
-  // implémenté silencieusement, tous produisent le même diagnostic explicite.
+  // explicitement Serial.*, analogWrite(), digitalRead(), analogRead() et
+  // tout appel inconnu (§19/§27) : aucun de ces cas n'est implémenté
+  // silencieusement, tous produisent le même diagnostic explicite.
   diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, `unsupported statement: "${text}"`, line))
   return null
 }
