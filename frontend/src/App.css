@@ -205,3 +205,31 @@
   border-color: #cbd5e1;
   color: #0f172a;
 }
+
+/* MB-MEASURE-002 : LiveMeasurementPanel — même patron que .theme-light
+   .settings-panel ci-dessus (structure/comportement inchangés, seule la
+   couleur bascule par thème, aucun second système de thème). */
+.theme-light .measurement-live-panel {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+}
+
+.theme-light .measurement-live-panel label {
+  color: #475569;
+}
+
+.theme-light .measurement-live-panel select {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.theme-light .measurement-live-panel dt {
+  color: #475569;
+}
+
+.theme-light .measurement-live-panel dd {
+  color: #0f172a;
+}

@@ -1,0 +1,96 @@
+.measurement-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.measurement-live-panel {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 10px;
+  padding: 20px;
+  width: 360px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.measurement-live-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.measurement-live-panel__header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.measurement-live-panel__close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.measurement-live-panel__close:hover {
+  color: #f87171;
+}
+
+.measurement-live-panel label {
+  display: block;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.measurement-live-panel select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.measurement-live-panel button[type="button"] {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #38bdf8;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.measurement-live-panel button[type="button"]:disabled {
+  background: #334155;
+  color: #64748b;
+  cursor: default;
+}
+
+.measurement-live-panel dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 0.85rem;
+}
+
+.measurement-live-panel dt {
+  color: #94a3b8;
+}
+
+.measurement-live-panel dd {
+  margin: 0;
+  color: #e2e8f0;
+}

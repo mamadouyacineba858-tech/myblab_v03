@@ -7,6 +7,7 @@
 import React, { useRef, useState, useCallback } from "react";
 import { useCircuit } from "../context/useCircuit.js"
 import { SettingsPanel } from "./SettingsPanel.jsx";
+import { LiveMeasurementPanel } from "../measurement/LiveMeasurementPanel.jsx";
 import "./Navbar.css";
 export function Navbar() {
   const {
@@ -26,6 +27,11 @@ export function Navbar() {
 
   const fileInputRef = useRef(null);
 const [settingsOpen, setSettingsOpen] = useState(false);
+  // MB-MEASURE-002 : panneau léger, monté uniquement lorsqu'ouvert (§6 du
+  // ticket) — aucun coût de souscription au contexte haute fréquence
+  // (useCircuitInteraction, nécessaire à LiveMeasurementPanel pour lire
+  // `components` à jour) tant que l'instrument est fermé.
+  const [measurementOpen, setMeasurementOpen] = useState(false);
   const handleNew = useCallback(() => {
     
     const confirmed = window.confirm(
@@ -149,6 +155,14 @@ const [settingsOpen, setSettingsOpen] = useState(false);
         <div className="separator"></div>
 
         <button
+          className="measurement"
+          onClick={() => setMeasurementOpen(true)}
+          title="Mesures"
+        >
+          📊 Mesures
+        </button>
+
+        <button
           className="settings"
           onClick={() => setSettingsOpen(true)}
           title="Paramètres"
@@ -158,6 +172,9 @@ const [settingsOpen, setSettingsOpen] = useState(false);
       </nav>
       {settingsOpen && (
   <SettingsPanel onClose={() => setSettingsOpen(false)} />
+)}
+      {measurementOpen && (
+  <LiveMeasurementPanel onClose={() => setMeasurementOpen(false)} />
 )}
     </header>
   );
