@@ -14,6 +14,7 @@ import { GridBackground } from "./GridBackground.jsx"
 import { Breadboard } from "./Breadboard.jsx"
 import { BreadboardWireEndpoints } from "./BreadboardWireEndpoints.jsx"
 import { CircuitComponent } from "./CircuitComponent.jsx"
+import { ComponentInsertGhost } from "./ComponentInsertGhost.jsx"
 import { WiresLayer } from "../wires/WiresLayer.jsx"
 import { BreadboardWiresLayer } from "../wires/BreadboardWiresLayer.jsx"
 import { MarqueeOverlay } from "./MarqueeOverlay.jsx"
@@ -88,6 +89,27 @@ export function SimulationCanvas() {
   // `breadboardFeedback` sous forme Map<breadboardId, { draggedIds, valid }>
   // (ou null) ; chaque <Breadboard> ne reçoit QUE le sien.
   const feedbackByBreadboardId = breadboardFeedback instanceof Map ? breadboardFeedback : null
+
+  // MB-VIS-BREAD-042 (§4/§12, Phase C) : ghost physique du composant en
+  // cours de drag Sidebar — dérivé du MÊME `breadboardInsertPreview` que les
+  // trous verts/rouges de <Breadboard> (aucun second état, INV-042-03).
+  // `breadboard` transmis au ghost est l'entrée `renderedBreadboards` (donc
+  // déjà preview-aware si un drag de breadboard était concurrent — jamais le
+  // cas en pratique, deux gestes mutuellement exclusifs) correspondant à
+  // `breadboardId`, nécessaire pour que AssemblyLeadsLayer positionne les
+  // pattes exactement comme elles le seraient une fois le composant posé.
+  const insertGhost = useMemo(() => {
+    if (!breadboardInsertPreview || !breadboardInsertPreview.type || !breadboardInsertPreview.position) {
+      return null
+    }
+    const owner = renderedBreadboards.find((bb) => bb.id === breadboardInsertPreview.breadboardId) ?? null
+    return {
+      type: breadboardInsertPreview.type,
+      position: breadboardInsertPreview.position,
+      valid: breadboardInsertPreview.valid,
+      breadboard: owner,
+    }
+  }, [breadboardInsertPreview, renderedBreadboards])
 
   // Référence pour savoir si le marquee est actif
   const isMarqueeActiveRef = useRef(false)
@@ -329,6 +351,17 @@ export function SimulationCanvas() {
             />
           ))}
         </div>
+        {/* MB-VIS-BREAD-042 : rendu APRÈS les composants réels — le ghost
+            reste visuellement au-dessus (ordre DOM, aucun z-index en
+            compétition avec `focused` qui monte à 20, cf. CircuitComponent.jsx). */}
+        {insertGhost && (
+          <ComponentInsertGhost
+            type={insertGhost.type}
+            position={insertGhost.position}
+            valid={insertGhost.valid}
+            breadboard={insertGhost.breadboard}
+          />
+        )}
         <MarqueeOverlay rect={marqueeRect} />
       </div>
       {!hasComponents && (

@@ -1,0 +1,30 @@
+/* ComponentInsertGhost.css — MB-VIS-BREAD-042 (§4/§12).
+   Le corps visuel (.circuit-component__body) est délibérément NON redéfini
+   ici : cette classe est déjà globale (CircuitComponent.css, chargée dès que
+   SimulationCanvas.jsx est monté) — le ghost hérite donc du même habillage
+   (fond/bordure/ombre, ou transparence via [data-bare-body]) qu'un composant
+   réellement posé, sans dupliquer une seconde feuille de style "preview".
+   Seuls le positionnement/l'opacité/le neutre pointer-events et la teinte
+   valid/invalid (réutilisant la même palette que
+   Breadboard.css .breadboard__hole--feedback-valid/invalid) sont propres à
+   ce wrapper. */
+
+.component-insert-ghost {
+  position: absolute;
+  /* INV-042-12 : jamais sélectionnable, jamais cliquable, jamais un obstacle
+     au dragover natif destiné au Canvas. */
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.65;
+  z-index: 15;
+}
+
+.component-insert-ghost--valid {
+  outline: 2px dashed #16a34a;
+  outline-offset: 3px;
+}
+
+.component-insert-ghost--invalid {
+  outline: 2px dashed #dc2626;
+  outline-offset: 3px;
+}

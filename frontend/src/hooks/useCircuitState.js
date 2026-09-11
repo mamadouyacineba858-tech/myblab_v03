@@ -320,7 +320,21 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
     // FT-C-BREAD-MULTI-001-C (§20) : `breadboardId` du breadboard gagnant —
     // métadonnée pour que 001-D scope le feedback à la bonne instance ; le
     // preview et le drop partagent ce même resolver (I-C5).
-    setBreadboardInsertPreview({ breadboardId: placement.breadboardId, holes, valid: placement.valid })
+    // MB-VIS-BREAD-042 (§4/§13 INV-042-02/03) : `type`/`position` rejoignent
+    // le contrat, strictement additifs (aucun consommateur existant ne lit
+    // au-delà de `breadboardId`/`holes`/`valid` — voir Breadboard.jsx/
+    // BreadboardInsertionMutationChannel.integration.test.jsx). `position`
+    // est EXACTEMENT `placement.position` (même sortie de
+    // computeMultiBreadboardPlacement que celle réappliquée par addComponent()
+    // au drop, ADD-COMPONENT-008/842 — aucun second calcul), pour que le
+    // ghost affiché consomme la même vérité de placement que le drop final.
+    setBreadboardInsertPreview({
+      breadboardId: placement.breadboardId,
+      type: session.type,
+      position: placement.position,
+      holes,
+      valid: placement.valid,
+    })
   }, [canvasRef])
 
   // MB-BREADBOARD-008 (I-P10, même garde que dragPreview/breadboardFeedback
