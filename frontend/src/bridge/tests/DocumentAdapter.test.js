@@ -337,4 +337,51 @@ describe('DocumentAdapter', () => {
     expect(documentApi.updateComponentPositions).not.toHaveBeenCalled();
     expect(documentApi.updateComponentState).toHaveBeenCalledTimes(1);
   });
+
+  // ============================================================
+  // FT-C-BREAD-MULTI-001-E — E4 : DocumentAdapter est un applicateur de diff
+  // borné aux composants / wires. Il n'a aucune connaissance de
+  // `breadboards[]` (le chemin runtime des mutations breadboard passe par un
+  // remplacement complet de document, pas par ce diff). Ces tests
+  // VERROUILLENT l'orthogonalité : les cartes ne peuvent pas être perdues
+  // ici puisqu'elles ne transitent jamais par ce module. Aucun changement de
+  // DocumentAdapter.js en production.
+  // ============================================================
+  describe('FT-C-BREAD-MULTI-001-E — E4 : orthogonalité multi-breadboard', () => {
+    it('E4 — l\'API documentApi requise ne comporte AUCUNE méthode breadboard', () => {
+      expect(DocumentAdapter.REQUIRED_API_METHODS).toEqual([
+        'removeWires',
+        'removeComponents',
+        'updateComponentState',
+        'updateComponentPositions',
+        'restoreComponents',
+        'restoreWires',
+      ]);
+      for (const m of DocumentAdapter.REQUIRED_API_METHODS) {
+        expect(m.toLowerCase()).not.toContain('breadboard');
+      }
+    });
+
+    it('E4 — un diff dont les composants ajoutés portent des positions liées à des cartes A/B/C s\'applique normalement, sans méthode breadboard', () => {
+      const diff = createDiffResult({
+        componentsAdded: [
+          { id: 'onA', type: 'RESISTOR', position: { x: 60, y: 22 } },   // sur A
+          { id: 'onB', type: 'RESISTOR', position: { x: 540, y: 22 } },  // sur B
+          { id: 'onC', type: 'RESISTOR', position: { x: 1020, y: 22 } }, // sur C
+        ],
+        hasChanges: true,
+      });
+
+      adapter.apply(diff);
+
+      expect(documentApi.restoreComponents).toHaveBeenCalledTimes(1);
+      expect(documentApi.restoreComponents).toHaveBeenCalledWith([
+        { id: 'onA', type: 'RESISTOR', position: { x: 60, y: 22 } },
+        { id: 'onB', type: 'RESISTOR', position: { x: 540, y: 22 } },
+        { id: 'onC', type: 'RESISTOR', position: { x: 1020, y: 22 } },
+      ]);
+      // aucune méthode "breadboard" n'existe et rien d'autre n'est appelé
+      expect(order).toEqual(['restoreComponents']);
+    });
+  });
 });

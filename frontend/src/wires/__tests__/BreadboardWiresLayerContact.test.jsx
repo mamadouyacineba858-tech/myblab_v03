@@ -35,7 +35,9 @@ function renderLayer(wire) {
     selectOnly: () => {},
     toggleSelection: () => {},
   }
-  const interaction = { components: [button], breadboard }
+  // FT-C-BREAD-MULTI-001-E : BreadboardWiresLayer consomme la collection
+  // canonique `breadboardsForRender` (résolution des trous par breadboardId).
+  const interaction = { components: [button], breadboard, breadboardsForRender: [breadboard] }
   return render(
     <CircuitContext.Provider value={circuit}>
       <CircuitInteractionContext.Provider value={interaction}>
@@ -92,7 +94,7 @@ describe('FT-B-001-S3 — TEST S3-H : extrémité de fil breadboard ancrée au C
   it('l\'ancre suit le composant : BUTTON déplacé de (0,48) à (24,60) ⇒ contact "1b" en (38,62)', () => {
     const moved = { uid: 'btn1', type: 'BUTTON', x: 24, y: 60 }
     const circuit = { wires: [{ id: 'w1', fromUid: 'btn1', fromPin: 'pin1', fromContact: '1b', toUid: targetHole.uid, toPin: targetHole.pinId }], isSelected: () => false, selectOnly: () => {}, toggleSelection: () => {} }
-    const interaction = { components: [moved], breadboard }
+    const interaction = { components: [moved], breadboard, breadboardsForRender: [breadboard] }
     const { container } = render(
       <CircuitContext.Provider value={circuit}>
         <CircuitInteractionContext.Provider value={interaction}>
@@ -111,7 +113,7 @@ describe('FT-B-001-S3 — TEST S3-L : document/fil legacy sans champ de contact'
       wires: [{ id: 'w1', fromUid: 'r1', fromPin: 'A', toUid: targetHole.uid, toPin: targetHole.pinId }],
       isSelected: () => false, selectOnly: () => {}, toggleSelection: () => {},
     }
-    const interaction = { components: [resistor], breadboard }
+    const interaction = { components: [resistor], breadboard, breadboardsForRender: [breadboard] }
     const { container } = render(
       <CircuitContext.Provider value={circuit}>
         <CircuitInteractionContext.Provider value={interaction}>

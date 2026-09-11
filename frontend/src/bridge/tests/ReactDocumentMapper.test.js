@@ -355,4 +355,59 @@ describe('ReactDocumentMapper', () => {
     expect(result.pinA.pinId).toBe('p1');
     expect(result.pinB.pinId).toBe('p2');
   });
+
+  // ============================================================
+  // FT-C-BREAD-MULTI-001-E — E1 : le mapper préserve la collection
+  // canonique `breadboards[]` (propriété générique deep-clonée) dans les
+  // DEUX sens, sans perte d'id / position / ordre, sans mutation source.
+  // ============================================================
+  describe('FT-C-BREAD-MULTI-001-E — E1 : round-trip N breadboards', () => {
+    const A = { id: 'A', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' };
+    const B = { id: 'B', position: { x: 480, y: 0 }, layout: 'STANDARD_V1' };
+    const C = { id: 'C', position: { x: 960, y: 12 }, layout: 'STANDARD_V1' };
+
+    it('E1-01 — document sans breadboard : aucune clé breadboards fabriquée, aucun faux board', () => {
+      expect(ReactDocumentMapper.toCore({ components: [], wires: [] })).toEqual({ components: [], wires: [] });
+      expect(ReactDocumentMapper.toReact({ components: [], wires: [] })).toEqual({ components: [], wires: [] });
+    });
+
+    it('E1-02 — 1 breadboard canonique survit React → Core', () => {
+      const core = ReactDocumentMapper.toCore({ components: [], wires: [], breadboards: [A] });
+      expect(core.breadboards).toEqual([A]);
+      expect(core.breadboards[0]).not.toBe(A); // deep-cloné
+    });
+
+    it('E1-03 — 3 breadboards survivent React → Core', () => {
+      const core = ReactDocumentMapper.toCore({ components: [], wires: [], breadboards: [A, B, C] });
+      expect(core.breadboards.map((b) => b.id)).toEqual(['A', 'B', 'C']);
+    });
+
+    it('E1-04 — 3 breadboards survivent Core → React', () => {
+      const react = ReactDocumentMapper.toReact({ components: [], wires: [], breadboards: [A, B, C] });
+      expect(react.breadboards.map((b) => b.id)).toEqual(['A', 'B', 'C']);
+    });
+
+    it('E1-05 / E1-06 / E1-07 — round-trip React → Core → React conserve ids, positions, ordre', () => {
+      const src = { components: [], wires: [], breadboards: [A, B, C] };
+      const back = ReactDocumentMapper.toReact(ReactDocumentMapper.toCore(src));
+      expect(back.breadboards.map((b) => b.id)).toEqual(['A', 'B', 'C']);
+      expect(back.breadboards.map((b) => b.position)).toEqual([A.position, B.position, C.position]);
+      expect(back.breadboards.map((b) => b.layout)).toEqual(['STANDARD_V1', 'STANDARD_V1', 'STANDARD_V1']);
+    });
+
+    it('E1-08 — aucune mutation du document source', () => {
+      const src = { components: [], wires: [], breadboards: [A, B, C] };
+      const frozen = JSON.stringify(src);
+      ReactDocumentMapper.toCore(src);
+      ReactDocumentMapper.toReact(src);
+      expect(JSON.stringify(src)).toBe(frozen);
+      expect(src.breadboards[0]).toBe(A); // référence source intacte
+    });
+
+    it('E1 (bonus) — la projection legacy `breadboard: null` n\'est pas recopiée (contrat _copyUnknownProperties)', () => {
+      const core = ReactDocumentMapper.toCore({ components: [], wires: [], breadboards: [], breadboard: null });
+      expect(core.breadboards).toEqual([]);
+      expect('breadboard' in core).toBe(false);
+    });
+  });
 });

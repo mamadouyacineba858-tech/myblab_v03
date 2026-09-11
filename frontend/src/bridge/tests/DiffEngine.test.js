@@ -344,4 +344,47 @@ describe('DiffEngine', () => {
     expect(result.statistics.total.removed).toBe(1);
     expect(result.statistics.total.modified).toBe(1);
   });
+
+  // ============================================================
+  // FT-C-BREAD-MULTI-001-E — E5 : DiffEngine est un moteur de comparaison
+  // GÉNÉRIQUE, borné à `components` / `wires`. Il n'a PAS besoin de connaître
+  // `breadboards[]` : le chemin runtime des mutations breadboard passe par un
+  // remplacement complet de document (documentApi.applyDocument), pas par un
+  // diff. Ces tests VERROUILLENT que la présence de `breadboards[]` :
+  //   - ne fait pas échouer compare() ;
+  //   - n'est pas reportée comme un changement de composant/wire ;
+  //   - ne mute pas les documents d'entrée.
+  // Aucune modification de DiffEngine.js en production.
+  // ============================================================
+  describe('FT-C-BREAD-MULTI-001-E — E5 : compatibilité multi-breadboard (générique)', () => {
+    const A = { id: 'A', position: { x: 0, y: 0 } };
+    const B = { id: 'B', position: { x: 480, y: 0 } };
+    const C = { id: 'C', position: { x: 960, y: 0 } };
+
+    it('compare() n\'échoue pas et ne signale aucun changement quand seul breadboards[] diffère (composants/wires identiques)', () => {
+      const doc1 = { components: [{ id: 'r1', type: 'R', position: { x: 1, y: 2 } }], wires: [], breadboards: [A] };
+      const doc2 = { components: [{ id: 'r1', type: 'R', position: { x: 1, y: 2 } }], wires: [], breadboards: [A, B, C] };
+      const result = DiffEngine.compare(doc1, doc2);
+      expect(result.hasChanges).toBe(false);
+      expect(result.componentsAdded).toEqual([]);
+      expect(result.wiresAdded).toEqual([]);
+    });
+
+    it('un vrai changement de composant reste détecté même avec breadboards[] présent', () => {
+      const doc1 = { components: [], wires: [], breadboards: [A, B, C] };
+      const doc2 = { components: [{ id: 'r1', type: 'R', position: { x: 1, y: 2 } }], wires: [], breadboards: [A, B, C] };
+      const result = DiffEngine.compare(doc1, doc2);
+      expect(result.componentsAdded.map((c) => c.id)).toEqual(['r1']);
+    });
+
+    it('compare() ne mute pas les documents d\'entrée porteurs de breadboards[]', () => {
+      const doc1 = { components: [], wires: [], breadboards: [A, B] };
+      const doc2 = { components: [], wires: [], breadboards: [A, B, C] };
+      const f1 = JSON.stringify(doc1);
+      const f2 = JSON.stringify(doc2);
+      DiffEngine.compare(doc1, doc2);
+      expect(JSON.stringify(doc1)).toBe(f1);
+      expect(JSON.stringify(doc2)).toBe(f2);
+    });
+  });
 });

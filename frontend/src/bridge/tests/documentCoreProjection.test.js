@@ -145,4 +145,32 @@ describe('MB-CF1-001 — capacité de projection Core → React (toReact)', () =
     expect(reactAAgain.components[0].uid).toBe('a');
     expect(reactAAgain).not.toBe(reactA);
   });
+
+  // ============================================================
+  // FT-C-BREAD-MULTI-001-E — E6 : garde anti-régression singleton.
+  // La collection `document.breadboards[]` est la donnée canonique projetée
+  // Core ↔ React. Une future régression qui la tronquerait à son premier
+  // élément, ou réintroduirait `document.breadboard` comme AUTORITÉ, doit
+  // faire échouer ces assertions.
+  // ============================================================
+  it('E6 — la collection breadboards[] est projetée Core → React sans troncature', () => {
+    const A = { id: 'A', position: { x: 0, y: 0 } };
+    const B = { id: 'B', position: { x: 480, y: 0 } };
+    const C = { id: 'C', position: { x: 960, y: 0 } };
+    const react = ReactDocumentMapper.toReact({ components: [], wires: [], breadboards: [A, B, C] });
+    expect(Array.isArray(react.breadboards)).toBe(true);
+    expect(react.breadboards.map((b) => b.id)).toEqual(['A', 'B', 'C']);
+  });
+
+  it('E6 — le round-trip Core → React → Core préserve les N cartes et leur ordre', () => {
+    const boards = [
+      { id: 'bb-1', position: { x: 12, y: 24 }, layout: 'STANDARD_V1' },
+      { id: 'bb-2', position: { x: 500, y: 24 }, layout: 'STANDARD_V1' },
+    ];
+    const core = ReactDocumentMapper.toCore(
+      ReactDocumentMapper.toReact({ components: [], wires: [], breadboards: boards })
+    );
+    expect(core.breadboards.map((b) => b.id)).toEqual(['bb-1', 'bb-2']);
+    expect(core.breadboards.map((b) => b.position)).toEqual([boards[0].position, boards[1].position]);
+  });
 });
