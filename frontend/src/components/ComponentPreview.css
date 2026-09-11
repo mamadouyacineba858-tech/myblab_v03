@@ -1,0 +1,21 @@
+/* ComponentPreview.css — MB-VIS-LAB-046.
+   Cadre borné, non interactif (F9/O4) : l'asset réel du composant (même
+   renderer que le Canvas) est mis à l'échelle pour REMPLIR ce cadre — voir
+   ComponentPreview.jsx pour le calcul (dérivé de componentDefinitions.js,
+   jamais un coefficient global figé). */
+
+.component-preview {
+  width: 42px;
+  height: 38px;
+  flex: 0 0 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.component-preview__stage {
+  display: block;
+  transform-origin: center center;
+}

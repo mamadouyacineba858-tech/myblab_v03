@@ -7,7 +7,7 @@
 import React, { useCallback } from "react"
 import { PALETTE_ITEMS } from "../config/componentDefinitions.js"
 import { useCircuit } from "../context/useCircuit.js"
-import { LedPart } from "./parts/LedPart.jsx"
+import { ComponentPreview } from "./ComponentPreview.jsx"
 import "./Sidebar.css"
 
 /**
@@ -74,15 +74,10 @@ export function Sidebar() {
                 onDragEnd={handleDragEnd}
                 onClick={() => handlePaletteClick(item.id)}
               >
-                {item.id === "LED" ? (
-                  <span className="myblab-palette__icon myblab-palette__icon--led" aria-hidden="true">
-                    <span className="myblab-palette__led-preview">
-                      <LedPart isOn={false} uid="sidebar-led-preview" />
-                    </span>
-                  </span>
-                ) : (
-                  <span className="myblab-palette__icon">{item.icon}</span>
-                )}
+                {/* MB-VIS-LAB-046 : canal générique unique type -> renderer
+                    (ComponentPreview.jsx), plus d'exception LED / emoji de
+                    repli (I-046-15/16/17). */}
+                <ComponentPreview type={item.id} />
                 <span className="myblab-palette__label">{item.label}</span>
               </button>
             </li>

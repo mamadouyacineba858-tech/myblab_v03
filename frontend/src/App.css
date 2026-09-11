@@ -39,6 +39,23 @@
   background: #94a3b8;
 }
 
+/* MB-VIS-LAB-046 (O2/O7) : même hiérarchie qu'en thème sombre
+   (Navbar.css) — "Simuler" reprend le cyan déjà utilisé comme CTA primaire
+   du produit (Sidebar.css .myblab-btn--primary), jamais une nouvelle
+   couleur. */
+.theme-light .navbar-actions button:disabled {
+  opacity: 0.5;
+}
+
+.theme-light .navbar-actions button.play {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.theme-light .navbar-actions button.play:hover:not(:disabled) {
+  background: #7dd3fc;
+}
+
 .theme-light .separator {
   background: #94a3b8;
 }
@@ -131,4 +148,34 @@
    restent visuellement distincts et peuvent coexister sans collision. */
 .theme-light .circuit-component[data-focused] .circuit-component__body {
   filter: drop-shadow(0 6px 14px rgba(2, 132, 199, 0.28));
+}
+
+/* MB-VIS-LAB-046 (O7/F13) : SettingsPanel était essentiellement sombre quel
+   que soit le thème actif du laboratoire — seul défaut de cohésion réel
+   identifié par l'audit. Même mécanisme que le reste de ce fichier (aucun
+   second système de thème) : la structure/le comportement de
+   SettingsPanel.jsx sont inchangés, seule la couleur bascule par thème. Le
+   bouton actif reprend le même bleu/cyan de sélection déjà établi
+   ci-dessus, jamais une nouvelle couleur. */
+.theme-light .settings-panel {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+}
+
+.theme-light .settings-panel__label {
+  color: #475569;
+}
+
+.theme-light .settings-panel__theme-buttons button {
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.theme-light .settings-panel__theme-buttons button.active {
+  border-color: #0284c7;
+  background: #e0f2fe;
+  color: #0c4a6e;
 }

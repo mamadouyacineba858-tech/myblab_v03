@@ -48,6 +48,38 @@
 
 }
 
+/* MB-VIS-LAB-046 (O2) : un bouton désactivé (Simuler pendant que la
+   simulation tourne, Arrêter sinon) doit se distinguer visuellement — état
+   absent jusqu'ici (dette de cohésion). */
+.navbar-actions button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* MB-VIS-LAB-046 (O2) : hiérarchie visuelle — "Simuler" devient l'action
+   primaire de la Navbar, même teinte cyan que le CTA primaire déjà établi
+   ailleurs dans le produit (Sidebar.css .myblab-btn--primary,
+   SettingsPanel.css .settings-panel__theme-buttons button.active) — jamais
+   une nouvelle couleur. "Arrêter" reste neutre : c'est une bascule, pas une
+   action à mettre en avant. */
+.navbar-actions button.play {
+    background: #0c4a6e;
+    color: #7dd3fc;
+    font-weight: 600;
+}
+
+.navbar-actions button.play:hover:not(:disabled) {
+    background: #0369a1;
+    color: #e0f2fe;
+}
+
+/* MB-VIS-LAB-046 (O2) : bouton utilitaire icône-seule (Paramètres),
+   distinct visuellement des commandes de workflow libellées. */
+.navbar-actions button.settings {
+    padding: 8px 10px;
+    font-size: 1rem;
+}
+
 .separator{
 
     width:1px;

@@ -1,3 +1,8 @@
+// Import React explicite : requis par la config vitest secondaire
+// (frontend/src/simulator/vitest.config.ts, sans @vitejs/plugin-react) pour
+// tout .jsx rendu sous cette config — même convention que Navbar.jsx (voir
+// son en-tête). Ajout d'import pur, aucun changement de comportement.
+import React from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import "./SettingsPanel.css";
 

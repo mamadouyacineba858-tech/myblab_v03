@@ -1,4 +1,10 @@
-import { useRef, useState, useCallback } from "react";
+// Import React explicite : requis par la config vitest secondaire
+// (frontend/src/simulator/vitest.config.ts, sans @vitejs/plugin-react) pour
+// tout .jsx rendu sous cette config — même convention que Sidebar.jsx /
+// CircuitComponent.jsx / ComponentPreview.jsx. Navbar.jsx n'avait jamais été
+// rendu directement sous cette config avant LaboratoryWorkspaceCohesion.test.jsx
+// (MB-VIS-LAB-046). Ajout d'import pur, aucun changement de comportement.
+import React, { useRef, useState, useCallback } from "react";
 import { useCircuit } from "../context/useCircuit.js"
 import { SettingsPanel } from "./SettingsPanel.jsx";
 import "./Navbar.css";
@@ -128,8 +134,8 @@ const [settingsOpen, setSettingsOpen] = useState(false);
 
         <div className="separator"></div>
 
-        <button onClick={zoomIn}>＋</button>
-        <button onClick={zoomOut}>－</button>
+        <button onClick={zoomIn} title="Zoom avant">＋</button>
+        <button onClick={zoomOut} title="Zoom arrière">－</button>
 
         <div className="separator"></div>
 
@@ -142,20 +148,13 @@ const [settingsOpen, setSettingsOpen] = useState(false);
 
         <div className="separator"></div>
 
-        
-
-
-
-<button
-  onClick={() => {
-   
-    setSettingsOpen(true);
-  }}
->
-  ⚙
-</button>
-
-
+        <button
+          className="settings"
+          onClick={() => setSettingsOpen(true)}
+          title="Paramètres"
+        >
+          ⚙
+        </button>
       </nav>
       {settingsOpen && (
   <SettingsPanel onClose={() => setSettingsOpen(false)} />

@@ -44,33 +44,10 @@
 .myblab-palette { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .myblab-palette__item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid #334155; border-radius: 8px; background: #1e293b; color: inherit; cursor: grab; font-size: 0.875rem; text-align: left; transition: background 0.15s ease, border-color 0.15s ease; }
 .myblab-palette__item:hover { background: #334155; border-color: #475569; }
-.myblab-palette__icon { font-size: 1.1rem; }
-
-/* LED : aperçu du même renderer que le composant du Canvas, sans emoji. */
-.myblab-palette__icon--led {
-  position: relative;
-  width: 42px;
-  height: 38px;
-  flex: 0 0 42px;
-  display: block;
-  overflow: visible;
-}
-
-.myblab-palette__led-preview {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 80px;
-  height: 64px;
-  transform: scale(0.52);
-  transform-origin: top left;
-  pointer-events: none;
-}
-
-.myblab-palette__led-preview .part-led {
-  width: 80px !important;
-  height: 64px !important;
-}
+/* MB-VIS-LAB-046 : `.myblab-palette__icon` (emoji) et l'exception LED
+   (`.myblab-palette__icon--led`/`.myblab-palette__led-preview`) sont
+   remplacées par le canal générique ComponentPreview.css — aucune règle
+   résiduelle ici (I-046-15/16/17). */
 
 .myblab-sidebar__help { margin: 0; font-size: 0.75rem; line-height: 1.4; color: #94a3b8; }
 .myblab-sidebar__footer { margin-top: auto; padding-top: 12px; }

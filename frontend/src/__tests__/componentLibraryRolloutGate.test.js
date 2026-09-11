@@ -122,11 +122,18 @@ describe("MB-VIS-COMP-008 — TEST G5-G6 : absence de nouveau branchement géné
     })
   }
 
-  it("G6 : Sidebar.jsx ne contient qu'une seule exception cosmétique connue (aperçu animé de la LED), aucune autre comparaison d'identifiant de type", () => {
+  it("G6 : Sidebar.jsx ne contient PLUS aucune comparaison d'identifiant de type (MB-VIS-LAB-046 a supprimé l'exception cosmétique LED — canal générique ComponentPreview.jsx, I-046-15/16/17)", () => {
     const codeOnly = stripComments(readFileSync(resolve(__dirname, "../components/Sidebar.jsx"), "utf-8"))
     const ITEM_ID_PATTERN = /item\.id\s*===\s*["']([A-Z0-9_]+)["']/g
     const found = [...codeOnly.matchAll(ITEM_ID_PATTERN)].map((m) => m[1])
-    expect(found, "Sidebar.jsx ne doit comporter qu'une seule comparaison item.id === \"LED\" (aperçu cosmétique, MB-VIS-002)").toEqual(["LED"])
+    expect(found, "Sidebar.jsx ne doit plus comporter AUCUNE comparaison item.id === \"X\" — la palette résout désormais tout type via ComponentPreview.jsx (canal déclaratif générique, MB-VIS-LAB-046)").toEqual([])
+  })
+
+  it("G6bis : ComponentPreview.jsx (canal générique introduit par MB-VIS-LAB-046) ne contient lui non plus aucune comparaison de type", () => {
+    const codeOnly = stripComments(readFileSync(resolve(__dirname, "../components/ComponentPreview.jsx"), "utf-8"))
+    const TYPE_EQ_PATTERN = /\btype\s*(===|!==)\s*["']([A-Z0-9_]+)["']/g
+    const found = [...codeOnly.matchAll(TYPE_EQ_PATTERN)].map((m) => m[2])
+    expect(found, `comparaison(s) de type non attendue(s) dans ComponentPreview.jsx : ${found.join(", ")}`).toEqual([])
   })
 
   it("sanity check : le motif de branchement générique est bien détecté sur un extrait fabriqué (faux négatif impossible)", () => {
