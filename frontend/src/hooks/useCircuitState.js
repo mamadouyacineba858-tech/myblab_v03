@@ -102,6 +102,18 @@ import {
 import { HistoryService } from "../core/history/HistoryService.js"
 import { ValidationEngine } from "../core/validation/ValidationEngine.js"
 import { createDefaultValidationRegistry } from "../core/validation/createValidationRegistry.js"
+// MB-L1-CVE-001 (CSA GO) — huitième et dernier type actuellement autorisé
+// sur ce canal, borné exactement à UPDATE_COMPONENT_PARAMETERS (CV-06 :
+// jamais un UPDATE_COMPONENT générique). REMOVE_COMPONENT reste
+// explicitement hors périmètre — voir cf1DocumentArchitecture.test.js.
+// `resolveComponentParameters`/`validateComponentParameters` sont la seule
+// primitive centrale (Simulation) consultée par cette couche de
+// composition pour matérialiser les defaults canoniques dans une nouvelle
+// instance (ADD_COMPONENT) et pour valider/résoudre une édition
+// (UPDATE_COMPONENT_PARAMETERS) — jamais importées par un Handler Core
+// (CV-19/CV-20).
+import { UpdateComponentParametersHandler } from "../core/handlers/component/UpdateComponentParametersHandler.js"
+import { resolveComponentParameters, validateComponentParameters } from "../simulator/resolveComponentParameters.js"
 
 const EMPTY_MAP = new Map()
 
@@ -420,6 +432,18 @@ const getUndoCount = useCallback(() => {
 
   const safeComponents = useMemo(() => components.map(normalizeComponent).filter((c) => c !== null), [components])
   const safeWires = useMemo(() => wires.map(normalizeWire).filter((w) => w !== null), [wires])
+
+  // MB-L1-CVE-001 §10 : projection STABLE dédiée pour ComponentInspector.jsx
+  // — dérivée exclusivement du Document persistant (safeComponents, JAMAIS
+  // componentsForRender/dragPreview) et de la sélection (activeItem).
+  // `null` si l'activeItem n'est pas un composant, ou si le composant qu'il
+  // référence n'existe plus (suppression/undo). Ne change de référence que
+  // si la sélection ou le composant sélectionné change réellement — jamais
+  // à chaque pixel de drag/pan/marquee (CV-15).
+  const selectedComponent = useMemo(() => {
+    if (!activeItem || activeItem.type !== "component") return null
+    return safeComponents.find((c) => c.uid === activeItem.id) ?? null
+  }, [activeItem, safeComponents])
 
   // MB-VIS-005 (Phase E) : pendant un drag de waypoint, la géométrie rendue
   // doit refléter la position en cours SANS que `wires`/le Document ne soit
@@ -836,6 +860,20 @@ const adapted = toEngineInput(coreDoc);
       // périmètre — voir cf1DocumentArchitecture.test.js.
       registry.register("MOVE_BREADBOARD", new MoveBreadboardHandler({ historyService, documentApi }))
       registry.register("DELETE_BREADBOARD", new DeleteBreadboardHandler({ historyService, documentApi }))
+      // MB-L1-CVE-001 (CSA GO) : huitième et dernier type autorisé sur ce
+      // canal — édition persistante des paramètres électriques d'un
+      // composant (component.parameters), une seule mutation/une seule
+      // entrée d'historique par validation utilisateur. REMOVE_COMPONENT et
+      // tout UPDATE_COMPONENT générique restent explicitement hors
+      // périmètre — voir cf1DocumentArchitecture.test.js. `validateParameters`
+      // est injecté (jamais importé directement par le Handler Core,
+      // CV-19/CV-20) : seule cette couche de composition connaît à la fois
+      // Core (Handler) et Simulation (resolveComponentParameters.js).
+      registry.register("UPDATE_COMPONENT_PARAMETERS", new UpdateComponentParametersHandler({
+        historyService,
+        documentApi,
+        validateParameters: validateComponentParameters,
+      }))
       const validationEngine = new ValidationEngine(createDefaultValidationRegistry())
       commandBusRef.current = new CommandBus(registry, { validationEngine })
       // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
@@ -891,11 +929,20 @@ const adapted = toEngineInput(coreDoc);
       ? placement.position
       : { x: snapToGrid(x), y: snapToGrid(y) }
 
+    // MB-L1-CVE-001 §7 : la couche de composition résout les paramètres
+    // initiaux via la primitive canonique et les transporte dans le
+    // payload ADD_COMPONENT — AddComponentHandler reste générique (il ne
+    // connaît toujours que `parameters = {}` reçu tel quel du payload).
+    // Retourne `{}` pour tout type sans modèle de simulation (LED, ARDUINO,
+    // BUTTON, ...), identique au comportement précédent.
+    const parameters = resolveComponentParameters(type, {})
+
     try {
       const coreDocument = documentApi.getDocument()
       const command = new Command("ADD_COMPONENT", {
         componentType: type,
         position,
+        parameters,
       })
       commandBusRef.current.dispatch(command, coreDocument)
     } catch (error) {
@@ -906,6 +953,53 @@ const adapted = toEngineInput(coreDoc);
   // =========================================================================
   // FIN MB-CF3-001 (GATE 3 — addComponent)
   // =========================================================================
+
+  // =========================================================================
+  // MB-L1-CVE-001 (CSA GO) : canal de mutation cible — CommandBus ->
+  // UpdateComponentParametersHandler -> HistoryService. Une seule commande
+  // par validation utilisateur finalisée (§9 du ticket, CV-07) :
+  //   1. lit le composant PERSISTANT réel (componentsRef.current, jamais
+  //      une closure stale) ;
+  //   2. résout ses paramètres effectifs courants (beforeParameters) ;
+  //   3/4. valide la candidate (nextParameters, overrides partiels admis) ;
+  //   5. n'envoie rien si invalide ;
+  //   6. n'envoie rien si le résultat est identique (idempotence, §8.5) ;
+  //   7-8. construit et dispatch UPDATE_COMPONENT_PARAMETERS ;
+  //   9. ne mute jamais setComponents directement.
+  // =========================================================================
+  const updateComponentParameters = useCallback((componentId, nextParameters) => {
+    if (!commandBusRef.current) return
+    const current = componentsRef.current.find((c) => c.uid === componentId)
+    if (!current) return
+
+    const beforeParameters = resolveComponentParameters(current.type, current.parameters)
+    const validation = validateComponentParameters(current.type, nextParameters)
+    if (!validation.valid) return
+
+    const afterParameters = resolveComponentParameters(current.type, {
+      ...current.parameters,
+      ...validation.sanitized,
+    })
+
+    const beforeKeys = Object.keys(beforeParameters)
+    const afterKeys = Object.keys(afterParameters)
+    const isIdentical =
+      beforeKeys.length === afterKeys.length &&
+      beforeKeys.every((key) => beforeParameters[key] === afterParameters[key])
+    if (isIdentical) return
+
+    try {
+      const coreDocument = documentApi.getDocument()
+      const command = new Command("UPDATE_COMPONENT_PARAMETERS", {
+        componentId,
+        beforeParameters,
+        afterParameters,
+      })
+      commandBusRef.current.dispatch(command, coreDocument)
+    } catch (error) {
+      console.error("updateComponentParameters: échec du dispatch via CommandBus", error)
+    }
+  }, [documentApi])
 
   // =========================================================================
   // MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) : canal de mutation cible —
@@ -2430,6 +2524,8 @@ if (import.meta.env.DEV) {
 
   selection,
   activeItem,
+  // MB-L1-CVE-001 §10 : projection stable dédiée à ComponentInspector.jsx.
+  selectedComponent,
 
   simulationActive,
   // MB-VIS-CANVAS-050 : `viewport` est désormais le SEUL état de zoom/pan —
@@ -2452,6 +2548,7 @@ if (import.meta.env.DEV) {
   adjustLocalScale,
 
   addComponent,
+  updateComponentParameters,
   addWire,
   addBreadboard,
   clearCircuit,
@@ -2549,6 +2646,7 @@ if (import.meta.env.DEV) {
 
   selection,
   activeItem,
+  selectedComponent,
 
   simulationActive,
   viewport,
@@ -2562,6 +2660,7 @@ if (import.meta.env.DEV) {
   adjustLocalScale,
 
   addComponent,
+  updateComponentParameters,
   addWire,
   addBreadboard,
   clearCircuit,

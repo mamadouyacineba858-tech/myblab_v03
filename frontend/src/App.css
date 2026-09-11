@@ -179,3 +179,29 @@
   background: #e0f2fe;
   color: #0c4a6e;
 }
+
+/* MB-L1-CVE-001 : ComponentInspector — même patron que .theme-light
+   .myblab-sidebar ci-dessus (structure/comportement inchangés, seule la
+   couleur bascule par thème, aucun second système de thème). */
+.theme-light .component-inspector {
+  background: #f1f5f9;
+  border-left-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.theme-light .component-inspector__header h2,
+.theme-light .component-inspector__param-label,
+.theme-light .component-inspector__param-unit,
+.theme-light .component-inspector__param-fixed-value {
+  color: #475569;
+}
+
+.theme-light .component-inspector__component-name {
+  color: #0f172a;
+}
+
+.theme-light .component-inspector__param-input {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}

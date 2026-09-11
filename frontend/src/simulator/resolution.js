@@ -1,8 +1,8 @@
 import { Signal } from "./signals.js"
-import { getSimulationDefaultParameters } from "./simulationRegistry.js"
 import { getDcSource } from "./dcSourceRegistry.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
 import { getDcContribution, getUnconditionalConductionPinPair } from "./dcContributionRegistry.js"
+import { resolveComponentParameters } from "./resolveComponentParameters.js"
 
 /**
  * MB-SIM-006 : Résolution (ADR-004).
@@ -220,7 +220,15 @@ function computeDcAnalysis(components, prepared, pinSignals, supplyVoltage) {
     const contribute = getDcContribution(comp.type)
     if (!contribute) continue
 
-    const params = getSimulationDefaultParameters(comp.type)
+    // MB-L1-CVE-001 : la simulation consomme désormais les paramètres
+    // EFFECTIFS de l'instance (defaults canoniques + overrides d'instance
+    // validés), plus jamais uniquement les defaults canoniques — sans quoi
+    // une UI affichant 1000 Ω pourrait rester en désaccord permanent avec
+    // un solveur qui continuerait à consommer 220 Ω. Toujours un objet sûr
+    // et complet (jamais d'exception), y compris pour un composant dont
+    // `parameters` serait absent/vide (repli identique au comportement
+    // précédent dans ce cas).
+    const params = resolveComponentParameters(comp.type, comp.parameters)
     const pins = buildPinSignalMap(comp, uf, pinSignals)
     const contribution = contribute({ pins, params, supplyVoltage })
     if (contribution) dcAnalysis.set(comp.uid, contribution)

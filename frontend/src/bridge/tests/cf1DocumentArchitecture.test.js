@@ -211,7 +211,16 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
   // désormais le canal à exactement ces sept commandes, ni plus, ni moins.
   // REMOVE_COMPONENT et UPDATE_COMPONENT restent explicitement hors
   // périmètre.
-  it("[CSA RULING MB-BREADBOARD-006 — Option B, du 2026-08-26] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD + MOVE_BREADBOARD + DELETE_BREADBOARD : AddWireHandler, UpdateWireWaypointsHandler, MoveComponentHandler, AddBreadboardHandler, MoveBreadboardHandler et DeleteBreadboardHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js, et le canal legacy MoveCommand n'est plus instancié par le drag de production", () => {
+  //
+  // [CSA GO MB-L1-CVE-001 — Component Value Editing] Ce ticket étend,
+  // explicitement et uniquement, le canal à UPDATE_COMPONENT_PARAMETERS
+  // (édition persistante de component.parameters, une seule mutation/une
+  // seule entrée d'historique par validation utilisateur — voir
+  // UpdateComponentParametersHandler.js). CV-06 : ce n'est PAS un
+  // UPDATE_COMPONENT générique — le verrou borne désormais le canal à
+  // exactement ces huit commandes, ni plus, ni moins. REMOVE_COMPONENT et
+  // tout UPDATE_COMPONENT générique restent explicitement hors périmètre.
+  it("[CSA GO MB-L1-CVE-001] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD + MOVE_BREADBOARD + DELETE_BREADBOARD + UPDATE_COMPONENT_PARAMETERS : AddWireHandler, UpdateWireWaypointsHandler, MoveComponentHandler, AddBreadboardHandler, MoveBreadboardHandler, DeleteBreadboardHandler et UpdateComponentParametersHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js, et le canal legacy MoveCommand n'est plus instancié par le drag de production", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     const registerCalls = source.match(/\.register\(\s*["'][A-Z_]+["']/g) || []
     expect(registerCalls).toEqual([
@@ -222,6 +231,7 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
       '.register("ADD_BREADBOARD"',
       '.register("MOVE_BREADBOARD"',
       '.register("DELETE_BREADBOARD"',
+      '.register("UPDATE_COMPONENT_PARAMETERS"',
     ])
 
     const wireHandlerPath = path.join(dir, "..", "..", "core", "handlers", "wire", "AddWireHandler.js")
@@ -255,6 +265,12 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
     expect(
       fs.existsSync(deleteBreadboardHandlerPath),
       "DeleteBreadboardHandler doit exister (MB-BREADBOARD-006, CSA Ruling — Option B, du 2026-08-26)"
+    ).toBe(true)
+
+    const updateComponentParametersHandlerPath = path.join(dir, "..", "..", "core", "handlers", "component", "UpdateComponentParametersHandler.js")
+    expect(
+      fs.existsSync(updateComponentParametersHandlerPath),
+      "UpdateComponentParametersHandler doit exister (MB-L1-CVE-001, CSA GO)"
     ).toBe(true)
 
     // [CSA RULING MB-CF3-003] Le drag de production ne doit plus utiliser le

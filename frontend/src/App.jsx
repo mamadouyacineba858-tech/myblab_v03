@@ -5,6 +5,7 @@ import { useCircuit } from "./context/useCircuit.js"
 import { Navbar } from "./components/Navbar.jsx";
 import { Sidebar } from "./components/Sidebar.jsx";
 import { SimulationCanvas } from "./canvas/SimulationCanvas.jsx";
+import { ComponentInspector } from "./components/ComponentInspector.jsx";
 import { StatusBar } from "./components/StatusBar.jsx";
 
 import "./App.css";
@@ -22,6 +23,7 @@ function AppShell() {
       <div className="myblab-app">
         <Sidebar />
         <SimulationCanvas />
+        <ComponentInspector />
       </div>
       <StatusBar />
     </div>

@@ -52,6 +52,13 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     isWiringActive: state.isWiringActive,
     selection: state.selection,
     activeItem: state.activeItem,
+    // MB-L1-CVE-001 §10 : projection stable dédiée à ComponentInspector.jsx
+    // — dérivée du Document persistant + activeItem, jamais de
+    // componentsForRender/dragPreview (CV-15) : ne change de référence que
+    // si la sélection ou le composant sélectionné change réellement, pas à
+    // chaque pixel de drag/pan/marquee.
+    selectedComponent: state.selectedComponent,
+    updateComponentParameters: state.updateComponentParameters,
     simulationActive: state.simulationActive,
     showGrid: state.showGrid,
     theme: state.theme,
@@ -128,6 +135,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
   }), [
     state.canvasRef, state.wires, state.connectedPins, state.pinSignals,
     state.pendingPin, state.isWiringActive, state.selection, state.activeItem,
+    state.selectedComponent, state.updateComponentParameters,
     state.simulationActive, state.showGrid, state.theme,
     state.focusedComponentId, state.focusComponent, state.exitFocus, state.adjustLocalScale,
     state.addComponent, state.addWire, state.addBreadboard, state.clearCircuit,

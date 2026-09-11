@@ -6,9 +6,20 @@ import { fileURLToPath } from 'node:url'
 const sourcePath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'resolution.js')
 
 describe('MB-CF2-SIM-001 architecture', () => {
-  it('resolution imports simulationRegistry and no concrete models', () => {
+  // MB-L1-CVE-001 : l'invariant réel de ce garde-fou est "aucun import de
+  // fichier de modèle concret / aucune connaissance directe d'un type
+  // précis" — il n'a jamais été "doit importer simulationRegistry.js" pour
+  // sa propre valeur. La résolution des paramètres EFFECTIFS d'une instance
+  // (defaults canoniques + overrides validés) est désormais centralisée
+  // dans resolveComponentParameters.js (primitive unique exigée par le
+  // ticket §6, réutilisée par la composition ADD_COMPONENT/UPDATE_COMPONENT_
+  // PARAMETERS) — resolution.js la consulte au lieu de
+  // simulationRegistry.getSimulationDefaultParameters() (qui ignorait
+  // component.parameters). Toujours aucun import de modèle concret, comme
+  // le prouvent les assertions ci-dessous, inchangées.
+  it('resolution imports resolveComponentParameters (paramètres effectifs) and no concrete models', () => {
     const source = fs.readFileSync(sourcePath, 'utf-8')
-    expect(source).toMatch(/from\s+["']\.\/simulationRegistry\.js["']/)
+    expect(source).toMatch(/from\s+["']\.\/resolveComponentParameters\.js["']/)
     expect(source).not.toMatch(/from\s+["']\.\/models\/PowerModel\.js["']/)
     expect(source).not.toMatch(/from\s+["']\.\/models\/ResistorModel\.js["']/)
     expect(source).not.toMatch(/from\s+["']\.\/models\/LdrModel\.js["']/)
