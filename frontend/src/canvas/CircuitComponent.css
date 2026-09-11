@@ -7,6 +7,16 @@
 
 .circuit-component:active {
   cursor: grabbing;
+  /* MB-VIS-CANVAS-044 (§7.5) : ":active" reste vrai du mousedown initial
+     (handleBodyMouseDown, CircuitComponent.jsx) jusqu'au relâchement — soit
+     exactement la durée du drag réel (startDrag/pointermove/pointerup,
+     useCircuitState.js) — SANS nouvel état React ni nouvelle prop (aucun
+     état "dragging" n'existait déjà de façon exploitable sans dérive, §6) :
+     mécanisme natif du navigateur, zéro coût JS, zéro risque de
+     désynchronisation. Léger passage au-dessus du plan pendant la
+     manipulation ; reste sous `focused` (zIndex inline 20, jamais écrasé —
+     une règle de classe ne bat jamais un style inline). */
+  z-index: 15;
 }
 
 /* MB-VIS-CANVAS-043 : sélection — même valeur que l'ancien outline inline
@@ -28,6 +38,46 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  /* MB-VIS-CANVAS-044 : transition douce pour hover/dragging/focus
+     ci-dessous — visuel uniquement, aucun impact sur `transform`
+     (localScale, CircuitComponent.jsx, jamais touché par ce ticket). */
+  transition: filter 0.12s ease-out;
+}
+
+/* =========================================================================
+   MB-VIS-CANVAS-044 (§7.2/§7.4/§7.5) — profondeur hover / dragging / focus.
+
+   Ciblé UNIQUEMENT sur `.circuit-component__body` (jamais le wrapper, les
+   <Pin>, ou AssemblyLeadsLayer) : `filter: drop-shadow()` suit le canal
+   alpha réel de l'asset (image raster PNG/WebP ou carte SVG existante,
+   background transparent le cas échéant via [data-bare-body]) — jamais un
+   rectangle/halo générique autour du composant (C9, §13 refus immédiat).
+   Body/Pins/hit target/assembly leads restent indépendants (C10).
+
+   États mutuellement renforcés, jamais concurrents d'une même couleur :
+   - :hover  = neutre, très léger (profondeur pure, §7.2) ;
+   - :active = neutre, plus prononcé que hover (drag réel, §7.5) ;
+   - [data-focused] = teinté (écho de la couleur de sélection DE CE THÈME —
+     vert par défaut/sombre ici, bleu en thème clair via
+     `.theme-light .circuit-component[data-focused] .circuit-component__body`
+     dans App.css), distinct d'un simple hover ET du contour fin de
+     --selected (élévation vs contour, §7.4 : "FOCUSED ≠ SELECTED
+     obligatoire", les deux peuvent coexister sans corruption de classe).
+
+   Aucun `transform` introduit ici (C11/§7.5) : le seul `transform` du
+   wrapper reste `scale(localScale)` quand focused, posé en inline style
+   par CircuitComponent.jsx — jamais écrasé par une règle de classe.
+   ========================================================================= */
+.circuit-component:hover .circuit-component__body {
+  filter: drop-shadow(0 3px 6px rgba(15, 23, 42, 0.22));
+}
+
+.circuit-component:active .circuit-component__body {
+  filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.30));
+}
+
+.circuit-component[data-focused] .circuit-component__body {
+  filter: drop-shadow(0 6px 14px rgba(34, 197, 94, 0.25));
 }
 
 /* MB-VIS-INDUSTRIAL-001 — habillage de « carte » du wrapper neutralisé de

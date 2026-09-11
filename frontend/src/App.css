@@ -121,3 +121,14 @@
   border-color: #0284c7;
   background-color: rgba(2, 132, 199, 0.08);
 }
+
+/* MB-VIS-CANVAS-044 (§7.4) : teinte de FOCUSED réaccordée par thème, même
+   patron que --selected/marquee ci-dessus — écho du bleu de sélection DE CE
+   THÈME (le thème sombre garde sa teinte verte de base,
+   CircuitComponent.css), jamais une nouvelle couleur (§7.4 : "ne pas créer
+   une nouvelle couleur de focus"). Reste un halo/une élévation (filter),
+   jamais un contour : FOCUSED (élévation) et --selected (contour fin)
+   restent visuellement distincts et peuvent coexister sans collision. */
+.theme-light .circuit-component[data-focused] .circuit-component__body {
+  filter: drop-shadow(0 6px 14px rgba(2, 132, 199, 0.28));
+}

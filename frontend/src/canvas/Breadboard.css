@@ -34,12 +34,34 @@
   /* Ombre de contact courte et discrète : l'objet est posé sur le plan de
      travail, pas en lévitation. */
   filter: drop-shadow(0 3px 4px rgba(15, 23, 42, 0.20));
+  /* MB-VIS-CANVAS-044 : transition douce pour hover/dragging ci-dessous —
+     visuel uniquement, `transform` reste `none` (ligne 33, inchangé). */
+  transition: filter 0.12s ease-out;
 }
 
 .breadboard--selected {
   outline: 2px solid #22c55e;
   outline-offset: 3px;
   border-radius: 8px;
+}
+
+/* MB-VIS-CANVAS-044 (§7.6) : hover / dragging — renforce le SEUL relief déjà
+   présent (`filter: drop-shadow`, ligne ci-dessus sur `.breadboard`), jamais
+   un second halo empilé par-dessus (§7.6 : "ne pas ajouter des halos lourds
+   autour d'un SVG très grand"). `:active` reste vrai du mousedown initial
+   (Breadboard.jsx handleMouseDown) jusqu'au relâchement — durée exacte du
+   drag réel (startBreadboardDrag, useCircuitState.js), sans nouvel état
+   React (même mécanisme natif que .circuit-component:active,
+   CircuitComponent.css). Léger passage au-dessus du plan (z-index 2, reste
+   sous les composants z-index 5 et sous les fils z-index 3 — hiérarchie
+   ligne 26 inchangée). */
+.breadboard:hover {
+  filter: drop-shadow(0 4px 6px rgba(15, 23, 42, 0.26));
+}
+
+.breadboard:active {
+  filter: drop-shadow(0 7px 11px rgba(15, 23, 42, 0.32));
+  z-index: 2;
 }
 
 /* --- Corps plastique -------------------------------------------------------
