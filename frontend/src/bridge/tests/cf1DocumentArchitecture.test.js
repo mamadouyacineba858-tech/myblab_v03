@@ -220,7 +220,17 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
   // UPDATE_COMPONENT générique — le verrou borne désormais le canal à
   // exactement ces huit commandes, ni plus, ni moins. REMOVE_COMPONENT et
   // tout UPDATE_COMPONENT générique restent explicitement hors périmètre.
-  it("[CSA GO MB-L1-CVE-001] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD + MOVE_BREADBOARD + DELETE_BREADBOARD + UPDATE_COMPONENT_PARAMETERS : AddWireHandler, UpdateWireWaypointsHandler, MoveComponentHandler, AddBreadboardHandler, MoveBreadboardHandler, DeleteBreadboardHandler et UpdateComponentParametersHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js, et le canal legacy MoveCommand n'est plus instancié par le drag de production", () => {
+  //
+  // [CSA GO MB-L1-ARD-001 — Arduino Firmware Document Contract] Ce ticket
+  // étend, explicitement et uniquement, le canal à UPDATE_ARDUINO_FIRMWARE
+  // (édition persistante de component.firmware — voir
+  // UpdateArduinoFirmwareHandler.js). ARD invariant : ce n'est PAS un
+  // UPDATE_COMPONENT générique, ni une réutilisation de
+  // UPDATE_COMPONENT_PARAMETERS (le firmware n'est pas un paramètre
+  // électrique) — le verrou borne désormais le canal à exactement ces dix
+  // commandes, ni plus, ni moins. REMOVE_COMPONENT et tout UPDATE_COMPONENT
+  // générique restent explicitement hors périmètre.
+  it("[CSA GO MB-L1-ARD-001] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD + MOVE_BREADBOARD + DELETE_BREADBOARD + UPDATE_COMPONENT_PARAMETERS + UPDATE_ARDUINO_FIRMWARE : AddWireHandler, UpdateWireWaypointsHandler, MoveComponentHandler, AddBreadboardHandler, MoveBreadboardHandler, DeleteBreadboardHandler, UpdateComponentParametersHandler et UpdateArduinoFirmwareHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js, et le canal legacy MoveCommand n'est plus instancié par le drag de production", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     const registerCalls = source.match(/\.register\(\s*["'][A-Z_]+["']/g) || []
     expect(registerCalls).toEqual([
@@ -232,6 +242,7 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
       '.register("MOVE_BREADBOARD"',
       '.register("DELETE_BREADBOARD"',
       '.register("UPDATE_COMPONENT_PARAMETERS"',
+      '.register("UPDATE_ARDUINO_FIRMWARE"',
     ])
 
     const wireHandlerPath = path.join(dir, "..", "..", "core", "handlers", "wire", "AddWireHandler.js")
@@ -271,6 +282,12 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
     expect(
       fs.existsSync(updateComponentParametersHandlerPath),
       "UpdateComponentParametersHandler doit exister (MB-L1-CVE-001, CSA GO)"
+    ).toBe(true)
+
+    const updateArduinoFirmwareHandlerPath = path.join(dir, "..", "..", "core", "handlers", "component", "UpdateArduinoFirmwareHandler.js")
+    expect(
+      fs.existsSync(updateArduinoFirmwareHandlerPath),
+      "UpdateArduinoFirmwareHandler doit exister (MB-L1-ARD-001, CSA GO)"
     ).toBe(true)
 
     // [CSA RULING MB-CF3-003] Le drag de production ne doit plus utiliser le

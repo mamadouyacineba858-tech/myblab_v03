@@ -63,6 +63,12 @@ export function normalizeComponent(component) {
     ...(component.parameters && typeof component.parameters === "object" && !Array.isArray(component.parameters)
       ? { parameters: { ...component.parameters } }
       : {}),
+    // MB-L1-ARD-001 (ARD-02/ARD-03) : transport structurel du firmware —
+    // même patron que `parameters` ci-dessus, aucune sémantique
+    // d'exécution ici (setup/loop/parsing appartiennent à MB-L1-ARD-002+).
+    ...(component.firmware && typeof component.firmware === "object" && !Array.isArray(component.firmware)
+      ? { firmware: { ...component.firmware } }
+      : {}),
     ..._normalizeInteractionState(component),
   }
 }

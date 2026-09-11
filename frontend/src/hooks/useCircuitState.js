@@ -114,6 +114,17 @@ import { createDefaultValidationRegistry } from "../core/validation/createValida
 // (CV-19/CV-20).
 import { UpdateComponentParametersHandler } from "../core/handlers/component/UpdateComponentParametersHandler.js"
 import { resolveComponentParameters, validateComponentParameters } from "../simulator/resolveComponentParameters.js"
+// MB-L1-ARD-001 (CSA GO) — dixième et dernier type actuellement autorisé
+// sur ce canal, borné exactement à UPDATE_ARDUINO_FIRMWARE (ARD invariant :
+// jamais un UPDATE_COMPONENT générique — voir le UpdateComponentHandler.js
+// historique jamais enregistré, cf1DocumentArchitecture.test.js). Le
+// firmware n'est pas un paramètre électrique : jamais transporté via
+// UPDATE_COMPONENT_PARAMETERS. `createDefaultFirmware` (firmwareDefaults.js,
+// domaine Arduino, aucune connaissance Simulation/Runtime) matérialise le
+// sketch par défaut d'un nouvel ARDUINO dans le payload ADD_COMPONENT —
+// même patron que resolveComponentParameters pour parameters (MB-L1-CVE-001).
+import { UpdateArduinoFirmwareHandler } from "../core/handlers/component/UpdateArduinoFirmwareHandler.js"
+import { createDefaultFirmware } from "../arduino/firmwareDefaults.js"
 
 const EMPTY_MAP = new Map()
 
@@ -874,6 +885,13 @@ const adapted = toEngineInput(coreDoc);
         documentApi,
         validateParameters: validateComponentParameters,
       }))
+      // MB-L1-ARD-001 (CSA GO) : dixième et dernier type autorisé sur ce
+      // canal — édition persistante du sketch Arduino (component.firmware),
+      // une seule mutation/une seule entrée d'historique par validation
+      // utilisateur. REMOVE_COMPONENT et tout UPDATE_COMPONENT générique
+      // restent explicitement hors périmètre — voir
+      // cf1DocumentArchitecture.test.js.
+      registry.register("UPDATE_ARDUINO_FIRMWARE", new UpdateArduinoFirmwareHandler({ historyService, documentApi }))
       const validationEngine = new ValidationEngine(createDefaultValidationRegistry())
       commandBusRef.current = new CommandBus(registry, { validationEngine })
       // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
@@ -936,6 +954,11 @@ const adapted = toEngineInput(coreDoc);
     // Retourne `{}` pour tout type sans modèle de simulation (LED, ARDUINO,
     // BUTTON, ...), identique au comportement précédent.
     const parameters = resolveComponentParameters(type, {})
+    // MB-L1-ARD-001 §17 : le firmware par défaut est matérialisé ici (même
+    // couche de composition que `parameters` ci-dessus) — `undefined` pour
+    // tout type sans capacité firmware (AC-04), jamais transmis dans ce cas
+    // (AddComponentHandler ne l'ajoute que si présent dans le payload).
+    const firmware = createDefaultFirmware(type)
 
     try {
       const coreDocument = documentApi.getDocument()
@@ -943,6 +966,7 @@ const adapted = toEngineInput(coreDoc);
         componentType: type,
         position,
         parameters,
+        ...(firmware !== undefined ? { firmware } : {}),
       })
       commandBusRef.current.dispatch(command, coreDocument)
     } catch (error) {
@@ -998,6 +1022,44 @@ const adapted = toEngineInput(coreDoc);
       commandBusRef.current.dispatch(command, coreDocument)
     } catch (error) {
       console.error("updateComponentParameters: échec du dispatch via CommandBus", error)
+    }
+  }, [documentApi])
+
+  // =========================================================================
+  // MB-L1-ARD-001 (CSA GO) : canal de mutation cible — CommandBus ->
+  // UpdateArduinoFirmwareHandler -> HistoryService. Une seule commande par
+  // validation utilisateur finalisée (§15/§16 du ticket — l'éditeur de code
+  // n'existe pas encore, mais cette action est déjà conçue pour qu'un futur
+  // Code Workspace n'ait qu'à appeler updateArduinoFirmware(uid, source) au
+  // moment du commit explicite, jamais à chaque frappe) :
+  //   1. lit le composant PERSISTANT réel (componentsRef.current) ;
+  //   2. refuse silencieusement toute cible non-ARDUINO ou inexistante ;
+  //   3. ne rien faire si la source est identique (idempotence) ;
+  //   4. construit et dispatch UPDATE_ARDUINO_FIRMWARE ;
+  //   5. ne mute jamais setComponents directement.
+  // =========================================================================
+  const updateArduinoFirmware = useCallback((componentId, nextSource) => {
+    if (!commandBusRef.current) return
+    if (typeof nextSource !== "string") return
+    const current = componentsRef.current.find((c) => c.uid === componentId)
+    if (!current || current.type !== "ARDUINO") return
+
+    const beforeFirmware = current.firmware && typeof current.firmware === "object"
+      ? current.firmware
+      : createDefaultFirmware(current.type)
+    const afterFirmware = { source: nextSource }
+    if (beforeFirmware.source === afterFirmware.source) return
+
+    try {
+      const coreDocument = documentApi.getDocument()
+      const command = new Command("UPDATE_ARDUINO_FIRMWARE", {
+        componentId,
+        beforeFirmware,
+        afterFirmware,
+      })
+      commandBusRef.current.dispatch(command, coreDocument)
+    } catch (error) {
+      console.error("updateArduinoFirmware: échec du dispatch via CommandBus", error)
     }
   }, [documentApi])
 
@@ -2549,6 +2611,7 @@ if (import.meta.env.DEV) {
 
   addComponent,
   updateComponentParameters,
+  updateArduinoFirmware,
   addWire,
   addBreadboard,
   clearCircuit,
@@ -2661,6 +2724,7 @@ if (import.meta.env.DEV) {
 
   addComponent,
   updateComponentParameters,
+  updateArduinoFirmware,
   addWire,
   addBreadboard,
   clearCircuit,
