@@ -258,7 +258,13 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
 
   return (
     <div
-      className="circuit-component"
+      // MB-VIS-CANVAS-043 : sélection portée par une classe (au lieu d'un
+      // outline inline) afin que sa COULEUR seule (jamais sa sémantique —
+      // `selected` reste dérivé de isSelected(), inchangé) puisse être
+      // réaccordée par thème via `.theme-light .circuit-component--selected`
+      // (App.css), même mécanisme déjà utilisé pour tout le reste du thème
+      // clair (aucun nouveau système).
+      className={`circuit-component${selected ? " circuit-component--selected" : ""}`}
       data-backend={presentation.backend}
       data-focused={focused ? "" : undefined}
       style={{
@@ -266,8 +272,6 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
         top: y,
         width: def.width ?? 80,
         height: def.height ?? 40,
-        outline: selected ? '2px solid #22c55e' : 'none',
-        outlineOffset: '2px',
         transform: appliedScale !== 1 ? `scale(${appliedScale})` : undefined,
         transformOrigin: 'center center',
         zIndex: focused ? 20 : undefined,

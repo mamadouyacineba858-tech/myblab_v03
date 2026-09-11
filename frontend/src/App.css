@@ -65,22 +65,59 @@
   background: #cbd5e1;
 }
 
+/* MB-VIS-CANVAS-043 : workspace Tinkercad-level — gris très clair, froid,
+   volontairement DISTINCT du corps du breadboard (#eef0ec, chaud/crème,
+   Breadboard.css MB-VIS-BREAD-041) pour que la carte reste "clairement
+   détachée du fond" (Blueprint §4/QA-03) sans recourir à un blanc pur
+   éblouissant (§4, interdit). */
 .theme-light .simulation-canvas {
-  background: #f8fafc;
+  background: #e6e9ee;
 }
 
+/* MB-VIS-CANVAS-043 : #94a3b8 (valeur d'origine) est illisible sur le
+   nouveau fond clair #e6e9ee (texte gris clair sur gris clair) — recalé sur
+   un gris ardoise plus soutenu, seule la couleur change (même position,
+   même contenu, aucune logique touchée). */
 .theme-light .simulation-canvas__hint {
-  color: #94a3b8;
+  color: #64748b;
 }
 
+/* MB-VIS-CANVAS-043 : grille fine/discrète — même géométrie procédurale
+   (GridBackground.css, pas de GRID_SIZE/pitch touché), seule la teinte des
+   lignes passe du blanc (thème sombre) à un gris ardoise sourd, à faible
+   opacité, pour rester un repère spatial jamais dominant (Blueprint §5). */
 .theme-light .myblab-grid {
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(15, 23, 42, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.07) 1px, transparent 1px);
 }
 
 .theme-light .myblab-statusbar {
   background: #e2e8f0;
   border-top-color: #cbd5e1;
   color: #475569;
+}
+
+/* MB-VIS-CANVAS-043 (Contrat C) : langage de sélection cohérent avec le
+   workspace clair — bleu/cyan technologique, distinct du vert déjà réservé
+   au feedback breadboard valide (BREAD-042) et à la sélection/connexion de
+   fils (wirePath.js, Pin.css), pour éviter toute collision sémantique de
+   couleur. Sémantique de sélection INCHANGÉE (isSelected()/selectOnly()/
+   activeItem) : seule la COULEUR bascule par thème, jamais la logique. Le
+   thème sombre garde exactement son rendu vert d'origine (aucune régression
+   pour qui reste en mode sombre). */
+.theme-light .circuit-component--selected {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+}
+
+.theme-light .breadboard--selected {
+  outline-color: #0284c7;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+}
+
+.theme-light .marquee-overlay {
+  border-color: #0284c7;
+  background-color: rgba(2, 132, 199, 0.08);
 }

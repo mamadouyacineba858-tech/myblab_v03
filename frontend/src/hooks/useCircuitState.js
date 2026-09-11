@@ -150,7 +150,12 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   // `zoom` directement — ce n'est jamais une seconde source d'état.
   const [viewport, setViewport] = useState(createDefaultViewport)
   const [showGrid, setShowGrid] = useState(true)
-  const [theme, setTheme] = useState("dark")
+  // MB-VIS-CANVAS-043 : défaut "light" (workspace Tinkercad-level) — le
+  // mécanisme de thème lui-même (theme/setThemeMode, `.theme-${theme}` sur
+  // myblab-root, App.jsx) est INCHANGÉ et préexistant ; seule la valeur
+  // initiale change. "dark" reste entièrement disponible via le panneau
+  // Réglages (SettingsPanel.jsx), zéro régression du thème sombre.
+  const [theme, setTheme] = useState("light")
 
   // =========================================================================
   // MB-VIS-CANVAS-052 : focus de composant + échelle visuelle locale.
