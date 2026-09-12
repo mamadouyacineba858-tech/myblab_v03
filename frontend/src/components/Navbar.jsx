@@ -4,13 +4,15 @@
 // CircuitComponent.jsx / ComponentPreview.jsx. Navbar.jsx n'avait jamais été
 // rendu directement sous cette config avant LaboratoryWorkspaceCohesion.test.jsx
 // (MB-VIS-LAB-046). Ajout d'import pur, aucun changement de comportement.
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useCircuit } from "../context/useCircuit.js"
 import { SettingsPanel } from "./SettingsPanel.jsx";
 import { LiveMeasurementPanel } from "../measurement/LiveMeasurementPanel.jsx";
 import "./Navbar.css";
+import { ArduinoCodeWorkspace } from "../arduino/ui/ArduinoCodeWorkspace.jsx";
 export function Navbar() {
   const {
+    selectedComponent,
     simulationActive,
     startSimulation,
     stopSimulation,
@@ -25,6 +27,9 @@ export function Navbar() {
     clearCircuit,
   } = useCircuit();
 
+  const [codeOpen, setCodeOpen] = useState(false);
+  const isArduino = selectedComponent?.type === "ARDUINO";
+  useEffect(() => { if (!isArduino) setCodeOpen(false); }, [isArduino]);
   const fileInputRef = useRef(null);
 const [settingsOpen, setSettingsOpen] = useState(false);
   // MB-MEASURE-002 : panneau léger, monté uniquement lorsqu'ouvert (§6 du
@@ -154,6 +159,7 @@ const [settingsOpen, setSettingsOpen] = useState(false);
 
         <div className="separator"></div>
 
+        <button disabled={!isArduino} onClick={() => setCodeOpen(true)} aria-expanded={codeOpen && isArduino}>💻 Code</button>
         <button
           className="measurement"
           onClick={() => setMeasurementOpen(true)}
@@ -170,6 +176,7 @@ const [settingsOpen, setSettingsOpen] = useState(false);
           ⚙
         </button>
       </nav>
+      {codeOpen && isArduino && <ArduinoCodeWorkspace onClose={() => setCodeOpen(false)} />}
       {settingsOpen && (
   <SettingsPanel onClose={() => setSettingsOpen(false)} />
 )}

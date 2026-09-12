@@ -70,6 +70,10 @@ export class FirmwareRuntimeController {
    * @param {number} dt Délégué tel quel au Scheduler (mêmes règles de validation, clock.js).
    * @returns {number} Le nouveau temps courant du Scheduler, en ms.
    */
+  resumeAtCurrentTime() {
+    if (this._running) this._executor.resume(this._scheduler.getCurrentTime())
+  }
+
   advance(dt) {
     const currentTimeMs = this._scheduler.advance(dt)
     if (this._running) {

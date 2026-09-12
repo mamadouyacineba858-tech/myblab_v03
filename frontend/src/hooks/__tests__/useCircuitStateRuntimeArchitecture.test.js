@@ -75,7 +75,10 @@ describe("MB-ARDUINO-BRIDGE-001 — LOCK-02 : useCircuitState.js n'instancie pas
 describe("MB-ARDUINO-BRIDGE-001 — LOCK-03 : useCircuitState.js utilise runSimulationWithRuntime", () => {
   it("importe runSimulationWithRuntime depuis simulationRuntimeIntegration.js", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
-    expect(source).toMatch(/import\s*\{\s*runSimulationWithRuntime\s*\}\s*from\s+["'][^"']*simulationRuntimeIntegration\.js["']/)
+    const integrationImports = [...source.matchAll(/import\s*\{([^}]+)\}\s*from\s+["'][^"']*simulationRuntimeIntegration\.js["']/g)]
+    const names = integrationImports.flatMap(match => match[1].split(",").map(name => name.trim()))
+    expect(names).toContain("runSimulationWithRuntime")
+    expect(source).not.toMatch(/from\s+["'][^"']*runtimeOrchestrator\.js["']/)
     expect(source).toMatch(/runSimulationWithRuntime\s*\(/)
   })
 
@@ -86,15 +89,36 @@ describe("MB-ARDUINO-BRIDGE-001 — LOCK-03 : useCircuitState.js utilise runSimu
   })
 })
 
-describe("MB-ARDUINO-BRIDGE-001 — LOCK-04 : aucun timer navigateur comme mécanisme de simulation", () => {
-  it("useCircuitState.js, App.jsx et CircuitContext.jsx ne contiennent ni setInterval, ni setTimeout, ni requestAnimationFrame, ni Date.now/performance.now", () => {
+describe("MB-ARDUINO-BRIDGE-001 — LOCK-04 : RAF déclenche les frames, Scheduler possède le temps", () => {
+  it("useCircuitState.js, App.jsx et CircuitContext.jsx ne contiennent ni setInterval, ni setTimeout, ni Date.now/performance.now", () => {
     for (const { label, filePath } of bridgeFiles) {
       const source = readSourceWithoutComments(filePath)
       expect(source, `${label}: setInterval`).not.toMatch(/setInterval\s*\(/)
       expect(source, `${label}: setTimeout`).not.toMatch(/setTimeout\s*\(/)
-      expect(source, `${label}: requestAnimationFrame`).not.toMatch(/requestAnimationFrame\s*\(/)
       expect(source, `${label}: Date.now`).not.toMatch(/Date\.now\s*\(/)
       expect(source, `${label}: performance.now`).not.toMatch(/performance\.now\s*\(/)
+    }
+  })
+})
+
+// CSA ARD-004: inspect every RAF registration, not just the presence of a
+// fixed-step constant somewhere in the module. The callback accepts no
+// timestamp, and its only solve argument is the central fixed duration.
+describe("MB-L1-ARD-004 — LOCK-04 : frame trigger, never a second clock", () => {
+  it("every RAF callback discards browser time and invokes the fixed simulation step", () => {
+    const source = readSourceWithoutComments(useCircuitStatePath)
+    const registrations = [...source.matchAll(/\brequestAnimationFrame\s*\(\s*([\w$]+)\s*\)/g)]
+    expect(registrations.length).toBeGreaterThan(0)
+    expect(registrations.length).toBe([...source.matchAll(/\brequestAnimationFrame\s*\(/g)].length)
+    for (const [, callback] of registrations) {
+      const callbackBody = source.match(new RegExp(`const\\s+${callback}\\s*=\\s*\\(\\s*\\)\\s*=>\\s*\\{([^}]+)\\}`))?.[1]
+      expect(callbackBody, "RAF callback must not accept a timestamp").toBeDefined()
+      const solveArguments = [...callbackBody.matchAll(/\bsolve\s*\(\s*([^)]*)\)/g)].map(match => match[1].trim())
+      expect(solveArguments).toEqual(["SIMULATION_STEP_MS"])
+    }
+    expect(source).toMatch(/runSimulationWithRuntime\s*\([^]*?firmwareComponents:\s*safeComponents,\s*dt/)
+    for (const { label, filePath } of bridgeFiles) {
+      expect(readSourceWithoutComments(filePath), `${label}: business time belongs to integration`).not.toMatch(/\.advance\s*\(/)
     }
   })
 })

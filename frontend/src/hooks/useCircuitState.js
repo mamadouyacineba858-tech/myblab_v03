@@ -49,7 +49,7 @@ import {
 // runtimeArchitecture.test.js). Ce fichier n'importe ni runtimeOrchestrator.js
 // ni ArduinoSimulator.js : ces instances ne sont créées que lazily, à
 // l'intérieur de simulationRuntimeIntegration.js.
-import { runSimulationWithRuntime } from "../simulator/simulationRuntimeIntegration.js"
+import { runSimulationWithRuntime, stopFirmwareSimulation, SIMULATION_STEP_MS } from "../simulator/simulationRuntimeIntegration.js"
 import { getSelectionKey, parseSelectionKey, promoteActiveItem } from "../utils/selection.js"
 import { HistoryManager } from "../history/HistoryManager.js"
 import { DeleteCommand } from "../history/commands/DeleteCommand.js"
@@ -404,6 +404,9 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   // ref (règle react-hooks/refs — même correction déjà appliquée plus bas
   // dans ce fichier pour commandBusRef/historyServiceRef) ; l'initialisation
   // paresseuse garantit que `new Map()` n'est construit qu'une seule fois.
+  const [firmwareSessions] = useState(() => new Map())
+  const [pinSignals, setPinSignals] = useState(EMPTY_MAP)
+  const [firmwareDiagnostics, setFirmwareDiagnostics] = useState({})
   const [ownOrchestratorsFallback] = useState(() => new Map())
   const orchestrators = injectedOrchestrators instanceof Map ? injectedOrchestrators : ownOrchestratorsFallback
   // =========================================================================
@@ -541,51 +544,43 @@ const getUndoCount = useCallback(() => {
   const wirePaths = useMemo(() => buildWirePaths(componentsForRender, wiresForGeometry, focusInfo), [componentsForRender, wiresForGeometry, focusInfo])
   const connectedPins = useMemo(() => buildConnectedPinsSet(safeWires), [safeWires])
 
-  const pinSignals = useMemo(() => {
-  if (!simulationActive) return EMPTY_MAP
-  try {
-    // 1. Convertir React → Core Document
-    // MB-BREADBOARD-003 [correction disclosed, voir Delivery Report §Déviations] :
-    // `breadboard` était absent de ce coreDoc construit localement (à la
-    // différence de documentApi.getDocument(), qui l'inclut depuis
-    // MB-BREADBOARD-002). Conséquence : toEngineInput() ne recevait jamais
-    // de breadboard ici, donc deriveBreadboardVirtualWiresBridge() ne
-    // produisait jamais aucune arête — la connectivité breadboard était
-    // invisible à la simulation LIVE (pinSignals), bien que
-    // breadboardSimulationIntegration.test.js (MB-BREADBOARD-002) l'ait déjà
-    // prouvée correcte sur un Document construit à la main, hors du hook.
-    // Découvert via BreadboardInsertionMutationChannel.integration.test.jsx
-    // (TEST 1), qui exerce pour la première fois ce chemin de bout en bout.
-    // FT-C-BREAD-MULTI-001-B : la couche électrique consomme la collection
-    // canonique `breadboards[]` (deriveBreadboardVirtualWires itère tous les
-    // breadboards, groupes namespacés par id) — plus la projection transitoire
-    // `breadboard`.
-    const coreDoc = ReactDocumentMapper.toCore({
-      components: safeComponents,
-      wires: safeWires,
-      breadboards,
-    });
+  useEffect(() => {
+    if (!simulationActive) {
+      setPinSignals(EMPTY_MAP)
+      return
+    }
+    let cancelled = false
+    let frame
+    const solve = (dt) => {
+      try {
+        const coreDoc = ReactDocumentMapper.toCore({ components: safeComponents, wires: safeWires, breadboards })
+        const adapted = toEngineInput(coreDoc)
+        setPinSignals(runSimulationWithRuntime(adapted.components, adapted.wires, {
+          orchestrators, firmwareSessions, firmwareComponents: safeComponents, dt,
+        }) ?? EMPTY_MAP)
+        const diagnostics = Object.fromEntries([...firmwareSessions].map(([uid, session]) => [uid, session.diagnostics]))
+        setFirmwareDiagnostics(previous => JSON.stringify(previous) === JSON.stringify(diagnostics) ? previous : diagnostics)
+      } catch (error) {
+        console.error("MYBlab simulation error:", error)
+        setPinSignals(EMPTY_MAP)
+      }
+    }
+    solve(0)
+    const tick = () => {
+      if (cancelled) return
+      solve(SIMULATION_STEP_MS)
+      frame = requestAnimationFrame(tick)
+    }
+    if (safeComponents.some(c => c.type === "ARDUINO") && typeof requestAnimationFrame === "function") {
+      frame = requestAnimationFrame(tick)
+    }
+    return () => {
+      cancelled = true
+      if (frame !== undefined) cancelAnimationFrame(frame)
+    }
+  }, [safeComponents, safeWires, breadboards, simulationActive, orchestrators, firmwareSessions])
 
-    // 2. Adapter le Document Core vers le format attendu par engine.js
-const adapted = toEngineInput(coreDoc);
-    
-    // 3. Appeler le moteur avec les données adaptées
-    // MB-ARDUINO-BRIDGE-001 : runSimulationWithRuntime délègue intégralement
-    // au chemin historique du moteur nu (GATE 0, non-régression prouvée par
-    // simulationRuntimeIntegration.test.js) tant qu'aucun composant ARDUINO
-    // n'est présent — même résultat, même cadence de recalcul qu'avant ce
-    // ticket. `orchestrators` est passé tel quel (jamais recréé ici) afin
-    // que l'état runtime (pinOutputs, PWM) survive aux recalculs successifs
-    // de ce useMemo (§16 du Blueprint).
-
-    const result = runSimulationWithRuntime(adapted.components, adapted.wires, { orchestrators }) ?? EMPTY_MAP
-
-    return result
-  } catch (error) {
-    console.error("MYBlab simulation error:", error)
-    return EMPTY_MAP
-  }
-}, [safeComponents, safeWires, breadboards, simulationActive, orchestrators])
+  useEffect(() => () => stopFirmwareSimulation(orchestrators, firmwareSessions), [orchestrators, firmwareSessions])
 
   const isWiringActive = pendingPin !== null || wireGesture !== null
 
@@ -2432,8 +2427,8 @@ if (import.meta.env.DEV) {
     setLocalScale(LOCAL_SCALE_DEFAULT)
     // MB-ARDUINO-BRIDGE-001 (§5/§17 du Blueprint) : un nouveau Document (vide)
     // ne doit jamais hériter de l'état runtime d'un circuit précédent.
-    orchestrators.clear()
-  }, [orchestrators])
+    stopFirmwareSimulation(orchestrators, firmwareSessions)
+  }, [orchestrators, firmwareSessions])
 
   // MB-BREADBOARD-003 (Blueprint §6, AC-23) : `breadboard` était absent de
   // l'objet exporté et ignoré à l'import (lacune préexistante, explicitement
@@ -2477,11 +2472,19 @@ if (import.meta.env.DEV) {
     setLocalScale(LOCAL_SCALE_DEFAULT)
     // MB-ARDUINO-BRIDGE-001 (§5/§17 du Blueprint) : un Document importé ne
     // doit jamais hériter de l'état runtime du circuit précédemment chargé.
-    orchestrators.clear()
-  }, [orchestrators])
+    stopFirmwareSimulation(orchestrators, firmwareSessions)
+  }, [orchestrators, firmwareSessions])
 
-  const startSimulation = useCallback(() => setSimulationActive(true), [])
-  const stopSimulation = useCallback(() => setSimulationActive(false), [])
+  const startSimulation = useCallback(() => {
+    if (simulationActive) return
+    stopFirmwareSimulation(orchestrators, firmwareSessions)
+    setFirmwareDiagnostics({})
+    setSimulationActive(true)
+  }, [simulationActive, orchestrators, firmwareSessions])
+  const stopSimulation = useCallback(() => {
+    stopFirmwareSimulation(orchestrators, firmwareSessions)
+    setSimulationActive(false)
+  }, [orchestrators, firmwareSessions])
   // MB-VIS-CANVAS-050 : zoomIn/zoomOut restent des pas fixes de 0.1 borné
   // [0.5,2] (comportement 049 strictement préservé — mêmes tests), mais
   // ancrent désormais le zoom au CENTRE du Canvas plutôt que de laisser le
@@ -2638,6 +2641,7 @@ if (import.meta.env.DEV) {
   // MB-BREADBOARD-006 (CSA Ruling — Option B, §5/§6) : déclenchement du drag
   // du breadboard — même patron d'exposition que startDrag/startWaypointDrag.
   startBreadboardDrag,
+  firmwareDiagnostics,
   startSimulation,
   stopSimulation,
   zoomIn,
@@ -2742,6 +2746,7 @@ if (import.meta.env.DEV) {
 
   startDrag,
   startBreadboardDrag,
+  firmwareDiagnostics,
   startSimulation,
   stopSimulation,
   zoomIn,

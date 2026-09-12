@@ -1,0 +1,8 @@
+.arduino-code-workspace { position: fixed; top: 72px; right: 16px; bottom: 40px; width: min(440px, 42vw); z-index: 100; display: flex; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid #556174; border-radius: 12px; background: #18212f; color: #eef4ff; box-shadow: 0 8px 28px #0005; overflow: auto; }
+.arduino-code-heading, .arduino-code-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.arduino-code-heading h2 { margin: 0; font-size: 18px; }
+.arduino-code-workspace textarea { flex: 1; min-height: 140px; resize: vertical; padding: 12px; background: #101722; color: #e0eeff; border: 1px solid #64748b; border-radius: 6px; font: 13px/1.6 monospace; tab-size: 2; }
+.arduino-code-workspace button { padding: 8px 12px; cursor: pointer; }
+.arduino-code-workspace button:disabled { opacity: .5; cursor: default; }
+.arduino-code-workspace [role="status"] { overflow-wrap: anywhere; font-size: 13px; }
+@media (max-width: 650px) { .arduino-code-workspace { width: 65vw; right: 8px; } }

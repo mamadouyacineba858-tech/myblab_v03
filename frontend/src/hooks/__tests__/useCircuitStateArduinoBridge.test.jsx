@@ -57,22 +57,10 @@ function buildArduinoLedCircuit() {
   return { result, orchestrators, ard1Uid: ard1.uid, led1Uid: led1.uid }
 }
 
-/**
- * pinSignals (useCircuitState.js) est un useMemo dont les dépendances
- * n'incluent aucun mécanisme d'actualisation continue (§15 du Blueprint —
- * aucune dépendance à un timer/une boucle). Un digitalWrite() effectué hors
- * du cycle de rendu React n'est donc reflété qu'au prochain recalcul
- * effectivement déclenché. Ce recalcul est obtenu ici via un cycle
- * stop/start de la simulation — une action déjà exposée par le hook
- * (startSimulation/stopSimulation), pas une API de test ad hoc.
- */
+/** CSA ARD-004: recalculate within the SAME active session. Stop/Start
+ * terminates volatile GPIO state and must never be used as a refresh. */
 function recompute(result) {
-  act(() => {
-    result.current.stopSimulation()
-  })
-  act(() => {
-    result.current.startSimulation()
-  })
+  act(() => result.current.addComponent("RESISTOR", 600, 400))
 }
 
 describe("MB-ARDUINO-BRIDGE-001 — TEST-01 : circuit sans Arduino (GATE 0)", () => {
@@ -131,6 +119,7 @@ describe("MB-ARDUINO-BRIDGE-001 — TEST-02/03/04 : D2 LOW → LED OFF, puis D2 
       orchestrator.getRuntime().digitalWrite("D2", Signal.LOW)
     })
     recompute(result)
+    expect(orchestrators.get(ard1Uid).getRuntime().running).toBe(true)
 
     let led = getLedState(led1Uid, result.current.pinSignals)
     expect(led.on).toBe(false)
@@ -140,6 +129,7 @@ describe("MB-ARDUINO-BRIDGE-001 — TEST-02/03/04 : D2 LOW → LED OFF, puis D2 
       orchestrator.getRuntime().digitalWrite("D2", Signal.HIGH)
     })
     recompute(result)
+    expect(orchestrators.get(ard1Uid).getRuntime().running).toBe(true)
 
     led = getLedState(led1Uid, result.current.pinSignals)
     expect(led.on).toBe(true)
@@ -161,12 +151,14 @@ describe("MB-ARDUINO-BRIDGE-001 — TEST-05 : HIGH → LOW (transition inverse)"
       orchestrator.getRuntime().digitalWrite("D2", Signal.HIGH)
     })
     recompute(result)
+    expect(orchestrators.get(ard1Uid).getRuntime().running).toBe(true)
     expect(getLedState(led1Uid, result.current.pinSignals).on).toBe(true)
 
     act(() => {
       orchestrator.getRuntime().digitalWrite("D2", Signal.LOW)
     })
     recompute(result)
+    expect(orchestrators.get(ard1Uid).getRuntime().running).toBe(true)
     expect(getLedState(led1Uid, result.current.pinSignals).on).toBe(false)
   })
 })
@@ -184,6 +176,7 @@ describe("MB-ARDUINO-BRIDGE-001 — TEST-06 : persistance de l'orchestrator entr
       orchestrator1.getRuntime().digitalWrite("D2", Signal.HIGH)
     })
     recompute(result)
+    expect(orchestrators.get(ard1Uid).getRuntime().running).toBe(true)
     expect(getLedState(led1Uid, result.current.pinSignals).on).toBe(true)
 
     // Mutation de Document sans rapport (ajout d'une résistance non câblée) :
@@ -229,6 +222,7 @@ describe("MB-ARDUINO-BRIDGE-001 — TEST-08 : nouveau Document → aucune contam
       orchestrator.getRuntime().digitalWrite("D2", Signal.HIGH)
     })
     recompute(result)
+    expect(orchestrators.get(ard1Uid).getRuntime().running).toBe(true)
     expect(getLedState(led1Uid, result.current.pinSignals).on).toBe(true)
     expect(orchestrators.size).toBe(1)
 
@@ -257,5 +251,38 @@ describe("MB-ARDUINO-BRIDGE-001 — TEST-08 : nouveau Document → aucune contam
 
     expect(getLedState(led2.uid, result.current.pinSignals).on).toBe(false)
     expect(result.current.pinSignals.get(`${ard2.uid}:D2`)).toBe(Signal.FLOATING)
+  })
+})
+
+
+describe("ARD-004 CSA: Stop ends the session, Start executes fresh firmware at t=0", () => {
+  it("reexecutes setup and never leaks stale GPIO or scheduler time on restart", () => {
+    const { result, orchestrators, ard1Uid, led1Uid } = buildArduinoLedCircuit()
+    const source = "void setup() { pinMode(2, OUTPUT); digitalWrite(2, HIGH); } void loop() { delay(500); digitalWrite(2, LOW); delay(500); }"
+    act(() => result.current.updateArduinoFirmware(ard1Uid, source))
+    const document = result.current.exportCircuit()
+    const history = result.current.getUndoCount()
+    act(() => result.current.startSimulation())
+    const old = orchestrators.get(ard1Uid)
+    expect(old.getCurrentTime()).toBe(0)
+    expect(getLedState(led1Uid, result.current.pinSignals).on).toBe(true)
+    // Contaminate the old runtime deliberately: neither these outputs nor
+    // its advanced time may survive the user lifecycle boundary.
+    old.getScheduler().advance(400)
+    old.getRuntime().digitalWrite("D2", Signal.LOW)
+    old.getRuntime().digitalWrite("D3", Signal.HIGH)
+    act(() => result.current.stopSimulation())
+    expect(old.getRuntime().running).toBe(false)
+    expect(orchestrators.size).toBe(0)
+    act(() => result.current.startSimulation())
+    const fresh = orchestrators.get(ard1Uid)
+    expect(fresh).not.toBe(old)
+    expect(fresh.getRuntime()).not.toBe(old.getRuntime())
+    expect(fresh.getCurrentTime()).toBe(0)
+    expect(fresh.getRuntime().pinOutputs.get("D2")).toBe(Signal.HIGH)
+    expect(fresh.getRuntime().pinOutputs.has("D3")).toBe(false)
+    expect(getLedState(led1Uid, result.current.pinSignals).on).toBe(true)
+    expect(result.current.exportCircuit()).toEqual(document)
+    expect(result.current.getUndoCount()).toBe(history)
   })
 })

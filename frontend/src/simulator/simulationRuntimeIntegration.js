@@ -1,3 +1,10 @@
+import { compileFirmware } from "../arduino/firmware/firmwareCompiler.js"
+import { FirmwareExecutor } from "../arduino/firmware/firmwareExecutor.js"
+import { FirmwareRuntimeController } from "../arduino/firmware/firmwareRuntimeController.js"
+
+// Presentation frames advance this fixed simulated duration, never wall time.
+export const SIMULATION_STEP_MS = 16
+
 import { runSimulation } from "./engine.js"
 import { prepareCircuit } from "./preparation.js"
 import { resolveSignals } from "./resolution.js"
@@ -133,42 +140,73 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // tel quel pour tous les Runtime suivants de cet appel
   // (orchestrator.getRuntime().tick(sharedCurrentTimeMs)), sans réappeler
   // Scheduler.advance().
-  let schedulerAlreadyAdvancedThisCall = false
-  let sharedCurrentTimeMs = null
-
-  // externalSignals : Map<"uid:pinId", Signal>, alimentée directement
-  // depuis le SignalMap brut (pinId -> Signal) de chaque Runtime — même
-  // mécanisme de préfixage par uid que l'ancien
-  // mergeRuntimeSignalsIntoPinSignals(), désormais appliqué AVANT la
-  // résolution plutôt qu'après (§5/§9 du ticket : pas de nouveau système
-  // de clés, pas de conversion conceptuelle).
-  const externalSignals = new Map()
+  // Resolve every runtime before advancing the one shared clock.
   for (const comp of runtimeComponents) {
-    let orchestrator = orchestrators.get(comp.uid)
-    if (!orchestrator) {
-      orchestrator = sharedScheduler
+    if (!orchestrators.has(comp.uid)) {
+      const orchestrator = sharedScheduler
         ? createRuntimeOrchestrator({ scheduler: sharedScheduler })
         : createRuntimeOrchestrator()
       sharedScheduler = orchestrator.getScheduler()
       orchestrators.set(comp.uid, orchestrator)
     }
-
-    let signalMap
-    if (!schedulerAlreadyAdvancedThisCall) {
-      const result = orchestrator.advance(dt)
-      signalMap = result.signalMap
-      sharedCurrentTimeMs = result.time
-      schedulerAlreadyAdvancedThisCall = true
-    } else {
-      signalMap = orchestrator.getRuntime().tick(sharedCurrentTimeMs)
-    }
-
-    for (const [pinId, signal] of signalMap) {
-      externalSignals.set(`${comp.uid}:${pinId}`, signal)
+  }
+  for (const comp of runtimeComponents) {
+    if (orchestrators.get(comp.uid).getScheduler() !== sharedScheduler) {
+      throw new Error("Live Arduino runtimes must share one Scheduler")
     }
   }
-
+  if (options.firmwareSessions) {
+    synchronizeFirmware(options.firmwareComponents ?? components, orchestrators, options.firmwareSessions)
+  }
+  sharedScheduler.advance(dt)
+  const currentTimeMs = sharedScheduler.getCurrentTime()
+  for (const comp of runtimeComponents) {
+    options.firmwareSessions?.get(comp.uid)?.controller?.resumeAtCurrentTime()
+  }
+  const externalSignals = new Map()
+  for (const comp of runtimeComponents) {
+    const signalMap = orchestrators.get(comp.uid).getRuntime().tick(currentTimeMs)
+    for (const [pinId, signal] of signalMap) externalSignals.set(`${comp.uid}:${pinId}`, signal)
+  }
   const prepared = prepareCircuit(components, wires)
   const { pinSignals } = resolveSignals(components, prepared, externalSignals)
   return pinSignals
+}
+
+export function stopFirmwareSimulation(orchestrators, sessions) {
+  for (const session of sessions.values()) session.controller?.stop()
+  for (const orchestrator of orchestrators.values()) orchestrator.getRuntime().stop()
+  sessions.clear()
+  orchestrators.clear()
+}
+
+function synchronizeFirmware(components, orchestrators, sessions) {
+  const live = new Set(components.filter(c => c.type === "ARDUINO").map(c => c.uid))
+  for (const [uid, session] of sessions) {
+    if (!live.has(uid)) {
+      session.controller?.stop()
+      orchestrators.get(uid)?.getRuntime().stop()
+      sessions.delete(uid)
+      orchestrators.delete(uid)
+    }
+  }
+  for (const comp of components) {
+    if (comp.type !== "ARDUINO") continue
+    const source = comp.firmware?.source
+    const previous = sessions.get(comp.uid)
+    if (previous && previous.source === source) continue
+    previous?.controller?.stop()
+    const orchestrator = orchestrators.get(comp.uid)
+    const runtime = orchestrator.getRuntime()
+    runtime.stop()
+    runtime.loadCode(source)
+    const compiled = compileFirmware(source)
+    const session = { source, diagnostics: compiled.ok ? [] : compiled.diagnostics }
+    sessions.set(comp.uid, session)
+    if (!compiled.ok) continue
+    session.executor = new FirmwareExecutor(compiled.ir, runtime)
+    session.controller = new FirmwareRuntimeController({ scheduler: orchestrator.getScheduler(), executor: session.executor })
+    runtime.start()
+    session.controller.start()
+  }
 }

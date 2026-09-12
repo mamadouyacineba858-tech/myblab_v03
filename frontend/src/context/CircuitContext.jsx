@@ -63,6 +63,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     // updateComponentParameters) — le futur Code Workspace (MB-L1-ARD-004)
     // la consommera sans jamais souscrire au contexte haute fréquence.
     updateArduinoFirmware: state.updateArduinoFirmware,
+    firmwareDiagnostics: state.firmwareDiagnostics,
     simulationActive: state.simulationActive,
     showGrid: state.showGrid,
     theme: state.theme,
@@ -140,7 +141,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     state.canvasRef, state.wires, state.connectedPins, state.pinSignals,
     state.pendingPin, state.isWiringActive, state.selection, state.activeItem,
     state.selectedComponent, state.updateComponentParameters, state.updateArduinoFirmware,
-    state.simulationActive, state.showGrid, state.theme,
+    state.firmwareDiagnostics, state.simulationActive, state.showGrid, state.theme,
     state.focusedComponentId, state.focusComponent, state.exitFocus, state.adjustLocalScale,
     state.addComponent, state.addWire, state.addBreadboard, state.clearCircuit,
     state.startWireGesture,
