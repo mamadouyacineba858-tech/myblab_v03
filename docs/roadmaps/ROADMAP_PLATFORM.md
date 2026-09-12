@@ -543,3 +543,136 @@ Toute évolution future de cette roadmap doit préserver la traçabilité :
 **Vision → Architecture → Programme → Épic → PMO → Implémentation → Vérification.**
 
 La trajectoire stratégique définie en §1.1 fait désormais partie intégrante de cette référence : **atteindre le niveau Tinkercad, dépasser ce benchmark, puis tendre vers un laboratoire électronique virtuel MYBlab avancé.** Elle ne doit pas être perdue ou implicitement abandonnée au fil des tickets futurs ; toute évolution significative de cette ambition doit être explicitement décidée et tracée dans la roadmap et les documents de gouvernance appropriés.
+
+---
+
+# 18. Rebaseline du NIVEAU 1 — Parité produit Tinkercad
+
+## 18.1 Décision de référence
+
+Le NIVEAU 1 ne peut plus être défini comme une simple parité visuelle ou comme l'addition de sous-systèmes techniques isolés.
+
+Le benchmark Tinkercad est désormais interprété au niveau **produit** : MYBlab doit permettre à un utilisateur de construire, configurer, programmer lorsque nécessaire, simuler et observer un ensemble représentatif d'expériences électroniques de bout en bout dans un même laboratoire cohérent.
+
+En conséquence :
+
+* un test technique vert ne suffit pas à certifier le NIVEAU 1 ;
+* la présence graphique d'un composant ne vaut pas capacité fonctionnelle ;
+* un composant simulé de manière statique ne doit pas être présenté comme interactif ou environnemental ;
+* les capacités doivent être qualifiées dans le navigateur, dans des montages réels, et non uniquement par tests unitaires ;
+* le passage au NIVEAU 2 reste interdit tant que le gate produit final du NIVEAU 1 n'est pas explicitement déclaré PASS par le CSA.
+
+Le gate historique de qualification Tinkercad reste un antécédent utile, mais il ne constitue plus à lui seul une certification suffisante de parité produit.
+
+## 18.2 Écarts structurants observés
+
+Le benchmark produit met en évidence six familles d'écarts devant être résorbées avant la certification du NIVEAU 1 :
+
+1. **Modèle de propriétés composants** — séparer clairement paramètres électriques, propriétés utilisateur et propriétés physiques/visuelles ;
+2. **Assemblage physique** — qualifier et améliorer breadboard, insertion, occupation, fils, routage et interactions de montage ;
+3. **Simulation environnementale** — introduire une couche de stimulus physique permettant notamment lumière, température, distance et autres entrées du monde simulé ;
+4. **Bibliothèque de composants** — étendre le catalogue aux composants pédagogiques essentiels et ne considérer un composant comme qualifié que si son niveau fonctionnel est explicitement connu ;
+5. **Profondeur Embedded/Simulation** — étendre Arduino, le langage firmware, le temps simulé et les comportements dynamiques au-delà des démonstrations minimales ;
+6. **Parité d'expérience produit** — valider des expériences complètes et représentatives plutôt que des sous-systèmes pris séparément.
+
+## 18.3 Vagues de capacités du NIVEAU 1
+
+L'ordre stratégique suivant devient la référence de progression. Les identifiants de tickets PMO concrets restent à définir au moment de l'exécution conformément à R4 et R6.
+
+| Vague | Capacité stratégique | Résultat attendu |
+| --- | --- | --- |
+| **L1-A — Product Model** | Propriétés composants riches et cohérentes | Nom, valeur, unité, options physiques/visuelles et paramètres électriques séparés et persistants |
+| **L1-B — Physical Assembly** | Breadboard, insertion et câblage au niveau laboratoire | Placement et connexion naturels, assistés et lisibles, y compris montages denses |
+| **L1-C — Environmental Simulation** | Stimuli physiques simulés | Lumière, température et autres grandeurs peuvent piloter réellement les modèles de composants concernés |
+| **L1-D — Component Library Expansion** | Catalogue pédagogique essentiel | Bibliothèque suffisante pour reproduire un ensemble représentatif d'expériences de référence |
+| **L1-E — Embedded & Simulation Depth** | Arduino et dynamique temporelle élargis | Surface de pins utile, firmware plus général et comportements temporels/dynamiques qualifiés |
+| **L1-F — Product Parity** | Qualification finale par expériences canoniques | Construction → configuration → programmation → simulation → observation démontrées de bout en bout |
+
+Ces vagues sont des **unités de capacité**, pas une invitation à créer des micro-tickets. Une vague peut être réalisée par plusieurs Tickets PMO si l'architecture, le risque ou la traçabilité l'exigent.
+
+## 18.4 Principes architecturaux obligatoires
+
+La progression du NIVEAU 1 doit préserver les frontières existantes :
+
+* le **Document** reste la source persistante de vérité du projet ;
+* les mutations persistantes passent par le canal **Mutation/History** approprié ;
+* les propriétés de présentation ou d'identité utilisateur ne doivent pas être injectées artificiellement dans les paramètres électriques de Simulation ;
+* les états runtime, stimuli instantanés et états de simulation restent distincts des données persistantes du projet sauf décision architecturale explicite ;
+* les pins sémantiques, contacts physiques, géométrie de présentation et connectivité électrique restent des responsabilités distinctes ;
+* le Scheduler demeure la source du temps simulé pour les comportements temporels ;
+* la Presentation ne devient pas un second modèle métier ;
+* toute nouvelle famille de composants doit s'appuyer sur des contrats généralisables plutôt que sur une accumulation de branches spécifiques au type.
+
+## 18.5 Expériences canoniques de certification
+
+Avant la certification du NIVEAU 1, MYBlab doit démontrer dans le navigateur un ensemble représentatif d'expériences canoniques. La liste exacte sera maintenue par le CSA et les Tickets PMO de qualification, mais elle doit au minimum couvrir :
+
+* construction d'un circuit breadboard classique avec placement, fils, déplacement et conservation des connexions ;
+* édition d'une valeur de résistance avec conséquence électrique observable ;
+* propriété visuelle ou physique configurable ayant une conséquence visible cohérente ;
+* programmation Arduino intégrée pilotant un circuit réel du laboratoire ;
+* exécution temporelle visible d'un programme de type Blink ;
+* au moins un capteur environnemental interactif dont le stimulus modifie réellement le comportement électrique ;
+* au moins un actionneur ou composant dynamique observé dans le temps lorsque cette famille est déclarée supportée ;
+* instrumentation minimale permettant d'observer une grandeur électrique utile ;
+* chaîne complète **construction → configuration → programmation → simulation → observation** sans rupture de contexte.
+
+Les tests automatisés restent obligatoires, mais la certification finale exige également une preuve navigateur reproductible.
+
+## 18.6 Règle de qualification des composants
+
+Chaque composant du catalogue doit être classé explicitement selon son niveau de support réel. Au minimum, la qualification doit distinguer :
+
+* **VISUAL** — représentation uniquement ;
+* **CONNECTABLE** — géométrie et connexion utilisables ;
+* **STATIC_MODEL** — modèle électrique statique qualifié ;
+* **DYNAMIC_MODEL** — comportement temporel qualifié ;
+* **ENVIRONMENT_INTERACTIVE** — dépend d'un stimulus physique simulé ;
+* **EMBEDDED_INTERACTIVE** — interaction qualifiée avec un runtime embarqué lorsque pertinente.
+
+La présence dans le catalogue ne doit jamais être interprétée automatiquement comme support complet.
+
+## 18.7 Règle de sortie du NIVEAU 1
+
+Le NIVEAU 1 est certifié uniquement si toutes les conditions suivantes sont réunies :
+
+* aucune anomalie P0 ouverte ;
+* aucun blocker P1 de parité produit ouvert ;
+* aucune dette P2 explicitement déclarée obligatoire pour le gate ;
+* suite canonique sans échec non expliqué ;
+* breadboard, câblage et canvas utilisables dans des scénarios représentatifs ;
+* propriétés composants suffisamment riches pour les expériences de référence ;
+* Arduino programmable et capable de commander réellement le circuit ;
+* instrumentation minimale utilisable ;
+* au moins une chaîne de simulation environnementale interactive qualifiée ;
+* bibliothèque minimale de composants pédagogiques validée ;
+* expériences canoniques du §18.5 exécutées avec preuves navigateur ;
+* cohérence globale du laboratoire validée par le CSA/Product.
+
+Le verdict final appartient au CSA et doit être explicitement tracé :
+
+```text
+LEVEL 1 — HOLD
+```
+
+ou
+
+```text
+LEVEL 1 — CERTIFIED
+EXP4 / NIVEAU 2 — OPEN
+```
+
+Tant que `LEVEL 1 — CERTIFIED` n'est pas prononcé, le NIVEAU 2 reste fermé.
+
+## 18.8 Continuité vers les NIVEAUX 2 et 3
+
+Le rebaseline du NIVEAU 1 ne réduit pas l'ambition de MYBlab. Il la rend mesurable.
+
+Une fois la parité produit Tinkercad certifiée :
+
+* **NIVEAU 2** cherchera les capacités par lesquelles MYBlab dépasse clairement Tinkercad, notamment instrumentation avancée, observabilité, assistance intelligente, précision, diagnostics et expérience pédagogique différenciante ;
+* **NIVEAU 3** poursuivra l'objectif d'un laboratoire électronique virtuel avancé, réaliste, immersif et extensible, avec représentation physique approfondie, phénomènes visibles, manipulation spatiale et expériences pédagogiques immersives lorsque l'architecture le permettra.
+
+La règle de continuité reste donc :
+
+**Atteindre réellement Tinkercad → Dépasser Tinkercad → Construire le laboratoire virtuel MYBlab avancé.**
