@@ -217,9 +217,12 @@ describe('G — Backend Contract', () => {
     // le registre porte la déclaration `visual` -> getBackend / getPresentation
     expect(manager.getBackend('RESISTOR')).toBe('raster')
     expect(manager.getBackend('LED')).toBe('raster')
-    expect(manager.getBackend('CAPACITOR')).toBe('raster')
+    // [MB-L1-CONS-002] CAPACITOR/THERMISTOR : renderer CSS/DOM réel, backend
+    // 'raster' retiré de defaultRegistrations.js (dette de métadonnée
+    // corrigée) — backend résout désormais à 'svg' (défaut).
+    expect(manager.getBackend('CAPACITOR')).toBe('svg')
     expect(manager.getBackend('LDR')).toBe('raster')
-    expect(manager.getBackend('THERMISTOR')).toBe('raster')
+    expect(manager.getBackend('THERMISTOR')).toBe('svg')
     expect(manager.getBackend('DC_MOTOR')).toBe('raster')
     expect(manager.getBackend('BUTTON')).toBe('raster')
     expect(manager.getBackend('BUTTON_LATCHING')).toBe('raster')
@@ -232,9 +235,12 @@ describe('G — Backend Contract', () => {
     expect(manager.getBackend('ARDUINO')).toBe('raster')
     expect(manager.getPresentation('RESISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('LED')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
-    expect(manager.getPresentation('CAPACITOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
+    // [MB-L1-CONS-002] backend 'svg' (défaut), bareBody/markerless déclarés
+    // explicitement à true dans defaultRegistrations.js pour préserver le
+    // rendu réel (body sans habillage carte, marqueur de <Pin> masqué).
+    expect(manager.getPresentation('CAPACITOR')).toEqual({ backend: 'svg', bareBody: true, markerless: true })
     expect(manager.getPresentation('LDR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
-    expect(manager.getPresentation('THERMISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
+    expect(manager.getPresentation('THERMISTOR')).toEqual({ backend: 'svg', bareBody: true, markerless: true })
     expect(manager.getPresentation('DC_MOTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('BUTTON')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('BUTTON_LATCHING')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
@@ -254,12 +260,24 @@ describe('G — Backend Contract', () => {
     }
   })
 
-  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + CAPACITOR (004) + LDR (005) + THERMISTOR (006) + DC_MOTOR (007) + BUTTON + BUTTON_LATCHING (008) + BUZZER (031) + POTENTIOMETER (032) + RGB_LED (033) + NPN_TRANSISTOR (034) + SERVO (035) + POWER (036) + ARDUINO (037) — les composants du catalogue sont désormais raster, plus aucun type ne reste en svg', () => {
+  it('MB-VIS — composants raster déclarés à ce jour : RESISTOR (001C) + DIODE (002) + LED (003) + LDR (005) + DC_MOTOR (007) + BUTTON + BUTTON_LATCHING (008) + BUZZER (031) + POTENTIOMETER (032) + RGB_LED (033) + NPN_TRANSISTOR (034) + SERVO (035) + POWER (036) + ARDUINO (037)', () => {
+    // [MB-L1-CONS-002] CAPACITOR (004) et THERMISTOR (006) ont abandonné le
+    // raster pour un renderer CSS/DOM réel (backend 'svg') — le catalogue
+    // visuel reste ENTIÈREMENT implémenté (chaque type a un renderer réaliste
+    // et déterministe), mais l'usage du backend raster (PNG/WebP) n'est plus
+    // une obligation technique uniforme pour tout le catalogue : c'est un
+    // choix de présentation par type, pas un critère de qualité/réalisme.
+    // Le benchmark porte sur la qualité fonctionnelle du rendu, jamais sur le
+    // format de stockage de l'asset (cf. delivery report MB-L1-CONS-002).
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'THERMISTOR'])
-    expect(rasterTypes.length).toBe(DEFAULT_REGISTRATIONS.length)
+    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO'])
+    const svgTypes = DEFAULT_REGISTRATIONS
+      .map((e) => e.type)
+      .filter((t) => getComponentPresentation(t).backend === 'svg')
+    expect(svgTypes.slice().sort()).toEqual(['CAPACITOR', 'THERMISTOR'])
+    expect(rasterTypes.length + svgTypes.length).toBe(DEFAULT_REGISTRATIONS.length)
   })
 })
 

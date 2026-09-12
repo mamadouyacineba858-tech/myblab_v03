@@ -44,6 +44,12 @@ Suite complète (`npm --prefix frontend run test:ci`) : **2654 passed / 50 faile
 
 **Baseline courante (base `6889d78`, après MB-L1-CONS-001) : 2869 passed / 30 failed (2899 total), 6 fichiers en échec — exactement le Cluster B (§3.2) ci-dessous.** Le total est passé de 2889 à 2899 (+10) : la migration a ajouté quelques assertions/tests documentant explicitement le nouvel invariant (ex. preuve directe de divergence `contact.dx/dy ≠ pin.dx/dy` pour CAPACITOR/LDR/THERMISTOR/RGB_LED) plutôt que de se limiter à corriger des valeurs en place — aucun test supprimé, aucune assertion affaiblie (voir `docs/pmo/delivery-reports/MB-L1-CONS-001-delivery-report.md`).
 
+**Mise à jour du 2026-09-12 (MB-L1-CONS-002) — Cluster B (§3.2) FERMÉ. BASELINE CANONIQUE : 0 FAIL.** Root cause confirmée : `CapacitorPart.jsx`/`ThermistorPart.jsx` avaient réellement abandonné le raster pour un renderer CSS/DOM (§3.2 déjà documenté par QA-047) ; `visualization/defaultRegistrations.js` déclarait encore `visual:{backend:'raster'}` pour ces deux types — dette de métadonnée corrigée (retrait de `backend:'raster'`, `bareBody`/`markerless` déclarés explicitement à `true` pour préserver le rendu réel vérifié). Les 6 fichiers du Cluster B ont été migrés vers le contrat réel (corps CSS/DOM, aucun `<img>`/`<svg>`, aria-labels réels "Condensateur céramique non polarisé"/"Thermistance NTC", positions `<Pin>` au PhysicalContact CONS-001). Un 7ᵉ fichier adjacent, `src/visualization/__tests__/visualContract.test.js`, affirmait encore que « tous les types du catalogue sont raster, plus aucun type ne reste en svg » (l'invariant catalogue raster explicitement anticipé comme obsolète par le ticket CONS-002) : corrigé pour refléter que CAPACITOR/THERMISTOR sont désormais `backend:'svg'` — **le catalogue visuel reste entièrement implémenté, mais l'usage du backend raster n'est plus une obligation technique uniforme pour chaque composant** (choix de présentation par type, pas un critère de qualité/réalisme). Aucun fichier de production modifié hormis `defaultRegistrations.js`. Détail complet : `docs/pmo/delivery-reports/MB-L1-CONS-002-delivery-report.md`.
+
+Suite complète (`npm --prefix frontend run test:ci`) : **2897 passed / 0 failed / 2897 total, 216 fichiers, exit code 0.** Le total est passé de 2899 à 2897 (-2) : `renderQualityGate.test.jsx` TEST T10 (intégrité des assets raster) ne génère plus qu'un test par type RÉELLEMENT raster — CAPACITOR/THERMISTOR n'ayant plus d'assets raster à vérifier, leurs 2 tests d'intégrité disparaissent naturellement (boucle générique pilotée par le registre, comportement voulu, pas une suppression manuelle). Aucun test n'a été supprimé pour atteindre 0 FAIL ; plusieurs ont été ajoutés/scindés pour verrouiller le nouvel invariant sans jamais affaiblir un invariant existant.
+
+**CLUSTER A : CLOSED (MB-L1-CONS-001). CLUSTER B : CLOSED (MB-L1-CONS-002). Aucun FAIL historique restant.**
+
 ### 3.1 Cluster A — scission Contact/Pin (« Assembly Geometry », FT-C-001-A) — 20 échecs, classe A — **CLOSED by MB-L1-CONS-001** (2026-09-12)
 
 `componentDefinitions.js` déclare désormais, pour CAPACITOR/LDR/THERMISTOR/RGB_LED (+ profils LED dans `assemblyProfiles.js`), un tableau `contacts:[{dx,dy,...}]` dont la position diffère intentionnellement de l'ancien `pin.dx/pin.dy`, pour un rendu de pattes physiquement exact via `AssemblyLeadsLayer`. `resolveContacts()` / `resolveComponentContactHoles()` utilisent correctement la position de niveau contact ; les tests ci-dessous assertent encore l'ancienne position de niveau pin.
@@ -58,7 +64,7 @@ Suite complète (`npm --prefix frontend run test:ci`) : **2654 passed / 50 faile
 | `src/utils/__tests__/contactModel.test.js` | 1 |
 | **Sous-total** | **20** |
 
-### 3.2 Cluster B — migration raster → CSS-drawn de CapacitorPart/ThermistorPart — 30 échecs, classe A (tests) + classe B (métadonnée)
+### 3.2 Cluster B — migration raster → CSS-drawn de CapacitorPart/ThermistorPart — 30 échecs, classe A (tests) + classe B (métadonnée) — **CLOSED by MB-L1-CONS-002** (2026-09-12)
 
 `CapacitorPart.jsx` et `ThermistorPart.jsx` ont été **réécrits** (commentaires en code citant explicitement la référence visuelle validée CSA) pour un corps CSS `radial-gradient` avec libellé intégré, au lieu d'un `<picture><img>` raster. Les tests ci-dessous assertent encore un contrat `<img>`/raster. **Confirmé en navigateur réel (pas jsdom)** le 2026-09-11 : les deux types rendent bien un `<div>` CSS pur, zéro `<img>`, zéro asset cassé, zéro erreur console — mais `visualization/defaultRegistrations.js` déclare toujours `visual:{backend:'raster'}` pour ces deux types (**classe B** : dette de métadonnée d'architecture, sans impact fonctionnel observé).
 
@@ -76,12 +82,12 @@ Note : sur les 3 échecs de `partDimensionsGuard.test.js`, 2 relèvent bien du c
 
 **Total historique (avant MB-L1-CONS-001) : 20 + 30 = 50, réparti sur 12 fichiers — confirmé.**
 
-**Baseline courante (depuis MB-L1-CONS-001, 2026-09-12) : Cluster A fermé (0 FAIL) ; seul le Cluster B (§3.2) reste — 30 FAIL, 6 fichiers.**
+**Baseline canonique courante (depuis MB-L1-CONS-002, 2026-09-12) : Cluster A fermé (MB-L1-CONS-001), Cluster B fermé (MB-L1-CONS-002) — 0 FAIL sur toute la suite (`npm --prefix frontend run test:ci` : 2897 passed / 0 failed / 2897 total, exit code 0).**
 
 ### Distinguer FAIL pré-existant et régression
 
-- **Pré-existant (baseline courante) :** l'un des 30 du Cluster B (§3.2), avec le même message. Un ticket **confirme** qu'ils sont identiques et ne les corrige pas — réservés à `MB-L1-CONS-002`.
-- **Régression :** tout FAIL hors de cette liste (Cluster A ou tout autre fichier), ou un 31ᵉ, ou un changement de message sur l'un des 30. → **STOP + analyse**. Ne jamais supprimer / affaiblir un test pour repasser au vert.
+- **Pré-existant :** plus aucun — la baseline canonique est à 0 FAIL depuis MB-L1-CONS-002 (2026-09-12).
+- **Régression :** désormais TOUT FAIL sur `npm --prefix frontend run test:ci` est une régression réelle → **STOP + analyse**. Ne jamais supprimer / affaiblir un test pour repasser au vert.
 - **Preuve d'indépendance vis-à-vis d'une modif CSS/JSX de composant** (méthode utilisée en 001C.2) : `git stash push -- <fichier suspect>` → relancer le fichier de test → si le FAIL persiste à l'identique, il est pré-existant → `git stash pop`.
 
 ## 4. Environnement — Bash cassé

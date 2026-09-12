@@ -100,10 +100,22 @@ export const DEFAULT_REGISTRATIONS = [
   // utils/pinPresentationGeometry.js (la borne verte EARTH visible sur
   // l'asset reste purement décorative, aucun nouveau pin logique).
   { type: 'POWER', component: PowerPart, visual: { backend: 'raster' } },
-  // CAPACITOR : quatrième composant à backend raster (asset validé
-  // MB-VIS-PROTOTYPE-004, état unique `default`). raster => bareBody +
-  // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE / LED.
-  { type: 'CAPACITOR', component: CapacitorPart, visual: { backend: 'raster' } },
+  // CAPACITOR : [MB-L1-CONS-002] `CapacitorPart.jsx` a été réécrit (asset
+  // radial MB-VIS-PROTOTYPE-004 abandonné) en renderer CSS/DOM pur — corps
+  // céramique radial non polarisé avec marquage "104", aucun <img>/<picture>.
+  // `backend: 'raster'` était donc devenu FAUX (dette de métadonnée) : retiré.
+  // `bareBody`/`markerless` restent déclarés explicitement à `true` (même
+  // comportement visuel qu'avant — body sans habillage carte, marqueur de
+  // <Pin> masqué au profit des pattes dessinées par AssemblyLeadsLayer,
+  // exactement comme LED/LDR/RGB_LED) : sans backend `raster`,
+  // `resolvePresentation()` retomberait sur `bareBody`/`markerless` à `false`
+  // par défaut (backend `svg`), ce qui réintroduirait l'habillage carte
+  // générique derrière le corps CSS et ferait apparaître le disque de <Pin>
+  // par-dessus l'extrémité de patte déjà dessinée — vérifié réellement en
+  // rendu (voir delivery report MB-L1-CONS-002). Aucun nouveau backend `css`
+  // inventé : `backend` retombe sur `svg` (défaut), seul un renderer SVG/DOM
+  // générique existant dans ce contrat.
+  { type: 'CAPACITOR', component: CapacitorPart, visual: { bareBody: true, markerless: true } },
   // BUZZER : porté au backend raster (asset réaliste validé MB-VIS-COMP-031,
   // état unique `default` — le pipeline n'expose aucun état électrique
   // exploitable, cf. BuzzerPart.jsx §11). raster => bareBody + markerless
@@ -122,11 +134,15 @@ export const DEFAULT_REGISTRATIONS = [
   // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
   // LED / CAPACITOR.
   { type: 'LDR', component: LdrPart, visual: { backend: 'raster' } },
-  // THERMISTOR : sixième composant à backend raster (asset validé
-  // MB-VIS-PROTOTYPE-006, état unique `default`). raster => bareBody +
-  // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
-  // LED / CAPACITOR / LDR.
-  { type: 'THERMISTOR', component: ThermistorPart, visual: { backend: 'raster' } },
+  // THERMISTOR : [MB-L1-CONS-002] `ThermistorPart.jsx` a été réécrit (asset
+  // raster MB-VIS-PROTOTYPE-006 abandonné, documenté explicitement dans le
+  // fichier lui-même) en renderer CSS/DOM pur — perle NTC verticale avec
+  // identité "NTC"/"100-9", aucun <img>/<picture>. `backend: 'raster'` était
+  // donc devenu FAUX (dette de métadonnée) : retiré. `bareBody`/`markerless`
+  // restent déclarés explicitement à `true` pour la même raison que CAPACITOR
+  // ci-dessus (préserver le comportement visuel réel : body sans habillage
+  // carte, marqueur de <Pin> masqué au profit des pattes AssemblyLeadsLayer).
+  { type: 'THERMISTOR', component: ThermistorPart, visual: { bareBody: true, markerless: true } },
   // DIODE : deuxième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-002). raster => bareBody + markerless dérivés, via le
   // même mécanisme déclaratif que RESISTOR — aucun code central spécifique.

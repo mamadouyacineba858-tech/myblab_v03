@@ -26,6 +26,7 @@ import { readFileSync, readdirSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, resolve } from "node:path"
 import { DEFAULT_REGISTRATIONS, getComponentPresentation } from "../../../visualization/defaultRegistrations.js"
+import { getComponentDef } from "../../../config/componentDefinitions.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PARTS_DIR = resolve(__dirname, "..")
@@ -46,6 +47,27 @@ const RASTER_PART_FILES = new Set(
     .filter((entry) => getComponentPresentation(entry.type).backend === "raster")
     .map((entry) => `${entry.component.name}.jsx`)
 )
+
+// [MB-L1-CONS-002] CAPACITOR / THERMISTOR ont abandonné le raster ET le SVG
+// pour un renderer CSS/DOM pur (corps `<div>` stylé, ni <svg> ni <img>) —
+// `backend` résout désormais à `svg` (dette de métadonnée corrigée) mais ils
+// ne satisfont ni le garde-fou raster (pas d'<img>) ni le garde-fou "<svg>
+// racine sans dimension littérale" (pas de <svg> du tout). Liste explicite
+// (test uniquement, aucun branchement en production) : cf. delivery report
+// MB-L1-CONS-002.
+const PHYSICAL_DOM_PART_FILES = new Set(["CapacitorPart.jsx", "ThermistorPart.jsx"])
+
+// [MB-L1-CONS-002] RgbLedPart.jsx est un cas distinct, pré-existant et
+// indépendant de la réconciliation CAPACITOR/THERMISTOR : il gère son propre
+// pipeline d'assets multi-état (8 combinaisons r/g/b) avec des dimensions
+// codées en dur (90×56) plutôt que d'importer `getComponentDef`. Ce n'est pas
+// un défaut fonctionnel — RGB_LED délègue entièrement son dimensionnement au
+// parent `.circuit-component__body` (cf. partDimensionsCanonical.test.jsx,
+// PARENT_DELEGATED_RASTER_TYPES) — mais l'invariant « source canonique unique »
+// doit être vérifié différemment : par comparaison RUNTIME entre les valeurs
+// codées en dur et componentDefinitions.js, plutôt que par la présence
+// littérale d'un import (qui n'existe légitimement pas ici).
+const CANONICAL_IMPORT_EXCEPTIONS = new Set(["RgbLedPart.jsx"])
 
 function stripComments(source) {
   return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")
@@ -85,6 +107,25 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
   })
 
   for (const file of PART_FILES) {
+    if (PHYSICAL_DOM_PART_FILES.has(file)) {
+      it(`${file} : renderer CSS/DOM physique — aucun <svg> racine, aucun <img> raster`, () => {
+        const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")
+        const codeOnly = stripComments(rawSource)
+        expect(extractRootSvgOpenTag(codeOnly), `${file} ne devrait pas contenir de <svg>`).toBeNull()
+        expect(codeOnly, `${file} ne devrait pas rendre d'<img> (raster abandonné, MB-L1-CONS-002)`).not.toMatch(/<img\b/)
+        expect(codeOnly, `${file} ne devrait pas référencer d'asset sous /assets/`).not.toMatch(/["'`]\/assets\//)
+      })
+
+      it(`${file} : importe getComponentDef depuis componentDefinitions.js (source canonique unique)`, () => {
+        const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")
+        const codeOnly = stripComments(rawSource)
+        expect(codeOnly).toMatch(
+          /import\s*\{\s*getComponentDef\s*\}\s*from\s*["']\.\.\/\.\.\/config\/componentDefinitions\.js["']/
+        )
+      })
+      continue
+    }
+
     if (RASTER_PART_FILES.has(file)) {
       it(`${file} : backend raster — aucun <svg> racine, rend un <img> vers /assets/`, () => {
         const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")
@@ -93,6 +134,23 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
         expect(codeOnly, `${file} doit rendre un <img>`).toMatch(/<img\b/)
         expect(codeOnly, `${file} doit référencer un asset sous /assets/`).toMatch(/["'`]\/assets\//)
       })
+
+      if (CANONICAL_IMPORT_EXCEPTIONS.has(file)) {
+        it(`${file} : ne s'importe pas getComponentDef (pipeline multi-état dédié), mais ses dimensions codées en dur restent cohérentes avec componentDefinitions.js (source canonique vérifiée au runtime)`, () => {
+          const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")
+          const codeOnly = stripComments(rawSource)
+          expect(codeOnly).not.toMatch(
+            /import\s*\{\s*getComponentDef\s*\}\s*from\s*["']\.\.\/\.\.\/config\/componentDefinitions\.js["']/
+          )
+          const type = DEFAULT_REGISTRATIONS.find((entry) => `${entry.component.name}.jsx` === file)?.type
+          const def = getComponentDef(type)
+          const literalWidth = Number(codeOnly.match(/\bwidth=\{(\d+)\}/)?.[1])
+          const literalHeight = Number(codeOnly.match(/\bheight=\{(\d+)\}/)?.[1])
+          expect(literalWidth, `${file} : largeur codée en dur introuvable ou incohérente avec componentDefinitions.js`).toBe(def.width)
+          expect(literalHeight, `${file} : hauteur codée en dur introuvable ou incohérente avec componentDefinitions.js`).toBe(def.height)
+        })
+        continue
+      }
 
       it(`${file} : importe getComponentDef depuis componentDefinitions.js (source canonique unique)`, () => {
         const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")

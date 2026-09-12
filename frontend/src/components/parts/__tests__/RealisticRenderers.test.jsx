@@ -62,7 +62,8 @@ const LOT2 = [
   { type: 'BUZZER', Component: BuzzerPart, label: 'Buzzer' },
   { type: 'POTENTIOMETER', Component: PotentiometerPart, label: 'Potentiomètre' },
   { type: 'LDR', Component: LdrPart, label: 'Photorésistance' },
-  { type: 'THERMISTOR', Component: ThermistorPart, label: 'Thermistance' },
+  // [MB-L1-CONS-002] aria-label réel du renderer CSS/DOM : "Thermistance NTC".
+  { type: 'THERMISTOR', Component: ThermistorPart, label: 'Thermistance NTC' },
   { type: 'RGB_LED', Component: RgbLedPart, label: 'LED RGB' },
   { type: 'NPN_TRANSISTOR', Component: NpnTransistorPart, label: 'Transistor NPN' },
   { type: 'SERVO', Component: ServoPart, label: 'Micro Servo' },
@@ -72,6 +73,12 @@ const LOT2 = [
 // MB-VIS-INDUSTRIAL-001 : la répartition SVG / RASTER est dérivée du registre
 // (déclaration `visual.backend`), plus jamais un `entry.type !== 'RESISTOR'`.
 const isRaster = (type) => getComponentPresentation(type).backend === 'raster'
+
+// [MB-L1-CONS-002] CAPACITOR / THERMISTOR ont abandonné le raster pour un
+// renderer CSS/DOM pur (ni <svg> ni <img>) : ils ne satisfont ni le contrat
+// "svg dimensionné" ni le contrat "img raster" génériques ci-dessous. Liste
+// explicite (test uniquement) : cf. delivery report MB-L1-CONS-002.
+const isPhysicalDom = (type) => type === 'CAPACITOR' || type === 'THERMISTOR'
 
 const circuitWrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
 
@@ -123,7 +130,7 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat gé
   // MB-VIS-INDUSTRIAL-001 : les renderers "backend raster" (<img>) sont exclus
   // de la vérification "<svg> dimensionné" et couverts juste en dessous. La
   // liste est dérivée du registre, pas d'un type codé en dur.
-  it.each(LOT.filter((entry) => !isRaster(entry.type)))('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js', ({ type, Component }) => {
+  it.each(LOT.filter((entry) => !isRaster(entry.type) && !isPhysicalDom(entry.type)))('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js', ({ type, Component }) => {
     const def = getComponentDef(type)
     const { container } = render(<Component isOn={false} />)
     const svg = container.querySelector('svg')
@@ -144,14 +151,28 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat gé
     expect(img.getAttribute('src')).toMatch(new RegExp(`^/assets/components/${type.toLowerCase().replace(/_/g, '-')}/`))
   })
 
+  // [MB-L1-CONS-002] CAPACITOR : renderer CSS/DOM pur (ni <svg> ni <img>) —
+  // le <div> racine (`.part-capacitor`) porte directement la boîte canonique.
+  it.each(LOT.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — le <div> racine respecte exactement les dimensions de componentDefinitions.js, ni <svg> ni <img>', ({ type, Component }) => {
+    const def = getComponentDef(type)
+    const { container } = render(<Component />)
+    const root = container.firstElementChild
+    expect(root.style.width).toBe(`${def.width}px`)
+    expect(root.style.height).toBe(`${def.height}px`)
+    expect(container.querySelector('svg')).toBeNull()
+    expect(container.querySelector('img')).toBeNull()
+  })
+
   it('RESISTOR : aria-label correct, aucune prop dynamique requise', () => {
     const { container } = render(<ResistorPart />)
     expect(container.querySelector('[aria-label="Résistance"]')).not.toBeNull()
   })
 
   it('CAPACITOR : aria-label correct, aucune prop dynamique requise', () => {
+    // [MB-L1-CONS-002] aria-label réel du renderer CSS/DOM : "Condensateur
+    // céramique non polarisé" (distingue CAPACITOR de POLARIZED_CAPACITOR).
     const { container } = render(<CapacitorPart />)
-    expect(container.querySelector('[aria-label="Condensateur"]')).not.toBeNull()
+    expect(container.querySelector('[aria-label="Condensateur céramique non polarisé"]')).not.toBeNull()
   })
 
   it('DIODE : aria-label correct, aucune prop dynamique requise', () => {
@@ -210,7 +231,7 @@ describe('MB-COMPONENT-LIBRARY-002 — second lot de renderers réalistes (struc
 })
 
 describe('MB-COMPONENT-LIBRARY-002 — second lot (rendu, contrat géométrique, VIS-TEST-02)', () => {
-  it.each(LOT2.filter((entry) => !isRaster(entry.type)))('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js (LOCK-04/LOCK-05, aucune géométrie modifiée)', ({ type, Component }) => {
+  it.each(LOT2.filter((entry) => !isRaster(entry.type) && !isPhysicalDom(entry.type)))('$type : le <svg> respecte exactement les dimensions de componentDefinitions.js (LOCK-04/LOCK-05, aucune géométrie modifiée)', ({ type, Component }) => {
     const def = getComponentDef(type)
     const { container } = render(<Component />)
     const svg = container.querySelector('svg')
@@ -218,6 +239,18 @@ describe('MB-COMPONENT-LIBRARY-002 — second lot (rendu, contrat géométrique,
     expect(svg.getAttribute('width')).toBe(String(def.width))
     expect(svg.getAttribute('height')).toBe(String(def.height))
     expect(svg.getAttribute('viewBox')).toBe(`0 0 ${def.width} ${def.height}`)
+  })
+
+  // [MB-L1-CONS-002] THERMISTOR : renderer CSS/DOM pur (ni <svg> ni <img>) —
+  // le <div> racine (`.part-thermistor`) porte directement la boîte canonique.
+  it.each(LOT2.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — le <div> racine respecte exactement les dimensions de componentDefinitions.js, ni <svg> ni <img>', ({ type, Component }) => {
+    const def = getComponentDef(type)
+    const { container } = render(<Component />)
+    const root = container.firstElementChild
+    expect(root.style.width).toBe(`${def.width}px`)
+    expect(root.style.height).toBe(`${def.height}px`)
+    expect(container.querySelector('svg')).toBeNull()
+    expect(container.querySelector('img')).toBeNull()
   })
 
   it.each(LOT2.filter((entry) => entry.label !== null))(

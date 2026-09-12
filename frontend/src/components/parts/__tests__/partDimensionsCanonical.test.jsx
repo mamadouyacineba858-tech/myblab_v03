@@ -67,8 +67,40 @@ const CATALOG = [
   { type: "SERVO", Component: ServoPart },
   { type: "DC_MOTOR", Component: DcMotorPart },
 ]
-const SVG_PARTS = CATALOG.filter((p) => getComponentPresentation(p.type).backend !== "raster")
-const RASTER_PARTS = CATALOG.filter((p) => getComponentPresentation(p.type).backend === "raster")
+// [MB-L1-CONS-002] CAPACITOR / THERMISTOR ont abandonné le raster pour un
+// renderer CSS/DOM pur (corps `<div>` stylé, ni <svg> ni <img>) — `backend`
+// résout désormais à `svg` (défaut, dette de métadonnée corrigée), mais ils
+// ne rendent PAS de <svg> pour autant : ils ne peuvent donc pas être testés
+// par le même gabarit que SVG_PARTS (qui exige un <svg> racine) ni que
+// RASTER_PARTS (qui exige un <img>). Liste explicite (test uniquement — ce
+// n'est pas un branchement `type === "…"` en production) : cf. delivery
+// report MB-L1-CONS-002.
+const PHYSICAL_DOM_TYPES = new Set(["CAPACITOR", "THERMISTOR"])
+// LDR déclare bien `backend: 'raster'` et rend un <img> réel, mais celui-ci
+// porte les dimensions NATIVES de l'asset (fixes, avec crop CSS) — seul le
+// <div> racine (`.part-ldr`) porte la boîte canonique dynamique
+// (`width = def?.width ?? 84` lu à chaque rendu). `componentDefinitions =
+// boîte canonique du composant ; géométrie du corps du renderer =
+// présentation À L'INTÉRIEUR de cette boîte` (principe MB-L1-CONS-002) : le
+// test raster générique (qui suppose `<img>.width === def.width`) ne
+// s'applique donc pas à ce type.
+const WRAPPER_DIMENSIONED_RASTER_TYPES = new Set(["LDR"])
+// RGB_LED est un cas distinct : ni son <div> racine (`width:'100%',
+// height:'100%'`, jamais dérivé de componentDefinitions.js) ni son <img>
+// (dimensions natives 90×56 codées en dur) ne consomment la boîte canonique
+// au rendu STANDALONE — la boîte canonique est portée exclusivement par le
+// parent `.circuit-component__body` (dimensionné par CircuitComponent.jsx
+// depuis componentDefinitions.js, déjà verrouillé par
+// renderQualityGate.test.jsx TEST T2/T3, inchangé et PASS). Ce n'est pas une
+// régression à corriger : c'est l'architecture réelle de ce renderer
+// (délégation complète du dimensionnement au parent).
+const PARENT_DELEGATED_RASTER_TYPES = new Set(["RGB_LED"])
+
+const SVG_PARTS = CATALOG.filter((p) => !PHYSICAL_DOM_TYPES.has(p.type) && getComponentPresentation(p.type).backend !== "raster")
+const RASTER_PARTS = CATALOG.filter((p) => !PHYSICAL_DOM_TYPES.has(p.type) && getComponentPresentation(p.type).backend === "raster" && !WRAPPER_DIMENSIONED_RASTER_TYPES.has(p.type) && !PARENT_DELEGATED_RASTER_TYPES.has(p.type))
+const WRAPPER_DIMENSIONED_RASTER_PARTS = CATALOG.filter((p) => WRAPPER_DIMENSIONED_RASTER_TYPES.has(p.type))
+const PARENT_DELEGATED_RASTER_PARTS = CATALOG.filter((p) => PARENT_DELEGATED_RASTER_TYPES.has(p.type))
+const PHYSICAL_DOM_PARTS = CATALOG.filter((p) => PHYSICAL_DOM_TYPES.has(p.type))
 
 /**
  * Mute temporairement width/height d'un type RÉEL déjà enregistré dans
@@ -146,6 +178,120 @@ describe("MB-VIS-COMP-006 — dimensions des Part renderers dérivées de compon
       const img = container.querySelector("img")
       expect(img.getAttribute("width")).toBe(String(def.width))
       expect(img.getAttribute("height")).toBe(String(def.height))
+    })
+  })
+
+  // [MB-L1-CONS-002] LDR / RGB_LED : le <div> racine (boîte canonique) suit
+  // dynamiquement componentDefinitions.js ; l'<img> interne (asset raster
+  // réel, dimensions NATIVES avec crop CSS) reste volontairement fixe —
+  // séparation des responsabilités documentée, pas une régression.
+  describe.each(WRAPPER_DIMENSIONED_RASTER_PARTS)("$type (backend raster, boîte portée par le wrapper) — dimensions du <div> racine dérivées de componentDefinitions.js ; <img> à taille NATIVE fixe", ({ type, Component }) => {
+    it("TEST — au repos : le <div> racine égale EXACTEMENT def.width/def.height ; un <img> réel est présent, aucun <svg>", () => {
+      const def = getComponentDef(type)
+      const { container } = render(<Component />)
+      const root = container.firstElementChild
+      expect(root.style.width).toBe(`${def.width}px`)
+      expect(root.style.height).toBe(`${def.height}px`)
+      expect(container.querySelector("svg")).toBeNull()
+      expect(container.querySelector("img")).not.toBeNull()
+    })
+
+    it("TEST — mutation : le <div> racine suit IMMÉDIATEMENT componentDefinitions.js ; l'<img> (asset natif) NE bouge PAS (séparation boîte canonique / dimensions d'asset)", () => {
+      const before = render(<Component />)
+      const nativeWidth = before.container.querySelector("img").getAttribute("width")
+      const nativeHeight = before.container.querySelector("img").getAttribute("height")
+      before.unmount()
+
+      withSwappedDimensions(type, { width: 321, height: 654 }, () => {
+        const { container } = render(<Component />)
+        const root = container.firstElementChild
+        expect(root.style.width).toBe("321px")
+        expect(root.style.height).toBe("654px")
+        const img = container.querySelector("img")
+        expect(img.getAttribute("width")).toBe(nativeWidth)
+        expect(img.getAttribute("height")).toBe(nativeHeight)
+      })
+    })
+
+    it("TEST — après restauration : le <div> racine revient à la valeur canonique d'origine", () => {
+      const def = getComponentDef(type)
+      const { container } = render(<Component />)
+      const root = container.firstElementChild
+      expect(root.style.width).toBe(`${def.width}px`)
+      expect(root.style.height).toBe(`${def.height}px`)
+    })
+  })
+
+  // [MB-L1-CONS-002] RGB_LED : ni le <div> racine ni l'<img> ne dérivent la
+  // boîte canonique au rendu standalone (délégation complète au parent,
+  // cf. commentaire PARENT_DELEGATED_RASTER_TYPES ci-dessus) — on verrouille
+  // ici le fait réel (racine toujours 100%/100%, image toujours à sa taille
+  // native), jamais une consommation dynamique qui n'existe pas dans ce
+  // renderer précis.
+  describe.each(PARENT_DELEGATED_RASTER_PARTS)("$type (backend raster, boîte déléguée au parent) — le <div> racine ne porte PAS la boîte canonique ; l'<img> reste à sa taille native", ({ type, Component }) => {
+    it("TEST — au repos : le <div> racine remplit son parent (100%/100%) ; un <img> réel est présent à sa taille native, aucun <svg>", () => {
+      const { container } = render(<Component />)
+      const root = container.firstElementChild
+      expect(root.style.width).toBe("100%")
+      expect(root.style.height).toBe("100%")
+      expect(container.querySelector("svg")).toBeNull()
+      expect(container.querySelector("img")).not.toBeNull()
+    })
+
+    it("TEST — mutation : componentDefinitions.js ne change ni le <div> racine (délégué au parent) ni l'<img> (taille native fixe) — la boîte canonique réelle est prouvée au niveau du parent .circuit-component__body par renderQualityGate.test.jsx TEST T2/T3, inchangé", () => {
+      const before = render(<Component />)
+      const nativeWidth = before.container.querySelector("img").getAttribute("width")
+      const nativeHeight = before.container.querySelector("img").getAttribute("height")
+      before.unmount()
+
+      withSwappedDimensions(type, { width: 321, height: 654 }, () => {
+        const { container } = render(<Component />)
+        const root = container.firstElementChild
+        expect(root.style.width).toBe("100%")
+        expect(root.style.height).toBe("100%")
+        const img = container.querySelector("img")
+        expect(img.getAttribute("width")).toBe(nativeWidth)
+        expect(img.getAttribute("height")).toBe(nativeHeight)
+      })
+    })
+
+    it("TEST — après restauration : comportement identique (rien à restaurer, ce renderer ne lit jamais componentDefinitions.js pour ses propres dimensions)", () => {
+      const { container } = render(<Component />)
+      const root = container.firstElementChild
+      expect(root.style.width).toBe("100%")
+      expect(root.style.height).toBe("100%")
+    })
+  })
+
+  // [MB-L1-CONS-002] CAPACITOR / THERMISTOR : renderer CSS/DOM pur (ni <svg>
+  // ni <img>) — le <div> racine EST la boîte canonique, dynamiquement dérivée
+  // de componentDefinitions.js (aucune valeur recopiée).
+  describe.each(PHYSICAL_DOM_PARTS)("$type (renderer CSS/DOM physique) — dimensions du <div> racine dérivées de componentDefinitions.js ; aucun <svg>, aucun <img>", ({ type, Component }) => {
+    it("TEST — au repos : le <div> racine égale EXACTEMENT def.width/def.height ; ni <svg> ni <img>", () => {
+      const def = getComponentDef(type)
+      const { container } = render(<Component />)
+      const root = container.firstElementChild
+      expect(root.style.width).toBe(`${def.width}px`)
+      expect(root.style.height).toBe(`${def.height}px`)
+      expect(container.querySelector("svg")).toBeNull()
+      expect(container.querySelector("img")).toBeNull()
+    })
+
+    it("TEST — mutation : si componentDefinitions.js change width/height, le <div> racine suit IMMÉDIATEMENT", () => {
+      withSwappedDimensions(type, { width: 321, height: 654 }, () => {
+        const { container } = render(<Component />)
+        const root = container.firstElementChild
+        expect(root.style.width).toBe("321px")
+        expect(root.style.height).toBe("654px")
+      })
+    })
+
+    it("TEST — après restauration : le <div> racine revient à la valeur canonique d'origine (aucune pollution inter-tests)", () => {
+      const def = getComponentDef(type)
+      const { container } = render(<Component />)
+      const root = container.firstElementChild
+      expect(root.style.width).toBe(`${def.width}px`)
+      expect(root.style.height).toBe(`${def.height}px`)
     })
   })
 

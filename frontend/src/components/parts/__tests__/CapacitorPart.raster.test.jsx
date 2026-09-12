@@ -1,22 +1,34 @@
 /**
- * CapacitorPart.raster.test.jsx — MB-VIS-PROTOTYPE-004 (remplace
- * CapacitorPart.uid.test.jsx, qui verrouillait le contrat de namespace SVG V0
- * — MB-VIS-COMP-011, `<defs>` + gradients namespacés `uid` — désormais retiré).
+ * CapacitorPart.raster.test.jsx — MB-VIS-PROTOTYPE-004, migré par
+ * MB-L1-CONS-002 (renderer contract consolidation).
  *
- * Prouve l'intégration raster de CAPACITOR via le mécanisme déclaratif de
- * MB-VIS-INDUSTRIAL-001 (aucun couplage par type, aucune règle CSS spécifique) :
- *  1. CAPACITOR rend correctement (élément racine `.part-capacitor`, aria-label) ;
- *  2. le renderer ne produit plus de <svg> (ni <line>/<rect>/<defs>/gradient/<text>) ;
- *  3. l'asset raster attendu (/assets/components/capacitor/capacitor.default.*) est utilisé ;
- *  4. variantes 1x/3x cohérentes avec le patron RESISTOR/DIODE/LED (<picture>/<source webp>
- *     + <img> srcset) — les 4 variantes référencées ;
- *  5. les pins fonctionnels restent produits par CircuitComponent/Pin aux
- *     positions canoniques pinA(0,20)/pinB(70,20) ;
+ * [MB-L1-CONS-002] `CapacitorPart.jsx` a abandonné l'asset raster
+ * (MB-VIS-PROTOTYPE-004) pour un renderer CSS/DOM pur : corps céramique
+ * radial non polarisé avec marquage "104", aucun <img>/<picture>. Ce fichier
+ * conservait encore le contrat raster obsolète (picture/img/asset validé) —
+ * migré vers le contrat RÉEL, sans jamais exiger la restauration du raster :
+ *  1. CAPACITOR rend un corps CSS/DOM (élément racine `.part-capacitor`,
+ *     aria-label complet "Condensateur céramique non polarisé") ;
+ *  2. aucun <img>/<picture> (le raster n'est plus la réalité de production) ;
+ *  3. aucun <svg> non plus (ni <line>/<rect>/<defs>/gradient/<text>) — le
+ *     corps est un <div> stylé CSS pur ;
+ *  4. le marquage "104" (identité visible du condensateur céramique) est
+ *     présent, aucun marqueur de polarité (ce n'est pas un composant polarisé
+ *     — POLARIZED_CAPACITOR reste un type distinct, inchangé) ;
+ *  5. les pins fonctionnels (identités électriques pinA/pinB) restent produits
+ *     par CircuitComponent/Pin, aux positions du PhysicalContact réel
+ *     (23,62)/(47,62) — géométrie Contact/Pin consolidée par MB-L1-CONS-001,
+ *     non modifiée ici ;
  *  6. aucune logique spécifique CAPACITOR dans la couche de rendu centrale ;
- *  7. le backend résolu pour CAPACITOR est bien 'raster' (via getComponentPresentation) ;
- *  8. la géométrie canonique 70×40 reste inchangée (componentDefinitions.js) ;
- *  9. deux CAPACITOR simultanés : rendu déterministe, aucune collision d'id
- *     (plus aucun id SVG à namespacer).
+ *  7. le backend résolu pour CAPACITOR est `svg` (défaut, backend `raster`
+ *     retiré de defaultRegistrations.js) ; bareBody/markerless restent `true`
+ *     (déclarés explicitement, pour préserver le rendu réel : body sans
+ *     habillage carte générique, marqueur de <Pin> masqué au profit des
+ *     pattes dessinées par AssemblyLeadsLayer — même contrat que LED/LDR) ;
+ *  8. la géométrie canonique 70×40 et les pins pinA(0,20)/pinB(70,20)
+ *     (identité électrique) restent inchangés (componentDefinitions.js,
+ *     hors périmètre de ce ticket) ;
+ *  9. deux CAPACITOR simultanés : rendu déterministe, aucune collision d'id.
  *
  * Environnement jsdom (.test.jsx).
  */
@@ -35,22 +47,27 @@ import { useCircuitInteraction } from '../../../context/useCircuitInteraction.js
 import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const ASSET_RE = /^\/assets\/components\/capacitor\/capacitor\.default\.(1x|3x)\.(webp|png)( \dx)?$/
+const ARIA_LABEL = 'Condensateur céramique non polarisé'
 
-describe('MB-VIS-PROTOTYPE-004 — CAPACITOR rend l\'asset raster validé', () => {
-  it('1/8 — rend un élément racine aria-label="Condensateur" aux dimensions canoniques 70×40', () => {
+describe("MB-VIS-PROTOTYPE-004 — CAPACITOR : renderer CSS/DOM réel (MB-L1-CONS-002)", () => {
+  it('1 — rend un élément racine .part-capacitor, aria-label complet, aux dimensions canoniques 70×40 (repli style inline)', () => {
     const def = getComponentDef('CAPACITOR')
     expect([def.width, def.height]).toEqual([70, 40])
     const { container } = render(<CapacitorPart />)
-    expect(container.querySelector('.part-capacitor')).not.toBeNull()
-    expect(container.querySelector('[aria-label="Condensateur"]')).not.toBeNull()
-    const img = container.querySelector('img')
-    expect(img).not.toBeNull()
-    expect(img.getAttribute('width')).toBe(String(def.width))
-    expect(img.getAttribute('height')).toBe(String(def.height))
+    const root = container.querySelector('.part-capacitor')
+    expect(root).not.toBeNull()
+    expect(container.querySelector(`[aria-label="${ARIA_LABEL}"]`)).not.toBeNull()
+    expect(root.style.width).toBe(`${def.width}px`)
+    expect(root.style.height).toBe(`${def.height}px`)
   })
 
-  it('2 — aucun vestige du renderer SVG V0', () => {
+  it('2 — aucun <img>/<picture> : le raster n\'est plus le contrat réel', () => {
+    const { container } = render(<CapacitorPart />)
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('picture')).toBeNull()
+  })
+
+  it('3 — aucun vestige du renderer SVG V0 (le corps est un <div> CSS pur)', () => {
     const { container } = render(<CapacitorPart />)
     expect(container.querySelector('svg')).toBeNull()
     expect(container.querySelector('line')).toBeNull()
@@ -60,34 +77,10 @@ describe('MB-VIS-PROTOTYPE-004 — CAPACITOR rend l\'asset raster validé', () =
     expect(container.querySelector('text')).toBeNull()
   })
 
-  it('3/4 — <picture>/<source webp> + <img> vers /assets/components/capacitor/… ; les 4 variantes référencées', () => {
+  it('4 — marquage "104" visible, aucun marqueur de polarité (composant non polarisé)', () => {
     const { container } = render(<CapacitorPart />)
-    const img = container.querySelector('img')
-    expect(img.getAttribute('src')).toMatch(ASSET_RE)
-    for (const cand of (img.getAttribute('srcset') || '').split(',').map((s) => s.trim()).filter(Boolean)) {
-      expect(cand).toMatch(ASSET_RE)
-    }
-    const source = container.querySelector('picture > source')
-    expect(source).not.toBeNull()
-    expect(source.getAttribute('type')).toBe('image/webp')
-    for (const cand of (source.getAttribute('srcset') || '').split(',').map((s) => s.trim()).filter(Boolean)) {
-      expect(cand).toMatch(ASSET_RE)
-      expect(cand).toMatch(/\.webp/)
-    }
-    const all = container.innerHTML
-    for (const f of ['1x.webp', '3x.webp', '1x.png', '3x.png']) {
-      expect(all).toContain(`/assets/components/capacitor/capacitor.default.${f}`)
-    }
-  })
-
-  it('3b — l\'<img> ne porte aucun gestionnaire, draggable=false, pointer-events:none', () => {
-    const { container } = render(<CapacitorPart />)
-    const img = container.querySelector('img')
-    expect(img.draggable).toBe(false)
-    expect(img.style.pointerEvents).toBe('none')
-    expect(img.onclick).toBeNull()
-    expect(img.onpointerdown).toBeNull()
-    expect(img.onmousedown).toBeNull()
+    expect(container.textContent).toContain('104')
+    expect(container.textContent).not.toMatch(/[+−-]/)
   })
 
   it('déterminisme — deux rendus produisent un HTML strictement identique', () => {
@@ -100,24 +93,23 @@ describe('MB-VIS-PROTOTYPE-004 — CAPACITOR rend l\'asset raster validé', () =
     expect(h2).toBe(h1)
   })
 
-  it('9 — deux CAPACITOR simultanés : aucun <svg>, aucun id à namespacer, HTML des deux instances identique', () => {
+  it('9 — deux CAPACITOR simultanés : aucun id à namespacer, HTML des deux instances identique', () => {
     const { container } = render(
       <>
         <CapacitorPart uid="capacitor-a" />
         <CapacitorPart uid="capacitor-b" />
       </>
     )
-    expect(container.querySelector('svg')).toBeNull()
     expect(container.querySelectorAll('[id]').length).toBe(0)
     const [a, b] = container.querySelectorAll('.part-capacitor')
     expect(a.innerHTML).toBe(b.innerHTML)
   })
 
-  it('7 — backend résolu pour CAPACITOR = raster ; bareBody + markerless dérivés', () => {
-    expect(getComponentPresentation('CAPACITOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
+  it('7 — backend résolu pour CAPACITOR = svg (défaut, raster retiré) ; bareBody + markerless explicitement true (préserve le rendu réel)', () => {
+    expect(getComponentPresentation('CAPACITOR')).toEqual({ backend: 'svg', bareBody: true, markerless: true })
   })
 
-  it('8 — géométrie canonique inchangée : 70×40, pins pinA(0,20)/pinB(70,20)', () => {
+  it('8 — géométrie canonique inchangée : 70×40, pins pinA(0,20)/pinB(70,20) (identité électrique, MB-L1-CONS-001 non affecté)', () => {
     const def = getComponentDef('CAPACITOR')
     expect(def.width).toBe(70)
     expect(def.height).toBe(40)
@@ -140,7 +132,7 @@ describe('MB-VIS-PROTOTYPE-004 — pipeline réel : pins et interactions inchang
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('5 — CircuitComponent produit les 2 pins CAPACITOR à pinA(0,20) / pinB(70,20) ; asset raster dans le wrapper', () => {
+  it('5 — CircuitComponent produit les 2 pins CAPACITOR au PhysicalContact réel (23,62)/(47,62) — pas pinA(0,20)/pinB(70,20) legacy (MB-L1-CONS-001)', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('CAPACITOR', 50, 60) })
@@ -154,11 +146,12 @@ describe('MB-VIS-PROTOTYPE-004 — pipeline réel : pins et interactions inchang
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining([[0, 20], [70, 20]]))
+    expect(positions).toEqual(expect.arrayContaining([[23, 62], [47, 62]]))
 
-    expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
+    expect(container.querySelector('.circuit-component__body img')).toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
-    expect(container.querySelector('.circuit-component').getAttribute('data-backend')).toBe('raster')
+    expect(container.querySelector('.circuit-component__body .part-capacitor')).not.toBeNull()
+    expect(container.querySelector('.circuit-component').getAttribute('data-backend')).toBe('svg')
     expect(container.querySelector('.circuit-component__body').hasAttribute('data-bare-body')).toBe(true)
     for (const p of pins) expect(p.style.opacity).toBe('0')
   })
@@ -173,7 +166,7 @@ describe('MB-VIS-PROTOTYPE-004 — pipeline réel : pins et interactions inchang
     expect(css).not.toMatch(/:has\([^)]*\.part-capacitor[^)]*\)/)
   })
 
-  it('8b — deux CAPACITOR sur le canvas : 4 pins distincts, chacun aux positions canoniques', () => {
+  it('8b — deux CAPACITOR sur le canvas : 4 pins distincts, chacun au PhysicalContact réel', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('CAPACITOR', 20, 20) })
@@ -181,20 +174,21 @@ describe('MB-VIS-PROTOTYPE-004 — pipeline réel : pins et interactions inchang
     const pins = [...container.querySelectorAll('.myblab-pin')]
     expect(pins.length).toBe(4)
     const rel = pins.map((el) => `${el.style.left}/${el.style.top}`)
-    expect(rel.filter((r) => r === '0px/20px').length).toBe(2)
-    expect(rel.filter((r) => r === '70px/20px').length).toBe(2)
-    expect(container.querySelectorAll('.circuit-component__body img').length).toBe(2)
+    expect(rel.filter((r) => r === '23px/62px').length).toBe(2)
+    expect(rel.filter((r) => r === '47px/62px').length).toBe(2)
+    expect(container.querySelectorAll('.circuit-component__body .part-capacitor').length).toBe(2)
+    expect(container.querySelectorAll('.circuit-component__body img').length).toBe(0)
     expect(container.querySelectorAll('.circuit-component__body svg').length).toBe(0)
   })
 
-  it('8c — le wrapper .circuit-component reçoit toujours les événements (l\'<img> ne les capte pas)', () => {
+  it('8c — le wrapper .circuit-component reçoit toujours les événements (le corps CSS ne les capte pas)', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('CAPACITOR', 50, 60) })
     const wrap = container.querySelector('.circuit-component')
     let got = 0
     wrap.addEventListener('pointerdown', () => { got += 1 })
-    fireEvent.pointerDown(container.querySelector('.circuit-component__body img'))
+    fireEvent.pointerDown(container.querySelector('.circuit-component__body .part-capacitor'))
     expect(got).toBe(1)
   })
 })

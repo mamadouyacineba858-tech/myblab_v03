@@ -251,9 +251,14 @@ describe("MB-VIS-RENDER-009 — TEST T9 : garde-fou performance — nombre de pr
       const svg = container.querySelector("svg")
       // MB-VIS-PROTOTYPE-001C : un renderer backend "raster" ne rend pas de
       // <svg> mais un <img> vers un asset validé -> 0 primitive SVG, sous le
-      // plafond par construction. Le garde-fou reste actif pour les <svg>.
+      // plafond par construction. [MB-L1-CONS-002] CAPACITOR/THERMISTOR ne
+      // rendent plus ni <svg> ni <img> (renderer CSS/DOM physique, corps
+      // `<div>` stylé) -> 0 primitive SVG également, sous le plafond par
+      // construction. Le garde-fou reste actif pour les <svg> ; dans les deux
+      // cas sans <svg>, on exige seulement qu'un corps réel ait été rendu
+      // (jamais un rendu vide).
       if (!svg) {
-        expect(container.querySelector("img"), `${type} : ni <svg> ni <img>`).not.toBeNull()
+        expect(container.firstElementChild, `${type} : aucun élément racine rendu`).not.toBeNull()
         return
       }
       const count = svg.querySelectorAll(PRIMITIVE_SELECTOR).length

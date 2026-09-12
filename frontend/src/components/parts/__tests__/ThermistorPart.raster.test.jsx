@@ -1,21 +1,12 @@
 /**
- * ThermistorPart.raster.test.jsx — MB-VIS-PROTOTYPE-006.
+ * ThermistorPart.raster.test.jsx — MB-VIS-PROTOTYPE-006, migré par
+ * MB-L1-CONS-002 (renderer contract consolidation).
  *
- * Migration de `ThermistorPart.uid.test.jsx` (MB-VIS-LED-014), qui verrouillait
- * le contrat de namespace SVG (`<defs>` + gradients `metal`/`bead`/`edge` dont
- * les ids étaient dérivés de `uid`). Ce contrat SVG a disparu avec le passage
- * au backend raster : les assertions devenues obsolètes (préfixe d'id,
- * `url(#…)`, `const id = String(uid ?? 'thermistor').replace(…)`) sont adaptées,
- * la vérification RÉELLEMENT pertinente est conservée sous une forme
- * équivalente pour le raster :
- *   « deux thermistances sur le même canvas ne provoquent aucune collision »
- * → en raster : plus AUCUN id à namespacer, donc `[id].length === 0` et les
- *   deux instances rendent un HTML identique (aucun comportement dépendant du
- *   uid).
- * Le déterminisme (mêmes props → même HTML) est conservé tel quel.
- *
- * S'y ajoute la couverture d'intégration raster commune à
- * Resistor/Diode/Led/Capacitor/LdrPart.raster.test.jsx.
+ * [MB-L1-CONS-002] `ThermistorPart.jsx` a abandonné l'asset raster
+ * (MB-VIS-PROTOTYPE-006) pour un renderer CSS/DOM pur — perle NTC verticale
+ * avec identité visible "NTC"/"100-9", aucun <img>/<picture>. Ce fichier
+ * conservait encore le contrat raster obsolète (picture/img/asset validé) —
+ * migré vers le contrat RÉEL, sans jamais exiger la restauration du raster.
  *
  * Environnement jsdom (.test.jsx).
  */
@@ -35,24 +26,24 @@ import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const SOURCE_PATH = resolve(__dirname, '../ThermistorPart.jsx')
-const ASSET_RE = /^\/assets\/components\/thermistor\/thermistor\.default\.(1x|3x)\.(webp|png)( \dx)?$/
+const ARIA_LABEL = 'Thermistance NTC'
 
-describe('MB-VIS-PROTOTYPE-006 — THERMISTOR : contrat UID adapté au backend raster', () => {
-  it('A (adapté) — uid absent : rendu valide, aria-label="Thermistance", aucun id à namespacer', () => {
+describe('MB-VIS-PROTOTYPE-006 — THERMISTOR : contrat de rendu (MB-L1-CONS-002)', () => {
+  it('A — uid absent : rendu valide, aria-label="Thermistance NTC", aucun id à namespacer', () => {
     const { container } = render(<ThermistorPart />)
-    expect(container.querySelector('[aria-label="Thermistance"]')).not.toBeNull()
+    expect(container.querySelector(`[aria-label="${ARIA_LABEL}"]`)).not.toBeNull()
     expect(container.querySelector('svg')).toBeNull()
     expect(container.querySelectorAll('[id]').length).toBe(0)
   })
 
-  it('B (adapté) — uid fourni : n\'a aucun effet observable (plus aucun <defs> à namespacer)', () => {
+  it('B — uid fourni : n\'a aucun effet observable', () => {
     const withUid = render(<ThermistorPart uid="thermistor-a" />).container.innerHTML
     const withoutUid = render(<ThermistorPart />).container.innerHTML
     expect(withUid).toBe(withoutUid)
     expect(withUid).not.toMatch(/url\(#/)
   })
 
-  it('C (conservé, forme raster) — deux THERMISTOR dans le même document : aucun id, HTML des deux instances identique (aucune collision possible)', () => {
+  it('C — deux THERMISTOR dans le même document : aucun id, HTML des deux instances identique (aucune collision possible)', () => {
     const { container } = render(
       <>
         <ThermistorPart uid="thermistor-a" />
@@ -66,13 +57,13 @@ describe('MB-VIS-PROTOTYPE-006 — THERMISTOR : contrat UID adapté au backend r
     expect(a.innerHTML).toBe(b.innerHTML)
   })
 
-  it('F (adapté) — uid avec caractères spéciaux : accepté, aucun effet, aucun id', () => {
+  it('F — uid avec caractères spéciaux : accepté, aucun effet, aucun id', () => {
     const { container } = render(<ThermistorPart uid="th #1/α" />)
-    expect(container.querySelector('[aria-label="Thermistance"]')).not.toBeNull()
+    expect(container.querySelector(`[aria-label="${ARIA_LABEL}"]`)).not.toBeNull()
     expect(container.querySelectorAll('[id]').length).toBe(0)
   })
 
-  it('G (adapté) — le CODE (hors commentaires) ne contient plus de <svg>/<defs>/gradient ni d\'id (statique ou interpolé)', () => {
+  it('G — le CODE (hors commentaires) ne contient ni <svg>/<defs>/gradient/id, ni <img>/<picture> : le raster n\'est plus le contrat réel', () => {
     const source = readFileSync(SOURCE_PATH, 'utf-8')
     const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
     expect(code).not.toMatch(/<svg\b/)
@@ -80,12 +71,14 @@ describe('MB-VIS-PROTOTYPE-006 — THERMISTOR : contrat UID adapté au backend r
     expect(code).not.toMatch(/[lL]inearGradient|[rR]adialGradient/)
     expect(code).not.toMatch(/\bid="/)
     expect(code).not.toMatch(/const id = String\(uid/)
+    expect(code).not.toMatch(/<img\b/)
+    expect(code).not.toMatch(/<picture\b/)
     expect(code).toMatch(
       /import\s*\{\s*getComponentDef\s*\}\s*from\s*["']\.\.\/\.\.\/config\/componentDefinitions\.js["']/
     )
   })
 
-  it('H (conservé) — déterminisme : deux rendus identiques pour un même uid', () => {
+  it('H — déterminisme : deux rendus identiques pour un même uid', () => {
     const first = render(<ThermistorPart uid="thermistor-a" />)
     const html1 = first.container.innerHTML
     first.unmount()
@@ -96,19 +89,18 @@ describe('MB-VIS-PROTOTYPE-006 — THERMISTOR : contrat UID adapté au backend r
   })
 })
 
-describe('MB-VIS-PROTOTYPE-006 — THERMISTOR : intégration raster', () => {
-  it('1/8 — racine .part-thermistor, aria-label="Thermistance", <img> aux dimensions canoniques 84×36', () => {
+describe('MB-VIS-PROTOTYPE-006 — THERMISTOR : intégration renderer CSS/DOM réel', () => {
+  it('1 — racine .part-thermistor, aria-label="Thermistance NTC", dimensions canoniques 84×36 (repli style inline)', () => {
     const def = getComponentDef('THERMISTOR')
     expect([def.width, def.height]).toEqual([84, 36])
     const { container } = render(<ThermistorPart />)
-    expect(container.querySelector('.part-thermistor')).not.toBeNull()
-    const img = container.querySelector('img')
-    expect(img).not.toBeNull()
-    expect(img.getAttribute('width')).toBe(String(def.width))
-    expect(img.getAttribute('height')).toBe(String(def.height))
+    const root = container.querySelector('.part-thermistor')
+    expect(root).not.toBeNull()
+    expect(root.style.width).toBe(`${def.width}px`)
+    expect(root.style.height).toBe(`${def.height}px`)
   })
 
-  it('2 — aucun vestige du renderer SVG V0', () => {
+  it('2 — aucun vestige du renderer SVG V0, aucun <img>/<picture> raster', () => {
     const { container } = render(<ThermistorPart />)
     expect(container.querySelector('svg')).toBeNull()
     expect(container.querySelector('defs')).toBeNull()
@@ -117,43 +109,21 @@ describe('MB-VIS-PROTOTYPE-006 — THERMISTOR : intégration raster', () => {
     expect(container.querySelector('ellipse')).toBeNull()
     expect(container.querySelector('linearGradient')).toBeNull()
     expect(container.querySelector('radialGradient')).toBeNull()
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('picture')).toBeNull()
   })
 
-  it('3/4 — <picture>/<source webp> + <img> vers /assets/components/thermistor/… ; les 4 variantes référencées', () => {
+  it('3 — identité NTC visible ("NTC" et "100-9")', () => {
     const { container } = render(<ThermistorPart />)
-    const img = container.querySelector('img')
-    expect(img.getAttribute('src')).toMatch(ASSET_RE)
-    for (const cand of (img.getAttribute('srcset') || '').split(',').map((s) => s.trim()).filter(Boolean)) {
-      expect(cand).toMatch(ASSET_RE)
-    }
-    const source = container.querySelector('picture > source')
-    expect(source).not.toBeNull()
-    expect(source.getAttribute('type')).toBe('image/webp')
-    for (const cand of (source.getAttribute('srcset') || '').split(',').map((s) => s.trim()).filter(Boolean)) {
-      expect(cand).toMatch(ASSET_RE)
-      expect(cand).toMatch(/\.webp/)
-    }
-    const all = container.innerHTML
-    for (const f of ['1x.webp', '3x.webp', '1x.png', '3x.png']) {
-      expect(all).toContain(`/assets/components/thermistor/thermistor.default.${f}`)
-    }
+    expect(container.textContent).toContain('NTC')
+    expect(container.textContent).toContain('100-9')
   })
 
-  it('3b — l\'<img> ne porte aucun gestionnaire, draggable=false, pointer-events:none', () => {
-    const { container } = render(<ThermistorPart />)
-    const img = container.querySelector('img')
-    expect(img.draggable).toBe(false)
-    expect(img.style.pointerEvents).toBe('none')
-    expect(img.onclick).toBeNull()
-    expect(img.onpointerdown).toBeNull()
-    expect(img.onmousedown).toBeNull()
+  it('7 — backend résolu pour THERMISTOR = svg (défaut, raster retiré) ; bareBody + markerless explicitement true (préserve le rendu réel)', () => {
+    expect(getComponentPresentation('THERMISTOR')).toEqual({ backend: 'svg', bareBody: true, markerless: true })
   })
 
-  it('7 — backend résolu pour THERMISTOR = raster ; bareBody + markerless dérivés', () => {
-    expect(getComponentPresentation('THERMISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
-  })
-
-  it('8 — géométrie canonique inchangée : 84×36, pins A(0,18)/B(84,18)', () => {
+  it('8 — géométrie canonique inchangée : 84×36, pins A(0,18)/B(84,18) (identité électrique, MB-L1-CONS-001 non affecté)', () => {
     const def = getComponentDef('THERMISTOR')
     expect(def.width).toBe(84)
     expect(def.height).toBe(36)
@@ -176,7 +146,7 @@ describe('MB-VIS-PROTOTYPE-006 — pipeline réel : pins et interactions inchang
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('5 — CircuitComponent produit les 2 pins THERMISTOR à A(0,18) / B(84,18) ; asset raster dans le wrapper', () => {
+  it('5 — CircuitComponent produit les 2 pins THERMISTOR au PhysicalContact réel (30,62)/(54,62) — pas A(0,18)/B(84,18) legacy (MB-L1-CONS-001)', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('THERMISTOR', 50, 60) })
@@ -190,11 +160,12 @@ describe('MB-VIS-PROTOTYPE-006 — pipeline réel : pins et interactions inchang
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining([[0, 18], [84, 18]]))
+    expect(positions).toEqual(expect.arrayContaining([[30, 62], [54, 62]]))
 
-    expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
+    expect(container.querySelector('.circuit-component__body img')).toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
-    expect(container.querySelector('.circuit-component').getAttribute('data-backend')).toBe('raster')
+    expect(container.querySelector('.circuit-component__body .part-thermistor')).not.toBeNull()
+    expect(container.querySelector('.circuit-component').getAttribute('data-backend')).toBe('svg')
     expect(container.querySelector('.circuit-component__body').hasAttribute('data-bare-body')).toBe(true)
     for (const p of pins) expect(p.style.opacity).toBe('0')
   })
@@ -209,7 +180,7 @@ describe('MB-VIS-PROTOTYPE-006 — pipeline réel : pins et interactions inchang
     expect(css).not.toMatch(/:has\([^)]*\.part-thermistor[^)]*\)/)
   })
 
-  it('5b — deux THERMISTOR sur le canvas : 4 pins distincts aux positions canoniques, 2 <img>, 0 <svg>', () => {
+  it('5b — deux THERMISTOR sur le canvas : 4 pins distincts au PhysicalContact réel, 0 <img>, 0 <svg>', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('THERMISTOR', 20, 20) })
@@ -217,20 +188,21 @@ describe('MB-VIS-PROTOTYPE-006 — pipeline réel : pins et interactions inchang
     const pins = [...container.querySelectorAll('.myblab-pin')]
     expect(pins.length).toBe(4)
     const rel = pins.map((el) => `${el.style.left}/${el.style.top}`)
-    expect(rel.filter((r) => r === '0px/18px').length).toBe(2)
-    expect(rel.filter((r) => r === '84px/18px').length).toBe(2)
-    expect(container.querySelectorAll('.circuit-component__body img').length).toBe(2)
+    expect(rel.filter((r) => r === '30px/62px').length).toBe(2)
+    expect(rel.filter((r) => r === '54px/62px').length).toBe(2)
+    expect(container.querySelectorAll('.circuit-component__body .part-thermistor').length).toBe(2)
+    expect(container.querySelectorAll('.circuit-component__body img').length).toBe(0)
     expect(container.querySelectorAll('.circuit-component__body svg').length).toBe(0)
   })
 
-  it('8b — le wrapper .circuit-component reçoit toujours les événements (l\'<img> ne les capte pas)', () => {
+  it('8b — le wrapper .circuit-component reçoit toujours les événements (le corps CSS ne les capte pas)', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('THERMISTOR', 50, 60) })
     const wrap = container.querySelector('.circuit-component')
     let got = 0
     wrap.addEventListener('pointerdown', () => { got += 1 })
-    fireEvent.pointerDown(container.querySelector('.circuit-component__body img'))
+    fireEvent.pointerDown(container.querySelector('.circuit-component__body .part-thermistor'))
     expect(got).toBe(1)
   })
 })
