@@ -58,6 +58,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     // si la sélection ou le composant sélectionné change réellement, pas à
     // chaque pixel de drag/pan/marquee.
     selectedComponent: state.selectedComponent,
+    updateComponentProperties: state.updateComponentProperties,
     updateComponentParameters: state.updateComponentParameters,
     // MB-L1-ARD-001 : action stable (basse fréquence, même statut que
     // updateComponentParameters) — le futur Code Workspace (MB-L1-ARD-004)
@@ -140,7 +141,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
   }), [
     state.canvasRef, state.wires, state.connectedPins, state.pinSignals,
     state.pendingPin, state.isWiringActive, state.selection, state.activeItem,
-    state.selectedComponent, state.updateComponentParameters, state.updateArduinoFirmware,
+    state.selectedComponent, state.updateComponentProperties, state.updateComponentParameters, state.updateArduinoFirmware,
     state.firmwareDiagnostics, state.simulationActive, state.showGrid, state.theme,
     state.focusedComponentId, state.focusComponent, state.exitFocus, state.adjustLocalScale,
     state.addComponent, state.addWire, state.addBreadboard, state.clearCircuit,

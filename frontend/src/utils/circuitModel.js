@@ -69,6 +69,8 @@ export function normalizeComponent(component) {
     ...(component.firmware && typeof component.firmware === "object" && !Array.isArray(component.firmware)
       ? { firmware: { ...component.firmware } }
       : {}),
+    ...(component.properties && typeof component.properties === "object" && !Array.isArray(component.properties)
+      ? { properties: { ...component.properties } } : {}),
     ..._normalizeInteractionState(component),
   }
 }

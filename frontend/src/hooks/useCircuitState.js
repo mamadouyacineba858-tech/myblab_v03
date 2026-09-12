@@ -1,3 +1,5 @@
+import { UpdateComponentPropertiesHandler } from "../core/handlers/component/UpdateComponentPropertiesHandler.js"
+import { resolveComponentProperties, validateComponentProperties, isPlainProperties } from "../config/componentProperties.js"
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { snapToGrid, GRID_SIZE } from "../utils/grid.js"
@@ -887,6 +889,9 @@ const getUndoCount = useCallback(() => {
       // restent explicitement hors périmètre — voir
       // cf1DocumentArchitecture.test.js.
       registry.register("UPDATE_ARDUINO_FIRMWARE", new UpdateArduinoFirmwareHandler({ historyService, documentApi }))
+      registry.register("UPDATE_COMPONENT_PROPERTIES", new UpdateComponentPropertiesHandler({
+        historyService, documentApi, validateProperties: validateComponentProperties,
+      }))
       const validationEngine = new ValidationEngine(createDefaultValidationRegistry())
       commandBusRef.current = new CommandBus(registry, { validationEngine })
       // undo()/redo() (définis plus haut, MB-004.3) délèguent à cette même
@@ -954,6 +959,7 @@ const getUndoCount = useCallback(() => {
     // tout type sans capacité firmware (AC-04), jamais transmis dans ce cas
     // (AddComponentHandler ne l'ajoute que si présent dans le payload).
     const firmware = createDefaultFirmware(type)
+    const properties = resolveComponentProperties(type)
 
     try {
       const coreDocument = documentApi.getDocument()
@@ -961,6 +967,7 @@ const getUndoCount = useCallback(() => {
         componentType: type,
         position,
         parameters,
+        properties,
         ...(firmware !== undefined ? { firmware } : {}),
       })
       commandBusRef.current.dispatch(command, coreDocument)
@@ -986,6 +993,25 @@ const getUndoCount = useCallback(() => {
   //   7-8. construit et dispatch UPDATE_COMPONENT_PARAMETERS ;
   //   9. ne mute jamais setComponents directement.
   // =========================================================================
+  const updateComponentProperties = useCallback((componentId, partialProperties) => {
+    if (!commandBusRef.current || !isPlainProperties(partialProperties)) return
+    const current = componentsRef.current.find(component => component.uid === componentId)
+    if (!current) return
+    const beforeProperties = resolveComponentProperties(current.type, current.properties)
+    const validation = validateComponentProperties(current.type, { ...beforeProperties, ...partialProperties })
+    if (!validation.valid) return
+    const afterProperties = validation.sanitized
+    const keys = Object.keys(beforeProperties)
+    if (keys.length === Object.keys(afterProperties).length && keys.every(key => beforeProperties[key] === afterProperties[key])) return
+    try {
+      commandBusRef.current.dispatch(new Command("UPDATE_COMPONENT_PROPERTIES", {
+        componentId, beforeProperties, afterProperties,
+      }), documentApi.getDocument())
+    } catch (error) {
+      console.error("updateComponentProperties: command dispatch failed", error)
+    }
+  }, [documentApi])
+
   const updateComponentParameters = useCallback((componentId, nextParameters) => {
     if (!commandBusRef.current) return
     const current = componentsRef.current.find((c) => c.uid === componentId)
@@ -2613,6 +2639,7 @@ if (import.meta.env.DEV) {
   adjustLocalScale,
 
   addComponent,
+  updateComponentProperties,
   updateComponentParameters,
   updateArduinoFirmware,
   addWire,
@@ -2727,6 +2754,7 @@ if (import.meta.env.DEV) {
   adjustLocalScale,
 
   addComponent,
+  updateComponentProperties,
   updateComponentParameters,
   updateArduinoFirmware,
   addWire,

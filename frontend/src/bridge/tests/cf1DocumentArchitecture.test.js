@@ -230,7 +230,7 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
   // électrique) — le verrou borne désormais le canal à exactement ces dix
   // commandes, ni plus, ni moins. REMOVE_COMPONENT et tout UPDATE_COMPONENT
   // générique restent explicitement hors périmètre.
-  it("[CSA GO MB-L1-ARD-001] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD + MOVE_BREADBOARD + DELETE_BREADBOARD + UPDATE_COMPONENT_PARAMETERS + UPDATE_ARDUINO_FIRMWARE : AddWireHandler, UpdateWireWaypointsHandler, MoveComponentHandler, AddBreadboardHandler, MoveBreadboardHandler, DeleteBreadboardHandler, UpdateComponentParametersHandler et UpdateArduinoFirmwareHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js, et le canal legacy MoveCommand n'est plus instancié par le drag de production", () => {
+  it("[CSA GO L1-PROP-001] le canal est désormais borné à ADD_COMPONENT + ADD_WIRE + UPDATE_WIRE_WAYPOINTS + MOVE_COMPONENT + ADD_BREADBOARD + MOVE_BREADBOARD + DELETE_BREADBOARD + UPDATE_COMPONENT_PARAMETERS + UPDATE_ARDUINO_FIRMWARE + UPDATE_COMPONENT_PROPERTIES : AddWireHandler, UpdateWireWaypointsHandler, MoveComponentHandler, AddBreadboardHandler, MoveBreadboardHandler, DeleteBreadboardHandler, UpdateComponentParametersHandler et UpdateArduinoFirmwareHandler existent, aucun autre type de commande n'est enregistré dans useCircuitState.js, et le canal legacy MoveCommand n'est plus instancié par le drag de production", () => {
     const source = readSourceWithoutComments(useCircuitStatePath)
     const registerCalls = source.match(/\.register\(\s*["'][A-Z_]+["']/g) || []
     expect(registerCalls).toEqual([
@@ -243,6 +243,7 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
       '.register("DELETE_BREADBOARD"',
       '.register("UPDATE_COMPONENT_PARAMETERS"',
       '.register("UPDATE_ARDUINO_FIRMWARE"',
+      '.register("UPDATE_COMPONENT_PROPERTIES"',
     ])
 
     const wireHandlerPath = path.join(dir, "..", "..", "core", "handlers", "wire", "AddWireHandler.js")

@@ -7,7 +7,7 @@ export class AddComponentHandler extends BaseCommandHandler {
   }
 
   _applyMutation(command, document) {
-    const { componentType, position = { x: 0, y: 0 }, parameters = {}, firmware } = command.payload;
+    const { componentType, position = { x: 0, y: 0 }, parameters = {}, firmware, properties } = command.payload;
 
     const id = command.payload.componentId || this._generateComponentId(componentType);
     command.payload.componentId = id;
@@ -17,6 +17,7 @@ export class AddComponentHandler extends BaseCommandHandler {
       type: componentType,
       position: { ...position },
       parameters: { ...parameters },
+      ...(properties !== undefined ? { properties: this._cloneComponent(properties) } : {}),
       // MB-L1-ARD-001 (AC-04) : générique — le payload transporte `firmware`
       // uniquement pour les types qui en possèdent un (résolu par la couche
       // de composition, useCircuitState.js, via firmwareDefaults.js). Ce
@@ -44,7 +45,7 @@ export class AddComponentHandler extends BaseCommandHandler {
 
   _applyRedo(command, document, lastResult) {
     const componentId = command.payload.componentId;
-    const { componentType, position = { x: 0, y: 0 }, parameters = {}, firmware } = command.payload;
+    const { componentType, position = { x: 0, y: 0 }, parameters = {}, firmware, properties } = command.payload;
 
     if (!componentId) {
       throw new Error('Cannot redo AddComponent: missing componentId');
@@ -59,6 +60,7 @@ export class AddComponentHandler extends BaseCommandHandler {
       type: componentType,
       position: { ...position },
       parameters: { ...parameters },
+      ...(properties !== undefined ? { properties: this._cloneComponent(properties) } : {}),
       ...(firmware !== undefined ? { firmware: { ...firmware } } : {}),
     };
 
