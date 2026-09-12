@@ -119,18 +119,51 @@ describe('contactModel — FT-B-001-S4 : héritage des drapeaux pin-level', () =
 })
 
 describe('contactModel — intégration composants réels (aucune logique par type)', () => {
-  it('les 9 types mono-contact enfichables -> 1 contact implicite par pin, en pin.dx/pin.dy, flags true/true', () => {
-    // [FT-B-001-S5] NPN_TRANSISTOR / POWER / ARDUINO déclarent des contacts
-    // explicites ; DC_MOTOR / SERVO ont un contact implicite mais
-    // `breadboardInsertable: false` (drapeau pin-level). Ces 5 cas sont
-    // couverts par le describe "FT-B-001-S5" ci-dessous.
-    const monoTypes = ['LED', 'RESISTOR', 'CAPACITOR', 'BUZZER',
-      'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED']
-    for (const type of monoTypes) {
+  it('LED / RESISTOR / DIODE (aucun contacts[] déclaré) -> 1 contact implicite par pin, en pin.dx/pin.dy, flags true/true', () => {
+    // [MB-L1-CONS-001] Seuls les types SANS `contacts[]` explicite dans
+    // componentDefinitions.js retombent sur le contact implicite mono-pin
+    // (geometry = pin.dx/pin.dy, fallback historique — INV-S3-08). CAPACITOR /
+    // BUZZER / POTENTIOMETER / LDR / THERMISTOR / RGB_LED déclarent désormais
+    // un `contacts[]` explicite dont la géométrie physique diffère
+    // intentionnellement de pin.dx/pin.dy (ruling CSA MB-L1-CONS-001) :
+    // couverts par le test suivant. NPN_TRANSISTOR / POWER / ARDUINO restent
+    // couverts par le describe "FT-B-001-S5" ci-dessous ; DC_MOTOR / SERVO par
+    // un autre test dédié.
+    const implicitContactTypes = ['LED', 'RESISTOR', 'DIODE']
+    for (const type of implicitContactTypes) {
       for (const pin of getComponentDef(type).pins) {
         const contacts = resolveContacts(pin)
         expect(contacts).toHaveLength(1)
         expect(contacts[0]).toEqual({ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: true })
+      }
+    }
+  })
+
+  it('MB-L1-CONS-001 — CAPACITOR / BUZZER / POTENTIOMETER / LDR / THERMISTOR / RGB_LED : contacts[] explicite fait autorité pour la géométrie physique (peut diverger de pin.dx/pin.dy — CAPACITOR/LDR/THERMISTOR/RGB_LED divergent réellement, BUZZER/POTENTIOMETER coïncident, mais la SOURCE lue reste contacts[] pour les six) ; contactId reste égal à pinId', () => {
+    const explicitContactTypes = ['CAPACITOR', 'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'RGB_LED']
+    for (const type of explicitContactTypes) {
+      for (const pin of getComponentDef(type).pins) {
+        expect(Array.isArray(pin.contacts) && pin.contacts.length === 1).toBe(true)
+        const [declared] = pin.contacts
+
+        const contacts = resolveContacts(pin)
+        expect(contacts).toHaveLength(1)
+        // resolveContacts() lit contacts[].dx/dy — JAMAIS pin.dx/dy — pour ces types.
+        expect(contacts[0]).toEqual({
+          id: declared.id, dx: declared.dx, dy: declared.dy,
+          wireConnectable: true, breadboardInsertable: true,
+        })
+        // pinId reste l'identité électrique canonique, indépendante du contact.
+        expect(contacts[0].id).toBe(pin.id)
+      }
+    }
+  })
+
+  it('MB-L1-CONS-001 — CAPACITOR / LDR / THERMISTOR / RGB_LED : la géométrie physique déclarée diverge RÉELLEMENT de pin.dx/pin.dy (preuve directe de la divergence intentionnelle actée par le ruling CSA)', () => {
+    for (const type of ['CAPACITOR', 'LDR', 'THERMISTOR', 'RGB_LED']) {
+      for (const pin of getComponentDef(type).pins) {
+        const [declared] = pin.contacts
+        expect(declared.dx === pin.dx && declared.dy === pin.dy).toBe(false)
       }
     }
   })

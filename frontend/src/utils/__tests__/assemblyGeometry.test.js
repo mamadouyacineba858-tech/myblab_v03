@@ -103,7 +103,10 @@ describe("A/F — LED libre (hors breadboard)", () => {
   it("root vient du profil mécanique (sous le corps), distinct de target", () => {
     const g = resolveAssemblyGeometry(led, null)
     const anode = g.contacts.find((c) => c.pinId === "anode")
-    expect(anode.root).toEqual({ x: 128, y: 236 }) // (100+28, 200+36) — dy racine profil
+    // [MB-L1-CONS-001] root vient de assemblyProfiles.js (LED.anode.root.dy = 32,
+    // profil mécanique — indépendant de pin.dx/dy et de contacts[]) ; LED n'a
+    // pas de `contacts[]` explicite, donc target reste égal à pin.dx/dy.
+    expect(anode.root).toEqual({ x: 128, y: 232 }) // (100+28, 200+32) — dy racine profil
     expect(anode.root.y).toBeLessThan(anode.target.y) // la racine est AU-DESSUS du contact
     expect(anode.style).toBe("wire")
   })
@@ -253,12 +256,6 @@ describe("I — POTENTIOMETER : 3 cosses", () => {
 // H — type SANS profil mécanique → géométrie vide
 // ---------------------------------------------------------------------------
 describe("H — type sans profil d'assemblage → aucune patte dynamique", () => {
-  it("CAPACITOR (asset radial = FT-C-001-B) : géométrie vide, aucune patte fantôme", () => {
-    const cap = { uid: "cap-1", type: "CAPACITOR", x: 0, y: 0 }
-    expect(resolveAssemblyGeometry(cap, null)).toEqual({ inserted: false, contacts: [] })
-    expect(resolveAssemblyGeometry(cap, bb)).toEqual({ inserted: false, contacts: [] })
-  })
-
   it("RESISTOR (composant axial non traversant) : géométrie vide", () => {
     const res = { uid: "res-1", type: "RESISTOR", x: 0, y: 0 }
     expect(resolveAssemblyGeometry(res, bb)).toEqual({ inserted: false, contacts: [] })
@@ -268,6 +265,37 @@ describe("H — type sans profil d'assemblage → aucune patte dynamique", () =>
     expect(resolveAssemblyGeometry(null, bb)).toEqual({ inserted: false, contacts: [] })
     expect(resolveAssemblyGeometry({ type: "LED" }, bb)).toEqual({ inserted: false, contacts: [] })
     expect(resolveAssemblyGeometry({ type: "NOPE", x: 0, y: 0 }, bb)).toEqual({ inserted: false, contacts: [] })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// L — CAPACITOR : profil through-hole réel (FT-C-001-B livré), target = contacts[]
+// ---------------------------------------------------------------------------
+// [MB-L1-CONS-001] CAPACITOR n'est plus un exemple de "type sans profil" (le
+// H ci-dessus l'utilisait avant que FT-C-001-B ne livre son asset radial avec
+// pattes fonctionnelles) : `assemblyProfiles.js` et `componentDefinitions.js`
+// déclarent désormais tous deux une géométrie through-hole réelle pour
+// CAPACITOR (root mécanique dx 23/47 dy 27 ; target = contacts[] dx 23/47
+// dy 62, distinct de pin.dx/dy = dx 0/70 dy 20). RESISTOR (ci-dessus) reste
+// l'exemple valide de type SANS profil.
+describe("L — CAPACITOR : profil through-hole réel, target vient de contacts[] (jamais de pin.dx/dy)", () => {
+  const cap = { uid: "cap-1", type: "CAPACITOR", x: 0, y: 0 }
+
+  it("libre : 2 contacts, target = contacts[].dx/dy, root = profil mécanique, distincts de pin.dx/dy", () => {
+    const g = resolveAssemblyGeometry(cap, null)
+    expect(g.inserted).toBe(false)
+    expect(g.contacts).toHaveLength(2)
+    const pinA = g.contacts.find((c) => c.pinId === "pinA")
+    const pinB = g.contacts.find((c) => c.pinId === "pinB")
+    expect(pinA).toMatchObject({ contactId: "pinA", target: { x: 23, y: 62 }, root: { x: 23, y: 27 }, style: "wire", hole: null, holePosition: null })
+    expect(pinB).toMatchObject({ contactId: "pinB", target: { x: 47, y: 62 }, root: { x: 47, y: 27 }, style: "wire", hole: null, holePosition: null })
+  })
+
+  it("inséré : les deux contacts résolvent sur des trous distincts (géométrie ancrée sur contacts[], pas sur pin.dx/dy)", () => {
+    const g = resolveAssemblyGeometry(cap, bb)
+    expect(g.inserted).toBe(true)
+    expect(g.contacts).toHaveLength(2)
+    expect(new Set(g.contacts.map((c) => `${c.hole.column}:${c.hole.row}`)).size).toBe(2)
   })
 })
 

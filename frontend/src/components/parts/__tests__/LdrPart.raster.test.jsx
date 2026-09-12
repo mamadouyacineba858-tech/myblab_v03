@@ -19,7 +19,9 @@
  *  2. aucun <svg>/<defs>/gradient/<line>/<path> résiduel ;
  *  3. <picture>/<source webp> + <img> vers /assets/components/ldr/ldr.default.* ;
  *  4. 4 variantes 1x/3x webp+png référencées ;
- *  5. pipeline réel : pins A(0,18)/B(84,18) via CircuitComponent/Pin ;
+ *  5. pipeline réel : pins A(30,62)/B(54,62) via CircuitComponent/Pin — géométrie
+ *     du PhysicalContact explicite (contactModel.js), PAS de pin.dx/dy legacy
+ *     (0,18)/(84,18) : divergence intentionnelle actée par MB-L1-CONS-001 ;
  *  6. aucune logique spécifique LDR dans la couche de rendu centrale ;
  *  7. backend résolu = raster (bareBody + markerless dérivés) ;
  *  8. géométrie canonique 84×36 inchangée (componentDefinitions.js).
@@ -184,7 +186,7 @@ describe('MB-VIS-PROTOTYPE-005 — pipeline réel : pins et interactions inchang
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('5 — CircuitComponent produit les 2 pins LDR à A(0,18) / B(84,18) ; asset raster dans le wrapper', () => {
+  it('5 — CircuitComponent produit les 2 pins LDR à A(30,62) / B(54,62) (PhysicalContact) ; asset raster dans le wrapper', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('LDR', 50, 60) })
@@ -198,7 +200,10 @@ describe('MB-VIS-PROTOTYPE-005 — pipeline réel : pins et interactions inchang
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining([[0, 18], [84, 18]]))
+    // [MB-L1-CONS-001] La position visuelle du <Pin> suit désormais le
+    // PhysicalContact explicite (contacts[].dx/dy, contactModel.js) — LDR.A
+    // contact (30,62), LDR.B contact (54,62) — PAS pin.dx/dy legacy (0,18)/(84,18).
+    expect(positions).toEqual(expect.arrayContaining([[30, 62], [54, 62]]))
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
@@ -217,7 +222,7 @@ describe('MB-VIS-PROTOTYPE-005 — pipeline réel : pins et interactions inchang
     expect(css).not.toMatch(/:has\([^)]*\.part-ldr[^)]*\)/)
   })
 
-  it('5b — deux LDR sur le canvas : 4 pins distincts aux positions canoniques, 2 <img>, 0 <svg>', () => {
+  it('5b — deux LDR sur le canvas : 4 pins distincts aux positions canoniques (PhysicalContact), 2 <img>, 0 <svg>', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('LDR', 20, 20) })
@@ -225,8 +230,9 @@ describe('MB-VIS-PROTOTYPE-005 — pipeline réel : pins et interactions inchang
     const pins = [...container.querySelectorAll('.myblab-pin')]
     expect(pins.length).toBe(4)
     const rel = pins.map((el) => `${el.style.left}/${el.style.top}`)
-    expect(rel.filter((r) => r === '0px/18px').length).toBe(2)
-    expect(rel.filter((r) => r === '84px/18px').length).toBe(2)
+    // [MB-L1-CONS-001] positions = contacts[].dx/dy (30,62)/(54,62), pas pin.dx/dy.
+    expect(rel.filter((r) => r === '30px/62px').length).toBe(2)
+    expect(rel.filter((r) => r === '54px/62px').length).toBe(2)
     expect(container.querySelectorAll('.circuit-component__body img').length).toBe(2)
     expect(container.querySelectorAll('.circuit-component__body svg').length).toBe(0)
   })

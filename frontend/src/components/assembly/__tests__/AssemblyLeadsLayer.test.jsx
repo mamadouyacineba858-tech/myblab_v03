@@ -39,11 +39,12 @@ describe("AssemblyLeadsLayer — rendu direct", () => {
     expect(lines).toHaveLength(2)
 
     const anode = container.querySelector('line[data-pin="anode"]')
-    // target anode = (128,262) abs -> local (28,62) ; root = (128,236) -> (28,36)
+    // [MB-L1-CONS-001] target anode = (128,262) abs -> local (28,62) ;
+    // root = (128,232) -> (28,32) (assemblyProfiles.js : LED.anode.root.dy = 32)
     expect(anode.getAttribute("x2")).toBe("28")
     expect(anode.getAttribute("y2")).toBe("62")
     expect(anode.getAttribute("x1")).toBe("28")
-    expect(anode.getAttribute("y1")).toBe("36")
+    expect(anode.getAttribute("y1")).toBe("32")
   })
 
   it("style dérivé du profil : LED -> --wire, POTENTIOMETER -> --lug (aucun type=== dans la couche)", () => {
@@ -155,7 +156,8 @@ describe("AssemblyLeadsLayer — intégration CircuitComponent : bout de patte =
 
     const body = container.querySelector(".circuit-component__body")
     expect(body.style.clipPath).toMatch(/^inset\(/)
-    expect(body.style.clipPath).toContain("26px")
+    // [MB-L1-CONS-001] assemblyProfiles.js : LED.bodyClip.bottom = 31
+    expect(body.style.clipPath).toContain("31px")
 
     const pins = pinTips(container)
     const leads = leadTips(container)

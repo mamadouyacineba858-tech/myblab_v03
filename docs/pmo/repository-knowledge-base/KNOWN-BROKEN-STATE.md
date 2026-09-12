@@ -38,9 +38,13 @@ De même, `npm --prefix frontend exec tsc -b` n'exécute pas le typecheck attend
 
 **Mise à jour du 2026-09-11 (MB-VIS-QA-047).** La figure historique de la section ci-dessus (16 FAIL / 1609 PASS, commit `6759e18`) est **obsolète** : six tickets visuels consécutifs (MB-VIS-BREAD-042 → MB-VIS-LAB-046) ont fait évoluer intentionnellement deux zones d'architecture (§3.1/§3.2 ci-dessous) sans rétro-propager les tests plus anciens qui asserttaient l'ancien comportement. MB-VIS-QA-047 a recompté et **classifié avec preuve** (lecture directe du code source et des messages d'échec verbatim, jamais une supposition) chaque échec — aucun n'est une régression (classe D).
 
-Suite complète (`npm --prefix frontend run test:ci`) : **2654 passed / 50 failed** (2704 total), **12 fichiers** en échec, mesuré **de façon identique sur six exécutions indépendantes** au fil des tickets 042 à 047.
+Suite complète (`npm --prefix frontend run test:ci`) : **2654 passed / 50 failed** (2704 total), **12 fichiers** en échec, mesuré **de façon identique sur six exécutions indépendantes** au fil des tickets 042 à 047. Cette figure de 50 FAIL / 12 fichiers est restée strictement inchangée à travers MB-L1-CVE-001 → MB-L1-ARD-005 (seul le nombre de PASS a crû à mesure que ces tickets ajoutaient des tests), jusqu'à sa base `6889d78` (2839 PASS / 50 FAIL / 2889 total).
 
-### 3.1 Cluster A — scission Contact/Pin (« Assembly Geometry », FT-C-001-A) — 20 échecs, classe A
+**Mise à jour du 2026-09-12 (MB-L1-CONS-001) — Cluster A (§3.1) FERMÉ.** Les 20 échecs du Cluster A n'étaient pas des régressions mais des tests obsolètes imposant une parité géométrique legacy (`contact.dx/dy === pin.dx/dy`) que l'architecture Contact/Pin (FT-B-001-S2/S3, ci-dessous) a intentionnellement rendue caduque pour les types déclarant un `contacts[]` explicite. MB-L1-CONS-001 a migré les 6 fichiers concernés vers le nouvel invariant (`contacts[].dx/dy` fait autorité pour la géométrie physique quand il est déclaré ; `pin.dx/dy` reste le repli mono-contact implicite sinon) — **aucun changement de code de production**. Le Cluster B (§3.2) reste inchangé et **hors périmètre**, réservé à `MB-L1-CONS-002`.
+
+**Baseline courante (base `6889d78`, après MB-L1-CONS-001) : 2869 passed / 30 failed (2899 total), 6 fichiers en échec — exactement le Cluster B (§3.2) ci-dessous.** Le total est passé de 2889 à 2899 (+10) : la migration a ajouté quelques assertions/tests documentant explicitement le nouvel invariant (ex. preuve directe de divergence `contact.dx/dy ≠ pin.dx/dy` pour CAPACITOR/LDR/THERMISTOR/RGB_LED) plutôt que de se limiter à corriger des valeurs en place — aucun test supprimé, aucune assertion affaiblie (voir `docs/pmo/delivery-reports/MB-L1-CONS-001-delivery-report.md`).
+
+### 3.1 Cluster A — scission Contact/Pin (« Assembly Geometry », FT-C-001-A) — 20 échecs, classe A — **CLOSED by MB-L1-CONS-001** (2026-09-12)
 
 `componentDefinitions.js` déclare désormais, pour CAPACITOR/LDR/THERMISTOR/RGB_LED (+ profils LED dans `assemblyProfiles.js`), un tableau `contacts:[{dx,dy,...}]` dont la position diffère intentionnellement de l'ancien `pin.dx/pin.dy`, pour un rendu de pattes physiquement exact via `AssemblyLeadsLayer`. `resolveContacts()` / `resolveComponentContactHoles()` utilisent correctement la position de niveau contact ; les tests ci-dessous assertent encore l'ancienne position de niveau pin.
 
@@ -70,12 +74,14 @@ Suite complète (`npm --prefix frontend run test:ci`) : **2654 passed / 50 faile
 
 Note : sur les 3 échecs de `partDimensionsGuard.test.js`, 2 relèvent bien du cluster B (Capacitor/Thermistor `<img>` attendu, absent) ; le 3ᵉ est distinct — `RgbLedPart.jsx` n'importe pas `getComponentDef` depuis `componentDefinitions.js` (il gère son propre pipeline d'assets multi-état avec dimensions codées en dur 90×56) — classe A (le test suppose un contrat d'import universel antérieur à ce pipeline), avec une note classe B mineure (dimensions dupliquées à deux endroits, aucun défaut fonctionnel observé en six tickets de QA navigateur).
 
-**Total : 20 + 30 = 50, réparti sur 12 fichiers — confirmé.**
+**Total historique (avant MB-L1-CONS-001) : 20 + 30 = 50, réparti sur 12 fichiers — confirmé.**
+
+**Baseline courante (depuis MB-L1-CONS-001, 2026-09-12) : Cluster A fermé (0 FAIL) ; seul le Cluster B (§3.2) reste — 30 FAIL, 6 fichiers.**
 
 ### Distinguer FAIL pré-existant et régression
 
-- **Pré-existant :** l'un des 50 ci-dessus (§3.1/§3.2), avec le même message. Un ticket visuel de composant **confirme** qu'ils sont identiques et ne les corrige pas.
-- **Régression :** tout FAIL hors de cette liste, ou un 51ᵉ, ou un changement de message sur l'un des 50. → **STOP + analyse**. Ne jamais supprimer / affaiblir un test pour repasser au vert.
+- **Pré-existant (baseline courante) :** l'un des 30 du Cluster B (§3.2), avec le même message. Un ticket **confirme** qu'ils sont identiques et ne les corrige pas — réservés à `MB-L1-CONS-002`.
+- **Régression :** tout FAIL hors de cette liste (Cluster A ou tout autre fichier), ou un 31ᵉ, ou un changement de message sur l'un des 30. → **STOP + analyse**. Ne jamais supprimer / affaiblir un test pour repasser au vert.
 - **Preuve d'indépendance vis-à-vis d'une modif CSS/JSX de composant** (méthode utilisée en 001C.2) : `git stash push -- <fichier suspect>` → relancer le fichier de test → si le FAIL persiste à l'identique, il est pré-existant → `git stash pop`.
 
 ## 4. Environnement — Bash cassé

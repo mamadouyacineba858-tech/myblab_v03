@@ -162,17 +162,28 @@ describe('resolveComponentContactHoles — TEST S3-B (BUTTON / BUTTON_LATCHING)'
 // ---------------------------------------------------------------------------
 // TEST S3-C — delta legacy (mono-contact enfichable) vs resolveComponentPinHoles
 // ---------------------------------------------------------------------------
-describe('resolveComponentContactHoles — TEST S3-C (delta legacy mono-contact enfichable)', () => {
+// [MB-L1-CONS-001] Ruling CSA : `pin.dx/dy` (identité électrique) et
+// `contact.dx/dy` (position physique réelle) ne sont PAS tenus d'être égaux —
+// une divergence est intentionnelle dès qu'un type déclare des `contacts[]`
+// explicites. Le delta ZÉRO avec `resolveComponentPinHoles()` (INV-S3-08)
+// n'est donc garanti QUE pour les types qui n'ont PAS de `contacts[]` déclaré
+// dans `componentDefinitions.js` (fallback mono-contact implicite = pin).
+// Pour les types à `contacts[]` explicite, c'est `contacts[].dx/dy` — pas
+// `pin.dx/dy` — qui fait autorité sur la géométrie physique : le describe
+// suivant verrouille ce nouvel invariant avec `holeAt()` comme unique oracle
+// (même patron que TEST S3-A/A7), au lieu d'exiger une parité legacy qui
+// n'a plus de sens architectural.
+describe('resolveComponentContactHoles — TEST S3-C (delta legacy mono-contact enfichable, pins SANS contacts[] explicite)', () => {
   const bb = { id: 'bbD', position: { x: 24, y: 36 } }
-  // [FT-B-001-S5] Restreint aux types réellement mono-contact ET
-  // `breadboardInsertable` : NPN_TRANSISTOR / POWER / ARDUINO déclarent
-  // désormais des contacts explicites ; POWER / ARDUINO / DC_MOTOR / SERVO
-  // sont `breadboardInsertable: false`. Ces cas sont couverts par le describe
-  // "FT-B-001-S5 — classification d'enfichage" plus bas.
-  const monoContactTypes = [
-    'RESISTOR', 'LED', 'RGB_LED', 'CAPACITOR',
-    'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE',
-  ]
+  // [FT-B-001-S5 / MB-L1-CONS-001] Restreint aux types réellement mono-contact,
+  // `breadboardInsertable`, ET sans `contacts[]` déclaré (donc geometry ===
+  // pin.dx/dy par construction, aucune divergence possible). NPN_TRANSISTOR /
+  // POWER / ARDUINO déclarent des contacts explicites non enfichables :
+  // couverts par "FT-B-001-S5" plus bas. RGB_LED / CAPACITOR / BUZZER /
+  // POTENTIOMETER / LDR / THERMISTOR déclarent désormais des `contacts[]`
+  // explicites ENFICHABLES dont la géométrie diverge intentionnellement de
+  // pin.dx/dy : couverts par le describe MB-L1-CONS-001 ci-dessous.
+  const monoContactTypes = ['RESISTOR', 'LED', 'DIODE']
   const origins = [
     { label: 'pin0-aligné', mk: (def) => ({ x: bb.position.x - def.pins[0].dx, y: bb.position.y - def.pins[0].dy }) },
     { label: '+1px', mk: (def) => ({ x: bb.position.x - def.pins[0].dx + 1, y: bb.position.y - def.pins[0].dy + 1 }) },
@@ -201,6 +212,81 @@ describe('resolveComponentContactHoles — TEST S3-C (delta legacy mono-contact 
       })
     }
   }
+})
+
+// ---------------------------------------------------------------------------
+// MB-L1-CONS-001 — contacts[] explicite fait autorité (divergence intentionnelle)
+// ---------------------------------------------------------------------------
+describe('resolveComponentContactHoles — MB-L1-CONS-001 (contacts[] explicite fait autorité sur la géométrie physique, distincte de pin.dx/dy)', () => {
+  const bb = { id: 'bbD', position: { x: 24, y: 36 } }
+  // Ces 6 types déclarent, dans componentDefinitions.js, un `contacts[]`
+  // mono-entrée dont `dx`/`dy` diffère de `pin.dx`/`pin.dy` (ex. LDR.A :
+  // pin (0,18) vs contact (30,62)) — géométrie physique réelle vs identité
+  // électrique/visuelle historique. `contactId` reste néanmoins égal à
+  // `pinId` pour chacun (aucune renumérotation d'identité, seule la S3-B
+  // BUTTON/BUTTON_LATCHING introduit contactId != pinId).
+  const explicitContactTypes = ['RGB_LED', 'CAPACITOR', 'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR']
+  const origins = [
+    {
+      label: 'contact0-aligné',
+      mk: (def) => { const [c] = def.pins[0].contacts; return { x: bb.position.x - c.dx, y: bb.position.y - c.dy } },
+    },
+    {
+      label: '+1px',
+      mk: (def) => { const [c] = def.pins[0].contacts; return { x: bb.position.x - c.dx + 1, y: bb.position.y - c.dy + 1 } },
+    },
+    {
+      label: '+3px',
+      mk: (def) => { const [c] = def.pins[0].contacts; return { x: bb.position.x - c.dx + 3, y: bb.position.y - c.dy + 3 } },
+    },
+    { label: 'loin', mk: () => ({ x: 5000, y: 5000 }) },
+    {
+      label: 'contact0 strip col10',
+      mk: (def) => { const [c] = def.pins[0].contacts; return { x: bb.position.x + 10 * P - c.dx, y: bb.position.y + 3 * P - c.dy } },
+    },
+  ]
+
+  for (const type of explicitContactTypes) {
+    it(`${type} : chaque pin déclare un contacts[] explicite`, () => {
+      const def = getComponentDef(type)
+      for (const pin of def.pins) {
+        expect(Array.isArray(pin.contacts) && pin.contacts.length === 1).toBe(true)
+      }
+    })
+
+    for (const o of origins) {
+      it(`${type} @ ${o.label} : geometry = contacts[].dx/dy (holeAt comme oracle, jamais pin.dx/dy), contactId === pinId`, () => {
+        const def = getComponentDef(type)
+        const origin = o.mk(def)
+        const next = resolveComponentContactHoles(bb, def.pins, origin)
+
+        expect(next.results).toHaveLength(def.pins.length)
+        // contactId === pinId pour ces 6 types (aucune renumérotation)
+        expect(next.results.every((r) => r.contactId === r.pinId)).toBe(true)
+
+        // holeAt() reste l'unique oracle (TEST S3-A/A7), appliqué ici à
+        // l'offset RÉEL du contact déclaré — jamais à pin.dx/dy.
+        const expectedHoles = def.pins.map((pin) => {
+          const [contact] = pin.contacts
+          return holeAt(bb, origin.x + contact.dx, origin.y + contact.dy) ?? null
+        })
+        expect(next.results.map((r) => r.hole)).toEqual(expectedHoles)
+        expect(next.results.map((r) => r.resolved)).toEqual(expectedHoles.map((h) => h != null))
+        expect(next.allResolved).toBe(expectedHoles.length > 0 && expectedHoles.every((h) => h != null))
+        expect(next.anyResolved).toBe(expectedHoles.some((h) => h != null))
+      })
+    }
+  }
+
+  it('CAPACITOR / LDR / THERMISTOR / RGB_LED : la géométrie physique déclarée diverge RÉELLEMENT de pin.dx/dy (BUZZER/POTENTIOMETER coïncident par coïncidence, mais la source lue reste contacts[] pour les six — cf. ci-dessus)', () => {
+    for (const type of ['CAPACITOR', 'LDR', 'THERMISTOR', 'RGB_LED']) {
+      const def = getComponentDef(type)
+      for (const pin of def.pins) {
+        const [c] = pin.contacts
+        expect(c.dx === pin.dx && c.dy === pin.dy).toBe(false)
+      }
+    }
+  })
 })
 
 // ---------------------------------------------------------------------------

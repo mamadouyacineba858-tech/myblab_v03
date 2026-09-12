@@ -135,14 +135,16 @@ describe('MB-VIS-COMP-033 — pipeline réel : 4 pins physiques rapprochés', ()
     onReady({ ...c, components })
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
-  it('CircuitComponent produit R(19,56)/common(35,56)/G(53,56)/B(71,56)', () => {
+  it('CircuitComponent produit R(19,72)/common(35,72)/G(53,72)/B(71,72) (PhysicalContact)', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('RGB_LED', 50, 60) })
     const def = getComponentDef('RGB_LED'); const pins = container.querySelectorAll('.myblab-pin')
     expect(pins.length).toBe(4); expect(def.pins.map((p) => p.id)).toEqual(['R', 'common', 'G', 'B'])
     const positions = [...pins].map((el) => [Number(el.style.left.replace('px', '')), Number(el.style.top.replace('px', ''))])
-    expect(positions).toEqual(expect.arrayContaining([[19, 56], [35, 56], [53, 56], [71, 56]]))
+    // [MB-L1-CONS-001] La position visuelle du <Pin> suit le PhysicalContact
+    // explicite (contacts[].dx/dy, contactModel.js) — dy=72, PAS pin.dy=56 legacy.
+    expect(positions).toEqual(expect.arrayContaining([[19, 72], [35, 72], [53, 72], [71, 72]]))
     expect(container.querySelectorAll('.circuit-component__body img').length).toBe(1)
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
     expect(container.querySelector('.circuit-component').getAttribute('data-backend')).toBe('raster')
