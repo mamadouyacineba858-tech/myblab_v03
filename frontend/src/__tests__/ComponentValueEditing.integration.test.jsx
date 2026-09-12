@@ -75,7 +75,7 @@ describe('MB-L1-CVE-001 — TEST T12/T13 : ComponentInspector.jsx', () => {
     const uid = getApi().components[0].uid
     act(() => { getApi().selectOnly({ type: 'component', id: uid }) })
 
-    expect(getByText('Aucun paramètre configurable pour ce composant')).toBeTruthy()
+    expect(getByText('Aucun paramètre électrique configurable')).toBeTruthy()
     expect(container.querySelector('input[type="number"]')).toBe(null)
   })
 

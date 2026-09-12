@@ -169,7 +169,7 @@ export const COMPONENT_TYPES = {
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
 export const COMMON_PROPERTY_SCHEMA = Object.freeze({
-  name: Object.freeze({ type: "string", default: "", maxLength: 80 }),
+  name: Object.freeze({ type: "string", default: "", maxLength: 80, label: "Nom", control: "text" }),
 })
 for (const definition of Object.values(COMPONENT_TYPES)) {
   definition.propertySchema = COMMON_PROPERTY_SCHEMA

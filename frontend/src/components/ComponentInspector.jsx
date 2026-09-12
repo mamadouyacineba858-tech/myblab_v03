@@ -1,28 +1,16 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
 import { resolveComponentParameters, isFixedParameter } from "../simulator/resolveComponentParameters.js"
+import { resolveComponentProperties, validateComponentProperties } from "../config/componentProperties.js"
 import "./ComponentInspector.css"
 
-/**
- * ComponentInspector — MB-L1-CVE-001.
- *
- * Presentation UNIQUEMENT (CV-04) : lit exclusivement le contexte STABLE
- * (`useCircuit()`, jamais `useCircuitInteraction()`/`CircuitInteractionContext`
- * — CV-15/AC-19) et affiche/édite les paramètres du composant sélectionné
- * via `selectedComponent` (projection stable, dérivée du Document persistant
- * + activeItem, jamais componentsForRender/dragPreview).
- *
- * Généricité stricte (CV-16) : ce fichier ne contient AUCUNE comparaison
- * `type === "X"`. Le contenu affiché est entièrement dérivé de
- * `canonicalRegistry.parameterSchema` — un composant sans modèle de
- * simulation (LED, ARDUINO, BUTTON, ...) affiche un message neutre, un
- * composant avec un paramètre figé (minimum === maximum, ex. pile 1.5 V)
- * l'affiche en lecture seule (§15 du ticket), sans branche par type.
- */
+/** Product identity and electrical parameters use independent schemas and
+ * mutation actions from the stable circuit context. Control selection is
+ * declarative; canonical component labels remain visible in the header. */
 export function ComponentInspector() {
-  const { selectedComponent, updateComponentParameters } = useCircuit()
+  const { selectedComponent, updateComponentParameters, updateComponentProperties } = useCircuit()
 
   if (!selectedComponent) {
     return (
@@ -36,6 +24,7 @@ export function ComponentInspector() {
   }
 
   const def = getComponentDef(selectedComponent.type)
+  const properties = resolveComponentProperties(selectedComponent.type, selectedComponent.properties)
   const entry = getCanonicalEntry(selectedComponent.type)
   const schema = entry?.parameterSchema ?? null
   const effective = resolveComponentParameters(selectedComponent.type, selectedComponent.parameters)
@@ -47,24 +36,91 @@ export function ComponentInspector() {
         <p className="component-inspector__component-name">{def?.label ?? selectedComponent.type}</p>
       </header>
 
-      {!schema || schema.length === 0 ? (
-        <p className="component-inspector__empty">Aucun paramètre configurable pour ce composant</p>
-      ) : (
+      <section className="component-inspector__section" aria-label="Identité">
+        <h3>Identité</h3>
         <div className="component-inspector__params">
-          {schema.map((paramDef) => (
-            <ParameterRow
-              key={paramDef.key}
-              type={selectedComponent.type}
-              paramDef={paramDef}
-              value={effective[paramDef.key]}
-              onCommit={(nextValue) =>
-                updateComponentParameters(selectedComponent.uid, { [paramDef.key]: nextValue })
-              }
+          {Object.entries(def?.propertySchema ?? {}).map(([propertyKey, definition]) => (
+            <PropertyField
+              key={`${selectedComponent.uid}:${propertyKey}`}
+              definition={definition}
+              value={properties[propertyKey]}
+              onCommit={(nextValue) => {
+                const candidate = { ...properties, [propertyKey]: nextValue }
+                if (!validateComponentProperties(selectedComponent.type, candidate).valid) return false
+                updateComponentProperties(selectedComponent.uid, { [propertyKey]: nextValue })
+                return true
+              }}
             />
           ))}
         </div>
-      )}
+      </section>
+
+      <section className="component-inspector__section" aria-label="Paramètres électriques">
+        <h3>Paramètres électriques</h3>
+        {!schema || schema.length === 0 ? (
+          <p className="component-inspector__empty">Aucun paramètre électrique configurable</p>
+        ) : (
+          <div className="component-inspector__params">
+            {schema.map((paramDef) => (
+              <ParameterRow
+                key={paramDef.key}
+                type={selectedComponent.type}
+                paramDef={paramDef}
+                value={effective[paramDef.key]}
+                onCommit={(nextValue) =>
+                  updateComponentParameters(selectedComponent.uid, { [paramDef.key]: nextValue })
+                }
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </aside>
+  )
+}
+
+// Add future controls here by schema.control, never by component type.
+export function PropertyField({ definition, value, onCommit }) {
+  const [draft, setDraft] = useState(value ?? "")
+  const cancelBlur = useRef(false)
+  useEffect(() => { setDraft(value ?? "") }, [value])
+
+  const commit = () => {
+    if (cancelBlur.current) {
+      cancelBlur.current = false
+      setDraft(value ?? "")
+      return
+    }
+    if (draft === value || onCommit(draft) === false) setDraft(value ?? "")
+  }
+
+  return (
+    <label className="component-inspector__param">
+      <span className="component-inspector__param-label">{definition.label}</span>
+      {definition.control === "text" ? (
+        <input
+          type="text"
+          className="component-inspector__param-input"
+          value={draft}
+          maxLength={definition.maxLength}
+          onChange={(event) => { cancelBlur.current = false; setDraft(event.target.value) }}
+          onBlur={commit}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+              event.preventDefault()
+              event.currentTarget.blur()
+            } else if (event.key === "Escape") {
+              event.preventDefault()
+              cancelBlur.current = true
+              setDraft(value ?? "")
+              event.currentTarget.blur()
+            }
+          }}
+        />
+      ) : (
+        <span className="component-inspector__param-fixed-value" title="Contrôle non disponible">{String(value ?? "")}</span>
+      )}
+    </label>
   )
 }
 

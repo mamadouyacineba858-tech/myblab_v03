@@ -91,3 +91,14 @@
   color: #94a3b8;
   min-width: 1.5em;
 }
+
+.component-inspector__section + .component-inspector__section {
+  margin-top: 22px;
+}
+
+.component-inspector__section h3 {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: inherit;
+}
