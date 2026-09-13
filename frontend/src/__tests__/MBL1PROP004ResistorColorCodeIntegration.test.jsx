@@ -16,7 +16,7 @@
  * transporte aucune bande, recalcul après import), T7/T8 (deux résistances
  * indépendantes), T9 (1234 Ω non représentable -> corps neutre).
  */
-import React from 'react'
+import React from 'react' // eslint-disable-line no-unused-vars -- Required by the official Vitest classic JSX transform.
 import { describe, it, expect } from 'vitest'
 import { render, act } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
