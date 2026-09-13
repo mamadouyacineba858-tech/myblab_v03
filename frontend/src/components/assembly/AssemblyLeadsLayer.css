@@ -8,7 +8,9 @@
   pointer-events: none;
 }
 
-.assembly-leads__lead {
+.assembly-leads__lead,
+.assembly-leads__metallic-core,
+.assembly-leads__metallic-highlight {
   fill: none;
   stroke-linecap: round;
   /* Pas de vector-effect : la patte est dans le repère local du composant et
@@ -23,14 +25,29 @@
 }
 
 /*
- * MB-L1-PROP-005-R2 — métal poli. La couleur n'est plus un aplat clair :
- * AssemblyLeadsLayer applique un gradient transversal sombre → clair → sombre,
- * orienté selon la patte. Ce profil reproduit la lecture cylindrique et les
- * reflets spéculaires visibles sur les leads raster du RESISTOR.
+ * MB-L1-PROP-005-R3 — métal poli visible et robuste.
+ * Trois traits superposés remplacent le gradient SVG précédent :
+ * - base sombre = contour cylindrique ;
+ * - core gris clair = métal nickelé ;
+ * - highlight blanc fin = reflet spéculaire longitudinal.
+ * Ce rendu reste visible pour une patte verticale de largeur géométrique nulle,
+ * contrairement au paint-server gradient objectBoundingBox.
  */
 .assembly-leads__lead--metallic-wire {
-  stroke-width: 3.2;
-  filter: drop-shadow(0.65px 0.75px 0.45px rgb(45 50 55 / 45%));
+  stroke: #4f565d;
+  stroke-width: 3.4;
+  filter: drop-shadow(0.55px 0.75px 0.45px rgb(35 40 45 / 42%));
+}
+
+.assembly-leads__metallic-core {
+  stroke: #b9c0c6;
+  stroke-width: 2.25;
+}
+
+.assembly-leads__metallic-highlight {
+  stroke: #ffffff;
+  stroke-width: 0.7;
+  opacity: 0.95;
 }
 
 /* Cosse plate (potentiomètre) — languette cuivre/étain, plus large. */
