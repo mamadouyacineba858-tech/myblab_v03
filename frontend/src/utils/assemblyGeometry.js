@@ -52,6 +52,13 @@ function contactKey(pinId, contactId) {
 }
 
 /**
+ * Styles de présentation autorisés par l'Assembly Layer. Le choix du style
+ * reste entièrement déclaratif dans assemblyProfiles.js ; aucune branche par
+ * type de composant n'est ajoutée ici.
+ */
+const LEAD_STYLES = new Set(["wire", "metallic-wire", "lug"])
+
+/**
  * @typedef {Object} AssemblyContact
  * @property {string} pinId                identité électrique canonique (inchangée)
  * @property {string} contactId            identité de PRÉSENTATION uniquement
@@ -59,7 +66,7 @@ function contactKey(pinId, contactId) {
  * @property {{x:number,y:number}} target  PhysicalContact naturel = hit target = endpoint fil
  * @property {{column:number,row:number}|null} hole   trou breadboard résolu, ou null
  * @property {{x:number,y:number}|null} holePosition  centre exact du trou résolu, ou null
- * @property {'wire'|'lug'} style
+ * @property {'wire'|'metallic-wire'|'lug'} style
  */
 
 /**
@@ -88,9 +95,8 @@ export function resolveAssemblyGeometry(component, breadboard, options = {}) {
     options.profile !== undefined ? options.profile : getAssemblyProfile(component.type)
 
   // Assembly Geometry = composants TRAVERSANTS uniquement. Un type sans profil
-  // mécanique (RESISTOR, POWER, ARDUINO, CAPACITOR tant que FT-C-001-B
-  // n'a pas livré son asset radial, …) ne produit AUCUNE patte dynamique —
-  // géométrie vide, `AssemblyLeadsLayer` ne rend rien (aucune patte fantôme).
+  // mécanique ne produit AUCUNE patte dynamique — géométrie vide,
+  // `AssemblyLeadsLayer` ne rend rien (aucune patte fantôme).
   if (!profile || !profile.leads || typeof profile.leads !== "object") return EMPTY
 
   // Trous réellement résolus, par CONTACT enfichable (primitive S3, contact-aware,
@@ -136,6 +142,9 @@ export function resolveAssemblyGeometry(component, breadboard, options = {}) {
         ? getBreadboardHolePosition(breadboard, hole.column, hole.row)
         : null
 
+      const requestedStyle = leadProfile?.style
+      const style = LEAD_STYLES.has(requestedStyle) ? requestedStyle : "wire"
+
       contacts.push({
         pinId: pin.id,
         contactId: physical.id,
@@ -143,7 +152,7 @@ export function resolveAssemblyGeometry(component, breadboard, options = {}) {
         target,
         hole: hole ? { column: hole.column, row: hole.row } : null,
         holePosition,
-        style: leadProfile && leadProfile.style === "lug" ? "lug" : "wire",
+        style,
       })
     }
   }
