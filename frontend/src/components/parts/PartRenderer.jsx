@@ -3,6 +3,7 @@ import { createDefaultVisualizationManager } from '../../visualization/factory.j
 import { DEFAULT_REGISTRATIONS } from '../../visualization/defaultRegistrations.js';
 import { getVisualState } from '../../visualization/visualStateRegistry.js';
 import { resolveComponentProperties } from '../../config/componentProperties.js';
+import { resolveComponentParameters } from '../../simulator/resolveComponentParameters.js';
 import '../../visualization/defaultVisualStateRegistrations.js';
 
 /**
@@ -26,6 +27,7 @@ export function PartRenderer({
   pinSignals,
   state,
   properties,
+  parameters,
   onPointerDown,
   onPointerUp,
   onPointerCancel,
@@ -47,11 +49,17 @@ export function PartRenderer({
   // L1-PROP-003 : `properties` est résolu ICI, génériquement (schéma déclaré
   // par componentDefinitions.js), pour que tout renderer reçoive un contrat
   // déjà normalisé (defaults appliqués) sans jamais brancher sur `type`.
+  // L1-PROP-004 : même principe pour `parameters` (schéma électrique
+  // canonique, canonicalRegistry.js) via la primitive centrale unique
+  // resolveComponentParameters — un renderer comme ResistorPart reçoit donc
+  // toujours un jeu de paramètres complet (defaults + overrides validés),
+  // sans qu'aucun `if (type === "RESISTOR")` n'apparaisse ici.
   let rendererProps = {
     uid,
     pinSignals: signals,
     state,
     properties: resolveComponentProperties(type, properties),
+    parameters: resolveComponentParameters(type, parameters),
     onPointerDown,
     onPointerUp,
     onPointerCancel,

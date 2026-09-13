@@ -1,16 +1,24 @@
 /**
- * ResistorPart.raster.test.jsx — MB-VIS-PROTOTYPE-001C
+ * ResistorPart.raster.test.jsx — MB-VIS-PROTOTYPE-001C + MB-L1-PROP-004
  *
- * Prouve le branchement réel de l'asset raster RESISTOR validé en 001B :
+ * Prouve le branchement réel de l'asset raster RESISTOR NEUTRE (`base.*`,
+ * MB-L1-PROP-004) et de la projection dynamique du code couleur dérivée de
+ * `parameters.resistance` :
  *  1. RESISTOR rend un <img> ;
- *  2. src / srcset pointent vers les assets sous /assets/components/resistor/ ;
+ *  2. src / srcset pointent vers les assets `resistor.base.*` sous
+ *     /assets/components/resistor/ (les `resistor.default.*` historiques
+ *     restent inchangés sur disque mais ne sont plus référencés par ce
+ *     renderer) ;
  *  3. draggable = false ;
- *  4. pointer-events: none ;
+ *  4. pointer-events: none (image ET couche de bandes) ;
  *  5. aucun vestige de l'ancien renderer SVG (<svg>/<line>/<rect>/<defs>/gradient) ;
  *  6. la boîte logique reste 84×28 (dimensions dérivées de getComponentDef) ;
  *  7. les pins A(0,14)/B(84,14) restent produits par CircuitComponent/Pin ;
- *  8. aucune régression d'interaction : l'<img> ne porte aucun handler, les
- *     événements restent au wrapper .circuit-component.
+ *  8. aucune régression d'interaction : ni l'<img> ni les bandes ne portent
+ *     de handler, les événements restent au wrapper .circuit-component ;
+ *  9. la projection de bandes est dérivée de `parameters.resistance`
+ *     (jamais persistée) : deux valeurs différentes produisent des codes
+ *     différents, une valeur non représentable ne produit AUCUNE bande.
  *
  * Environnement jsdom (.test.jsx).
  */
@@ -24,9 +32,9 @@ import { useCircuit } from '../../../context/useCircuit.js'
 import { useCircuitInteraction } from '../../../context/useCircuitInteraction.js'
 import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
 
-const ASSET_RE = /^\/assets\/components\/resistor\/resistor\.default\.(1x|3x)\.(webp|png)( \dx)?$/
+const ASSET_RE = /^\/assets\/components\/resistor\/resistor\.base\.(1x|3x)\.(webp|png)( \dx)?$/
 
-describe('001C — RESISTOR rend l\'asset raster validé', () => {
+describe('001C/L1-PROP-004 — RESISTOR rend l\'asset raster neutre validé', () => {
   it('1/6 — rend un <img> aux dimensions de getComponentDef("RESISTOR") (84×28)', () => {
     const def = getComponentDef('RESISTOR')
     const { container } = render(<ResistorPart />)
@@ -38,7 +46,7 @@ describe('001C — RESISTOR rend l\'asset raster validé', () => {
     expect(def.height).toBe(28)
   })
 
-  it('2 — src + srcset (img et <source>) pointent vers /assets/components/resistor/…', () => {
+  it('2 — src + srcset (img et <source>) pointent vers /assets/components/resistor/resistor.base.…', () => {
     const { container } = render(<ResistorPart />)
     const img = container.querySelector('img')
     expect(img.getAttribute('src')).toMatch(ASSET_RE)
@@ -52,11 +60,13 @@ describe('001C — RESISTOR rend l\'asset raster validé', () => {
       expect(cand).toMatch(ASSET_RE)
       expect(cand).toMatch(/\.webp/)
     }
-    // les 4 variantes validées apparaissent au total
+    // les 4 variantes neutres apparaissent au total
     const all = container.innerHTML
     for (const f of ['1x.webp', '3x.webp', '1x.png', '3x.png']) {
-      expect(all).toContain(`/assets/components/resistor/resistor.default.${f}`)
+      expect(all).toContain(`/assets/components/resistor/resistor.base.${f}`)
     }
+    // jamais les anciens assets `default.*` porteurs de bandes figées
+    expect(all).not.toContain('resistor.default.')
   })
 
   it('3/4/8 — draggable=false, pointer-events:none, aucun handler d\'interaction sur l\'<img>', () => {
@@ -80,7 +90,7 @@ describe('001C — RESISTOR rend l\'asset raster validé', () => {
     expect(container.querySelector('[aria-label="Résistance"]')).not.toBeNull()
   })
 
-  it('déterminisme — deux rendus produisent un HTML strictement identique', () => {
+  it('déterminisme (sans paramètres) — deux rendus produisent un HTML strictement identique', () => {
     const a = render(<ResistorPart uid="r-a" />)
     const h1 = a.container.innerHTML
     a.unmount()
@@ -91,7 +101,54 @@ describe('001C — RESISTOR rend l\'asset raster validé', () => {
   })
 })
 
-describe('001C — pipeline réel : pins et interactions inchangés', () => {
+describe('MB-L1-PROP-004 — projection dynamique du code couleur (bandes)', () => {
+  function bandColors(container) {
+    return [...container.querySelectorAll('.part-resistor__band')].map((el) => el.dataset.color)
+  }
+
+  it('220 Ω -> rouge / rouge / brun / or', () => {
+    const { container } = render(<ResistorPart parameters={{ resistance: 220 }} />)
+    expect(bandColors(container)).toEqual(['red', 'red', 'brown', 'gold'])
+  })
+
+  it('1000 Ω -> brun / noir / rouge / or (différent de 220 Ω)', () => {
+    const { container } = render(<ResistorPart parameters={{ resistance: 1000 }} />)
+    expect(bandColors(container)).toEqual(['brown', 'black', 'red', 'gold'])
+  })
+
+  it('deux valeurs valides différentes produisent des projections indépendantes', () => {
+    const a = render(<ResistorPart parameters={{ resistance: 220 }} />)
+    const b = render(<ResistorPart parameters={{ resistance: 1000 }} />)
+    expect(bandColors(a.container)).not.toEqual(bandColors(b.container))
+  })
+
+  it('1234 Ω (non représentable en 4 bandes) -> AUCUNE bande, corps neutre seul', () => {
+    const { container } = render(<ResistorPart parameters={{ resistance: 1234 }} />)
+    expect(container.querySelector('.part-resistor__bands')).toBeNull()
+    expect(bandColors(container)).toEqual([])
+    // le corps raster neutre reste rendu malgré tout
+    expect(container.querySelector('img')).not.toBeNull()
+  })
+
+  it('aucune prop parameters (contrat direct) -> corps neutre, aucune bande inventée', () => {
+    const { container } = render(<ResistorPart />)
+    expect(container.querySelector('.part-resistor__bands')).toBeNull()
+  })
+
+  it('les bandes ne portent aucun handler et sont neutres à l\'interaction (pointer-events:none)', () => {
+    const { container } = render(<ResistorPart parameters={{ resistance: 220 }} />)
+    const bandsLayer = container.querySelector('.part-resistor__bands')
+    expect(bandsLayer).not.toBeNull()
+    expect(bandsLayer.style.pointerEvents).toBe('none')
+    for (const band of container.querySelectorAll('.part-resistor__band')) {
+      expect(band.onclick).toBeNull()
+      expect(band.onpointerdown).toBeNull()
+      expect(band.onmousedown).toBeNull()
+    }
+  })
+})
+
+describe('001C/L1-PROP-004 — pipeline réel : pins, paramètres et interactions inchangés', () => {
   const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
   function Harness({ onReady }) {
     const c = useCircuit()
@@ -136,5 +193,34 @@ describe('001C — pipeline réel : pins et interactions inchangés', () => {
     wrap.addEventListener('pointerdown', () => { got += 1 })
     fireEvent.pointerDown(container.querySelector('.circuit-component img'))
     expect(got).toBe(1) // l'événement remonte au wrapper
+  })
+
+  it('9 — une nouvelle RESISTOR (défaut 220 Ω, canonicalRegistry.js) affiche rouge/rouge/brun/or via le pipeline réel', () => {
+    let api
+    const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
+    act(() => { api.addComponent('RESISTOR', 50, 60) })
+
+    const bandColors = [...container.querySelectorAll('.part-resistor__band')].map((el) => el.dataset.color)
+    expect(bandColors).toEqual(['red', 'red', 'brown', 'gold'])
+  })
+
+  it('10 — éditer resistance via updateComponentParameters change la projection sans toucher pins/interaction', () => {
+    let api
+    const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
+    act(() => { api.addComponent('RESISTOR', 50, 60) })
+    const uid = api.components[0].uid
+
+    act(() => { api.updateComponentParameters(uid, { resistance: 1000 }) })
+
+    const bandColors = [...container.querySelectorAll('.part-resistor__band')].map((el) => el.dataset.color)
+    expect(bandColors).toEqual(['brown', 'black', 'red', 'gold'])
+
+    // pins toujours inchangés après édition
+    const pins = container.querySelectorAll('.myblab-pin')
+    const positions = [...pins].map((el) => [
+      Number(el.style.left.replace('px', '')),
+      Number(el.style.top.replace('px', '')),
+    ])
+    expect(positions).toEqual(expect.arrayContaining([[0, 14], [84, 14]]))
   })
 })

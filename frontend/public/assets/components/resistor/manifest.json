@@ -21,6 +21,7 @@
     {
       "file": "resistor.default.1x.png",
       "state": "default",
+      "legacy": true,
       "resolution": "1x",
       "format": "png",
       "alpha": true,
@@ -32,6 +33,7 @@
     {
       "file": "resistor.default.1x.webp",
       "state": "default",
+      "legacy": true,
       "resolution": "1x",
       "format": "webp",
       "alpha": true,
@@ -43,6 +45,7 @@
     {
       "file": "resistor.default.3x.png",
       "state": "default",
+      "legacy": true,
       "resolution": "3x",
       "format": "png",
       "alpha": true,
@@ -54,6 +57,7 @@
     {
       "file": "resistor.default.3x.webp",
       "state": "default",
+      "legacy": true,
       "resolution": "3x",
       "format": "webp",
       "alpha": true,
@@ -61,6 +65,56 @@
       "height": 171,
       "bytes": 10272,
       "sha256": "c6ff40ceccba6a124c9cc60ca8380afe9f2b254db7d9bbd2c34d8e943ee87548"
+    },
+    {
+      "file": "resistor.base.1x.png",
+      "state": "base",
+      "resolution": "1x",
+      "format": "png",
+      "alpha": true,
+      "width": 170,
+      "height": 57,
+      "bytes": 7658,
+      "sha256": "b758c4d8f42fb661dcb6d902fddf3bbc3eebacffe981d98b4a471cf496340960",
+      "originTicket": "MB-L1-PROP-004",
+      "$comment": "Généré programmatiquement (Pillow/numpy) à partir de resistor.default.3x.png : les 4 bandes peintes (marron/noir/rouge/or) sont retirées par interpolation ligne-à-ligne entre les colonnes beige adjacentes de part et d'autre de chaque bande, préservant le dégradé de lumière/ombre du corps. Aucun pixel hors des 4 plages de colonnes de bande n'est modifié (vérifié bit-à-bit contre resistor.default.3x.png)."
+    },
+    {
+      "file": "resistor.base.1x.webp",
+      "state": "base",
+      "resolution": "1x",
+      "format": "webp",
+      "alpha": true,
+      "width": 170,
+      "height": 57,
+      "bytes": 5964,
+      "sha256": "0dcb5b31439cc817d72f7ade30999235f3064fc22feecf25c168ddabd36718e0",
+      "originTicket": "MB-L1-PROP-004"
+    },
+    {
+      "file": "resistor.base.3x.png",
+      "state": "base",
+      "resolution": "3x",
+      "format": "png",
+      "alpha": true,
+      "width": 510,
+      "height": 171,
+      "bytes": 21374,
+      "sha256": "940a73ab13309651db617979d4b32596ba15ced574ee493dc9d414c9f9e1262b",
+      "originTicket": "MB-L1-PROP-004",
+      "$comment": "Source de vérité de la neutralisation (cf. commentaire resistor.base.1x.png). Bandes retirées : x=[183,206] (digit1), x=[220,242] (digit2), x=[264,288] (multiplicateur), x=[310,329] (tolérance), colonnes 3x."
+    },
+    {
+      "file": "resistor.base.3x.webp",
+      "state": "base",
+      "resolution": "3x",
+      "format": "webp",
+      "alpha": true,
+      "width": 510,
+      "height": 171,
+      "bytes": 17824,
+      "sha256": "eac36769631102cb8108b0dda593e66379bc692b8306c18687da09e3485275d6",
+      "originTicket": "MB-L1-PROP-004"
     }
   ]
 }

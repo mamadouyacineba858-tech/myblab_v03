@@ -122,6 +122,7 @@
 }
 
 .part-resistor {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
@@ -129,19 +130,26 @@
   justify-content: center;
 }
 
-.part-resistor__lead {
-  stroke: #9ca3af;
-  stroke-width: 2.5;
-}
-
-.part-resistor__body {
-  fill: #e3c393;
-  stroke: #a9793f;
-  stroke-width: 1.5;
+/* MB-L1-PROP-004 — projection dynamique du code couleur : couche absolue
+   couvrant exactement la boîte canonique (84×28, via le parent `.part-resistor`
+   positionné — jamais l'asset raster lui-même), superposée AU-DESSUS de
+   `<picture>` mais neutre à l'interaction (`pointer-events: none` propagé à
+   la couche ET à chaque bande) — drag/sélection/câblage restent
+   exclusivement gérés par le wrapper `.circuit-component` (§14 du ticket).
+   Aucune coordonnée ici : chaque bande reçoit son `left/width/top/height`
+   en `%` depuis `visualization/resistorBandLayout.js` (contrat géométrique
+   UNIQUE, §13) — ce qui les fait suivre automatiquement le zoom global et
+   `localScale` (un seul `transform: scale()` sur `.circuit-component`,
+   MB-VIS-CANVAS-052) sans aucune correction JS par zoom. */
+.part-resistor__bands {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .part-resistor__band {
-  fill: #3f3f46;
+  position: absolute;
+  pointer-events: none;
 }
 
 /* =========================================================
