@@ -45,12 +45,35 @@ function AssemblyLeadsLayerImpl({ geometry, originX = 0, originY = 0 }) {
       aria-hidden="true"
       style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none" }}
     >
+      <defs>
+        <linearGradient id="assembly-lead-metallic-v" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#525960" />
+          <stop offset="18%" stopColor="#aeb6bd" />
+          <stop offset="42%" stopColor="#ffffff" />
+          <stop offset="58%" stopColor="#eef2f5" />
+          <stop offset="82%" stopColor="#9aa2a9" />
+          <stop offset="100%" stopColor="#4f565d" />
+        </linearGradient>
+        <linearGradient id="assembly-lead-metallic-h" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#525960" />
+          <stop offset="18%" stopColor="#aeb6bd" />
+          <stop offset="42%" stopColor="#ffffff" />
+          <stop offset="58%" stopColor="#eef2f5" />
+          <stop offset="82%" stopColor="#9aa2a9" />
+          <stop offset="100%" stopColor="#4f565d" />
+        </linearGradient>
+      </defs>
       {contacts.map((c) => {
         const x1 = c.root.x - originX
         const y1 = c.root.y - originY
         const x2 = c.target.x - originX
         const y2 = c.target.y - originY
         if (![x1, y1, x2, y2].every(Number.isFinite)) return null
+        const isMetallic = c.style === "metallic-wire"
+        const isMostlyVertical = Math.abs(y2 - y1) >= Math.abs(x2 - x1)
+        const metallicStroke = isMostlyVertical
+          ? "url(#assembly-lead-metallic-v)"
+          : "url(#assembly-lead-metallic-h)"
         return (
           <line
             key={`${c.pinId}:${c.contactId}`}
@@ -61,6 +84,7 @@ function AssemblyLeadsLayerImpl({ geometry, originX = 0, originY = 0 }) {
             y1={y1}
             x2={x2}
             y2={y2}
+            stroke={isMetallic ? metallicStroke : undefined}
           />
         )
       })}
