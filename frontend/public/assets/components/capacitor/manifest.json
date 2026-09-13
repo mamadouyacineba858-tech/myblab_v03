@@ -1,123 +1,28 @@
 {
   "component": "CAPACITOR",
   "backend": "raster",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "assetFamily": "capacitor",
   "canonical": {
     "width": 70,
     "height": 40,
     "pins": {
-      "pinA": [
-        0,
-        20
-      ],
-      "pinB": [
-        70,
-        20
-      ]
+      "pinA": [0, 20],
+      "pinB": [70, 20]
     },
     "origin": "top-left"
   },
-  "states": [
-    "default"
-  ],
-  "formats": [
-    "png",
-    "webp"
-  ],
-  "resolutions": [
-    "1x",
-    "3x"
-  ],
+  "states": ["default"],
+  "formats": ["png", "webp"],
+  "resolutions": ["1x", "3x"],
   "variants": [
-    {
-      "file": "capacitor.default.1x.png",
-      "bytes": 1811,
-      "sha256": "d1faeb38713037f2747a2ec31a557bf5d394f127433fa16e890c6381713ba389",
-      "dimensions": [
-        70,
-        40
-      ],
-      "alpha": true,
-      "legacy": true
-    },
-    {
-      "file": "capacitor.default.1x.webp",
-      "bytes": 1544,
-      "sha256": "fdf6f123c669a9c65630430461e3c95882132a89798f05e8ec07d475759e03c3",
-      "dimensions": [
-        70,
-        40
-      ],
-      "alpha": true,
-      "legacy": true
-    },
-    {
-      "file": "capacitor.default.3x.png",
-      "bytes": 11573,
-      "sha256": "684e8ee6e7fe7cb26c39be87d7ea0ee89b0d4fbdbac52d4601ad1864633b46be",
-      "dimensions": [
-        210,
-        120
-      ],
-      "alpha": true,
-      "legacy": true
-    },
-    {
-      "file": "capacitor.default.3x.webp",
-      "bytes": 4122,
-      "sha256": "5ecc61c5598dccc067258de6d4187d1e26ebed13f4deb51c54deb4d8d11084b8",
-      "dimensions": [
-        210,
-        120
-      ],
-      "alpha": true,
-      "legacy": true
-    },
-    {
-      "file": "capacitor.base.1x.png",
-      "bytes": 2213,
-      "sha256": "72a63d19a3ba7fa8d36d6f9f5959ff96bc4afc68982e46a14c617d51afa9a251",
-      "dimensions": [
-        70,
-        40
-      ],
-      "alpha": true,
-      "originTicket": "MB-L1-PROP-005"
-    },
-    {
-      "file": "capacitor.base.1x.webp",
-      "bytes": 1876,
-      "sha256": "d63c81be85be0e435b3fc757b6bfa49825e2c72d12692517b2fcc18b647ee575",
-      "dimensions": [
-        70,
-        40
-      ],
-      "alpha": true,
-      "originTicket": "MB-L1-PROP-005"
-    },
-    {
-      "file": "capacitor.base.3x.png",
-      "bytes": 8406,
-      "sha256": "c9e245b27303e353e61ec08d1813ef294ae1f9636db891f88d5a799dfd7c7efd",
-      "dimensions": [
-        210,
-        120
-      ],
-      "alpha": true,
-      "originTicket": "MB-L1-PROP-005",
-      "$comment": "Corps neutre Candidate C (R&D CAPACITOR asset R&D, sélection CSA/CTO) — disque céramique radial non polarisé, silhouette superellipse générée programmatiquement (Pillow/numpy), aucune valeur de capacitance cuite. Le marquage (ex. \"104\") est un overlay DOM dérivé de component.parameters.capacitance à chaque rendu (capacitorMarking.js), jamais peint dans ce raster."
-    },
-    {
-      "file": "capacitor.base.3x.webp",
-      "bytes": 6450,
-      "sha256": "4e7cd4b73c72684a16afd53b78555c43a4e8995c3967bc33c226b6760ec963c0",
-      "dimensions": [
-        210,
-        120
-      ],
-      "alpha": true,
-      "originTicket": "MB-L1-PROP-005"
-    }
+    {"file":"capacitor.default.1x.png","bytes":1811,"sha256":"d1faeb38713037f2747a2ec31a557bf5d394f127433fa16e890c6381713ba389","dimensions":[70,40],"alpha":true,"legacy":true},
+    {"file":"capacitor.default.1x.webp","bytes":1544,"sha256":"fdf6f123c669a9c65630430461e3c95882132a89798f05e8ec07d475759e03c3","dimensions":[70,40],"alpha":true,"legacy":true},
+    {"file":"capacitor.default.3x.png","bytes":11573,"sha256":"684e8ee6e7fe7cb26c39be87d7ea0ee89b0d4fbdbac52d4601ad1864633b46be","dimensions":[210,120],"alpha":true,"legacy":true},
+    {"file":"capacitor.default.3x.webp","bytes":4122,"sha256":"5ecc61c5598dccc067258de6d4187d1e26ebed13f4deb51c54deb4d8d11084b8","dimensions":[210,120],"alpha":true,"legacy":true},
+    {"file":"capacitor.base.1x.png","bytes":2431,"sha256":"d3b8db64b9eced49ba5996de25eb7535861b12fc87fc8a443c2d5d3961dec903","dimensions":[70,40],"alpha":true,"originTicket":"MB-L1-PROP-005"},
+    {"file":"capacitor.base.1x.webp","bytes":2010,"sha256":"40b38ab6895347dccde2c6346a5ac59dccd51bb7f60b3a20b19f2a53ba27f691","dimensions":[70,40],"alpha":true,"originTicket":"MB-L1-PROP-005"},
+    {"file":"capacitor.base.3x.png","bytes":11105,"sha256":"b30fc2e6517d5b2ca5f9fbb8de7f64c860f4becd6e7adfbbb125cddf75f46dae","dimensions":[210,120],"alpha":true,"originTicket":"MB-L1-PROP-005","$comment":"Visual correction V2 after CTO Canvas FAIL: glossy orange radial ceramic-disc body, rounder silhouette with two lower ceramic necks aligned to the existing assembly roots. No capacitance marking is baked into the raster; dynamic marking remains a DOM projection."},
+    {"file":"capacitor.base.3x.webp","bytes":7862,"sha256":"6ee9f24536e58fb6b383c8fc3c35844d7805e84e949e8d80e002bde6de91d2c0","dimensions":[210,120],"alpha":true,"originTicket":"MB-L1-PROP-005"}
   ]
 }

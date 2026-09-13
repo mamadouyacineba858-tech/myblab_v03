@@ -1,34 +1,23 @@
-# MyBlab v0.3
+# MYBlab
 
-Dépôt de développement du projet MyBlab.
+MYBlab est une plateforme de conception et de simulation de circuits électroniques inspirée de Tinkercad. Le projet a pour objectif de fournir un environnement moderne permettant la création, la simulation et, à terme, la programmation de systèmes électroniques et Arduino.
 
-## Structure
+## Version
 
-- `frontend/` : application React (Vite)
-- `backend/` : serveur Node.js / Express
-- `docs/` : documentation (API, architecture, changelog)
-- `bundles/` : bundles Git de livraison
-- `audit/` : rapports d’audit
-- `.github/workflows/` : CI (ci.yml)
+**v0.3.0**
 
-## Démarrage rapide (frontend)
+## Structure du dépôt
 
-```bash
-cd frontend
-npm ci
-npm run dev
+```
+myblab_v0.3/
+├── backend/
+├── docs/
+├── frontend/
+└── README.md
 ```
 
-## CI
+## État du projet
 
-Workflow : `.github/workflows/ci.yml`
+Le projet est actuellement en développement.
 
-Étapes :
-1. `npm ci`
-2. `npm run lint`
-3. `npm test -- --run`
-4. `npm run build`
-
-## Remarque
-
-Le backend contient actuellement un `package.json` minimal (placeholder).
+Le Milestone A (Foundations) est terminé et constitue la base de l'architecture de MYBlab.

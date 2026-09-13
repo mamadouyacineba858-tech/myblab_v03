@@ -1,24 +1,33 @@
 /* FT-C-001-A — pattes / cosses d'assemblage génériques.
    Aucun sélecteur par type de composant : le style vient de la classe
-   `--wire` / `--lug` posée d'après le profil mécanique de présentation. */
+   `--wire` / `--wire-glossy` / `--lug` posée d'après le profil mécanique de présentation. */
 
 .assembly-leads {
-  /* la couche ne capte jamais le pointeur (drag/sélection/câblage = wrapper + <Pin>) */
   pointer-events: none;
 }
 
 .assembly-leads__lead {
   fill: none;
   stroke-linecap: round;
-  /* Pas de vector-effect : la patte est dans le repère local du composant et
-     doit se mettre à l'échelle avec le corps, les <Pin> et les fils sous
-     l'effet du zoom global et du localScale de focus (ruling §29). */
 }
 
-/* Fil métallique fin (LED, NPN) — patte nickelée. */
+/* Fil métallique fin standard (LED, NPN, etc.). */
 .assembly-leads__lead--wire {
   stroke: #9aa1a9;
   stroke-width: 2.4;
+}
+
+/* MB-L1-PROP-005 V2 — métal poli pour les pattes du condensateur céramique.
+   Le corps de la patte reste une seule primitive SVG / un seul hit-independent
+   segment : aucune géométrie électrique n'est dupliquée. Les deux ombres
+   latérales très courtes créent un bord sombre + un reflet blanc, comme sur
+   les pattes raster réalistes du RESISTOR, sans modifier root/target. */
+.assembly-leads__lead--wire-glossy {
+  stroke: #cfd5dc;
+  stroke-width: 2.5;
+  filter:
+    drop-shadow(-0.65px 0 0 rgba(255, 255, 255, 0.95))
+    drop-shadow(0.65px 0 0 rgba(63, 72, 82, 0.8));
 }
 
 /* Cosse plate (potentiomètre) — languette cuivre/étain, plus large. */

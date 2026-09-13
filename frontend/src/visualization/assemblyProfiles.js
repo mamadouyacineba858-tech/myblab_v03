@@ -10,7 +10,7 @@
 /**
  * @typedef {Object} AssemblyProfile
  * @property {'through-hole'} kind
- * @property {Record<string, { root: LocalPoint, style?: 'wire'|'lug' }>} leads
+ * @property {Record<string, { root: LocalPoint, style?: 'wire'|'wire-glossy'|'lug' }>} leads
  * @property {{ bottom: number }} [bodyClip]
  */
 
@@ -41,11 +41,14 @@ const ASSEMBLY_PROFILES = {
   CAPACITOR: {
     kind: "through-hole",
     leads: {
-      pinA: { root: { dx: 23, dy: 27 }, style: "wire" },
-      pinB: { root: { dx: 47, dy: 27 }, style: "wire" },
+      // MB-L1-PROP-005 V2 visual correction: keep the exact mechanical
+      // roots/contacts, only upgrade the presentation material to polished
+      // nickel/tin so the leads read like the realistic resistor leads.
+      pinA: { root: { dx: 23, dy: 27 }, style: "wire-glossy" },
+      pinB: { root: { dx: 47, dy: 27 }, style: "wire-glossy" },
     },
   },
-  // FT-C-COMP-002 — condensateur électrolytique polarisé. Le raster montre
+  // FT-C-COMP-002 — condensateur électrolytique radial polarisé. Le raster montre
   // déjà de longues pattes cuites : `bodyClip.bottom = 68` masque tout ce qui
   // est sous y=52. AssemblyLeadsLayer dessine ensuite les pattes fonctionnelles
   // depuis y=48 jusqu'aux PhysicalContacts y=80, soit ~32 px — longueur
@@ -60,15 +63,14 @@ const ASSEMBLY_PROFILES = {
     bodyClip: { bottom: 68 },
   },
   // FT-C-COMP-004 — buzzer piézo traversant (asset 120×120). Les deux pattes
-  // métalliques sont cuites dans le raster (x≈42 / 77, y≈79..114), suivies
-  // d'une ombre de contact pâle et large. `bodyClip.bottom = 42` masque tout
-  // ce qui est sous y=78 (les pattes cuites + l'ombre parasite) tout en
-  // CONSERVANT l'intégralité du corps cylindrique noir, le trou acoustique et
-  // le symbole « + ». AssemblyLeadsLayer dessine ensuite les deux pattes
-  // fonctionnelles fines et droites (style `wire`) depuis la racine
-  // (dx 42 / 78, dy 76, alignée sur les pieds visibles) jusqu'aux
-  // PhysicalContacts (dy 108) — longueur ~32 px, harmonisée avec
-  // LED / LDR / THERMISTOR / POLARIZED_CAPACITOR.
+  // métalliques sont cuites dans le raster autour de x≈42 / 77, y≈79..114
+  // (probe pixel ; PO probe 44 / 76, entraxe 32). Pour l'insertion breadboard
+  // les deux PhysicalContacts fonctionnels sont recalés à dx 42 / 78 (entraxe
+  // 36 = 3 × BREADBOARD_PITCH exact, centrés sur les deux pieds visibles) et
+  // dy 108 (= probe `canonical.pins` du manifeste ; 9 × BREADBOARD_PITCH).
+  // AssemblyLeadsLayer relie racine visuelle → contact (pattes fines droites).
+  // IDs, rôles et modèle électrique (plus / minus, role input) INCHANGÉS —
+  // aucune nouvelle simulation, aucun état "on".
   BUZZER: {
     kind: "through-hole",
     leads: {
@@ -96,17 +98,10 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 35 },
   },
-  // FT-C-COMP-003 — potentiomètre rotatif (asset 120×120). Les 3 cosses sont
-  // cuites dans le raster. Le clip s'arrête maintenant à y=100
-  // (`bodyClip.bottom = 20`) afin de CONSERVER toute l'embase bleue visible
-  // au-dessus des trois pattes. L'ancien clip à y=88 supprimait justement la
-  // partie basse bleue de l'asset et donnait l'impression que les cosses
-  // fonctionnelles naissaient directement sous le corps métallique.
-  // AssemblyLeadsLayer garde les racines à dx 42 / 60 / 78, dy 86 : cette
-  // portion est peinte derrière le raster puis n'émerge qu'après l'embase,
-  // vers y=100, jusqu'aux PhysicalContacts. On conserve ainsi le léger
-  // évasement des cosses extérieures et le wiper vertical, sans modifier les
-  // identités électriques left / wiper / right.
+  // FT-C-COMP-003 — potentiomètre rotatif réaliste (asset 120×120). Les 3
+  // cosses métalliques verticales sont cuites dans le raster autour de
+  // x≈42 / 60 / 78. AssemblyLeadsLayer garde les racines à dx 42 / 60 / 78,
+  // dy 86 ; les cosses fonctionnelles restent indépendantes du raster.
   POTENTIOMETER: {
     kind: "through-hole",
     leads: {
