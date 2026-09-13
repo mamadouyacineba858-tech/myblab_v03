@@ -124,8 +124,14 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
     // préexistante, explicitement mise hors scope par MB-BREADBOARD-002
     // Delivery Report §5.2 faute d'AC qui l'exigeait alors — AC-23 de ce
     // ticket la rend explicitement in-scope).
+    // L1-BREAD-002 (CSA D1/D10) : exportCircuit() n'émet plus la projection
+    // transitoire `breadboard` — seule la collection canonique `breadboards[]`
+    // est désormais persistée. TEST 6/7/8 verrouillaient l'ancienne forme
+    // dupliquée (`exported.breadboard`) ; mis à jour ici vers le contrat
+    // canonique (AC-01/AC-02), l'intention d'origine (AC-23 : la pose d'un
+    // breadboard survit à exportCircuit()/importCircuit()) reste inchangée.
     // =========================================================================
-    it('TEST 6 (AC-23) : exportCircuit() inclut document.breadboard', () => {
+    it('TEST 6 (AC-23) : exportCircuit() inclut breadboards[] (forme canonique, plus de singleton legacy)', () => {
         const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
@@ -134,18 +140,19 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
         const id = result.current.breadboard.id
 
         const exported = result.current.exportCircuit()
-        expect(exported.breadboard).not.toBe(null)
-        expect(exported.breadboard.id).toBe(id)
-        expect(exported.breadboard.layout).toBe('STANDARD_V1')
+        expect(Object.prototype.hasOwnProperty.call(exported, 'breadboard')).toBe(false)
+        expect(exported.breadboards).toHaveLength(1)
+        expect(exported.breadboards[0].id).toBe(id)
+        expect(exported.breadboards[0].layout).toBe('STANDARD_V1')
     })
 
-    it('TEST 7 (AC-23) : exportCircuit() sans breadboard posé exporte breadboard: null (non-régression)', () => {
+    it('TEST 7 (AC-23) : exportCircuit() sans breadboard posé exporte breadboards: [] (non-régression)', () => {
         const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
         const exported = result.current.exportCircuit()
-        expect(exported.breadboard).toBe(null)
+        expect(exported.breadboards).toEqual([])
     })
 
-    it('TEST 8 (AC-23, UI-15) : importCircuit() restaure document.breadboard (round-trip export -> import)', () => {
+    it('TEST 8 (AC-23, UI-15) : importCircuit() restaure breadboards[] (round-trip export -> import)', () => {
         const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 
         act(() => {
@@ -153,7 +160,7 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
             result.current.addComponent('LED', 100, 100)
         })
         const exported = result.current.exportCircuit()
-        expect(exported.breadboard).not.toBe(null)
+        expect(exported.breadboards).toHaveLength(1)
 
         // Nouvelle session (hook réinitialisé) : plus aucun breadboard.
         const { result: fresh } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
@@ -164,7 +171,7 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
         })
 
         expect(fresh.current.breadboard).not.toBe(null)
-        expect(fresh.current.breadboard).toEqual(exported.breadboard)
+        expect(fresh.current.breadboards).toEqual(exported.breadboards)
         expect(fresh.current.components.length).toBe(1)
     })
 

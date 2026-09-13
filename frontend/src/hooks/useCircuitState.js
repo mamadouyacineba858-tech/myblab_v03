@@ -2460,12 +2460,16 @@ if (import.meta.env.DEV) {
   // l'objet exporté et ignoré à l'import (lacune préexistante, explicitement
   // mise hors scope par MB-BREADBOARD-002 Delivery Report §5.2 faute d'AC
   // qui l'exigeait alors — AC-23 de ce ticket la rend explicitement in-scope).
-  // FT-C-BREAD-MULTI-001-A : l'export porte la collection canonique
-  // `breadboards[]` ET la projection transitoire `breadboard` (rétro-compat
-  // des consommateurs / tests pas encore migrés — retiré en 001-E).
+  // L1-BREAD-002 (CSA D1/D10) : l'export porte UNIQUEMENT la collection
+  // canonique `breadboards[]` — la projection transitoire `breadboard`
+  // (dérivée en lecture seule par normalizeDocumentBreadboards pour les
+  // consommateurs internes pas encore migrés) n'est plus persistée. La
+  // migration est à sens unique : un ancien document `{ breadboard }` reste
+  // importable (importCircuit ci-dessous), mais tout nouvel export est
+  // canonique et ne réémet jamais le singleton legacy.
   const exportCircuit = useCallback(
-    () => ({ version: 1, components: safeComponents, wires: safeWires, breadboards, breadboard }),
-    [safeComponents, safeWires, breadboards, breadboard]
+    () => ({ version: 1, components: safeComponents, wires: safeWires, breadboards }),
+    [safeComponents, safeWires, breadboards]
   )
 
   const importCircuit = useCallback((data) => {
