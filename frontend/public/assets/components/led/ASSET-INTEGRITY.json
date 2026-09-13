@@ -1,6 +1,6 @@
 {
   "component": "LED",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "files": [
     {
       "file": "led.off.1x.png",
@@ -43,9 +43,209 @@
       "sha256": "c0a83891e74b717c3a93ea6038e255f9735a0fb9d6c23cb4c36e5caaa6631925"
     },
     {
+      "file": "led.red.off.1x.png",
+      "bytes": 4144,
+      "sha256": "0e34225275531bef700e631945459ed125fd2373cc385cabbcd9b8a280917cbb"
+    },
+    {
+      "file": "led.red.off.1x.webp",
+      "bytes": 3138,
+      "sha256": "261e7a8b456eeffa0f5f902830c2a12523e1238ee5944ed7e3ceee49bb5ee9da"
+    },
+    {
+      "file": "led.red.off.3x.png",
+      "bytes": 22933,
+      "sha256": "8e9761ee5f9c17bff2d4ace5494226c14676d3c7350eb0d8a8c2d2c5033bdf07"
+    },
+    {
+      "file": "led.red.off.3x.webp",
+      "bytes": 14734,
+      "sha256": "c4af959e4c34df360abce9c691b5a26373a80e14fa254c70abf30a52e75b6124"
+    },
+    {
+      "file": "led.red.on.1x.png",
+      "bytes": 4488,
+      "sha256": "5f798ff1db4a5c619d54437dadb8f50b3fb66db1e2b3e96493b8d89b0dae7b36"
+    },
+    {
+      "file": "led.red.on.1x.webp",
+      "bytes": 3616,
+      "sha256": "1f0d70c2819364a6b839c670226d9dfd81ec217e44df0531f7f3b5549b52eec8"
+    },
+    {
+      "file": "led.red.on.3x.png",
+      "bytes": 32974,
+      "sha256": "886c051871c0642a255f3f7a2454a0e0cbe9d1b72a2a05662e94cf08eb0eaee5"
+    },
+    {
+      "file": "led.red.on.3x.webp",
+      "bytes": 16808,
+      "sha256": "5d91b791555a32d20277f291d7088fcef9d37a374b48bd01e946024228f6c508"
+    },
+    {
+      "file": "led.green.off.1x.png",
+      "bytes": 4190,
+      "sha256": "7964b93a858ca5996e25c7e8ba1ce946b403a00fbd18ba25a8d454c8df100460"
+    },
+    {
+      "file": "led.green.off.1x.webp",
+      "bytes": 3442,
+      "sha256": "385c66e15d866f68fa3a5ffa0a11671b216c81d72acf9252c598da7fce7b7698"
+    },
+    {
+      "file": "led.green.off.3x.png",
+      "bytes": 23061,
+      "sha256": "97c92748cc86f055233331ddeaa2c0b9880c69f3bcef27a88ca89553d40e6703"
+    },
+    {
+      "file": "led.green.off.3x.webp",
+      "bytes": 15420,
+      "sha256": "ddd53a8dad37de358b66cc58d8c2ac6a273d02ce02a126eb60a15e290c179f79"
+    },
+    {
+      "file": "led.green.on.1x.png",
+      "bytes": 4539,
+      "sha256": "809522e5fc303b83bbe379caeed71ba0197ecacf988d43dbfcc93e75558a69b9"
+    },
+    {
+      "file": "led.green.on.1x.webp",
+      "bytes": 3948,
+      "sha256": "e7a56ce05bbee81d13ecb24a7a902e4fb5f04239a97fba3abf25b7bae2eac151"
+    },
+    {
+      "file": "led.green.on.3x.png",
+      "bytes": 33930,
+      "sha256": "4dbd8788bbac1feed318c4f1ab0ddd86a8b08caa6905a7fd128076e5ecc3020d"
+    },
+    {
+      "file": "led.green.on.3x.webp",
+      "bytes": 17478,
+      "sha256": "1059aa7c0473e1270511ffc4a42e0e419bc5a6603dcdc53ee82ac43952bc8cb4"
+    },
+    {
+      "file": "led.blue.off.1x.png",
+      "bytes": 4245,
+      "sha256": "c35646471918671f95049f4c6daaef8b0ae6ac326459e3ead5fab2e93403ebff"
+    },
+    {
+      "file": "led.blue.off.1x.webp",
+      "bytes": 3392,
+      "sha256": "62a78709d41cdd74df49026c8b2b7eb2a2d67a281b9108e1c05e19f3c2fc5120"
+    },
+    {
+      "file": "led.blue.off.3x.png",
+      "bytes": 23189,
+      "sha256": "1e9f198760f9691f951e1a092469d74d667ea5f1feee95d9d09789404c98339a"
+    },
+    {
+      "file": "led.blue.off.3x.webp",
+      "bytes": 14930,
+      "sha256": "045563d0f34ff80c588d51c527be242fc162b8b4896c8875c4dcee8150a9dedb"
+    },
+    {
+      "file": "led.blue.on.1x.png",
+      "bytes": 4557,
+      "sha256": "162732e6f3dd0681743184c69a3f42336d8bc98b3473b1f2409d993c63a31a24"
+    },
+    {
+      "file": "led.blue.on.1x.webp",
+      "bytes": 3996,
+      "sha256": "46934aecc69945a038edf2e743d3e8946c722b289e1656a1aa324c46179d0bf0"
+    },
+    {
+      "file": "led.blue.on.3x.png",
+      "bytes": 34906,
+      "sha256": "c13878494b9a4b41b69466a9718a3e4e081e25ee7d3c5c91a156998eb63bbb88"
+    },
+    {
+      "file": "led.blue.on.3x.webp",
+      "bytes": 17044,
+      "sha256": "89a6df17f489e8781c6d67a0837132a641102e2b659351a27ef713941baa01ff"
+    },
+    {
+      "file": "led.yellow.off.1x.png",
+      "bytes": 4337,
+      "sha256": "8d7749e120fe1dd16a573a9cab2fa5caafdc8c950e38b655be81eafd467d9f27"
+    },
+    {
+      "file": "led.yellow.off.1x.webp",
+      "bytes": 3450,
+      "sha256": "ab67fb231a104e7bcb1050976f361a683ddca38e62550ca5f3868aaa3b86a6be"
+    },
+    {
+      "file": "led.yellow.off.3x.png",
+      "bytes": 23578,
+      "sha256": "61917fb42b3f5883ca3e833de57cd5b258e2de54ea2ec84442698e47f0760954"
+    },
+    {
+      "file": "led.yellow.off.3x.webp",
+      "bytes": 15214,
+      "sha256": "86f2faa04289b8381d2a5055710c383a9b8a3d07f2e1470431b2456916403cdf"
+    },
+    {
+      "file": "led.yellow.on.1x.png",
+      "bytes": 4512,
+      "sha256": "d3a5430c4bd20042e0c3258c216d62daf3313c21745a7882f788472d43b311fd"
+    },
+    {
+      "file": "led.yellow.on.1x.webp",
+      "bytes": 3910,
+      "sha256": "9af253db24d3dbb5ba479c26f5ac8645ecf3dd6092b5ed6aac2d2d8956937403"
+    },
+    {
+      "file": "led.yellow.on.3x.png",
+      "bytes": 34712,
+      "sha256": "32985f3ad705e34200aac7a0fac3f2d66a0d4c38c55115849dac7b56597b31f9"
+    },
+    {
+      "file": "led.yellow.on.3x.webp",
+      "bytes": 16972,
+      "sha256": "28c98ebc954ba6ab966bc6a34f13c30b7152c11c9db0a3da47dd6076a07e6e27"
+    },
+    {
+      "file": "led.white.off.1x.png",
+      "bytes": 4414,
+      "sha256": "592c4db8b2c10d573694f66bd474c1cf27e810199c72be638a5f7b94ac610c96"
+    },
+    {
+      "file": "led.white.off.1x.webp",
+      "bytes": 2744,
+      "sha256": "d565c1cb64c3e6fc76963618b972af520cbb8c90b0871667299acfa578a41266"
+    },
+    {
+      "file": "led.white.off.3x.png",
+      "bytes": 23552,
+      "sha256": "1ab19d1e73543b2ccc2c1cae8fdbbf864637e1a7ae99e34a8bc2a7a20be6cfa7"
+    },
+    {
+      "file": "led.white.off.3x.webp",
+      "bytes": 12994,
+      "sha256": "3d2b51e47aee32ddd1d42d3b54a141572086b520868ff917a3ff2e92a2ccd522"
+    },
+    {
+      "file": "led.white.on.1x.png",
+      "bytes": 4055,
+      "sha256": "1077b8fc8367d81a6b10fb941197fd0d4e4dcc850142a1b16e09effa91221907"
+    },
+    {
+      "file": "led.white.on.1x.webp",
+      "bytes": 2820,
+      "sha256": "5f4724948eb12f9af49a8e8da7b20c92861ca88b553160bbf01a545b307cafac"
+    },
+    {
+      "file": "led.white.on.3x.png",
+      "bytes": 33172,
+      "sha256": "67d8938858ab54e561e97a8a0598f5e0fcc9b890c35ccf8d791fa8a45f94104c"
+    },
+    {
+      "file": "led.white.on.3x.webp",
+      "bytes": 13194,
+      "sha256": "723e84d32af5fd1cd0abddec0d71a775875e63bdb577681a31d0d69839e8e196"
+    },
+    {
       "file": "manifest.json",
-      "bytes": 1861,
-      "sha256": "7bdccb43d95ef1ddc4357fa48444bfde7126a7c1a0ad2e3d37a0e3628cd8644a"
+      "bytes": 9456,
+      "sha256": "a74f17ba34d0b0011c66259ddc8c6f2e26e26cd2868e5259a6347c4833c90057"
     }
   ]
 }

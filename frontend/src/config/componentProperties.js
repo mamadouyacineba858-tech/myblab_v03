@@ -11,8 +11,14 @@ export function isPlainProperties(value) {
   return prototype === Object.prototype || prototype === null
 }
 
+// Generic string-rule validator: maxLength and options are only enforced
+// when the rule actually declares them (L1-PROP-003 §8) — no branch on key
+// or component type.
 function validValue(rule, value) {
-  return rule.type === "string" && typeof value === "string" && [...value].length <= rule.maxLength
+  if (rule.type !== "string" || typeof value !== "string") return false
+  if (typeof rule.maxLength === "number" && [...value].length > rule.maxLength) return false
+  if (Array.isArray(rule.options) && !rule.options.some((option) => option.value === value)) return false
+  return true
 }
 
 // Legacy reads resolve defaults; only validated instance values override them.

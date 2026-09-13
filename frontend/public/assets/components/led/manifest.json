@@ -1,7 +1,7 @@
 {
   "component": "LED",
   "backend": "raster",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "canonical": {
     "width": 80,
     "height": 64,
@@ -17,6 +17,14 @@
     },
     "origin": "top-left"
   },
+  "colors": [
+    "red",
+    "green",
+    "blue",
+    "yellow",
+    "white"
+  ],
+  "defaultColor": "red",
   "states": [
     "off",
     "on"
@@ -32,7 +40,8 @@
       "format": "png",
       "file": "led.off.1x.png",
       "width": 80,
-      "height": 64
+      "height": 64,
+      "legacy": true
     },
     {
       "state": "off",
@@ -40,7 +49,8 @@
       "format": "webp",
       "file": "led.off.1x.webp",
       "width": 80,
-      "height": 64
+      "height": 64,
+      "legacy": true
     },
     {
       "state": "off",
@@ -48,7 +58,8 @@
       "format": "png",
       "file": "led.off.3x.png",
       "width": 240,
-      "height": 192
+      "height": 192,
+      "legacy": true
     },
     {
       "state": "off",
@@ -56,7 +67,8 @@
       "format": "webp",
       "file": "led.off.3x.webp",
       "width": 240,
-      "height": 192
+      "height": 192,
+      "legacy": true
     },
     {
       "state": "on",
@@ -64,7 +76,8 @@
       "format": "png",
       "file": "led.on.1x.png",
       "width": 80,
-      "height": 64
+      "height": 64,
+      "legacy": true
     },
     {
       "state": "on",
@@ -72,7 +85,8 @@
       "format": "webp",
       "file": "led.on.1x.webp",
       "width": 80,
-      "height": 64
+      "height": 64,
+      "legacy": true
     },
     {
       "state": "on",
@@ -80,7 +94,8 @@
       "format": "png",
       "file": "led.on.3x.png",
       "width": 240,
-      "height": 192
+      "height": 192,
+      "legacy": true
     },
     {
       "state": "on",
@@ -88,7 +103,368 @@
       "format": "webp",
       "file": "led.on.3x.webp",
       "width": 240,
-      "height": 192
+      "height": 192,
+      "legacy": true
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.red.off.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "red"
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.red.off.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "red"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.red.off.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "red"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.red.off.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "red"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.red.on.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "red"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.red.on.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "red"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.red.on.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "red"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.red.on.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "red"
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.green.off.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "green"
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.green.off.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "green"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.green.off.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "green"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.green.off.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "green"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.green.on.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "green"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.green.on.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "green"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.green.on.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "green"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.green.on.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "green"
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.blue.off.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "blue"
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.blue.off.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "blue"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.blue.off.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "blue"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.blue.off.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "blue"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.blue.on.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "blue"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.blue.on.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "blue"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.blue.on.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "blue"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.blue.on.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "blue"
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.yellow.off.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "yellow"
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.yellow.off.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "yellow"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.yellow.off.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "yellow"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.yellow.off.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "yellow"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.yellow.on.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "yellow"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.yellow.on.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "yellow"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.yellow.on.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "yellow"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.yellow.on.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "yellow"
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.white.off.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "white"
+    },
+    {
+      "state": "off",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.white.off.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "white"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.white.off.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "white"
+    },
+    {
+      "state": "off",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.white.off.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "white"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "png",
+      "file": "led.white.on.1x.png",
+      "width": 80,
+      "height": 64,
+      "color": "white"
+    },
+    {
+      "state": "on",
+      "scale": "1x",
+      "format": "webp",
+      "file": "led.white.on.1x.webp",
+      "width": 80,
+      "height": 64,
+      "color": "white"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "png",
+      "file": "led.white.on.3x.png",
+      "width": 240,
+      "height": 192,
+      "color": "white"
+    },
+    {
+      "state": "on",
+      "scale": "3x",
+      "format": "webp",
+      "file": "led.white.on.3x.webp",
+      "width": 240,
+      "height": 192,
+      "color": "white"
     }
   ],
   "background": "transparent",
@@ -98,7 +474,7 @@
   ],
   "visual": {
     "off": "non-emissive",
-    "on": "integrated red glow in asset"
+    "on": "integrated glow in asset, matching physical color"
   },
-  "provenance": "AI-generated visual asset package prepared for MB-VIS-PROTOTYPE-003; geometry contract remains repository-canonical."
+  "provenance": "AI-generated visual asset package prepared for MB-VIS-PROTOTYPE-003 (legacy variants, single implicit red) and L1-PROP-003 (5-color physical property package); geometry contract remains repository-canonical and unchanged by either package."
 }

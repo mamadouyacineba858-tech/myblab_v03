@@ -298,6 +298,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
           type={type}
           uid={uid}
           pinSignals={pinSignals}
+          properties={component.properties}
           {...(isButton ? {
             state: component.state,
             onPointerDown: handleButtonPointerDown,

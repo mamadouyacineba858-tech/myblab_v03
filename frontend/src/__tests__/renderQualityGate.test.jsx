@@ -351,10 +351,21 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       // liste des variantes image : `assets[]` OU `variants[]`
       const entries = (manifest.assets ?? manifest.variants ?? [])
       const imageEntries = entries.filter((e) => /\.(webp|png)$/.test(e.file))
+
+      // L1-PROP-003 : axe physique optionnel `manifest.colors` (ex. LED) —
+      // multiplie le paquet COURANT (état × résolution × format) ; les
+      // variantes explicitement marquées `legacy: true` (préservées telles
+      // quelles, jamais recomptées par cet axe) restent en dehors de ce
+      // produit et sont simplement retranchées du total avant comparaison.
+      // colorCount === 1 et aucune variante `legacy` pour tout composant qui
+      // ne déclare pas `colors` -> formule strictement inchangée (défaut
+      // historique de TEST T10).
+      const colorCount = Array.isArray(manifest.colors) && manifest.colors.length ? manifest.colors.length : 1
+      const legacyImageCount = imageEntries.filter((e) => e.legacy === true).length
       expect(
-        imageEntries.length,
-        `attendu ${stateCount} état(s) × ${RENDER_BUDGET.raster.resolutions} résolutions × (webp + png)`
-      ).toBe(stateCount * RENDER_BUDGET.raster.resolutions * 2)
+        imageEntries.length - legacyImageCount,
+        `attendu ${stateCount} état(s) × ${colorCount} couleur(s) × ${RENDER_BUDGET.raster.resolutions} résolutions × (webp + png), hors ${legacyImageCount} variante(s) explicitement marquée(s) legacy`
+      ).toBe(stateCount * colorCount * RENDER_BUDGET.raster.resolutions * 2)
 
       // intégrité optionnelle (bytes + sha256 par fichier) — tolérant au schéma :
       // tableau racine `[ {file,bytes,sha256}, … ]` (schéma DIODE) OU objet

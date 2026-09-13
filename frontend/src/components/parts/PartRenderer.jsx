@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { createDefaultVisualizationManager } from '../../visualization/factory.js';
 import { DEFAULT_REGISTRATIONS } from '../../visualization/defaultRegistrations.js';
 import { getVisualState } from '../../visualization/visualStateRegistry.js';
+import { resolveComponentProperties } from '../../config/componentProperties.js';
 import '../../visualization/defaultVisualStateRegistrations.js';
 
 /**
@@ -24,6 +25,7 @@ export function PartRenderer({
   uid,
   pinSignals,
   state,
+  properties,
   onPointerDown,
   onPointerUp,
   onPointerCancel,
@@ -42,10 +44,14 @@ export function PartRenderer({
   );
 
   // Construction des props communes à tous les renderers
+  // L1-PROP-003 : `properties` est résolu ICI, génériquement (schéma déclaré
+  // par componentDefinitions.js), pour que tout renderer reçoive un contrat
+  // déjà normalisé (defaults appliqués) sans jamais brancher sur `type`.
   let rendererProps = {
     uid,
     pinSignals: signals,
     state,
+    properties: resolveComponentProperties(type, properties),
     onPointerDown,
     onPointerUp,
     onPointerCancel,

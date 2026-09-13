@@ -34,7 +34,10 @@ import { useCircuitInteraction } from '../../../context/useCircuitInteraction.js
 import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const ASSET_RE = /^\/assets\/components\/led\/led\.(off|on)\.(1x|3x)\.(webp|png)( \dx)?$/
+// L1-PROP-003 : sans `properties.color` explicite, LedPart résout la couleur
+// par défaut ("red") — les assertions ci-dessous couvrent ce cas par défaut ;
+// le choix de couleur lui-même est couvert par PhysicalPropertyRendering.
+const ASSET_RE = /^\/assets\/components\/led\/led\.(red|green|blue|yellow|white)\.(off|on)\.(1x|3x)\.(webp|png)( \dx)?$/
 
 function srcsetList(el, attr) {
   return (el.getAttribute(attr) || '').split(',').map((s) => s.trim()).filter(Boolean)
@@ -67,43 +70,43 @@ describe("MB-VIS-PROTOTYPE-003 — LED rend le paquet d'assets raster validé", 
     }
   })
 
-  it('3/4 — OFF : <picture>/<source webp> + <img> vers /assets/components/led/led.off.* ; les 4 variantes référencées', () => {
+  it('3/4 — OFF : <picture>/<source webp> + <img> vers /assets/components/led/led.red.off.* (couleur par défaut) ; les 4 variantes référencées', () => {
     const { container } = render(<LedPart isOn={false} />)
     const img = container.querySelector('img')
     expect(img.getAttribute('src')).toMatch(ASSET_RE)
-    expect(img.getAttribute('src')).toContain('led.off.')
+    expect(img.getAttribute('src')).toContain('led.red.off.')
     for (const cand of srcsetList(img, 'srcset')) {
       expect(cand).toMatch(ASSET_RE)
-      expect(cand).toContain('led.off.')
+      expect(cand).toContain('led.red.off.')
     }
     const source = container.querySelector('picture > source')
     expect(source).not.toBeNull()
     expect(source.getAttribute('type')).toBe('image/webp')
     for (const cand of srcsetList(source, 'srcset')) {
       expect(cand).toMatch(ASSET_RE)
-      expect(cand).toMatch(/led\.off\..*\.webp/)
+      expect(cand).toMatch(/led\.red\.off\..*\.webp/)
     }
     const all = container.innerHTML
-    for (const f of ['off.1x.webp', 'off.3x.webp', 'off.1x.png', 'off.3x.png']) {
+    for (const f of ['red.off.1x.webp', 'red.off.3x.webp', 'red.off.1x.png', 'red.off.3x.png']) {
       expect(all).toContain(`/assets/components/led/led.${f}`)
     }
   })
 
-  it('3/4 — ON : <picture>/<source webp> + <img> vers /assets/components/led/led.on.* ; les 4 variantes référencées', () => {
+  it('3/4 — ON : <picture>/<source webp> + <img> vers /assets/components/led/led.red.on.* (couleur par défaut) ; les 4 variantes référencées', () => {
     const { container } = render(<LedPart isOn={true} />)
     const img = container.querySelector('img')
     expect(img.getAttribute('src')).toMatch(ASSET_RE)
-    expect(img.getAttribute('src')).toContain('led.on.')
+    expect(img.getAttribute('src')).toContain('led.red.on.')
     for (const cand of srcsetList(img, 'srcset')) {
       expect(cand).toMatch(ASSET_RE)
-      expect(cand).toContain('led.on.')
+      expect(cand).toContain('led.red.on.')
     }
     const source = container.querySelector('picture > source')
     for (const cand of srcsetList(source, 'srcset')) {
-      expect(cand).toMatch(/led\.on\..*\.webp/)
+      expect(cand).toMatch(/led\.red\.on\..*\.webp/)
     }
     const all = container.innerHTML
-    for (const f of ['on.1x.webp', 'on.3x.webp', 'on.1x.png', 'on.3x.png']) {
+    for (const f of ['red.on.1x.webp', 'red.on.3x.webp', 'red.on.1x.png', 'red.on.3x.png']) {
       expect(all).toContain(`/assets/components/led/led.${f}`)
     }
   })
@@ -123,7 +126,7 @@ describe("MB-VIS-PROTOTYPE-003 — LED rend le paquet d'assets raster validé", 
     const root = container.querySelector('.part-led')
     expect(root.getAttribute('class')).not.toMatch(/part-led--on/)
     expect(root.getAttribute('aria-label')).toBe('LED éteinte')
-    expect(container.querySelector('img').getAttribute('src')).toContain('led.off.')
+    expect(container.querySelector('img').getAttribute('src')).toContain('led.red.off.')
   })
 
   it('5 — état ON : classe part-led--on, aria-label "LED allumée", asset on', () => {
@@ -131,7 +134,7 @@ describe("MB-VIS-PROTOTYPE-003 — LED rend le paquet d'assets raster validé", 
     const root = container.querySelector('.part-led')
     expect(root.getAttribute('class')).toMatch(/part-led--on/)
     expect(root.getAttribute('aria-label')).toBe('LED allumée')
-    expect(container.querySelector('img').getAttribute('src')).toContain('led.on.')
+    expect(container.querySelector('img').getAttribute('src')).toContain('led.red.on.')
   })
 
   it('5 — bascule OFF -> ON : seuls la classe, l\'aria-label et le jeu d\'assets changent (aucun <svg>, aucune translation de dimensions)', () => {

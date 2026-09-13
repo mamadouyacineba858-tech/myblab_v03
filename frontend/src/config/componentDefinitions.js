@@ -175,6 +175,22 @@ for (const definition of Object.values(COMPONENT_TYPES)) {
   definition.propertySchema = COMMON_PROPERTY_SCHEMA
 }
 
+// L1-PROP-003: LED's first physical property — orthogonal to electrical
+// parameters/runtime isOn (§4/§6 of the ticket). Declarative extension of the
+// common contract; the renderer (LedPart.jsx) is the only place allowed to
+// interpret `color`.
+export const LED_COLOR_OPTIONS = Object.freeze([
+  Object.freeze({ value: "red", label: "Rouge" }),
+  Object.freeze({ value: "green", label: "Vert" }),
+  Object.freeze({ value: "blue", label: "Bleu" }),
+  Object.freeze({ value: "yellow", label: "Jaune" }),
+  Object.freeze({ value: "white", label: "Blanc" }),
+])
+COMPONENT_TYPES.LED.propertySchema = Object.freeze({
+  ...COMMON_PROPERTY_SCHEMA,
+  color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
+})
+
 export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }

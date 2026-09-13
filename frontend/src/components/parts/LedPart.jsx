@@ -1,35 +1,39 @@
 import React from 'react'
 import { getComponentDef } from '../../config/componentDefinitions.js'
+import { LED_COLOR_OPTIONS } from '../../config/componentDefinitions.js'
 
 /**
- * LED — réconciliation FT-C V2.
+ * LED — réconciliation FT-C V2 + L1-PROP-003 (couleur physique).
  *
  * Seul le delta visuel validé est repris ici : le dôme raster est légèrement
  * agrandi. La boîte canonique, les pins, les PhysicalContacts et la mécanique
  * d'assemblage restent ceux du baseline batterie 01fc5cee.
+ *
+ * `properties.color` (axe physique persistant) et `isOn` (axe électrique
+ * runtime) restent orthogonaux (§4/§6 du ticket) ; ce renderer est le SEUL
+ * endroit qui les combine pour choisir un asset — cf. §7/§11.
  */
 const ASSET_DIR = '/assets/components/led'
 const LED_BODY_SCALE = 1.12
 const LED_COLLAR_Y = 33
+const LED_DEFAULT_COLOR = 'red'
+const LED_COLORS = LED_COLOR_OPTIONS.map((option) => option.value)
 
-const ASSET_SOURCES = {
-  off: {
-    webp: `${ASSET_DIR}/led.off.1x.webp 1x, ${ASSET_DIR}/led.off.3x.webp 3x`,
-    png: `${ASSET_DIR}/led.off.1x.png 1x, ${ASSET_DIR}/led.off.3x.png 3x`,
-    fallback: `${ASSET_DIR}/led.off.3x.png`,
-  },
-  on: {
-    webp: `${ASSET_DIR}/led.on.1x.webp 1x, ${ASSET_DIR}/led.on.3x.webp 3x`,
-    png: `${ASSET_DIR}/led.on.1x.png 1x, ${ASSET_DIR}/led.on.3x.png 3x`,
-    fallback: `${ASSET_DIR}/led.on.3x.png`,
-  },
+function assetSources(color, state) {
+  const base = `${ASSET_DIR}/led.${color}.${state}`
+  return {
+    webp: `${base}.1x.webp 1x, ${base}.3x.webp 3x`,
+    png: `${base}.1x.png 1x, ${base}.3x.png 3x`,
+    fallback: `${base}.3x.png`,
+  }
 }
 
-export function LedPart({ isOn } = {}) {
+export function LedPart({ isOn, properties } = {}) {
   const def = getComponentDef("LED")
   const width = def?.width ?? 80
   const height = def?.height ?? 64
-  const source = isOn ? ASSET_SOURCES.on : ASSET_SOURCES.off
+  const color = LED_COLORS.includes(properties?.color) ? properties.color : LED_DEFAULT_COLOR
+  const source = assetSources(color, isOn ? 'on' : 'off')
 
   return (
     <div

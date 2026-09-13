@@ -155,7 +155,7 @@ describe("L1-PROP-002 rich inspector", () => {
   })
   it("unsupported controls use a non-editable fallback without commits", () => {
     const commit = vi.fn()
-    render(<PropertyField definition={{ label: "Future", control: "select" }} value="preserved" onCommit={commit} />)
+    render(<PropertyField definition={{ label: "Future", control: "boolean" }} value="preserved" onCommit={commit} />)
     expect(screen.queryByRole("combobox")).toBeNull()
     expect(screen.getByText("preserved")).toBeTruthy()
     expect(commit).not.toHaveBeenCalled()

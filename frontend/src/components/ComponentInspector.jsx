@@ -117,6 +117,19 @@ export function PropertyField({ definition, value, onCommit }) {
             }
           }}
         />
+      ) : definition.control === "select" ? (
+        <select
+          className="component-inspector__param-input"
+          value={draft}
+          onChange={(event) => {
+            const nextValue = event.target.value
+            if (nextValue !== value) onCommit(nextValue)
+          }}
+        >
+          {(definition.options ?? []).map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
       ) : (
         <span className="component-inspector__param-fixed-value" title="Contrôle non disponible">{String(value ?? "")}</span>
       )}

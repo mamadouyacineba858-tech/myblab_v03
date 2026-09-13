@@ -5,28 +5,33 @@ import { normalizeComponent } from "../../utils/circuitModel.js"
 import { ReactDocumentMapper } from "../../bridge/ReactDocumentMapper.js"
 
 describe("L1-PROP-001 product property contract", () => {
-  it("shares a single declarative schema across every existing type", () => {
-    const schema = COMPONENT_TYPES.LED.propertySchema
+  it("shares a single declarative schema across every existing type except LED's L1-PROP-003 extension", () => {
+    const schema = COMPONENT_TYPES.RESISTOR.propertySchema
     for (const [type, definition] of Object.entries(COMPONENT_TYPES)) {
+      if (type === "LED") continue
       expect(definition.propertySchema).toBe(schema)
       expect(resolveComponentProperties(type)).toEqual({ name: "" })
     }
+    // LED extends the common contract (same `name` rule) with its own
+    // physical `color` property (L1-PROP-003) — not a second registry.
+    expect(COMPONENT_TYPES.LED.propertySchema.name).toBe(schema.name)
+    expect(resolveComponentProperties("LED")).toEqual({ name: "", color: "red" })
     expect(resolveComponentProperties("unknown")).toEqual({})
     expect(validateComponentProperties("unknown", { name: "" }).valid).toBe(false)
   })
   it.each(["", "LED témoin température", "  R entrée  ", "x".repeat(80), "💡".repeat(80)])("accepts Unicode and preserves exact contents: %s", name => {
-    expect(validateComponentProperties("LED", { name })).toEqual({ valid: true, errors: [], sanitized: { name } })
-    expect(resolveComponentProperties("LED", { name })).toEqual({ name })
+    expect(validateComponentProperties("RESISTOR", { name })).toEqual({ valid: true, errors: [], sanitized: { name } })
+    expect(resolveComponentProperties("RESISTOR", { name })).toEqual({ name })
   })
   it.each([{ name: 123 }, { name: null }, { name: "x".repeat(81) }, { surprise: 1 }, { name: "ok", surprise: 123 }, [], null, new Date()])("strictly rejects invalid candidates: %j", candidate => {
-    expect(validateComponentProperties("LED", candidate).valid).toBe(false)
+    expect(validateComponentProperties("RESISTOR", candidate).valid).toBe(false)
   })
   it("resolves missing/invalid legacy properties without mutating the source", () => {
     const legacy = { uid: "legacy", type: "LED", x: 0, y: 0 }
     const normalized = normalizeComponent(legacy)
     expect(normalized.properties).toBeUndefined()
-    expect(resolveComponentProperties(normalized.type, normalized.properties)).toEqual({ name: "" })
-    expect(resolveComponentProperties("LED", { name: 12 })).toEqual({ name: "" })
+    expect(resolveComponentProperties(normalized.type, normalized.properties)).toEqual({ name: "", color: "red" })
+    expect(resolveComponentProperties("LED", { name: 12 })).toEqual({ name: "", color: "red" })
     expect(legacy.properties).toBeUndefined()
   })
   it("normalization and generic React/Core round-trip preserve independent properties", () => {
