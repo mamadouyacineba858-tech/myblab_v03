@@ -1,6 +1,7 @@
 /* FT-C-001-A — pattes / cosses d'assemblage génériques.
    Aucun sélecteur par type de composant : le style vient de la classe
-   `--wire` / `--lug` posée d'après le profil mécanique de présentation. */
+   `--wire` / `--metallic-wire` / `--lug` posée d'après le profil mécanique
+   de présentation. */
 
 .assembly-leads {
   /* la couche ne capte jamais le pointeur (drag/sélection/câblage = wrapper + <Pin>) */
@@ -15,10 +16,24 @@
      l'effet du zoom global et du localScale de focus (ruling §29). */
 }
 
-/* Fil métallique fin (LED, NPN) — patte nickelée. */
+/* Fil métallique fin (LED, NPN) — patte nickelée historique. */
 .assembly-leads__lead--wire {
   stroke: #9aa1a9;
   stroke-width: 2.4;
+}
+
+/*
+ * MB-L1-PROP-005-R1 — fil métallique poli, réservé aux profils qui le
+ * déclarent explicitement. Le centre très clair + double ombre latérale donne
+ * à une patte verticale la même lecture de métal brillant que les leads du
+ * RESISTOR raster, sans changer le style des LED/LDR/THERMISTOR.
+ */
+.assembly-leads__lead--metallic-wire {
+  stroke: #e8edf2;
+  stroke-width: 2.8;
+  filter:
+    drop-shadow(-0.7px 0 0 #ffffff)
+    drop-shadow(0.8px 0 0 #5d6670);
 }
 
 /* Cosse plate (potentiomètre) — languette cuivre/étain, plus large. */
