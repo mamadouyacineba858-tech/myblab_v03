@@ -3,22 +3,18 @@
  *
  * Component references must resolve to real components. MB-BREADBOARD-012
  * adds one explicit exception: a componentId encoded as a breadboard-hole
- * endpoint is coherent when the hole exists on the current breadboard.
+ * endpoint is coherent when the hole exists on its exact breadboard.
+ * L1-WIRE-001 : resolved against the canonical `breadboards[]` collection
+ * (shared resolveBreadboardHoleEndpoint primitive), never against the
+ * legacy singleton `document.breadboard`.
  */
 import { CATEGORIES, LEVELS } from '../../constants.js'
 import { getEffectiveComponents, getEffectiveWires, findComponent } from '../shared/documentHelpers.js'
-import { BREADBOARD_PITCH, holeAt } from '../../../../utils/breadboardGeometry.js'
-import { parseBreadboardHoleEndpoint } from '../../../../utils/breadboardWireEndpoint.js'
+import { resolveBreadboardHoleEndpoint } from '../shared/breadboardHoleEndpointResolution.js'
 
 function isCoherentEndpoint(document, endpoint) {
-  if (!endpoint?.componentId) return false
-  const hole = parseBreadboardHoleEndpoint(endpoint.componentId, endpoint.pinId)
-  if (!hole) return false
-  const breadboard = document?.breadboard
-  if (!breadboard || breadboard.id !== hole.breadboardId) return false
-  const x = breadboard.position.x + hole.column * BREADBOARD_PITCH
-  const y = breadboard.position.y + hole.row * BREADBOARD_PITCH
-  return !!holeAt(breadboard, x, y)
+  const resolved = resolveBreadboardHoleEndpoint(document, endpoint)
+  return resolved.shaped && resolved.hole !== null
 }
 
 export const ReferenceCoherenceRule = {
@@ -27,7 +23,7 @@ export const ReferenceCoherenceRule = {
   level: LEVELS.ERROR,
   validate(document, command) {
     const components = getEffectiveComponents(document, command)
-    const wires = getEffectiveWires(document)
+    const wires = getEffectiveWires(document, command)
     const dangling = []
 
     for (const wire of wires) {

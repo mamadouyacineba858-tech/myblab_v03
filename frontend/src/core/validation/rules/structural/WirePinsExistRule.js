@@ -2,27 +2,22 @@
  * STR-003 — WirePinsExistRule (ERROR)
  *
  * A wire endpoint may reference either a canonical component pin or a real
- * breadboard hole (MB-BREADBOARD-012). Hole endpoints are validated against
- * the existing breadboard geometry oracle; no synthetic component is added
- * to the Document.
+ * breadboard hole (MB-BREADBOARD-012). Hole endpoints are resolved against
+ * the canonical `breadboards[]` collection (L1-WIRE-001) via the shared
+ * resolveBreadboardHoleEndpoint primitive — never against the legacy
+ * singleton `document.breadboard`, and never with a positional fallback to
+ * breadboards[0]. No synthetic component is added to the Document.
  */
 import { CATEGORIES, LEVELS } from '../../constants.js'
 import { getCanonicalEntry } from '../../../../simulator/canonicalRegistry.js'
 import { getEffectiveComponents, getEffectiveWires, findComponent } from '../shared/documentHelpers.js'
-import { BREADBOARD_PITCH, holeAt } from '../../../../utils/breadboardGeometry.js'
-import { parseBreadboardHoleEndpoint } from '../../../../utils/breadboardWireEndpoint.js'
+import { resolveBreadboardHoleEndpoint } from '../shared/breadboardHoleEndpointResolution.js'
 
 function checkEndpoint(document, components, endpoint) {
   if (!endpoint || !endpoint.componentId) return 'missing_component_id'
 
-  const hole = parseBreadboardHoleEndpoint(endpoint.componentId, endpoint.pinId)
-  if (hole) {
-    const breadboard = document?.breadboard
-    if (!breadboard || breadboard.id !== hole.breadboardId) return 'breadboard_not_found'
-    const x = breadboard.position.x + hole.column * BREADBOARD_PITCH
-    const y = breadboard.position.y + hole.row * BREADBOARD_PITCH
-    return holeAt(breadboard, x, y) ? null : 'breadboard_hole_not_found'
-  }
+  const resolved = resolveBreadboardHoleEndpoint(document, endpoint)
+  if (resolved.shaped) return resolved.reason
 
   const component = findComponent(components, endpoint.componentId)
   if (!component) return 'component_not_found'
@@ -38,7 +33,7 @@ export const WirePinsExistRule = {
   level: LEVELS.ERROR,
   validate(document, command) {
     const components = getEffectiveComponents(document, command)
-    const wires = getEffectiveWires(document)
+    const wires = getEffectiveWires(document, command)
     const invalidEndpoints = []
 
     for (const wire of wires) {

@@ -33,16 +33,43 @@ export function getEffectiveComponents(document, command) {
 }
 
 /**
- * Wires effectifs à valider.
+ * Liste effective des wires à valider : ceux déjà présents dans le
+ * Document, plus — uniquement lorsque la commande en cours est ADD_WIRE —
+ * le wire que la commande propose d'ajouter.
  *
- * MB-CF3-001 ne route pas addWire via le CommandBus (hors périmètre,
- * cf. CSA-CF3-001 Q2) : les wires effectifs sont donc aujourd'hui toujours
- * ceux déjà présents dans le Document. Cette fonction reste néanmoins
- * générique (signature (document, command)) pour ne pas coupler les
- * règles à cette limitation temporaire du périmètre CF3.
+ * L1-WIRE-001 : addWire route désormais réellement via le CommandBus
+ * (MB-CF3-002), et la Validation est pré-exécution (ADR-010) — au moment de
+ * l'appel, le wire proposé n'existe pas encore dans le Document reçu par
+ * AddWireHandler (même raisonnement que getEffectiveComponents ci-dessus
+ * pour ADD_COMPONENT). Sans ce wire pending, STR-003/STR-005 ne contrôlent
+ * jamais le wire réellement ajouté — seuls les wires déjà présents.
+ *
+ * `wireId` n'existe pas encore au moment de la Validation (généré par
+ * AddWireHandler._applyMutation, après validation) : l'identifiant utilisé
+ * ici est un diagnostic temporaire, déterministe, réservé à la Validation.
  */
-export function getEffectiveWires(document) {
-  return (document && document.wires) || []
+export function getEffectiveWires(document, command) {
+  const existing = (document && document.wires) || []
+  if (command && command.type === 'ADD_WIRE' && command.payload) {
+    const { fromUid, fromPin, toUid, toPin, fromContact, toContact } = command.payload
+    if (fromUid && fromPin && toUid && toPin) {
+      const pending = {
+        id: command.payload.wireId || '__pending_add_wire__',
+        pinA: {
+          componentId: fromUid,
+          pinId: fromPin,
+          ...(fromContact !== undefined && fromContact !== null ? { contactId: fromContact } : {}),
+        },
+        pinB: {
+          componentId: toUid,
+          pinId: toPin,
+          ...(toContact !== undefined && toContact !== null ? { contactId: toContact } : {}),
+        },
+      }
+      return [...existing, pending]
+    }
+  }
+  return existing
 }
 
 export function findComponent(components, componentId) {
