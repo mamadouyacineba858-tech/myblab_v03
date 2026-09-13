@@ -1,6 +1,7 @@
 import { prepareCircuit } from "../simulator/preparation.js"
 import { resolveSignals } from "../simulator/resolution.js"
 import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
+import { applyEnvironmentalStimuli } from "../simulator/environmentalStimulus.js"
 
 /**
  * MB-OBS-001 — Observation Contract.
@@ -58,6 +59,18 @@ import { getCanonicalEntry } from "../simulator/canonicalRegistry.js"
  * une fois par instant échantillonné, réutilisant tel quel tout le dispatch
  * par target/quantité ci-dessous. Tout appel existant à 3 arguments
  * (MB-OBS-001, MB-MEASURE-001) est strictement inchangé.
+ *
+ * [MB-L1-ENV-001 — CSA GO] `observe()` accepte désormais un 5ᵉ paramètre
+ * optionnel `environmentalStimuli` (`null` par défaut), transmis tel quel à
+ * `applyEnvironmentalStimuli()` (`../simulator/environmentalStimulus.js`) —
+ * la MÊME primitive centrale déjà consommée par la Simulation live
+ * (`simulationRuntimeIntegration.js`, ENV-16). Aucune formule LIGHT -> LDR
+ * n'est réimplémentée ici (ENV-13) : ce module ne fait que substituer, avant
+ * `prepareCircuit()`/`resolveSignals()`, les composants EFFECTIFS ainsi
+ * obtenus aux composants persistants reçus en paramètre. Tout appel existant
+ * à 3 ou 4 arguments (MB-OBS-001, MB-OBS-002, MB-MEASURE-001) est strictement
+ * inchangé : `environmentalStimuli` vaut `null`, `applyEnvironmentalStimuli`
+ * retombe sur son comportement no-op (même référence `components`).
  */
 
 /** Statuts de résultat (§H du ticket). */
@@ -244,9 +257,11 @@ function observeNetLogicalState(request, pinKey, prepared, pinSignals) {
  *   existant à 3 arguments (MB-OBS-001, MB-MEASURE-001) est strictement
  *   inchangé : `externalSignals` vaut `null`, `resolveSignals()` retombe
  *   sur son comportement historique (voir resolution.js).
+ * @param {{LIGHT?: number}|null} [environmentalStimuli] MB-L1-ENV-001 :
+ *   paramètre optionnel, `null` par défaut. Voir l'en-tête de fichier.
  * @returns {{ target: object, quantity: string, value: *, unit: string|null, time: number|null, status: "VALID"|"UNAVAILABLE"|"INVALID", reason?: string }}
  */
-export function observe(request, components, wires, externalSignals = null) {
+export function observe(request, components, wires, externalSignals = null, environmentalStimuli = null) {
   if (!isWellFormedRequest(request)) {
     return buildResult({
       request: request && typeof request === "object" ? request : {},
@@ -285,7 +300,13 @@ export function observe(request, components, wires, externalSignals = null) {
     })
   }
 
-  const prepared = prepareCircuit(components, wires)
+  // MB-L1-ENV-001 : composants EFFECTIFS soumis à l'environnement, MÊME
+  // primitive que Simulation live (ENV-16) — `effectiveComponents ===
+  // components` (même référence) tant qu'aucun stimulus valide n'est actif
+  // (comportement historique strictement inchangé, ENV-18).
+  const effectiveComponents = applyEnvironmentalStimuli(components, environmentalStimuli)
+
+  const prepared = prepareCircuit(effectiveComponents, wires)
   const pinKey = prepared.uf.key(target.componentUid, target.pinId)
   const validKeys = new Set(prepared.allKeys)
 
@@ -297,7 +318,7 @@ export function observe(request, components, wires, externalSignals = null) {
     })
   }
 
-  const { pinSignals, dcAnalysis } = resolveSignals(components, prepared, externalSignals)
+  const { pinSignals, dcAnalysis } = resolveSignals(effectiveComponents, prepared, externalSignals)
 
   if (target.kind === ObservationTargetKind.NET) {
     if (quantity !== ObservationQuantity.LOGICAL_STATE) {
@@ -316,7 +337,7 @@ export function observe(request, components, wires, externalSignals = null) {
     return observePinLogicalState(request, pinKey, pinSignals)
   }
 
-  const comp = components.find((c) => c && c.uid === target.componentUid)
+  const comp = effectiveComponents.find((c) => c && c.uid === target.componentUid)
   // Défensif : le pin a déjà été validé comme réel (validKeys), donc `comp`
   // devrait toujours exister ici ; conservé pour ne jamais throw sur une
   // incohérence de données inattendue plutôt que de renvoyer un résultat

@@ -52,6 +52,14 @@ import {
 // ni ArduinoSimulator.js : ces instances ne sont créées que lazily, à
 // l'intérieur de simulationRuntimeIntegration.js.
 import { runSimulationWithRuntime, stopFirmwareSimulation, SIMULATION_STEP_MS } from "../simulator/simulationRuntimeIntegration.js"
+// MB-L1-ENV-001 (CSA GO) : `isValidLightStimulus` est la SEULE frontière de
+// validation consultée ici — ce hook ne réimplémente jamais la règle
+// "LIGHT ∈ [0,1], fini" (ENV-20), il se contente de rejeter (jamais de
+// clamp silencieux, §4 du ticket) une valeur invalide passée à
+// `setEnvironmentalStimulus`. Aucune formule LIGHT -> LDR n'est importée ici
+// (ENV-14) : seule la validation, pas `applyEnvironmentalStimuli` elle-même
+// (consommée uniquement par `runSimulationWithRuntime`, plus bas).
+import { isValidLightStimulus } from "../simulator/environmentalStimulus.js"
 import { getSelectionKey, parseSelectionKey, promoteActiveItem } from "../utils/selection.js"
 import { HistoryManager } from "../history/HistoryManager.js"
 import { DeleteCommand } from "../history/commands/DeleteCommand.js"
@@ -130,6 +138,13 @@ import { createDefaultFirmware } from "../arduino/firmwareDefaults.js"
 
 const EMPTY_MAP = new Map()
 
+// MB-L1-ENV-001 (CSA GO, §13 du ticket) : état initial "aucun stimulus
+// actif" — référence stable, jamais mutée en place (mêmes précédents que
+// EMPTY_MAP ci-dessus), pour qu'un circuit sans environnement conserve
+// exactement son comportement historique (ENV-18) sans jamais recréer un
+// nouvel objet à chaque rendu.
+const EMPTY_ENVIRONMENTAL_STIMULI = Object.freeze({})
+
 // FT-C-BREAD-MULTI-001-D : placement par défaut d'un nouveau breadboard ajouté
 // depuis l'UI, décalé horizontalement selon le nombre de cartes déjà posées.
 // Presentation only — aucune règle Core, aucune modification de holeAt/pitch.
@@ -167,6 +182,18 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   const [activeItem, setActiveItem] = useState(null)
 
   const [simulationActive, setSimulationActive] = useState(false)
+  // =========================================================================
+  // MB-L1-ENV-001 (CSA GO — "Environmental Stimulus Foundation", §13 du
+  // ticket) : état environnemental VOLATILE (jamais dans components/wires/
+  // breadboards, jamais lu par documentApi.getDocument(), jamais exporté/
+  // importé, jamais historisé — ENV-01/ENV-02/ENV-03). Même principe de
+  // durée de vie que le container Runtime Arduino (`orchestrators`
+  // ci-dessus) dans son intention, mais volontairement une structure
+  // distincte (un simple objet `{ LIGHT?: number }`, pas une Map
+  // orchestrator) : ce n'est ni un Scheduler, ni un RuntimeOrchestrator, ni
+  // un externalSignal (ENV-04/ENV-07/ENV-08/ENV-09).
+  // =========================================================================
+  const [environmentalStimuli, setEnvironmentalStimuli] = useState(EMPTY_ENVIRONMENTAL_STIMULI)
   // MB-VIS-CANVAS-050 : `viewport` remplace l'ancien état `zoom` isolé —
   // SEUL modèle de state pour zoom+pan (Décision CSA D1/D4, contrainte non
   // négociable #4 : « un seul modèle screen↔Document »). `zoom` reste exposé
@@ -558,7 +585,7 @@ const getUndoCount = useCallback(() => {
         const coreDoc = ReactDocumentMapper.toCore({ components: safeComponents, wires: safeWires, breadboards })
         const adapted = toEngineInput(coreDoc)
         setPinSignals(runSimulationWithRuntime(adapted.components, adapted.wires, {
-          orchestrators, firmwareSessions, firmwareComponents: safeComponents, dt,
+          orchestrators, firmwareSessions, firmwareComponents: safeComponents, dt, environmentalStimuli,
         }) ?? EMPTY_MAP)
         const diagnostics = Object.fromEntries([...firmwareSessions].map(([uid, session]) => [uid, session.diagnostics]))
         setFirmwareDiagnostics(previous => JSON.stringify(previous) === JSON.stringify(diagnostics) ? previous : diagnostics)
@@ -580,7 +607,7 @@ const getUndoCount = useCallback(() => {
       cancelled = true
       if (frame !== undefined) cancelAnimationFrame(frame)
     }
-  }, [safeComponents, safeWires, breadboards, simulationActive, orchestrators, firmwareSessions])
+  }, [safeComponents, safeWires, breadboards, simulationActive, orchestrators, firmwareSessions, environmentalStimuli])
 
   useEffect(() => () => stopFirmwareSimulation(orchestrators, firmwareSessions), [orchestrators, firmwareSessions])
 
@@ -2515,6 +2542,35 @@ if (import.meta.env.DEV) {
     stopFirmwareSimulation(orchestrators, firmwareSessions)
     setSimulationActive(false)
   }, [orchestrators, firmwareSessions])
+
+  // =========================================================================
+  // MB-L1-ENV-001 (CSA GO, §13 du ticket) : API applicative minimale pour
+  // l'état environnemental volatile déclaré plus haut. Seul `kind ===
+  // "LIGHT"` est supporté par ce ticket (ENV-21) — tout autre kind est un
+  // no-op défensif, jamais une exception. `setEnvironmentalStimulus` ne
+  // clampe JAMAIS silencieusement une valeur hors-borne/non-finie (§4 du
+  // ticket) : une valeur invalide est explicitement IGNORÉE (aucune
+  // mutation d'état), jamais ramenée à 0/1. Ni l'une ni l'autre de ces deux
+  // actions ne passe par CommandBus/HistoryManager (ENV-02/ENV-03) ni ne
+  // touche components/wires/breadboards/documentApi (ENV-01).
+  // =========================================================================
+  const setEnvironmentalStimulus = useCallback((kind, value) => {
+    if (kind !== "LIGHT" || !isValidLightStimulus(value)) return
+    setEnvironmentalStimuli((prev) => ({ ...prev, [kind]: value }))
+  }, [])
+
+  const clearEnvironmentalStimulus = useCallback((kind) => {
+    if (kind !== "LIGHT") return
+    setEnvironmentalStimuli((prev) => {
+      if (!(kind in prev)) return prev
+      const next = { ...prev }
+      delete next[kind]
+      return next
+    })
+  }, [])
+  // =========================================================================
+  // FIN MB-L1-ENV-001 (API environnementale)
+  // =========================================================================
   // MB-VIS-CANVAS-050 : zoomIn/zoomOut restent des pas fixes de 0.1 borné
   // [0.5,2] (comportement 049 strictement préservé — mêmes tests), mais
   // ancrent désormais le zoom au CENTRE du Canvas plutôt que de laisser le
@@ -2675,6 +2731,12 @@ if (import.meta.env.DEV) {
   firmwareDiagnostics,
   startSimulation,
   stopSimulation,
+  // MB-L1-ENV-001 (CSA GO) : état environnemental volatile + API minimale
+  // (§13 du ticket) — basse fréquence, même statut d'exposition que
+  // `simulationActive`/`startSimulation`/`stopSimulation` ci-dessus.
+  environmentalStimuli,
+  setEnvironmentalStimulus,
+  clearEnvironmentalStimulus,
   zoomIn,
   zoomOut,
   // MB-VIS-CANVAS-050 : navigation de viewport — pan (geste dédié, consommé
@@ -2781,6 +2843,9 @@ if (import.meta.env.DEV) {
   firmwareDiagnostics,
   startSimulation,
   stopSimulation,
+  environmentalStimuli,
+  setEnvironmentalStimulus,
+  clearEnvironmentalStimulus,
   zoomIn,
   zoomOut,
   startPan,

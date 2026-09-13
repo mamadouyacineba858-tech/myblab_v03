@@ -67,6 +67,17 @@ import { circuitRequiresRuntime } from "../simulator/simulationRuntimeIntegratio
  *
  * Document en lecture seule : `components`/`wires` ne sont jamais mutés
  * (chaque instant délègue à `observe()`, lui-même non-mutant).
+ *
+ * [MB-L1-ENV-001 — CSA GO] `options.environmentalStimuli` (`{LIGHT?:
+ * number}|null`, `null` par défaut) est transmis TEL QUEL, inchangé, à
+ * `observe()` à CHAQUE instant échantillonné (§11 du ticket : « LIGHT reste
+ * constant durant un appel observeTemporal() dans ce ticket ») — aucune
+ * nouvelle horloge environnementale, aucun recalcul par échantillon, aucune
+ * formule LIGHT -> LDR réimplémentée ici (ENV-13). Ce fichier n'importe
+ * toujours ni `environmentalResponseRegistry.js` ni
+ * `environmentalStimulus.js` directement : seul `observe()` (MB-OBS-001,
+ * étendu par MB-L1-ENV-001) sait comment ce paramètre produit des
+ * composants effectifs.
  */
 
 /** Réutilisation stricte de la sémantique MB-OBS-001 — aucune nouvelle catégorie. */
@@ -231,12 +242,14 @@ function advanceAllOrchestrators(runtimeUids, orchestrators, dt) {
  * @param {{ target: object, quantity: string, startTime: number, endTime: number, samplePeriod: number }} request
  * @param {Array<object>} components
  * @param {Array<object>} wires
- * @param {{ orchestrators?: Map<string, import('../simulator/runtimeOrchestrator.js').RuntimeOrchestrator> }} [options]
+ * @param {{ orchestrators?: Map<string, import('../simulator/runtimeOrchestrator.js').RuntimeOrchestrator>, environmentalStimuli?: {LIGHT?: number}|null }} [options]
  *   `orchestrators` optionnel : permet de fournir un runtime déjà
  *   configuré (scénario PWM de référence, AC-05) — voir
  *   `getOrCreateOrchestrators`. Le Scheduler qu'il porte doit être à un
  *   temps <= `request.startTime`, sans quoi la requête est rejetée
  *   explicitement (ce module ne "rembobine" jamais un Scheduler partagé).
+ *   `environmentalStimuli` [MB-L1-ENV-001] optionnel : voir l'en-tête de
+ *   fichier — transmis inchangé à `observe()` à chaque instant.
  * @returns {{ target: object, quantity: string, unit: string|null, startTime: number|null, endTime: number|null, samplePeriod: number|null, samples: Array<{time:number, value:*, status:string, reason?:string}>, status: "VALID"|"UNAVAILABLE"|"INVALID", reason?: string }}
  */
 export function observeTemporal(request, components, wires, options = {}) {
@@ -300,7 +313,7 @@ export function observeTemporal(request, components, wires, options = {}) {
     }
 
     const instantRequest = { target, quantity, time: t }
-    const result = observe(instantRequest, components, wires, externalSignals)
+    const result = observe(instantRequest, components, wires, externalSignals, options.environmentalStimuli ?? null)
 
     if (samples.length === 0 && result.status === TemporalObservationStatus.INVALID) {
       // target/quantity sont fixes sur toute la fenêtre temporelle : si le

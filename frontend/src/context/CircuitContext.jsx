@@ -66,6 +66,13 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     updateArduinoFirmware: state.updateArduinoFirmware,
     firmwareDiagnostics: state.firmwareDiagnostics,
     simulationActive: state.simulationActive,
+    // MB-L1-ENV-001 (CSA GO) : état environnemental volatile + API minimale
+    // — basse fréquence (Enter/Escape-like, jamais à chaque pixel), même
+    // statut d'exposition que `simulationActive`/`startSimulation` ci-dessus.
+    // Jamais dans interactionValue (haute fréquence) plus bas.
+    environmentalStimuli: state.environmentalStimuli,
+    setEnvironmentalStimulus: state.setEnvironmentalStimulus,
+    clearEnvironmentalStimulus: state.clearEnvironmentalStimulus,
     showGrid: state.showGrid,
     theme: state.theme,
     // MB-VIS-CANVAS-052 : `focusedComponentId` change à basse fréquence
@@ -143,6 +150,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     state.pendingPin, state.isWiringActive, state.selection, state.activeItem,
     state.selectedComponent, state.updateComponentProperties, state.updateComponentParameters, state.updateArduinoFirmware,
     state.firmwareDiagnostics, state.simulationActive, state.showGrid, state.theme,
+    state.environmentalStimuli, state.setEnvironmentalStimulus, state.clearEnvironmentalStimulus,
     state.focusedComponentId, state.focusComponent, state.exitFocus, state.adjustLocalScale,
     state.addComponent, state.addWire, state.addBreadboard, state.clearCircuit,
     state.startWireGesture,

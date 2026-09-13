@@ -42,6 +42,12 @@ import { observe, ObservationStatus, ObservationQuantity } from "../observation/
  * Toute autre validation (target malformé/inconnu, target kind non
  * supporté, quantité indisponible) est déléguée intégralement à
  * `observe()` : Measurement ne duplique aucune de ces règles (AC-13).
+ *
+ * [MB-L1-ENV-001 — CSA GO] `request.environmentalStimuli` (`{LIGHT?:
+ * number}|null`, optionnel) est transmis TEL QUEL au 5ᵉ paramètre de
+ * `observe()` — Measurement ne calcule et ne connaît AUCUNE formule
+ * LIGHT -> LDR (ENV-12) : il ne fait que relayer le contexte environnemental
+ * jusqu'à Observation, exactement comme il relaie déjà `target`/`time`.
  */
 
 /** Modes de mesure supportés en V1 (Ticket §C, Blueprint §D). */
@@ -62,7 +68,7 @@ function isSupportedMode(mode) {
 /**
  * Point d'entrée public unique de Measurement (miroir de `observe()`).
  *
- * @param {{ instrument?: string, mode: "VOLTAGE"|"CURRENT", target: { kind: "PIN"|"NET", componentUid: string, pinId: string }, time: number }} request
+ * @param {{ instrument?: string, mode: "VOLTAGE"|"CURRENT", target: { kind: "PIN"|"NET", componentUid: string, pinId: string }, time: number, environmentalStimuli?: {LIGHT?: number}|null }} request
  * @param {Array<object>} components
  * @param {Array<object>} wires
  * @returns {{ target: object, quantity: string, value: *, unit: string|null, time: number|null, status: "VALID"|"UNAVAILABLE"|"INVALID", reason?: string }}
@@ -91,5 +97,5 @@ export function measure(request, components, wires) {
     time: request.time,
   }
 
-  return observe(observationRequest, components, wires)
+  return observe(observationRequest, components, wires, null, request.environmentalStimuli ?? null)
 }

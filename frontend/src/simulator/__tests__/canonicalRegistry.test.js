@@ -53,11 +53,17 @@ describe('canonicalRegistry — contract shape', () => {
         minimum: 100,
         maximum: 10000000,
         defaultValue: 10000,
-        description: expect.stringMatching(/mode simplifié/i),
+        description: expect.stringMatching(/fallback historique/i),
       },
     ]);
-    expect(entry.parameterSchema[0].description).toMatch(/résistance fixe|constante/i);
-    expect(entry.parameterSchema[0].description).toMatch(/lumière/i);
+    // MB-L1-ENV-001 : le texte déclaratif reflète désormais le nouveau
+    // modèle (résistance persistante = fallback historique sans LIGHT actif,
+    // résistance EFFECTIVE calculée par le Registry environnemental sous
+    // LIGHT) — seul ce texte a changé (§15 du ticket), jamais minimum/
+    // maximum/defaultValue/pins/capabilities/modelAvailable, déjà vérifiés
+    // ci-dessus et ci-dessous.
+    expect(entry.parameterSchema[0].description).toMatch(/résistance fixe/i);
+    expect(entry.parameterSchema[0].description).toMatch(/LIGHT/);
     expect(entry.defaultParameters).toEqual({ resistance: 10000 });
     expect(entry.capabilities).toEqual(['digital', 'dc']);
     expect(entry.modelAvailable).toBe(true);

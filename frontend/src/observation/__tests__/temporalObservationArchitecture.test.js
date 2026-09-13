@@ -116,9 +116,9 @@ describe("MB-OBS-002 — AC-03 : aucune seconde horloge, aucun temps réel", () 
 })
 
 describe("MB-OBS-002 — observationContract.js : extension additive vérifiée, MB-OBS-001 non affaibli", () => {
-  it("observe() reste importable et appelable à 3 arguments (aucun paramètre requis ajouté)", () => {
+  it("observe() reste importable et appelable à 3 arguments (aucun paramètre requis ajouté — MB-L1-ENV-001 n'a ajouté qu'un 5ᵉ paramètre optionnel, lui aussi par défaut null)", () => {
     const source = readSourceWithoutComments(observationContractPath)
-    expect(source).toMatch(/export function observe\(request, components, wires, externalSignals\s*=\s*null\)/)
+    expect(source).toMatch(/export function observe\(request, components, wires, externalSignals\s*=\s*null, environmentalStimuli\s*=\s*null\)/)
   })
 
   it("observationContract.js n'importe toujours ni clock.js, ni scheduler.js, ni runtimeOrchestrator.js, ni simulationRuntimeIntegration.js (AC-08 : aucune nouvelle horloge introduite dans MB-OBS-001)", () => {

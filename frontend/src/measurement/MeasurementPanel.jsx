@@ -23,8 +23,13 @@ import { measure, MeasurementMode, MeasurementStatus } from "./measurementContra
  * Deliberately out of scope, per the Ticket §P / Blueprint §C: visual
  * polish, complex layout, a generic instrumentation panel, an oscilloscope,
  * measurement history, waveform display, 3D presentation.
+ *
+ * [MB-L1-ENV-001 — CSA GO] `environmentalStimuli` (optional, `null` by
+ * default) is relayed as-is into the measurement request — this component
+ * computes no environmental effect itself (ENV-12), it only forwards
+ * context to `measure()`, same as `components`/`wires`/`time`.
  */
-export function MeasurementPanel({ instrument = "measurement-panel-1", components, wires, time = 0, targets = [] }) {
+export function MeasurementPanel({ instrument = "measurement-panel-1", components, wires, time = 0, targets = [], environmentalStimuli = null }) {
   const [mode, setMode] = useState(MeasurementMode.VOLTAGE)
   const [targetIndex, setTargetIndex] = useState(0)
   const [result, setResult] = useState(null)
@@ -38,6 +43,7 @@ export function MeasurementPanel({ instrument = "measurement-panel-1", component
       mode,
       target: { kind: selectedTarget.kind ?? "PIN", componentUid: selectedTarget.componentUid, pinId: selectedTarget.pinId },
       time,
+      environmentalStimuli,
     }
     setResult(measure(request, components, wires))
   }

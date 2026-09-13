@@ -40,9 +40,13 @@ import "./LiveMeasurementPanel.css"
  * l'instrument est fermé. `wires`, lui, est lu depuis le contexte STABLE
  * (`useCircuit()`) — il n'y a pas de second `wires` haute fréquence dans ce
  * dépôt (voir CircuitContext.jsx : `wires` est déjà exposé par `stableValue`).
+ *
+ * [MB-L1-ENV-001 — CSA GO] `environmentalStimuli` est lu depuis le même
+ * contexte STABLE (basse fréquence, comme `simulationActive`) et relayé tel
+ * quel à `MeasurementPanel` — aucun calcul environnemental propre (ENV-12).
  */
 export function LiveMeasurementPanel({ onClose }) {
-  const { wires } = useCircuit()
+  const { wires, environmentalStimuli } = useCircuit()
   const { components } = useCircuitInteraction()
 
   const targets = useMemo(() => {
@@ -71,7 +75,7 @@ export function LiveMeasurementPanel({ onClose }) {
             ✕
           </button>
         </header>
-        <MeasurementPanel components={components} wires={wires} targets={targets} time={0} />
+        <MeasurementPanel components={components} wires={wires} targets={targets} time={0} environmentalStimuli={environmentalStimuli} />
       </div>
     </div>
   )

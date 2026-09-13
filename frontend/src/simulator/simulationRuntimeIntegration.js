@@ -9,6 +9,7 @@ import { runSimulation } from "./engine.js"
 import { prepareCircuit } from "./preparation.js"
 import { resolveSignals } from "./resolution.js"
 import { createRuntimeOrchestrator } from "./runtimeOrchestrator.js"
+import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
 
 /**
  * MB-SIM-011 — Intégration Simulation ↔ Scheduler/Runtime (SIM3).
@@ -96,7 +97,7 @@ export function circuitRequiresRuntime(components) {
  *
  * @param {Array<{ uid, type, x, y, pins? }>} components
  * @param {Array<{ fromUid, fromPin, toUid, toPin }>} wires
- * @param {{ dt?: number, orchestrators?: Map<string, import('./runtimeOrchestrator.js').RuntimeOrchestrator> }} [options]
+ * @param {{ dt?: number, orchestrators?: Map<string, import('./runtimeOrchestrator.js').RuntimeOrchestrator>, environmentalStimuli?: {LIGHT?: number}|null }} [options]
  *   `dt` : délégué tel quel à RuntimeOrchestrator.advance() pour chaque
  *   composant Runtime (0 par défaut — aucune progression temporelle si
  *   omis). `orchestrators` : Map optionnelle uid → RuntimeOrchestrator,
@@ -105,14 +106,28 @@ export function circuitRequiresRuntime(components) {
  *   simulation répétés) ; une nouvelle Map est utilisée si omise. Tous
  *   les RuntimeOrchestrator créés automatiquement par un même appel
  *   partagent un unique Scheduler (une seule source de temps, GATE 1).
+ *   `environmentalStimuli` [MB-L1-ENV-001] : état environnemental volatile
+ *   optionnel (§13 du ticket), transmis tel quel à
+ *   `applyEnvironmentalStimuli()` (environmentalStimulus.js, seule primitive
+ *   productrice des paramètres électriques effectifs — ENV-15/ENV-16).
+ *   `null`/omis -> comportement historique strictement inchangé (ENV-18) :
+ *   `applyEnvironmentalStimuli` retourne alors la MÊME référence
+ *   `components`, donc GATE 0 ci-dessous reste vrai à l'identique.
  * @returns {Map<string, string>} pinSignals — même format que
  *   runSimulation() (clé "uid:pinId" → Signal), désormais calculé avec
  *   les signaux Runtime comme entrées de la résolution le cas échéant.
  */
 export function runSimulationWithRuntime(components, wires, options = {}) {
-  const runtimeComponents = (components || []).filter((c) => c && c.type === RUNTIME_COMPONENT_TYPE)
+  // MB-L1-ENV-001 (§9 du ticket) : les composants EFFECTIFS (paramètres
+  // électriques soumis à l'environnement, ex. résistance LDR sous LIGHT)
+  // sont calculés AVANT prepareCircuit()/resolveSignals() et avant
+  // runSimulation() — jamais après. `effectiveComponents === components`
+  // (même référence) tant qu'aucun stimulus valide n'est actif : GATE 0
+  // (non-régression, ci-dessous) reste donc exactement vraie.
+  const effectiveComponents = applyEnvironmentalStimuli(components, options.environmentalStimuli)
+  const runtimeComponents = (effectiveComponents || []).filter((c) => c && c.type === RUNTIME_COMPONENT_TYPE)
   if (runtimeComponents.length === 0) {
-    return runSimulation(components, wires)
+    return runSimulation(effectiveComponents, wires)
   }
 
   const dt = options.dt ?? 0
@@ -168,8 +183,8 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
     const signalMap = orchestrators.get(comp.uid).getRuntime().tick(currentTimeMs)
     for (const [pinId, signal] of signalMap) externalSignals.set(`${comp.uid}:${pinId}`, signal)
   }
-  const prepared = prepareCircuit(components, wires)
-  const { pinSignals } = resolveSignals(components, prepared, externalSignals)
+  const prepared = prepareCircuit(effectiveComponents, wires)
+  const { pinSignals } = resolveSignals(effectiveComponents, prepared, externalSignals)
   return pinSignals
 }
 
