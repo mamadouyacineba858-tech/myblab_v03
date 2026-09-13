@@ -1,7 +1,7 @@
 {
   "component": "CAPACITOR",
   "backend": "raster",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "assetFamily": "capacitor",
   "canonical": {
     "width": 70,
@@ -34,10 +34,7 @@
       "file": "capacitor.default.1x.png",
       "bytes": 1811,
       "sha256": "d1faeb38713037f2747a2ec31a557bf5d394f127433fa16e890c6381713ba389",
-      "dimensions": [
-        70,
-        40
-      ],
+      "dimensions": [70, 40],
       "alpha": true,
       "legacy": true
     },
@@ -45,10 +42,7 @@
       "file": "capacitor.default.1x.webp",
       "bytes": 1544,
       "sha256": "fdf6f123c669a9c65630430461e3c95882132a89798f05e8ec07d475759e03c3",
-      "dimensions": [
-        70,
-        40
-      ],
+      "dimensions": [70, 40],
       "alpha": true,
       "legacy": true
     },
@@ -56,10 +50,7 @@
       "file": "capacitor.default.3x.png",
       "bytes": 11573,
       "sha256": "684e8ee6e7fe7cb26c39be87d7ea0ee89b0d4fbdbac52d4601ad1864633b46be",
-      "dimensions": [
-        210,
-        120
-      ],
+      "dimensions": [210, 120],
       "alpha": true,
       "legacy": true
     },
@@ -67,57 +58,42 @@
       "file": "capacitor.default.3x.webp",
       "bytes": 4122,
       "sha256": "5ecc61c5598dccc067258de6d4187d1e26ebed13f4deb51c54deb4d8d11084b8",
-      "dimensions": [
-        210,
-        120
-      ],
+      "dimensions": [210, 120],
       "alpha": true,
       "legacy": true
     },
     {
       "file": "capacitor.base.1x.png",
-      "bytes": 2213,
-      "sha256": "72a63d19a3ba7fa8d36d6f9f5959ff96bc4afc68982e46a14c617d51afa9a251",
-      "dimensions": [
-        70,
-        40
-      ],
+      "bytes": 2185,
+      "sha256": "cb7f47a934f62d8ea6c968b1804e594918958f63126e17bce982b220d31f3526",
+      "dimensions": [70, 40],
       "alpha": true,
-      "originTicket": "MB-L1-PROP-005"
+      "originTicket": "MB-L1-PROP-005-R1"
     },
     {
       "file": "capacitor.base.1x.webp",
-      "bytes": 1876,
-      "sha256": "d63c81be85be0e435b3fc757b6bfa49825e2c72d12692517b2fcc18b647ee575",
-      "dimensions": [
-        70,
-        40
-      ],
+      "bytes": 1838,
+      "sha256": "dde66e964989393f5f7e50de072e9bfafa40103c4704789eb335601367a6db9d",
+      "dimensions": [70, 40],
       "alpha": true,
-      "originTicket": "MB-L1-PROP-005"
+      "originTicket": "MB-L1-PROP-005-R1"
     },
     {
       "file": "capacitor.base.3x.png",
-      "bytes": 8406,
-      "sha256": "c9e245b27303e353e61ec08d1813ef294ae1f9636db891f88d5a799dfd7c7efd",
-      "dimensions": [
-        210,
-        120
-      ],
+      "bytes": 10448,
+      "sha256": "a8c856f4d5723914dfc0871d8efb3abcfff0cb83799a6592f1d8675ae52fa955",
+      "dimensions": [210, 120],
       "alpha": true,
-      "originTicket": "MB-L1-PROP-005",
-      "$comment": "Corps neutre Candidate C (R&D CAPACITOR asset R&D, sélection CSA/CTO) — disque céramique radial non polarisé, silhouette superellipse générée programmatiquement (Pillow/numpy), aucune valeur de capacitance cuite. Le marquage (ex. \"104\") est un overlay DOM dérivé de component.parameters.capacitance à chaque rendu (capacitorMarking.js), jamais peint dans ce raster."
+      "originTicket": "MB-L1-PROP-005-R1",
+      "$comment": "Correction visuelle V2 après Canvas FAIL du CTO : corps céramique radial orange, plus rond/volumétrique, avec reflet de glaçure réaliste et deux pieds de corps alignés sur les racines mécaniques existantes. Asset neutre : aucun code EIA n'est peint dans le raster ; le marquage reste un overlay DOM dérivé de component.parameters.capacitance."
     },
     {
       "file": "capacitor.base.3x.webp",
-      "bytes": 6450,
-      "sha256": "4e7cd4b73c72684a16afd53b78555c43a4e8995c3967bc33c226b6760ec963c0",
-      "dimensions": [
-        210,
-        120
-      ],
+      "bytes": 5962,
+      "sha256": "23db61b426014460a82ca8681b1db21abbafb2888c844bfce2a09e3389620419",
+      "dimensions": [210, 120],
       "alpha": true,
-      "originTicket": "MB-L1-PROP-005"
+      "originTicket": "MB-L1-PROP-005-R1"
     }
   ]
 }
