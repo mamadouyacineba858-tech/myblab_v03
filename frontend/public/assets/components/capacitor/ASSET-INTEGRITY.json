@@ -1,6 +1,6 @@
 {
   "component": "CAPACITOR",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "algorithm": "SHA-256",
   "files": [
     {
@@ -25,23 +25,23 @@
     },
     {
       "file": "capacitor.base.1x.png",
-      "bytes": 2213,
-      "sha256": "72a63d19a3ba7fa8d36d6f9f5959ff96bc4afc68982e46a14c617d51afa9a251"
+      "bytes": 2185,
+      "sha256": "cb7f47a934f62d8ea6c968b1804e594918958f63126e17bce982b220d31f3526"
     },
     {
       "file": "capacitor.base.1x.webp",
-      "bytes": 1876,
-      "sha256": "d63c81be85be0e435b3fc757b6bfa49825e2c72d12692517b2fcc18b647ee575"
+      "bytes": 1838,
+      "sha256": "dde66e964989393f5f7e50de072e9bfafa40103c4704789eb335601367a6db9d"
     },
     {
       "file": "capacitor.base.3x.png",
-      "bytes": 8406,
-      "sha256": "c9e245b27303e353e61ec08d1813ef294ae1f9636db891f88d5a799dfd7c7efd"
+      "bytes": 10448,
+      "sha256": "a8c856f4d5723914dfc0871d8efb3abcfff0cb83799a6592f1d8675ae52fa955"
     },
     {
       "file": "capacitor.base.3x.webp",
-      "bytes": 6450,
-      "sha256": "4e7cd4b73c72684a16afd53b78555c43a4e8995c3967bc33c226b6760ec963c0"
+      "bytes": 5962,
+      "sha256": "23db61b426014460a82ca8681b1db21abbafb2888c844bfce2a09e3389620419"
     }
   ]
 }
