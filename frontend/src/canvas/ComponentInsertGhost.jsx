@@ -100,6 +100,17 @@ function ComponentInsertGhostImpl({ type, position, valid, breadboard = null }) 
       >
         <PartRenderer type={type} uid={GHOST_UID} pinSignals={EMPTY_PIN_SIGNALS} />
       </div>
+      {/* L1-BREAD-001 (D6) : indicateur compact PRESENTATION-ONLY, dérivé de
+          la MÊME prop `valid` que la classe --valid/--invalid ci-dessus
+          (aucune revalidation). Ne modifie ni layout ni AssemblyLeads ni
+          PartRenderer ni pins — absolutely positioned, pointer-events:none. */}
+      <div
+        className="component-insert-ghost__status"
+        data-state={valid ? "valid" : "invalid"}
+        aria-hidden="true"
+      >
+        {valid ? "✓" : "×"}
+      </div>
     </div>
   )
 }

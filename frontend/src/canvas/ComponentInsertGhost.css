@@ -28,3 +28,32 @@
   outline: 2px dashed #dc2626;
   outline-offset: 3px;
 }
+
+/* L1-BREAD-001 (D6) : indicateur compact valid/invalid — compact, jamais une
+   bannière/tooltip. Ne modifie pas le layout géométrique du composant
+   (position: absolute, en dehors du flux). Réutilise la même palette que
+   l'outline ci-dessus (aucune troisième palette). */
+.component-insert-ghost__status {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  pointer-events: none;
+  color: #ffffff;
+}
+
+.component-insert-ghost__status[data-state="valid"] {
+  background: #16a34a;
+}
+
+.component-insert-ghost__status[data-state="invalid"] {
+  background: #dc2626;
+}

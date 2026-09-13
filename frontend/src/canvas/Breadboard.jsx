@@ -26,6 +26,12 @@ const HOLE_RADIUS = 1.6
 // Marge visuelle autour de la grille de trous (même unité que BREADBOARD_PITCH,
 // purement esthétique — ne participe à aucun calcul de connectivité).
 const PADDING = BREADBOARD_PITCH
+// L1-BREAD-001 (D3/§9) : rayon PUREMENT décoratif du "placement target ring"
+// — strictement supérieur au trou visuel (HOLE_RADIUS/CSS 2.7px) et
+// strictement inférieur à BREADBOARD_PITCH/2 (marge visuelle, deux cibles
+// adjacentes restent distinguables). Ne participe à AUCUN calcul de
+// connectivité/placement — jamais lu par holeAt()/resolveComponentContactHoles.
+const TARGET_RING_RADIUS = 4.75
 
 /**
  * Breadboard.jsx — MB-BREADBOARD-002 (Blueprint MB-BREADBOARD-001 §8).
@@ -468,14 +474,43 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
           polarityClass,
           occupancyClass,
         ].filter(Boolean).join(" ")
+        // L1-BREAD-001 (D3) : `targetState` est DÉRIVÉ des classes de
+        // feedback déjà calculées ci-dessus (`feedbackClass` — drag d'un
+        // composant existant — puis `insertPreviewClass` — aperçu Sidebar —
+        // même priorité que `occupancyClass`, D5) : jamais une revalidation
+        // indépendante. `null` pour tout trou hors placement courant.
+        const activeFeedbackClass = feedbackClass ?? insertPreviewClass
+        const targetState =
+          activeFeedbackClass === "breadboard__hole--feedback-valid"
+            ? "valid"
+            : activeFeedbackClass === "breadboard__hole--feedback-invalid"
+              ? "invalid"
+              : null
+        const cx = hole.x - breadboard.position.x + PADDING
+        const cy = hole.y - breadboard.position.y + PADDING
         return (
-          <circle
-            key={key}
-            className={classes}
-            cx={hole.x - breadboard.position.x + PADDING}
-            cy={hole.y - breadboard.position.y + PADDING}
-            r={HOLE_RADIUS}
-          />
+          <React.Fragment key={key}>
+            <circle
+              className={classes}
+              cx={cx}
+              cy={cy}
+              r={HOLE_RADIUS}
+            />
+            {/* D3 : second <circle> purement décoratif, coaxial (même cx/cy
+                que le trou canonique ci-dessus) — jamais un remplacement du
+                trou, jamais un second hit-test (fill:none, pointer-events:
+                none). N'existe que sur les quelques trous cibles actifs. */}
+            {targetState && (
+              <circle
+                className={`breadboard__target-ring breadboard__target-ring--${targetState}`}
+                cx={cx}
+                cy={cy}
+                r={TARGET_RING_RADIUS}
+                fill="none"
+                pointerEvents="none"
+              />
+            )}
+          </React.Fragment>
         )
       })}
     </svg>

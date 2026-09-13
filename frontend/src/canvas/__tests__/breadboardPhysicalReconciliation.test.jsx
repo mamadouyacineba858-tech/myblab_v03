@@ -102,8 +102,14 @@ describe('MB-VIS-BREAD-041 — géométrie & topologie INCHANGÉES', () => {
   it('T4 — aucune seconde grille de coordonnées : un seul appel holeAt() dans la boucle de rendu, cx/cy = expression column/row', () => {
     const code = stripComments(BB_JSX)
     expect((code.match(/holeAt\(/g) || []).length).toBe(1)
-    expect(code).toMatch(/cx=\{hole\.x - breadboard\.position\.x \+ PADDING\}/)
-    expect(code).toMatch(/cy=\{hole\.y - breadboard\.position\.y \+ PADDING\}/)
+    // L1-BREAD-001 : cx/cy sont désormais extraits dans des variables locales
+    // (réutilisées à l'identique par le "placement target ring" décoratif
+    // coaxial, D3) avant d'être posés sur les attributs JSX — MÊME expression
+    // EXACTE qu'avant ce ticket, jamais recalculée ni dupliquée différemment.
+    expect(code).toMatch(/const\s+cx\s*=\s*hole\.x - breadboard\.position\.x \+ PADDING/)
+    expect(code).toMatch(/const\s+cy\s*=\s*hole\.y - breadboard\.position\.y \+ PADDING/)
+    expect(code).toMatch(/cx=\{cx\}/)
+    expect(code).toMatch(/cy=\{cy\}/)
   })
 
   it('T13 — résolution PhysicalContacts inchangée (LED : anode col2/row6, cathode col4/row6)', () => {

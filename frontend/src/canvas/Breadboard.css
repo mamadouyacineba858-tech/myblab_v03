@@ -166,6 +166,26 @@
   stroke-width: 1.6;
 }
 
+/* --- L1-BREAD-001 — Placement Target Ring -----------------------------
+   Second <circle> purement décoratif (Breadboard.jsx), coaxial au trou
+   canonique. N'existe que sur les quelques trous concernés par un
+   placement en cours — jamais un filtre appliqué aux centaines de trous.
+   Réutilise exactement la palette valid/invalid ci-dessus (aucune
+   troisième palette). */
+.breadboard__target-ring {
+  fill: none;
+  pointer-events: none;
+  stroke-width: 1.5;
+}
+
+.breadboard__target-ring--valid {
+  stroke: #16a34a;
+}
+
+.breadboard__target-ring--invalid {
+  stroke: #dc2626;
+}
+
 /* --- Repères alphanumériques : lisibles mais discrets -----------------
    Gris neutre, jamais plus saillants que les trous (§16). */
 .breadboard__labels {
