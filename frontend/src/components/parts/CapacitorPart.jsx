@@ -3,54 +3,39 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
 import { encodeCapacitorMarking } from '../../visualization/capacitorMarking.js'
 
 /**
- * CAPACITOR — rendu raster réaliste (Candidate C) + marquage dynamique
- * (MB-L1-PROP-005, sur l'audit du renderer CSS/DOM précédent MB-L1-CONS-002).
+ * CAPACITOR — rendu raster réaliste + marquage dynamique.
  *
- * Le corps réaliste est un asset raster neutre (`capacitor.base.*`, disque
- * céramique radial non polarisé, silhouette Candidate C sélectionnée par le
- * CSA/CTO après R&D — aucune valeur de capacitance peinte). Le marquage EIA
- * 3 chiffres (« 104 », etc.) est dérivé à CHAQUE rendu depuis
- * `parameters.capacitance` (seule source de vérité, résolue génériquement
- * par `resolveComponentParameters` dans PartRenderer.jsx) via
- * `encodeCapacitorMarking` — jamais persisté, jamais recalculé à partir d'un
- * état visuel stocké.
+ * MB-L1-PROP-005-R1 : le Canvas Gate du premier asset (Candidate C) a validé
+ * toute la logique capacitance → marquage mais a rejeté la silhouette physique
+ * trop plate. Le corps `capacitor.base.*` est donc remplacé par la cible V2
+ * approuvée par le CTO : disque céramique radial orange plus rond/volumétrique,
+ * reflet de glaçure visible, pieds de corps alignés sur les racines mécaniques.
+ * Les longues pattes restent rendues par AssemblyLeadsLayer afin de préserver
+ * exactement les PhysicalContacts ; leur profil déclare désormais le style
+ * `metallic-wire` (métal poli, même lecture visuelle que les leads RESISTOR).
  *
- * Représentabilité (§16/§17 du ticket) : une valeur électrique non
- * exactement représentable par le code ABN, ou hors du domaine physique
- * qualifié V1 (10 pF..1 µF), ne produit JAMAIS de marquage — le corps neutre
- * seul est rendu. Aucun arrondi silencieux, aucun mensonge visuel (ex. 123 nF
- * reste 123 nF électriquement, le Canvas ne montre aucun faux code).
+ * Le marquage EIA 3 chiffres (« 104 », etc.) reste dérivé à CHAQUE rendu depuis
+ * `parameters.capacitance` (source de vérité unique, résolue génériquement par
+ * PartRenderer) via `encodeCapacitorMarking` — jamais persisté et jamais peint
+ * dans le raster.
  *
- * Zone de marquage : mesurée par probe pixel sur l'asset Candidate C
- * (R&D CAPACITOR-ASSET-RD-REPORT.md, safe_marking_zone_native3x), exprimée
- * en POURCENTAGE de la boîte canonique 70×40 — suit donc automatiquement
- * zoom global et `localScale` sans aucune correction ici, comme les bandes
- * RESISTOR (MB-L1-PROP-004).
- *
- * Contrat :
- *  - dimensions dérivées de `getComponentDef("CAPACITOR")` (70×40) — aucune
- *    valeur recopiée, `componentDefinitions.js` NON modifié ;
- *  - pins pinA(0,20) / pinB(70,20) : produits par CircuitComponent/Pin,
- *    **jamais dessinés dans l'asset ni ici** ;
- *  - l'`<img>` et le marquage ne portent AUCUN gestionnaire, `draggable=false`
- *    sur l'image, `pointer-events: none` sur l'image ET le marquage → drag /
- *    sélection / câblage / hit-test / zoom restent la responsabilité
- *    exclusive du wrapper `.circuit-component` et de la couche canvas
- *    globale.
+ * Représentabilité : une valeur non exactement représentable par le code ABN,
+ * ou hors du domaine physique qualifié V1 (10 pF..1 µF), rend le corps neutre.
+ * Aucun arrondi silencieux, aucune mutation de la valeur électrique.
  */
 const ASSET_DIR = '/assets/components/capacitor'
 const WEBP_SRCSET = `${ASSET_DIR}/capacitor.base.1x.webp 1x, ${ASSET_DIR}/capacitor.base.3x.webp 3x`
 const PNG_SRCSET = `${ASSET_DIR}/capacitor.base.1x.png 1x, ${ASSET_DIR}/capacitor.base.3x.png 3x`
 const PNG_FALLBACK = `${ASSET_DIR}/capacitor.base.3x.png`
 
-// Zone sûre de marquage (Candidate C), en % de la boîte canonique 70×40 —
-// dérivée de probes/candidate-C.json (safe_marking_zone_native3x =
-// [74.0, 29.8, 135.0, 62.2] sur un canevas natif 210×120 = 3× la boîte).
+// Zone sûre V2 : x=78..132, y=30..60 sur le master 210×120. Elle reste
+// exprimée en pourcentage de la boîte canonique 70×40 afin de suivre le zoom
+// et le localScale sans correction parallèle.
 const MARKING_ZONE = Object.freeze({
-  leftPercent: 35.24,
-  topPercent: 24.83,
-  widthPercent: 29.05,
-  heightPercent: 27,
+  leftPercent: 37.14,
+  topPercent: 25,
+  widthPercent: 25.71,
+  heightPercent: 25,
 })
 
 export function CapacitorPart({ parameters } = {}) {
