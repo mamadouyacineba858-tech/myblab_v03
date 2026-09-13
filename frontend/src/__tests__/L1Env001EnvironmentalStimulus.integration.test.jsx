@@ -11,12 +11,7 @@
  * chemin produit (vrai CircuitProvider/useCircuitState) est cohérent de
  * bout en bout, comme l'exige le ticket §14.
  */
-// Requis par le transform JSX de ce projet (classic runtime en test), malgré
-// le signalement ESLint "'React' is defined but never used" — même
-// catégorie déjà présente et acceptée telle quelle dans le dépôt
-// (MeasurementPanel.jsx/AddWireMutationChannel.integration.test.jsx/
-// useCircuitStateArduinoBridge.test.jsx et de nombreux autres).
-import React from "react"
+import React from "react" // eslint-disable-line no-unused-vars -- Required by the official Vitest classic JSX transform.
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, resolve } from "node:path"
