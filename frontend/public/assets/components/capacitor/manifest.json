@@ -38,7 +38,8 @@
         70,
         40
       ],
-      "alpha": true
+      "alpha": true,
+      "legacy": true
     },
     {
       "file": "capacitor.default.1x.webp",
@@ -48,7 +49,8 @@
         70,
         40
       ],
-      "alpha": true
+      "alpha": true,
+      "legacy": true
     },
     {
       "file": "capacitor.default.3x.png",
@@ -58,7 +60,8 @@
         210,
         120
       ],
-      "alpha": true
+      "alpha": true,
+      "legacy": true
     },
     {
       "file": "capacitor.default.3x.webp",
@@ -68,7 +71,53 @@
         210,
         120
       ],
-      "alpha": true
+      "alpha": true,
+      "legacy": true
+    },
+    {
+      "file": "capacitor.base.1x.png",
+      "bytes": 2213,
+      "sha256": "72a63d19a3ba7fa8d36d6f9f5959ff96bc4afc68982e46a14c617d51afa9a251",
+      "dimensions": [
+        70,
+        40
+      ],
+      "alpha": true,
+      "originTicket": "MB-L1-PROP-005"
+    },
+    {
+      "file": "capacitor.base.1x.webp",
+      "bytes": 1876,
+      "sha256": "d63c81be85be0e435b3fc757b6bfa49825e2c72d12692517b2fcc18b647ee575",
+      "dimensions": [
+        70,
+        40
+      ],
+      "alpha": true,
+      "originTicket": "MB-L1-PROP-005"
+    },
+    {
+      "file": "capacitor.base.3x.png",
+      "bytes": 8406,
+      "sha256": "c9e245b27303e353e61ec08d1813ef294ae1f9636db891f88d5a799dfd7c7efd",
+      "dimensions": [
+        210,
+        120
+      ],
+      "alpha": true,
+      "originTicket": "MB-L1-PROP-005",
+      "$comment": "Corps neutre Candidate C (R&D CAPACITOR asset R&D, sélection CSA/CTO) — disque céramique radial non polarisé, silhouette superellipse générée programmatiquement (Pillow/numpy), aucune valeur de capacitance cuite. Le marquage (ex. \"104\") est un overlay DOM dérivé de component.parameters.capacitance à chaque rendu (capacitorMarking.js), jamais peint dans ce raster."
+    },
+    {
+      "file": "capacitor.base.3x.webp",
+      "bytes": 6450,
+      "sha256": "4e7cd4b73c72684a16afd53b78555c43a4e8995c3967bc33c226b6760ec963c0",
+      "dimensions": [
+        210,
+        120
+      ],
+      "alpha": true,
+      "originTicket": "MB-L1-PROP-005"
     }
   ]
 }

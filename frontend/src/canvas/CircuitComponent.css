@@ -215,18 +215,47 @@
   justify-content: center;
 }
 
-/* MB-VIS-PROTOTYPE-004 — CAPACITOR portée au backend raster : le renderer
-   rend un asset `<picture>/<img>` transparent (état unique `default`).
-   `.part-capacitor` est conservée (hook de style + contrat du composant) et
-   réduite au centrage, comme `.part-resistor` / `.part-diode` / `.part-led`.
-   Les anciennes règles `.part-capacitor__lead/disc/disc-outline` ciblaient
-   des primitives SVG qui n'existent plus. */
+/* MB-VIS-PROTOTYPE-004 / MB-L1-PROP-005 — CAPACITOR portée (à nouveau) au
+   backend raster : le renderer rend un asset `<picture>/<img>` transparent
+   (état unique `base`, corps Candidate C) + un marquage EIA dynamique en
+   overlay DOM (`.part-capacitor__marking`, dérivé de
+   `parameters.capacitance`, jamais peint dans l'asset). `position: relative`
+   ajouté (comme `.part-resistor`, MB-L1-PROP-004) pour que le marquage,
+   positionné en `%` de CETTE boîte (jamais de l'image), suive automatiquement
+   zoom global et `localScale` sans aucune correction JS. */
 .part-capacitor {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* MB-L1-PROP-005 — marquage EIA 3 chiffres imprimé sur le corps Candidate C,
+   jamais une étiquette HTML posée par-dessus : pas de fond, pas de bordure,
+   pas de glow, pas d'ombre disproportionnée — seule une légère ombre de
+   contraste (lisible aussi bien en thème clair que sombre, le corps raster
+   ne changeant pas avec le thème). `pointer-events: none` : le marquage ne
+   capte jamais drag/sélection/câblage (responsabilité exclusive du wrapper
+   `.circuit-component`). Position/dimensions en `%` injectées inline par
+   CapacitorPart.jsx (zone sûre Candidate C, probe R&D) — cette règle ne fixe
+   que l'apparence typographique, jamais la géométrie. */
+.part-capacitor__marking {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: #241608;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  user-select: none;
+  white-space: nowrap;
 }
 
 /* MB-VIS-COMP-031 — BUZZER porté au backend raster : le renderer rend un

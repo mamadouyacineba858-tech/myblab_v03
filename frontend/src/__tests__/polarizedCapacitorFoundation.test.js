@@ -126,7 +126,7 @@ describe('FT-C-COMP-002 — non-régression', () => {
     expect(getCanonicalEntry('CAPACITOR').pins.map((p) => p.id)).toEqual(['pinA', 'pinB'])
     // dimensions et modèle inchangés
     expect([getComponentDef('CAPACITOR').width, getComponentDef('CAPACITOR').height]).toEqual([70, 40])
-    expect(getCanonicalEntry('CAPACITOR').defaultParameters).toEqual({ capacitance: 0.0001 })
+    expect(getCanonicalEntry('CAPACITOR').defaultParameters).toEqual({ capacitance: 1e-7 })
   })
 
   it('T13 — les composants déjà validés conservent leurs pins canoniques', () => {

@@ -115,14 +115,14 @@ describe('canonicalRegistry — contract shape', () => {
     expect(entry.modelAvailable).toBe(true);
   });
 
-  it('MB-SIM-008 v2 : CAPACITOR entry exposes the complete declarative contract', () => {
+  it('MB-SIM-008 v2 / MB-L1-PROP-005 : CAPACITOR entry exposes the complete declarative contract', () => {
     const entry = getCanonicalEntry('CAPACITOR');
     expect(entry.pins).toEqual(COMPONENT_TYPES.CAPACITOR.pins.map(({ id, role }) => ({ id, role })));
     expect(entry.parameterSchema).toEqual([
-      { key: 'capacitance', parameterType: 'capacitance', unit: 'F', minimum: 1e-12, maximum: 1, defaultValue: 0.0001, description: expect.stringMatching(/DC établi/i) },
+      { key: 'capacitance', parameterType: 'capacitance', unit: 'F', minimum: 1e-12, maximum: 1, defaultValue: 1e-7, description: expect.stringMatching(/DC établi/i) },
     ]);
     expect(entry.parameterSchema[0].description).toMatch(/circuit ouvert/i);
-    expect(entry.defaultParameters).toEqual({ capacitance: 0.0001 });
+    expect(entry.defaultParameters).toEqual({ capacitance: 1e-7 });
     expect(entry.capabilities).toEqual(['digital', 'dc']);
     expect(entry.modelAvailable).toBe(true);
   });
@@ -141,11 +141,11 @@ describe('canonicalRegistry — contract shape', () => {
     expect(entry.modelAvailable).toBe(true);
   });
 
-  it('FT-C-COMP-002 : CAPACITOR (céramique 104, non polarisé) reste inchangé — pinA/pinB, aucune polarité', () => {
+  it('FT-C-COMP-002 / MB-L1-PROP-005 : CAPACITOR (céramique 104, non polarisé) reste distinct de POLARIZED_CAPACITOR — pinA/pinB, aucune polarité', () => {
     const entry = getCanonicalEntry('CAPACITOR');
     expect(entry.pins.map((p) => p.id)).toEqual(['pinA', 'pinB']);
     expect(entry.pins.some((p) => p.id === 'plus' || p.id === 'minus')).toBe(false);
-    expect(entry.defaultParameters).toEqual({ capacitance: 0.0001 });
+    expect(entry.defaultParameters).toEqual({ capacitance: 1e-7 });
   });
 
   it('MB-SIM-008 v2 : POTENTIOMETER entry exposes the complete declarative contract', () => {

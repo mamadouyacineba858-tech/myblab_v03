@@ -49,6 +49,30 @@ describe('MB-L1-CVE-001 — TEST T7 : ADD_COMPONENT matérialise les defaults ca
     act(() => { getApi().addComponent('LED', 100, 100) })
     expect(getApi().components[0].parameters).toEqual({})
   })
+
+  it('MB-L1-PROP-005 — un nouveau CAPACITOR possède parameters.capacitance === 1e-7 (100 nF, jamais 1e-4/100 µF)', () => {
+    const { getApi } = renderInspector()
+    act(() => { getApi().addComponent('CAPACITOR', 100, 100) })
+    expect(getApi().components[0].parameters).toEqual({ capacitance: 1e-7 })
+    expect(getApi().components[0].parameters.capacitance).not.toBe(1e-4)
+  })
+
+  it('MB-L1-PROP-005 — éditer capacitance depuis le nouveau défaut, puis Undo/Redo', () => {
+    const { getApi, getByDisplayValue } = renderInspector()
+    act(() => { getApi().addComponent('CAPACITOR', 100, 100) })
+    const uid = getApi().components[0].uid
+    act(() => { getApi().selectOnly({ type: 'component', id: uid }) })
+
+    fireEvent.change(getByDisplayValue('1e-7'), { target: { value: '0.01' } })
+    fireEvent.blur(getByDisplayValue('0.01'))
+    expect(getApi().components.find((c) => c.uid === uid).parameters).toEqual({ capacitance: 0.01 })
+
+    act(() => { getApi().undo() })
+    expect(getApi().components.find((c) => c.uid === uid).parameters).toEqual({ capacitance: 1e-7 })
+
+    act(() => { getApi().redo() })
+    expect(getApi().components.find((c) => c.uid === uid).parameters).toEqual({ capacitance: 0.01 })
+  })
 })
 
 describe('MB-L1-CVE-001 — TEST T12/T13 : ComponentInspector.jsx', () => {

@@ -22,6 +22,26 @@
       "file": "capacitor.default.3x.webp",
       "bytes": 4122,
       "sha256": "5ecc61c5598dccc067258de6d4187d1e26ebed13f4deb51c54deb4d8d11084b8"
+    },
+    {
+      "file": "capacitor.base.1x.png",
+      "bytes": 2213,
+      "sha256": "72a63d19a3ba7fa8d36d6f9f5959ff96bc4afc68982e46a14c617d51afa9a251"
+    },
+    {
+      "file": "capacitor.base.1x.webp",
+      "bytes": 1876,
+      "sha256": "d63c81be85be0e435b3fc757b6bfa49825e2c72d12692517b2fcc18b647ee575"
+    },
+    {
+      "file": "capacitor.base.3x.png",
+      "bytes": 8406,
+      "sha256": "c9e245b27303e353e61ec08d1813ef294ae1f9636db891f88d5a799dfd7c7efd"
+    },
+    {
+      "file": "capacitor.base.3x.webp",
+      "bytes": 6450,
+      "sha256": "4e7cd4b73c72684a16afd53b78555c43a4e8995c3967bc33c226b6760ec963c0"
     }
   ]
 }

@@ -74,11 +74,12 @@ const LOT2 = [
 // (déclaration `visual.backend`), plus jamais un `entry.type !== 'RESISTOR'`.
 const isRaster = (type) => getComponentPresentation(type).backend === 'raster'
 
-// [MB-L1-CONS-002] CAPACITOR / THERMISTOR ont abandonné le raster pour un
-// renderer CSS/DOM pur (ni <svg> ni <img>) : ils ne satisfont ni le contrat
-// "svg dimensionné" ni le contrat "img raster" génériques ci-dessous. Liste
-// explicite (test uniquement) : cf. delivery report MB-L1-CONS-002.
-const isPhysicalDom = (type) => type === 'CAPACITOR' || type === 'THERMISTOR'
+// [MB-L1-CONS-002] THERMISTOR a abandonné le raster pour un renderer CSS/DOM
+// pur (ni <svg> ni <img>) : il ne satisfait ni le contrat "svg dimensionné"
+// ni le contrat "img raster" génériques ci-dessous. CAPACITOR est repassé au
+// backend raster par MB-L1-PROP-005 — couvert par le contrat "img raster"
+// générique (isRaster) ci-dessous, retiré de cette liste.
+const isPhysicalDom = (type) => type === 'THERMISTOR'
 
 const circuitWrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
 
@@ -168,9 +169,10 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat gé
     expect(container.querySelector('[aria-label="Résistance"]')).not.toBeNull()
   })
 
-  it('CAPACITOR : aria-label correct, aucune prop dynamique requise', () => {
-    // [MB-L1-CONS-002] aria-label réel du renderer CSS/DOM : "Condensateur
-    // céramique non polarisé" (distingue CAPACITOR de POLARIZED_CAPACITOR).
+  it('CAPACITOR : aria-label correct (sans capacitance représentable), aucune prop dynamique requise', () => {
+    // [MB-L1-PROP-005] aria-label de base (aucun marquage exact) :
+    // "Condensateur céramique non polarisé" (distingue CAPACITOR de
+    // POLARIZED_CAPACITOR).
     const { container } = render(<CapacitorPart />)
     expect(container.querySelector('[aria-label="Condensateur céramique non polarisé"]')).not.toBeNull()
   })

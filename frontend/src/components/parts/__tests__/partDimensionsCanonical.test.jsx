@@ -67,15 +67,16 @@ const CATALOG = [
   { type: "SERVO", Component: ServoPart },
   { type: "DC_MOTOR", Component: DcMotorPart },
 ]
-// [MB-L1-CONS-002] CAPACITOR / THERMISTOR ont abandonné le raster pour un
-// renderer CSS/DOM pur (corps `<div>` stylé, ni <svg> ni <img>) — `backend`
-// résout désormais à `svg` (défaut, dette de métadonnée corrigée), mais ils
-// ne rendent PAS de <svg> pour autant : ils ne peuvent donc pas être testés
-// par le même gabarit que SVG_PARTS (qui exige un <svg> racine) ni que
-// RASTER_PARTS (qui exige un <img>). Liste explicite (test uniquement — ce
-// n'est pas un branchement `type === "…"` en production) : cf. delivery
-// report MB-L1-CONS-002.
-const PHYSICAL_DOM_TYPES = new Set(["CAPACITOR", "THERMISTOR"])
+// [MB-L1-CONS-002] THERMISTOR a abandonné le raster pour un renderer CSS/DOM
+// pur (corps `<div>` stylé, ni <svg> ni <img>) — `backend` résout à `svg`
+// (défaut), mais il ne rend PAS de <svg> pour autant : il ne peut donc pas
+// être testé par le même gabarit que SVG_PARTS (qui exige un <svg> racine)
+// ni que RASTER_PARTS (qui exige un <img>). Liste explicite (test
+// uniquement — ce n'est pas un branchement `type === "…"` en production) :
+// cf. delivery report MB-L1-CONS-002. CAPACITOR est repassé au backend
+// raster par MB-L1-PROP-005 — couvert par RASTER_PARTS ci-dessous, retiré
+// de cette liste.
+const PHYSICAL_DOM_TYPES = new Set(["THERMISTOR"])
 // LDR déclare bien `backend: 'raster'` et rend un <img> réel, mais celui-ci
 // porte les dimensions NATIVES de l'asset (fixes, avec crop CSS) — seul le
 // <div> racine (`.part-ldr`) porte la boîte canonique dynamique
@@ -263,7 +264,7 @@ describe("MB-VIS-COMP-006 — dimensions des Part renderers dérivées de compon
     })
   })
 
-  // [MB-L1-CONS-002] CAPACITOR / THERMISTOR : renderer CSS/DOM pur (ni <svg>
+  // [MB-L1-CONS-002] THERMISTOR : renderer CSS/DOM pur (ni <svg>
   // ni <img>) — le <div> racine EST la boîte canonique, dynamiquement dérivée
   // de componentDefinitions.js (aucune valeur recopiée).
   describe.each(PHYSICAL_DOM_PARTS)("$type (renderer CSS/DOM physique) — dimensions du <div> racine dérivées de componentDefinitions.js ; aucun <svg>, aucun <img>", ({ type, Component }) => {

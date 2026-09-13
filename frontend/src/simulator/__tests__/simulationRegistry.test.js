@@ -55,7 +55,7 @@ describe('MB-CF2-SIM-001 simulation registry', () => {
   it('MB-SIM-008 v2 : resolves default parameters for the five newly integrated models', () => {
     expect(getSimulationDefaultParameters('DIODE')).toEqual({ forwardVoltage: 0.7, onResistance: 10 })
     expect(getSimulationDefaultParameters('DC_MOTOR')).toEqual({ resistance: 20 })
-    expect(getSimulationDefaultParameters('CAPACITOR')).toEqual({ capacitance: 0.0001 })
+    expect(getSimulationDefaultParameters('CAPACITOR')).toEqual({ capacitance: 1e-7 })
     expect(getSimulationDefaultParameters('POTENTIOMETER')).toEqual({ resistance: 10000, position: 0.5 })
     expect(getSimulationDefaultParameters('NPN_TRANSISTOR')).toEqual({ onResistance: 1 })
   })

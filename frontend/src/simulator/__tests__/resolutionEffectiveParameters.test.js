@@ -83,7 +83,7 @@ describe("MB-L1-CVE-001 — TEST T18 : POTENTIOMETER consomme sa position d'inst
 })
 
 describe("MB-L1-CVE-001 — TEST T19 : CAPACITOR reste circuit ouvert en régime DC établi, quelle que soit capacitance", () => {
-  it("capacitance modifiée (défaut 0.0001F -> 0.01F) : current reste 0 (aucune physique transitoire inventée, CV-17)", () => {
+  it("capacitance modifiée (défaut 1e-7F -> 0.01F) : current reste 0 (aucune physique transitoire inventée, CV-17)", () => {
     const atDefault = poweredCircuit("CAPACITOR", "pinA", "pinB")
     const { dcAnalysis: dcDefault } = resolveSignals(atDefault.components, prepareCircuit(atDefault.components, atDefault.wires))
     expect(dcDefault.get("c1").current).toBe(0)

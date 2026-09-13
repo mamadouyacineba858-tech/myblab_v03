@@ -48,14 +48,16 @@ const RASTER_PART_FILES = new Set(
     .map((entry) => `${entry.component.name}.jsx`)
 )
 
-// [MB-L1-CONS-002] CAPACITOR / THERMISTOR ont abandonné le raster ET le SVG
-// pour un renderer CSS/DOM pur (corps `<div>` stylé, ni <svg> ni <img>) —
-// `backend` résout désormais à `svg` (dette de métadonnée corrigée) mais ils
-// ne satisfont ni le garde-fou raster (pas d'<img>) ni le garde-fou "<svg>
-// racine sans dimension littérale" (pas de <svg> du tout). Liste explicite
-// (test uniquement, aucun branchement en production) : cf. delivery report
-// MB-L1-CONS-002.
-const PHYSICAL_DOM_PART_FILES = new Set(["CapacitorPart.jsx", "ThermistorPart.jsx"])
+// [MB-L1-CONS-002] THERMISTOR a abandonné le raster ET le SVG pour un
+// renderer CSS/DOM pur (corps `<div>` stylé, ni <svg> ni <img>) — `backend`
+// résout à `svg` (dette de métadonnée corrigée) mais il ne satisfait ni le
+// garde-fou raster (pas d'<img>) ni le garde-fou "<svg> racine sans
+// dimension littérale" (pas de <svg> du tout). Liste explicite (test
+// uniquement, aucun branchement en production) : cf. delivery report
+// MB-L1-CONS-002. CAPACITOR est repassé au backend raster par
+// MB-L1-PROP-005 — couvert par RASTER_PART_FILES ci-dessus, retiré de cette
+// liste.
+const PHYSICAL_DOM_PART_FILES = new Set(["ThermistorPart.jsx"])
 
 // [MB-L1-CONS-002] RgbLedPart.jsx est un cas distinct, pré-existant et
 // indépendant de la réconciliation CAPACITOR/THERMISTOR : il gère son propre

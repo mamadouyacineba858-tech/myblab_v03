@@ -36,7 +36,7 @@ const DECLARED_PARAMETER_SCHEMA = {
     {key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e9,defaultValue:10,description:'Résistance équivalente en conduction directe au-delà du seuil (modèle DC simplifié, MB-SIM-008 v2).'},
   ],
   DC_MOTOR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:20,description:'Résistance électrique équivalente du bobinage (modèle électrique DC simplifié, MB-SIM-008 v2) : vitesse, couple, inertie et force contre-électromotrice dynamique sont hors périmètre.'}],
-  CAPACITOR:[{key:'capacitance',parameterType:'capacitance',unit:'F',minimum:1e-12,maximum:1,defaultValue:0.0001,description:'Capacité (modèle DC établi, MB-SIM-008 v2) : le condensateur est traité comme un circuit ouvert en régime permanent (I=0) ; cette valeur n\'intervient pas dans l\'analyse DC et n\'est significative que pour un futur modèle Transitoire, hors périmètre de MB-SIM-008.'}],
+  CAPACITOR:[{key:'capacitance',parameterType:'capacitance',unit:'F',minimum:1e-12,maximum:1,defaultValue:1e-7,description:'Capacité (modèle DC établi, MB-SIM-008 v2) : le condensateur est traité comme un circuit ouvert en régime permanent (I=0) ; cette valeur n\'intervient pas dans l\'analyse DC et n\'est significative que pour un futur modèle Transitoire, hors périmètre de MB-SIM-008. Défaut 1e-7 F (100 nF, MB-L1-PROP-005) : cohérent avec le boîtier céramique radial Candidate C et son marquage EIA "104" dérivé dynamiquement — l\'ancien défaut 1e-4 F (100 µF) ne correspondait à aucune identité visuelle réaliste.'}],
   POLARIZED_CAPACITOR:[{key:'capacitance',parameterType:'capacitance',unit:'F',minimum:1e-12,maximum:1,defaultValue:0.0001,description:'Capacité (modèle DC établi, FT-C-COMP-002) : le condensateur électrolytique polarisé est traité, comme CAPACITOR, comme un circuit ouvert en régime permanent (I=0) quelle que soit la polarité ; cette valeur n\'intervient pas dans l\'analyse DC et n\'est significative que pour un futur modèle Transitoire, hors périmètre. La tension nominale 25 V est une caractéristique de l\'asset, pas un paramètre simulé.'}],
   POTENTIOMETER:[
     {key:'resistance',parameterType:'resistance',unit:'Ω',minimum:1,maximum:1e7,defaultValue:10000,description:'Résistance totale de la piste résistive, extrémité LEFT à extrémité RIGHT (modèle DC simplifié, MB-SIM-008 v2).'},
@@ -55,7 +55,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   THERMISTOR:{resistance:10000},
   DIODE:{forwardVoltage:0.7,onResistance:10},
   DC_MOTOR:{resistance:20},
-  CAPACITOR:{capacitance:0.0001},
+  CAPACITOR:{capacitance:1e-7},
   POLARIZED_CAPACITOR:{capacitance:0.0001},
   POTENTIOMETER:{resistance:10000,position:0.5},
   NPN_TRANSISTOR:{onResistance:1},
