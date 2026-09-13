@@ -1,4 +1,4 @@
-// MB-L1-PROP-005-R1 — correction visuelle après Canvas FAIL.
+// MB-L1-PROP-005-R2 — correction visuelle après Canvas FAIL des pattes.
 // React explicite requis par la config Vitest secondaire du dépôt.
 // eslint-disable-next-line no-unused-vars
 import React from "react"
@@ -7,7 +7,7 @@ import { render } from "@testing-library/react"
 import { resolveAssemblyGeometry } from "../../../utils/assemblyGeometry.js"
 import { AssemblyLeadsLayer } from "../AssemblyLeadsLayer.jsx"
 
-describe("MB-L1-PROP-005-R1 — CAPACITOR metallic leads", () => {
+describe("MB-L1-PROP-005-R2 — CAPACITOR polished metallic leads", () => {
   it("préserve les racines/contacts et projette le style métallique déclaratif", () => {
     const geometry = resolveAssemblyGeometry(
       { uid: "c-v2", type: "CAPACITOR", x: 100, y: 200 },
@@ -23,7 +23,13 @@ describe("MB-L1-PROP-005-R1 — CAPACITOR metallic leads", () => {
     const { container } = render(
       <AssemblyLeadsLayer geometry={geometry} originX={100} originY={200} />,
     )
-    expect(container.querySelectorAll("line.assembly-leads__lead--metallic-wire")).toHaveLength(2)
+    const leads = container.querySelectorAll("line.assembly-leads__lead--metallic-wire")
+    expect(leads).toHaveLength(2)
     expect(container.querySelectorAll("line.assembly-leads__lead--wire")).toHaveLength(0)
+    expect(container.querySelector("#assembly-lead-metallic-v")).not.toBeNull()
+    expect(container.querySelector("#assembly-lead-metallic-h")).not.toBeNull()
+    for (const lead of leads) {
+      expect(lead.getAttribute("stroke")).toBe("url(#assembly-lead-metallic-v)")
+    }
   })
 })
