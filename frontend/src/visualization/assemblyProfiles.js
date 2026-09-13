@@ -10,7 +10,7 @@
 /**
  * @typedef {Object} AssemblyProfile
  * @property {'through-hole'} kind
- * @property {Record<string, { root: LocalPoint, style?: 'wire'|'lug' }>} leads
+ * @property {Record<string, { root: LocalPoint, style?: 'wire'|'metallic-wire'|'lug' }>} leads
  * @property {{ bottom: number }} [bodyClip]
  */
 
@@ -38,11 +38,16 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 54, dy: 31 }, style: "wire" },
     },
   },
+  // MB-L1-PROP-005-R1 — la logique de marquage reste inchangée ; seul le
+  // rendu physique est corrigé après Canvas FAIL. Les racines mécaniques et
+  // les PhysicalContacts restent strictement identiques. Le style dédié
+  // `metallic-wire` rend les deux pattes nickelées plus brillantes, comme les
+  // leads du RESISTOR de référence, sans modifier les autres traversants.
   CAPACITOR: {
     kind: "through-hole",
     leads: {
-      pinA: { root: { dx: 23, dy: 27 }, style: "wire" },
-      pinB: { root: { dx: 47, dy: 27 }, style: "wire" },
+      pinA: { root: { dx: 23, dy: 27 }, style: "metallic-wire" },
+      pinB: { root: { dx: 47, dy: 27 }, style: "metallic-wire" },
     },
   },
   // FT-C-COMP-002 — condensateur électrolytique polarisé. Le raster montre
