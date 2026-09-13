@@ -23,17 +23,14 @@
 }
 
 /*
- * MB-L1-PROP-005-R1 — fil métallique poli, réservé aux profils qui le
- * déclarent explicitement. Le centre très clair + double ombre latérale donne
- * à une patte verticale la même lecture de métal brillant que les leads du
- * RESISTOR raster, sans changer le style des LED/LDR/THERMISTOR.
+ * MB-L1-PROP-005-R2 — métal poli. La couleur n'est plus un aplat clair :
+ * AssemblyLeadsLayer applique un gradient transversal sombre → clair → sombre,
+ * orienté selon la patte. Ce profil reproduit la lecture cylindrique et les
+ * reflets spéculaires visibles sur les leads raster du RESISTOR.
  */
 .assembly-leads__lead--metallic-wire {
-  stroke: #e8edf2;
-  stroke-width: 2.8;
-  filter:
-    drop-shadow(-0.7px 0 0 #ffffff)
-    drop-shadow(0.8px 0 0 #5d6670);
+  stroke-width: 3.2;
+  filter: drop-shadow(0.65px 0.75px 0.45px rgb(45 50 55 / 45%));
 }
 
 /* Cosse plate (potentiomètre) — languette cuivre/étain, plus large. */
