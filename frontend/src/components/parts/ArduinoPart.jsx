@@ -5,13 +5,24 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
 import { CircuitContext } from '../../context/CircuitContext.js'
 
 /**
- * Arduino UNO — rendu Canvas qualifié.
- * Taille, câble et LED sont verrouillés ; la netteté de la sérigraphie est
- * fournie par un asset SVG haute définition qui conserve le raster 3x réel
- * comme corps et restaure les inscriptions réelles en vecteur.
+ * Arduino UNO — backend raster.
+ *
+ * MB-L1-ARDUINO-001 — mécanisme Canvas verrouillé :
+ * - câble ARRÊT/MARCHE inchangé ;
+ * - LED ON ARRÊT/MARCHE inchangée ;
+ * - aucun badge/pastille/label artificiel autour des pins.
+ *
+ * Correctif après régression de l'asset haute définition :
+ * - retour au renderer 3x explicitement validé comme visible au Canvas ;
+ * - scale 2.45× conservé ;
+ * - variantes 1x exclues du rendu visible ;
+ * - micro-renforcement de contraste/saturation conservé ;
+ * - aucun changement du Document, du Core Arduino ou des PhysicalContacts.
  */
 const ASSET_DIR = '/assets/components/arduino'
-const HIRES_ASSET = `${ASSET_DIR}/arduino.hires.svg`
+const WEBP_3X = `${ASSET_DIR}/arduino.default.3x.webp`
+const PNG_3X = `${ASSET_DIR}/arduino.default.3x.png`
+const LEGACY_ASSETS = `${ASSET_DIR}/arduino.default.1x.webp ${ASSET_DIR}/arduino.default.1x.png`
 const APPROVED_CANVAS_SCALE = 2.45
 
 function UsbCable({ connected }) {
@@ -20,11 +31,53 @@ function UsbCable({ connected }) {
       className={`part-arduino__usb-cable part-arduino__usb-cable--${connected ? 'connected' : 'disconnected'}`}
       data-usb-state={connected ? 'connected' : 'disconnected'}
       aria-hidden="true"
-      style={{ position: 'absolute', left: connected ? -34 : -47, top: 45, width: 38, height: 22, pointerEvents: 'none', zIndex: 1 }}
+      style={{
+        position: 'absolute',
+        left: connected ? -34 : -47,
+        top: 45,
+        width: 38,
+        height: 22,
+        pointerEvents: 'none',
+        zIndex: 1,
+      }}
     >
-      <span style={{ position: 'absolute', left: 0, top: 2, width: 25, height: 18, borderRadius: '4px 2px 2px 4px', background: 'linear-gradient(180deg,#26282c 0%,#0f1114 55%,#24262a 100%)', boxShadow: '0 1px 2px rgba(0,0,0,.5)' }} />
-      <span style={{ position: 'absolute', right: 0, top: 5, width: 14, height: 12, borderRadius: 1, background: 'linear-gradient(180deg,#d7d9db,#8b8f94 50%,#c6c8ca)', border: '1px solid rgba(45,48,52,.75)', boxSizing: 'border-box' }} />
-      <span style={{ position: 'absolute', left: -18, top: 7, width: 20, height: 8, borderRadius: '5px 0 0 5px', background: '#181a1d', boxShadow: 'inset 0 1px 1px rgba(255,255,255,.08)' }} />
+      <span
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 2,
+          width: 25,
+          height: 18,
+          borderRadius: '4px 2px 2px 4px',
+          background: 'linear-gradient(180deg,#26282c 0%,#0f1114 55%,#24262a 100%)',
+          boxShadow: '0 1px 2px rgba(0,0,0,.5)',
+        }}
+      />
+      <span
+        style={{
+          position: 'absolute',
+          right: 0,
+          top: 5,
+          width: 14,
+          height: 12,
+          borderRadius: 1,
+          background: 'linear-gradient(180deg,#d7d9db,#8b8f94 50%,#c6c8ca)',
+          border: '1px solid rgba(45,48,52,.75)',
+          boxSizing: 'border-box',
+        }}
+      />
+      <span
+        style={{
+          position: 'absolute',
+          left: -18,
+          top: 7,
+          width: 20,
+          height: 8,
+          borderRadius: '5px 0 0 5px',
+          background: '#181a1d',
+          boxShadow: 'inset 0 1px 1px rgba(255,255,255,.08)',
+        }}
+      />
     </span>
   )
 }
@@ -42,25 +95,61 @@ export function ArduinoPart() {
       aria-label="Arduino UNO"
       data-canvas-scale={APPROVED_CANVAS_SCALE}
       data-arduino-mode={simulationActive ? 'run' : 'off'}
-      style={{ position: 'relative', width: '100%', height: '100%', overflow: 'visible', transform: `scale(${APPROVED_CANVAS_SCALE})`, transformOrigin: 'center center' }}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        overflow: 'visible',
+        transform: `scale(${APPROVED_CANVAS_SCALE})`,
+        transformOrigin: 'center center',
+      }}
     >
       <UsbCable connected={simulationActive} />
-      <img
-        className="part-arduino__img part-arduino__img--hires"
-        data-hires-source="vector-silkscreen"
-        src={HIRES_ASSET}
-        width={width}
-        height={height}
-        draggable={false}
-        alt=""
-        aria-hidden="true"
-        style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none', position: 'relative', zIndex: 2, imageRendering: 'auto' }}
-      />
+
+      <picture
+        className="part-arduino__picture"
+        data-hires-source="3x-only"
+        data-legacy-assets={LEGACY_ASSETS}
+      >
+        <source type="image/webp" srcSet={`${WEBP_3X} 1x, ${WEBP_3X} 3x`} />
+        <img
+          className="part-arduino__img"
+          src={PNG_3X}
+          srcSet={`${PNG_3X} 1x, ${PNG_3X} 3x`}
+          width={width}
+          height={height}
+          draggable={false}
+          alt=""
+          aria-hidden="true"
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            pointerEvents: 'none',
+            position: 'relative',
+            zIndex: 2,
+            imageRendering: 'auto',
+            filter: 'contrast(1.08) saturate(1.04)',
+          }}
+        />
+      </picture>
+
       <span
         className="part-arduino__on-led"
         data-led-state={simulationActive ? 'on' : 'off'}
         aria-hidden="true"
-        style={{ position: 'absolute', left: 104, top: 49, width: 5, height: 4, borderRadius: 1, pointerEvents: 'none', zIndex: 3, background: simulationActive ? '#86ff2f' : 'rgba(86,94,88,.42)', boxShadow: simulationActive ? '0 0 4px #7cff32, 0 0 8px rgba(124,255,50,.72)' : 'none' }}
+        style={{
+          position: 'absolute',
+          left: 104,
+          top: 49,
+          width: 5,
+          height: 4,
+          borderRadius: 1,
+          pointerEvents: 'none',
+          zIndex: 3,
+          background: simulationActive ? '#86ff2f' : 'rgba(86,94,88,.42)',
+          boxShadow: simulationActive ? '0 0 4px #7cff32, 0 0 8px rgba(124,255,50,.72)' : 'none',
+        }}
       />
     </div>
   )
