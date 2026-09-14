@@ -86,7 +86,7 @@ describe('contactModel — contact par défaut & résolution', () => {
 
   it('resolveContact(pin, id inconnu/périmé) -> contact par défaut de LA MÊME pin (règle D), jamais d\'erreur', () => {
     expect(resolveContact(multi, 'ZZZ').id).toBe('1a')
-    expect(resolveContact(multi, '2a').id).toBe('1a') // "2a" appartient à pin2, ignoré ici
+    expect(resolveContact(multi, '2a').id).toBe('1a')
   })
 
   it('resolveContact sur pin mono-contact -> le contact implicite quel que soit l\'id demandé (règles A/B)', () => {
@@ -104,31 +104,18 @@ describe('contactModel — FT-B-001-S4 : héritage des drapeaux pin-level', () =
   it('contact implicite hérite de pinDef.wireConnectable / pinDef.breadboardInsertable', () => {
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0, wireConnectable: false })[0].wireConnectable).toBe(false)
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0, breadboardInsertable: false })[0].breadboardInsertable).toBe(false)
-    // pin silencieuse -> true (comportement des 16 types actuels)
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0 })[0]).toMatchObject({ wireConnectable: true, breadboardInsertable: true })
   })
 
   it('contact explicite : drapeau du contact > drapeau de la pin > true, `false` toujours respecté', () => {
-    // contact false l'emporte sur pin true
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0, wireConnectable: true, contacts: [{ id: 'a', wireConnectable: false }] })[0].wireConnectable).toBe(false)
-    // contact true l'emporte sur pin false
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0, breadboardInsertable: false, contacts: [{ id: 'a', breadboardInsertable: true }] })[0].breadboardInsertable).toBe(true)
-    // contact silencieux -> hérite de la pin
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0, breadboardInsertable: false, contacts: [{ id: 'a' }] })[0].breadboardInsertable).toBe(false)
   })
 })
 
 describe('contactModel — intégration composants réels (aucune logique par type)', () => {
   it('LED / RESISTOR / DIODE (aucun contacts[] déclaré) -> 1 contact implicite par pin, en pin.dx/pin.dy, flags true/true', () => {
-    // [MB-L1-CONS-001] Seuls les types SANS `contacts[]` explicite dans
-    // componentDefinitions.js retombent sur le contact implicite mono-pin
-    // (geometry = pin.dx/pin.dy, fallback historique — INV-S3-08). CAPACITOR /
-    // BUZZER / POTENTIOMETER / LDR / THERMISTOR / RGB_LED déclarent désormais
-    // un `contacts[]` explicite dont la géométrie physique diffère
-    // intentionnellement de pin.dx/pin.dy (ruling CSA MB-L1-CONS-001) :
-    // couverts par le test suivant. NPN_TRANSISTOR / POWER / ARDUINO restent
-    // couverts par le describe "FT-B-001-S5" ci-dessous ; DC_MOTOR / SERVO par
-    // un autre test dédié.
     const implicitContactTypes = ['LED', 'RESISTOR', 'DIODE']
     for (const type of implicitContactTypes) {
       for (const pin of getComponentDef(type).pins) {
@@ -139,27 +126,24 @@ describe('contactModel — intégration composants réels (aucune logique par ty
     }
   })
 
-  it('MB-L1-CONS-001 — CAPACITOR / BUZZER / POTENTIOMETER / LDR / THERMISTOR / RGB_LED : contacts[] explicite fait autorité pour la géométrie physique (peut diverger de pin.dx/pin.dy — CAPACITOR/LDR/THERMISTOR/RGB_LED divergent réellement, BUZZER/POTENTIOMETER coïncident, mais la SOURCE lue reste contacts[] pour les six) ; contactId reste égal à pinId', () => {
+  it('MB-L1-CONS-001 — CAPACITOR / BUZZER / POTENTIOMETER / LDR / THERMISTOR / RGB_LED : contacts[] explicite fait autorité pour la géométrie physique ; contactId reste égal à pinId', () => {
     const explicitContactTypes = ['CAPACITOR', 'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'RGB_LED']
     for (const type of explicitContactTypes) {
       for (const pin of getComponentDef(type).pins) {
         expect(Array.isArray(pin.contacts) && pin.contacts.length === 1).toBe(true)
         const [declared] = pin.contacts
-
         const contacts = resolveContacts(pin)
         expect(contacts).toHaveLength(1)
-        // resolveContacts() lit contacts[].dx/dy — JAMAIS pin.dx/dy — pour ces types.
         expect(contacts[0]).toEqual({
           id: declared.id, dx: declared.dx, dy: declared.dy,
           wireConnectable: true, breadboardInsertable: true,
         })
-        // pinId reste l'identité électrique canonique, indépendante du contact.
         expect(contacts[0].id).toBe(pin.id)
       }
     }
   })
 
-  it('MB-L1-CONS-001 — CAPACITOR / LDR / THERMISTOR / RGB_LED : la géométrie physique déclarée diverge RÉELLEMENT de pin.dx/pin.dy (preuve directe de la divergence intentionnelle actée par le ruling CSA)', () => {
+  it('MB-L1-CONS-001 — CAPACITOR / LDR / THERMISTOR / RGB_LED : la géométrie physique déclarée diverge RÉELLEMENT de pin.dx/pin.dy', () => {
     for (const type of ['CAPACITOR', 'LDR', 'THERMISTOR', 'RGB_LED']) {
       for (const pin of getComponentDef(type).pins) {
         const [declared] = pin.contacts
@@ -175,7 +159,6 @@ describe('contactModel — intégration composants réels (aucune logique par ty
     expect(byPin.base).toEqual([{ id: 'B', dx: 31.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }])
     expect(byPin.collector).toEqual([{ id: 'C', dx: 42.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }])
     expect(byPin.emitter).toEqual([{ id: 'E', dx: 53.5, dy: 58.5, wireConnectable: true, breadboardInsertable: true }])
-    // canonique (électrique) inchangé
     expect(def.pins.map((p) => [p.dx, p.dy])).toEqual([[45, 0], [0, 45], [90, 45]])
   })
 
@@ -186,7 +169,7 @@ describe('contactModel — intégration composants réels (aucune logique par ty
       expect(c.wireConnectable).toBe(true)
       expect(c.breadboardInsertable).toBe(false)
     }
-    expect(power.pins.map((p) => [p.dx, p.dy])).toEqual([[70, 37], [58, 25]]) // MB-BREADBOARD-005, inchangé
+    expect(power.pins.map((p) => [p.dx, p.dy])).toEqual([[70, 37], [58, 25]])
     expect(resolveContacts(power.pins.find((p) => p.id === '5V'))[0]).toMatchObject({ dx: 35, dy: 67 })
 
     const arduino = getComponentDef('ARDUINO')
@@ -197,13 +180,26 @@ describe('contactModel — intégration composants réels (aucune logique par ty
     }
   })
 
-  it('FT-B-001-S5 — DC_MOTOR / SERVO : contact implicite en pin.dx/dy, wireConnectable:true, breadboardInsertable:false (drapeau pin-level hérité)', () => {
-    for (const type of ['DC_MOTOR', 'SERVO']) {
-      for (const pin of getComponentDef(type).pins) {
-        const contacts = resolveContacts(pin)
-        expect(contacts).toHaveLength(1)
-        expect(contacts[0]).toEqual({ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: false })
-      }
+  it('MB-L1-PROP-009 — DC_MOTOR : contacts explicites sur les deux cosses arrière, Core plus/minus inchangé', () => {
+    const def = getComponentDef('DC_MOTOR')
+    const plus = def.pins.find((p) => p.id === 'plus')
+    const minus = def.pins.find((p) => p.id === 'minus')
+
+    expect([plus.dx, plus.dy]).toEqual([0, 25])
+    expect([minus.dx, minus.dy]).toEqual([84, 25])
+    expect(resolveContacts(plus)).toEqual([
+      { id: 'plus', dx: 3.5, dy: 16, wireConnectable: true, breadboardInsertable: false },
+    ])
+    expect(resolveContacts(minus)).toEqual([
+      { id: 'minus', dx: 3.5, dy: 34, wireConnectable: true, breadboardInsertable: false },
+    ])
+  })
+
+  it('FT-B-001-S5 — SERVO : contact implicite en pin.dx/dy, wireConnectable:true, breadboardInsertable:false (drapeau pin-level hérité)', () => {
+    for (const pin of getComponentDef('SERVO').pins) {
+      const contacts = resolveContacts(pin)
+      expect(contacts).toHaveLength(1)
+      expect(contacts[0]).toEqual({ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: false })
     }
   })
 
@@ -214,10 +210,10 @@ describe('contactModel — intégration composants réels (aucune logique par ty
       for (const pin of def.pins) {
         const contacts = resolveContacts(pin)
         expect(contacts).toHaveLength(2)
-        expect(getDefaultContact(pin).dy).toBe(58)               // patte basse = ancienne projection 008
-        expect(contacts[1].dy).toBe(2)                            // patte haute
-        expect(contacts.every((c) => c.dx === pin.dx)).toBe(true) // même colonne x que la pin
-        expect(new Set(contacts.map((c) => c.id)).size).toBe(2)   // ids uniques dans la pin
+        expect(getDefaultContact(pin).dy).toBe(58)
+        expect(contacts[1].dy).toBe(2)
+        expect(contacts.every((c) => c.dx === pin.dx)).toBe(true)
+        expect(new Set(contacts.map((c) => c.id)).size).toBe(2)
       }
     }
   })
