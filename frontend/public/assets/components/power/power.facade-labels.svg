@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 90" width="70" height="90">
+  <style>
+    .dark{font-family:Arial,Helvetica,sans-serif;font-weight:700;fill:#111;text-anchor:middle}
+    .light{font-family:Arial,Helvetica,sans-serif;font-weight:700;fill:#fff}
+  </style>
+  <!-- Vector-only facade typography. Transparent everywhere else. -->
+  <text class="light" x="6" y="22" font-size="2.6">DC POWER SUPPLY</text>
+  <text class="light" x="52" y="22" font-size="2.1">MCH-305D</text>
+  <text class="dark" x="19" y="48" font-size="3.1">VOLTAGE</text>
+  <text class="dark" x="43" y="48" font-size="3.1">CURRENT</text>
+  <text class="dark" x="61" y="48" font-size="2.7">POWER</text>
+  <text class="dark" x="9" y="65" font-size="2.3">MIN</text>
+  <text class="dark" x="28" y="65" font-size="2.3">MAX</text>
+  <text class="dark" x="35" y="65" font-size="2.3">MIN</text>
+  <text class="dark" x="53" y="65" font-size="2.3">MAX</text>
+</svg>
