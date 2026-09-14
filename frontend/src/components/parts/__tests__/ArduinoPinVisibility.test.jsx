@@ -22,7 +22,7 @@ function renderArduino(simulationActive) {
   )
 }
 
-describe('MB-L1-ARDUINO-001 — approved Arduino Canvas presentation', () => {
+describe('MB-L1-ARDUINO-001 — exact approved Arduino reference', () => {
   it('n’ajoute aucun badge, numéro ou pastille artificielle autour des pins', () => {
     const { container } = render(<ArduinoPart />)
     expect(container.querySelector('.part-arduino__visible-pin')).toBeNull()
@@ -30,38 +30,40 @@ describe('MB-L1-ARDUINO-001 — approved Arduino Canvas presentation', () => {
     expect(container.querySelector('[data-arduino-pin]')).toBeNull()
   })
 
-  it('verrouille le zoom Canvas approuvé à 2.20×', () => {
+  it('conserve la taille Canvas validée à 2.20×', () => {
     const { container } = render(<ArduinoPart />)
     const root = container.querySelector('.part-arduino')
-    expect(root).not.toBeNull()
     expect(root.getAttribute('data-canvas-scale')).toBe('2.2')
     expect(root.style.transform).toBe('scale(2.2)')
-    expect(root.style.transformOrigin).toBe('center center')
+    expect(root.getAttribute('data-reference-render')).toBe('exact-approved-reference')
   })
 
-  it('utilise le nouveau corps Arduino vectoriel approuvé au lieu du raster historique', () => {
-    const { container } = render(<ArduinoPart />)
-    const img = container.querySelector('.part-arduino__img')
-    expect(img).not.toBeNull()
-    expect(img.getAttribute('src')).toBe('/assets/components/arduino/arduino.approved.body.svg')
-    expect(container.querySelector('picture')).toBeNull()
-    expect(container.querySelector('.part-arduino__silkscreen')).toBeNull()
-  })
-
-  it('ARRÊT — câble visuellement débranché et LED ON éteinte', () => {
+  it('ARRÊT utilise directement l’asset de référence câble non inséré', () => {
     const { container } = renderArduino(false)
-    expect(container.querySelector('.part-arduino').getAttribute('data-arduino-mode')).toBe('off')
-    expect(container.querySelector('.part-arduino__usb-cable').getAttribute('data-usb-state')).toBe('disconnected')
-    expect(container.querySelector('.part-arduino__on-led').getAttribute('data-led-state')).toBe('off')
+    const root = container.querySelector('.part-arduino')
+    const img = container.querySelector('.part-arduino__reference-img')
+    expect(root.getAttribute('data-arduino-mode')).toBe('off')
+    expect(img.getAttribute('src')).toBe('/assets/components/arduino/arduino.reference.off.webp')
+    expect(container.querySelector('.part-arduino__usb-cable')).toBeNull()
+    expect(container.querySelector('.part-arduino__on-led')).toBeNull()
   })
 
-  it('MARCHE — câble visuellement inséré et LED ON verte', () => {
+  it('MARCHE utilise directement l’asset de référence câble inséré + LED ON', () => {
     const { container } = renderArduino(true)
-    expect(container.querySelector('.part-arduino').getAttribute('data-arduino-mode')).toBe('run')
-    expect(container.querySelector('.part-arduino__usb-cable').getAttribute('data-usb-state')).toBe('connected')
-    const led = container.querySelector('.part-arduino__on-led')
-    expect(led.getAttribute('data-led-state')).toBe('on')
-    expect(led.style.boxShadow).not.toBe('none')
+    const root = container.querySelector('.part-arduino')
+    const img = container.querySelector('.part-arduino__reference-img')
+    expect(root.getAttribute('data-arduino-mode')).toBe('run')
+    expect(img.getAttribute('src')).toBe('/assets/components/arduino/arduino.reference.run.webp')
+    expect(container.querySelector('.part-arduino__usb-cable')).toBeNull()
+    expect(container.querySelector('.part-arduino__on-led')).toBeNull()
+  })
+
+  it('ne revient ni au raster historique ni au body SVG reconstruit', () => {
+    const { container } = render(<ArduinoPart />)
+    const img = container.querySelector('.part-arduino__reference-img')
+    expect(img.getAttribute('src')).not.toContain('arduino.default')
+    expect(img.getAttribute('src')).not.toContain('arduino.approved.body.svg')
+    expect(container.querySelector('picture')).toBeNull()
   })
 
   it('préserve les quatre PhysicalContacts existants en attendant l’extension GPIO complète', () => {
