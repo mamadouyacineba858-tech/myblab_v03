@@ -1,60 +1,61 @@
-# MB-L1-ARDUINO-001 — ARDUINO — Pin Visibility & Physical Connectivity
+# MB-L1-ARDUINO-001 — ARDUINO — Tinkercad-like Canvas Readability
 
-**Status:** IMPLEMENTED — PROJECT CANVAS GATE PENDING
+**Status:** IMPLEMENTED — REVISED PROJECT CANVAS GATE PENDING
 
 ## Base
 - Base SHA: `433071f2eb4f1ee400a7c42a40f905de204f7f93`
 - Branch: `feat/MB-L1-ARDUINO-001-pin-visibility`
 
-## Objectif
-Rendre les quatre pins Arduino actuellement fonctionnelles (`D2`, `D3`, `GND`, `5V`) immédiatement visibles et identifiables à l'œil sur le Canvas, tout en conservant leur connectivité réelle et leur géométrie existante.
+## Authority / cible Canvas révisée
+Le Project Lead a rejeté la première proposition à quatre badges `D2/D3/GND/5V` : elle reste trop petite et ajoute une signalétique artificielle absente de la référence Tinkercad.
+
+La référence visuelle approuvée le 2026-09-14 impose :
+- Arduino UNO nettement plus grand sur le Canvas ;
+- lecture naturelle des headers/trous/sérigraphies du PCB ;
+- aucun badge, numéro, pastille ou label flottant ajouté par MYBlab ;
+- même taille de carte en mode arrêt et en mode simulation ;
+- cible de taille verrouillée pour cette correction : `1.30×` par rapport au rendu Canvas antérieur.
 
 ## Audit réel
-- le raster Arduino UNO est réaliste ;
-- les quatre PhysicalContacts existent déjà ;
-- les quatre hit targets de câblage existent déjà ;
-- leur présentation est masquée par le mode `markerless` du backend raster ;
-- la sérigraphie du raster est trop petite à l'échelle de travail normale.
+- le raster actuel est `120×140` et ne possède qu'un état `default` dans son manifeste ;
+- les quatre PhysicalContacts historiques `D2`, `D3`, `GND`, `5V` existent déjà ;
+- le backend raster est `markerless`, donc les `<Pin>` fonctionnels restent invisibles ;
+- la première correction ajoutait des badges artificiels : **rejetée au Canvas Gate**.
 
-## Implémentation
+## Implémentation révisée
 ### `frontend/src/components/parts/ArduinoPart.jsx`
-- ajout d'une couche de visibilité non interactive ;
-- quatre marqueurs visibles : `D2`, `D3`, `GND`, `5V` ;
-- positions strictement alignées sur les PhysicalContacts existants :
-  - D2 = `(3,50)` ;
-  - D3 = `(15,75)` ;
-  - GND = `(15,108)` ;
-  - 5V = `(115,50)` ;
-- labels fortement contrastés ;
-- `pointer-events:none` : aucun nouveau hit target ;
-- aucune modification du raster source.
+- suppression complète des badges/pastilles/labels artificiels ;
+- raster UNO conservé comme unique source visuelle du PCB ;
+- scale Canvas `1.30×`, centré, pour atteindre la taille de référence approuvée ;
+- aucune modification de la simulation ou du Document.
 
-### Tests
-`frontend/src/components/parts/__tests__/ArduinoPinVisibility.test.jsx`
-- présence des quatre marqueurs ;
-- labels visibles ;
-- convergence exacte marqueur ↔ PhysicalContact ;
-- convergence exacte marqueur ↔ hit target réel ;
-- géométrie électrique canonique inchangée.
+### `frontend/src/components/parts/__tests__/ArduinoPinVisibility.test.jsx`
+- verrouille l'absence de badges artificiels ;
+- verrouille `data-canvas-scale="1.3"` / `scale(1.3)` ;
+- préserve les quatre PhysicalContacts historiques ;
+- préserve les coordonnées électriques historiques.
 
-## Interdits respectés
-- aucun nouveau pin Arduino ;
-- aucune modification de `D2/D3/GND/5V` côté Core ;
+## Limite explicitement constatée
+Le dépôt ne contient actuellement qu'un asset Arduino `default` : il n'existe pas encore deux assets raster distincts `OFF/unplugged` et `RUN/plugged`. La reproduction exacte de la référence câble débranché ↔ câble branché doit donc être un sous-ticket asset/runtime dédié ; elle ne doit pas être simulée par des badges ou par une fausse modification du Core.
+
+## Interdits
+- aucun nouveau pin Arduino dans ce ticket ;
+- aucune modification du modèle électrique ;
 - aucune modification de la simulation ;
-- aucune modification de `CircuitComponent.jsx` ;
-- aucune modification de `Pin.jsx` ;
-- aucune modification de `pinPresentationGeometry.js` ;
-- aucun faux connecteur ou endpoint décoratif.
+- aucun badge artificiel sur le PCB ;
+- aucun faux connecteur décoratif.
 
 ## Validation locale requise
-Le connecteur GitHub a appliqué les modifications mais n'exécute pas Vitest/Vite localement. Validation CTO requise : tests ciblés, lint, build, puis Canvas Gate.
+Le connecteur GitHub applique les modifications mais n'exécute pas Vitest/Vite localement. Validation CTO requise : tests ciblés, lint, build, puis Canvas Gate.
 
-## Canvas Gate
+## Canvas Gate révisé
 PASS seulement si :
-- D2, D3, GND et 5V sont lisibles sans devoir zoomer fortement ;
-- chaque repère visible correspond au vrai point où le fil s'accroche ;
-- aucun marqueur ne masque de manière gênante la carte ;
-- OFF et RUN gardent la même géométrie de pins ;
-- drag, sélection, zoom et câblage restent normaux.
+- la taille de l'Arduino correspond visuellement à la référence approuvée ;
+- les headers, trous et sérigraphies deviennent naturellement lisibles ;
+- aucun badge `D2/D3/GND/5V` n'apparaît ;
+- drag, sélection et zoom restent acceptables ;
+- aucune régression technique ciblée.
+
+Le comportement exact OFF câble débranché / RUN câble branché reste explicitement ouvert tant que les deux assets physiques correspondants ne sont pas intégrés.
 
 Voir `docs/pmo/blueprints/MB-L1-ARDUINO-001-pin-visibility-blueprint.md`.
