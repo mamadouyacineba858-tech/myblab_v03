@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { ArduinoPart } from '../ArduinoPart.jsx'
 import { getComponentDef } from '../../../config/componentDefinitions.js'
+import { CircuitContext } from '../../../context/CircuitContext.js'
 
 const EXPECTED_CONTACTS = {
   D2: [3, 50],
@@ -13,23 +14,46 @@ const EXPECTED_CONTACTS = {
   '5V': [115, 50],
 }
 
-describe('MB-L1-ARDUINO-001 — Tinkercad-like natural pin presentation', () => {
-  it('n’ajoute aucun badge, numéro ou pastille artificielle au-dessus du PCB', () => {
+function renderArduino(simulationActive) {
+  return render(
+    <CircuitContext.Provider value={{ simulationActive }}>
+      <ArduinoPart />
+    </CircuitContext.Provider>
+  )
+}
+
+describe('MB-L1-ARDUINO-001 — Tinkercad-like Arduino presentation', () => {
+  it('n’ajoute aucun badge, numéro ou pastille artificielle autour des pins', () => {
     const { container } = render(<ArduinoPart />)
     expect(container.querySelector('.part-arduino__visible-pin')).toBeNull()
     expect(container.querySelector('.part-arduino__visible-pin-label')).toBeNull()
     expect(container.querySelector('[data-arduino-pin]')).toBeNull()
-    expect(container.textContent.trim()).toBe('')
   })
 
-  it('verrouille la taille Canvas approuvée à 1.30× sans modifier l’asset source', () => {
+  it('verrouille le zoom Canvas révisé à 2.20×', () => {
     const { container } = render(<ArduinoPart />)
     const root = container.querySelector('.part-arduino')
     expect(root).not.toBeNull()
-    expect(root.getAttribute('data-canvas-scale')).toBe('1.3')
-    expect(root.style.transform).toBe('scale(1.3)')
+    expect(root.getAttribute('data-canvas-scale')).toBe('2.2')
+    expect(root.style.transform).toBe('scale(2.2)')
     expect(root.style.transformOrigin).toBe('center center')
     expect(container.querySelector('.part-arduino__img')).not.toBeNull()
+  })
+
+  it('ARRÊT — câble visuellement débranché et LED ON éteinte', () => {
+    const { container } = renderArduino(false)
+    expect(container.querySelector('.part-arduino').getAttribute('data-arduino-mode')).toBe('off')
+    expect(container.querySelector('.part-arduino__usb-cable').getAttribute('data-usb-state')).toBe('disconnected')
+    expect(container.querySelector('.part-arduino__on-led').getAttribute('data-led-state')).toBe('off')
+  })
+
+  it('MARCHE — câble visuellement inséré et LED ON verte', () => {
+    const { container } = renderArduino(true)
+    expect(container.querySelector('.part-arduino').getAttribute('data-arduino-mode')).toBe('run')
+    expect(container.querySelector('.part-arduino__usb-cable').getAttribute('data-usb-state')).toBe('connected')
+    const led = container.querySelector('.part-arduino__on-led')
+    expect(led.getAttribute('data-led-state')).toBe('on')
+    expect(led.style.boxShadow).not.toBe('none')
   })
 
   it('préserve les quatre PhysicalContacts existants en attendant l’extension GPIO complète', () => {
