@@ -1,34 +1,50 @@
-# Blueprint — MB-L1-ARDUINO-001 — Pin Visibility & Physical Connectivity
+# Blueprint — MB-L1-ARDUINO-001 — Tinkercad-like Arduino Canvas Readability
+
+## Autorité visuelle
+Référence approuvée le 2026-09-14 par le Project Lead : Arduino UNO fortement agrandi, sérigraphies lisibles naturellement, aucun badge externe, deux états visuels de même taille : ARRÊT (USB débranché, ON éteint) et MARCHE (USB branché, ON vert).
 
 ## Constat réel
-- `ArduinoPart.jsx` affiche un raster UNO réaliste mais ne rend aucun repère de pin fonctionnelle lisible à l'échelle Canvas normale.
-- `componentDefinitions.js` possède déjà quatre PhysicalContacts pour `D2`, `D3`, `GND`, `5V`.
-- `CircuitComponent.jsx` rend bien quatre `<Pin>` câblables, mais la présentation raster les masque (`markerless=true` dérivé du backend raster).
-- Le câblage et les endpoints utilisent déjà les coordonnées PhysicalContact correctes.
+- `ArduinoPart.jsx` utilise un raster UNO réaliste.
+- Le premier correctif à badges `D2/D3/GND/5V` a été rejeté.
+- Le second correctif `1.30×` a également été rejeté : les écritures restaient trop petites.
+- Le raster dispose de variantes `1x` et `3x`, mais d'un seul état `default`.
+- `simulationActive` existe déjà dans le contexte stable et constitue l'oracle UI du mode ARRÊT/MARCHE.
+- Les quatre PhysicalContacts historiques existent et restent hors modification.
 
-## Cause racine
-Le problème est une dette de PRÉSENTATION, pas de connectivité : les hit targets existent et sont corrects, mais leur marqueur visuel est volontairement invisible sur un backend raster. L'asset lui-même contient des sérigraphies trop petites pour identifier sans ambiguïté les quatre pins actuellement fonctionnelles.
-
-## Décision CSA
-Ajouter dans `ArduinoPart.jsx` une couche purement visuelle, non interactive, alignée exactement sur les quatre PhysicalContacts. Ne pas toucher au Core, au modèle de simulation, aux coordonnées électriques, au nombre de pins ou au câblage.
+## Décision CSA révisée
+1. Ne jamais ajouter de badges/pastilles/labels flottants autour des pins.
+2. Agrandir le renderer Arduino à `2.20×` afin que la sérigraphie cuite dans l'asset devienne lisible.
+3. Conserver exactement la même échelle et la même géométrie en ARRÊT et MARCHE.
+4. Dériver uniquement la présentation USB/LED de `simulationActive` :
+   - false => câble débranché + LED ON éteinte ;
+   - true => câble branché + LED ON verte.
+5. Les overlays USB/LED sont purement visuels (`pointer-events:none`) et ne deviennent jamais des endpoints électriques.
 
 ## Invariants
 - Core Arduino inchangé : `D2`, `D3`, `GND`, `5V`.
 - Coordonnées électriques canoniques inchangées.
 - PhysicalContacts inchangés.
-- `CircuitComponent`, `Pin`, `pinPresentationGeometry` inchangés.
 - Aucun nouveau pin logique.
-- Aucun faux endpoint.
-- Overlay `pointer-events:none`.
-- La couche visible doit converger pixel pour pixel avec les hit targets existants.
+- Aucun changement du firmware/runtime/scheduler.
+- `simulationActive` n'est jamais persisté dans le Document par ce renderer.
+- Aucun texte externe `D2/D3/GND/5V` ajouté par MYBlab.
 
 ## Cible Canvas
-À l'œil nu, l'utilisateur doit pouvoir repérer immédiatement `D2`, `D3`, `GND`, `5V` sur l'Arduino et démarrer/terminer un fil au même endroit que le repère visible.
+Au niveau de zoom de travail normal, l'utilisateur doit lire les principales sérigraphies du PCB directement sur la carte : rangées DIGITAL, POWER, ANALOG IN, Arduino/UNO et repères de broches. La carte ne doit plus sembler miniature.
+
+## Gate visuel
+- taille équivalente à la référence approuvée ;
+- écritures lisibles sans zoom extrême ;
+- ARRÊT : USB clairement débranché, ON éteint ;
+- MARCHE : USB clairement branché, ON vert ;
+- aucune variation de taille entre les deux modes ;
+- aucun badge artificiel ;
+- drag/sélection/zoom acceptables.
 
 ## Hors périmètre
 - extension à toutes les broches Arduino UNO ;
-- firmware/runtime Arduino ;
+- nouveau modèle électrique ;
+- firmware workspace ;
 - Scheduler ;
-- simulation Blink ;
-- nouveaux GPIO ;
-- modification des états OFF/RUN.
+- Blink ;
+- nouveaux GPIO.
