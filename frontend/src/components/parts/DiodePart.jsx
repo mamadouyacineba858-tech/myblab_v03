@@ -2,43 +2,57 @@ import React from 'react'
 import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
- * Rendu visuel Diode — backend RASTER (MB-VIS-PROTOTYPE-002).
+ * DIODE — corps raster conservé + pattes physiques génériques.
  *
- * Remplace l'ancien rendu SVG volumétrique expérimental (MB-VIS-LED-012 :
- * `<defs>` + 4 gradients namespacés par `uid`) par l'asset raster produit et
- * vérifié pour MB-VIS-PROTOTYPE-002, intégré via le mécanisme déclaratif de
- * MB-VIS-INDUSTRIAL-001 (`defaultRegistrations` → `visual: { backend: 'raster' }`
- * → `getComponentPresentation('DIODE')` → wrapper `data-bare-body` + pins
- * `markerless`, sans aucun `type === "DIODE"` ni règle CSS spécifique).
+ * MB-L1-PROP-007 : l'ancien raster reste la source de vérité du CORPS
+ * (boîtier axial + bande cathode), mais ses prolongements métalliques externes
+ * ne sont plus exposés. Le renderer ne montre que la fenêtre centrale du corps
+ * tandis que AssemblyLeadsLayer dessine les deux pattes fonctionnelles depuis
+ * les racines mécaniques jusqu'aux pins canoniques anode/cathode.
  *
- * Patron identique à `ResistorPart.jsx` : `frontend/public/` est servi à la
- * racine web → `/assets/components/diode/…`, priorité WebP via `<picture>`,
- * fallback PNG, aucune logique JS de sélection d'asset.
- *
- * Contrat inchangé :
- *  - dimensions dérivées de `getComponentDef("DIODE")` (84×30) — aucune valeur
- *    recopiée, `componentDefinitions.js` NON modifié ;
- *  - pins anode(0,15) / cathode(84,15) : produits par CircuitComponent/Pin,
- *    jamais dessinés dans l'asset ni ici ;
- *  - l'`<img>` ne porte AUCUN gestionnaire, `draggable={false}`,
- *    `pointer-events: none` → drag / sélection / câblage / hit-test / zoom
- *    restent la responsabilité du wrapper `.circuit-component` ;
- *  - `uid` reste accepté (contrat de props inchangé) mais n'est plus consommé
- *    (plus de `<defs>` à namespacer) → rendu déterministe pour toute instance.
+ * Cette consolidation ne modifie aucune donnée électrique :
+ * - anode = (0,15), cathode = (84,15) ;
+ * - forwardVoltage / onResistance inchangés ;
+ * - aucune relation artificielle paramètres -> apparence ;
+ * - aucun état de simulation introduit.
  */
 const ASSET_DIR = '/assets/components/diode'
 const WEBP_SRCSET = `${ASSET_DIR}/diode.default.1x.webp 1x, ${ASSET_DIR}/diode.default.3x.webp 3x`
 const PNG_SRCSET = `${ASSET_DIR}/diode.default.1x.png 1x, ${ASSET_DIR}/diode.default.3x.png 3x`
 const PNG_FALLBACK = `${ASSET_DIR}/diode.default.3x.png`
 
-export function DiodePart({ uid } = {}) {
-  const def = getComponentDef("DIODE")
+// Contrat mécanique PROP-007 : le corps utile reste centré entre x=24 et x=60
+// dans la boîte canonique 84×30. Les segments extérieurs sont remplacés par
+// AssemblyLeadsLayer (profil DIODE, style metallic-wire).
+const BODY_WINDOW = Object.freeze({
+  left: 24,
+  right: 60,
+})
+
+export function DiodePart() {
+  const def = getComponentDef('DIODE')
   const width = def?.width ?? 84
   const height = def?.height ?? 30
 
+  const leftPercent = (BODY_WINDOW.left / width) * 100
+  const rightPercent = ((width - BODY_WINDOW.right) / width) * 100
+
   return (
-    <div className="part-diode" aria-label="Diode">
-      <picture className="part-diode__picture">
+    <div
+      className="part-diode"
+      aria-label="Diode"
+      data-body-window={`${BODY_WINDOW.left}-${BODY_WINDOW.right}`}
+      style={{ position: 'relative', width, height, pointerEvents: 'none' }}
+    >
+      <picture
+        className="part-diode__picture"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          clipPath: `inset(0 ${rightPercent}% 0 ${leftPercent}%)`,
+          pointerEvents: 'none',
+        }}
+      >
         <source type="image/webp" srcSet={WEBP_SRCSET} />
         <img
           className="part-diode__img"
