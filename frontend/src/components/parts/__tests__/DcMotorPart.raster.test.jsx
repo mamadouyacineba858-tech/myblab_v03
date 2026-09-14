@@ -7,7 +7,13 @@
  * - deux PhysicalContacts de présentation distincts sur les cosses arrière ;
  * - overlay asset SVG chargé comme <img>, jamais comme DOM <svg> ;
  * - hit targets / wires rendus aux contacts (3.5,16) et (3.5,34).
+ *
+ * NOTE outil : la config Vitest secondaire compile ce fichier JSX sans
+ * automatic JSX runtime. React doit donc rester importé ici, même si ESLint
+ * le considère autrement inutilisé au niveau lexical.
  */
+// eslint-disable-next-line no-unused-vars
+import React from 'react'
 import { describe, it, expect } from 'vitest'
 import { render, act, fireEvent } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
