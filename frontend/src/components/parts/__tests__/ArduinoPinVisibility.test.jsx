@@ -22,7 +22,7 @@ function renderArduino(simulationActive) {
   )
 }
 
-describe('MB-L1-ARDUINO-001 — Tinkercad-like Arduino presentation', () => {
+describe('MB-L1-ARDUINO-001 — approved Arduino Canvas presentation', () => {
   it('n’ajoute aucun badge, numéro ou pastille artificielle autour des pins', () => {
     const { container } = render(<ArduinoPart />)
     expect(container.querySelector('.part-arduino__visible-pin')).toBeNull()
@@ -30,30 +30,22 @@ describe('MB-L1-ARDUINO-001 — Tinkercad-like Arduino presentation', () => {
     expect(container.querySelector('[data-arduino-pin]')).toBeNull()
   })
 
-  it('verrouille le zoom Canvas révisé à 2.20×', () => {
+  it('verrouille le zoom Canvas approuvé à 2.20×', () => {
     const { container } = render(<ArduinoPart />)
     const root = container.querySelector('.part-arduino')
     expect(root).not.toBeNull()
     expect(root.getAttribute('data-canvas-scale')).toBe('2.2')
     expect(root.style.transform).toBe('scale(2.2)')
     expect(root.style.transformOrigin).toBe('center center')
-    expect(container.querySelector('.part-arduino__img')).not.toBeNull()
   })
 
-  it('rend une sérigraphie SVG nette et non interactive au-dessus du raster', () => {
+  it('utilise le nouveau corps Arduino vectoriel approuvé au lieu du raster historique', () => {
     const { container } = render(<ArduinoPart />)
-    const silkscreen = container.querySelector('.part-arduino__silkscreen')
-    expect(silkscreen).not.toBeNull()
-    expect(silkscreen.getAttribute('data-vector-silkscreen')).toBe('true')
-    expect(silkscreen.style.pointerEvents).toBe('none')
-    const text = silkscreen.textContent
-    expect(text).toContain('DIGITAL (PWM ~)')
-    expect(text).toContain('ARDUINO')
-    expect(text).toContain('POWER')
-    expect(text).toContain('ANALOG IN')
-    expect(text).toContain('A0')
-    expect(text).toContain('5V')
-    expect(text).toContain('GND')
+    const img = container.querySelector('.part-arduino__img')
+    expect(img).not.toBeNull()
+    expect(img.getAttribute('src')).toBe('/assets/components/arduino/arduino.approved.body.svg')
+    expect(container.querySelector('picture')).toBeNull()
+    expect(container.querySelector('.part-arduino__silkscreen')).toBeNull()
   })
 
   it('ARRÊT — câble visuellement débranché et LED ON éteinte', () => {
