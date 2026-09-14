@@ -1,6 +1,6 @@
 # MB-L1-PROP-009 — DC MOTOR — Physical Electrical Terminal Presentation
 
-**Status:** IMPLEMENTED — PROJECT CANVAS GATE PENDING
+**Status:** CLOSED — PROJECT CANVAS PASS
 
 ## Base
 
@@ -51,10 +51,32 @@ Corriger la correspondance entre les deux bornes électriques `plus` / `minus` e
    - verrouillage des hit targets aux positions physiques ;
    - verrouillage de l'absence de contact sur l'ancien endpoint droit / arbre ;
    - verrouillage de la géométrie électrique canonique inchangée ;
-   - verrouillage de l'architecture générique sans branche `DC_MOTOR` centrale.
+   - verrouillage de l'architecture générique sans branche `DC_MOTOR` centrale ;
+   - tests transversaux `contactModel` et `physicalContactConvergence` mis à niveau sur le contrat explicite DC_MOTOR.
 
 5. Intégrité assets
    - `ASSET-INTEGRITY.json` étendu avec `dc-motor.terminals.svg` et le manifeste 4.1.0.
+
+## Validation technique CTO
+
+Sur HEAD `4b61915264a2ffffe747dbc30e8c49df1339c185` :
+
+- `DcMotorPart.raster.test.jsx` : 10/10 PASS ;
+- `contactModel.test.js` : 22/22 PASS ;
+- `physicalContactConvergence.test.js` : 64/64 PASS ;
+- lot ciblé : 96/96 PASS ;
+- build Vite/TypeScript : PASS ;
+- lint ciblé : aucune erreur signalée dans la validation finale.
+
+## Canvas Gate — PASS CTO
+
+Le CTO a validé le Canvas Gate final :
+
+- deux cosses électriques clairement visibles côté arrière ;
+- câblage possible sur les deux cosses ;
+- aucun contact électrique sur l'arbre ;
+- corps moteur visuellement cohérent ;
+- drag / zoom / sélection inchangés.
 
 ## Interdits respectés
 
@@ -64,18 +86,8 @@ Corriger la correspondance entre les deux bornes électriques `plus` / `minus` e
 - aucune vitesse, couple ou animation ajoutée ;
 - aucune branche spéciale ajoutée à `pinPresentationGeometry.js`.
 
-## Canvas Gate
+## Clôture
 
-PASS seulement si :
-
-- deux cosses électriques sont clairement visibles côté arrière ;
-- les deux fils peuvent être démarrés / terminés sur ces deux cosses ;
-- aucun fil ne se connecte à l'arbre ;
-- le corps moteur reste visuellement cohérent après le crop de l'ancienne cosse ;
-- drag / zoom / sélection restent inchangés.
-
-## Validation technique à exécuter localement
-
-Le connecteur GitHub a réalisé l'implémentation et les commits, mais n'exécute pas le runtime Vite/Vitest local. La validation technique et le Canvas Gate restent donc réservés au CTO dans VS Code.
+**MB-L1-PROP-009 est CLOSED — PROJECT CANVAS PASS.**
 
 Voir `docs/pmo/blueprints/MB-L1-PROP-009-dc-motor-physical-terminals-blueprint.md`.
