@@ -43,6 +43,18 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 54, dy: 31 }, style: "metallic-wire" },
     },
   },
+  // MB-L1-PROP-007 — diode axiale : le raster conserve uniquement le corps
+  // central et sa bande cathode (DiodePart.jsx). Les deux pattes fonctionnelles
+  // sont désormais dessinées par AssemblyLeadsLayer de la racine mécanique
+  // jusqu'aux pins canoniques. Aucun paramètre électrique n'est projeté dans
+  // le visuel : forwardVoltage/onResistance restent strictement simulation.
+  DIODE: {
+    kind: "through-hole",
+    leads: {
+      anode: { root: { dx: 24, dy: 15 }, style: "metallic-wire" },
+      cathode: { root: { dx: 60, dy: 15 }, style: "metallic-wire" },
+    },
+  },
   // MB-L1-PROP-005-R1 — la logique de marquage reste inchangée ; seul le
   // rendu physique est corrigé après Canvas FAIL. Les racines mécaniques et
   // les PhysicalContacts restent strictement identiques. Le style dédié
@@ -55,7 +67,7 @@ const ASSEMBLY_PROFILES = {
       pinB: { root: { dx: 47, dy: 27 }, style: "metallic-wire" },
     },
   },
-  // FT-C-COMP-002 — condensateur électrolytique polarisé. Le raster montre
+  // FT-C-COMP-002 — condensateur électrolytique radial polarisé. Le raster montre
   // déjà de longues pattes cuites : `bodyClip.bottom = 68` masque tout ce qui
   // est sous y=52. AssemblyLeadsLayer dessine ensuite les pattes fonctionnelles
   // depuis y=48 jusqu'aux PhysicalContacts y=80, soit ~32 px — longueur
