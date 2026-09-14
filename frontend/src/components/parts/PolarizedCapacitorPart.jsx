@@ -34,9 +34,12 @@ export function PolarizedCapacitorPart({ parameters } = {}) {
   const height = def?.height ?? 120
   const marking = formatPolarizedCapacitanceMarking(parameters?.capacitance)
 
+  // Le renderer direct sans paramètres conserve le libellé historique exact
+  // utilisé par les tests FT-C-COMP-002. Dans le pipeline réel, PartRenderer
+  // fournit toujours les paramètres résolus et le label devient descriptif.
   const ariaLabel = marking.exact
     ? `Condensateur polarisé ${marking.marking}, 25 V`
-    : 'Condensateur polarisé, 25 V'
+    : 'Condensateur polarisé'
 
   return (
     <div
