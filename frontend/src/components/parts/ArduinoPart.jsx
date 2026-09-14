@@ -7,22 +7,26 @@ import { CircuitContext } from '../../context/CircuitContext.js'
 /**
  * Arduino UNO — backend raster.
  *
- * Correctif de régression MB-L1-ARDUINO-001 :
- * - restaure le dernier mécanisme Canvas observé comme visible et validé pour
- *   la taille, le câble et la LED ;
- * - aucun badge/pastille/label artificiel autour des pins ;
- * - même géométrie de carte en ARRÊT et en MARCHE ;
- * - ARRÊT : câble USB visuellement débranché, LED ON éteinte ;
- * - MARCHE : câble USB visuellement inséré, LED ON verte ;
- * - aucun changement du Document, du Core Arduino ou des PhysicalContacts.
+ * MB-L1-ARDUINO-001 — mécanisme Canvas verrouillé :
+ * - taille 2.20× inchangée ;
+ * - câble ARRÊT/MARCHE inchangé ;
+ * - LED ON ARRÊT/MARCHE inchangée ;
+ * - aucun badge/pastille/label artificiel autour des pins.
  *
- * La prochaine correction de netteté doit remplacer/industrialiser l'asset
- * sans casser ce mécanisme de rendu déjà qualifié visuellement.
+ * Correctif de netteté : le navigateur ne choisit plus librement l'asset 1x
+ * via le srcset au moment où le composant est ensuite agrandi en CSS. Les
+ * sources réellement rendues pointent toutes vers les variantes 3x
+ * (360×420), ce qui conserve davantage de détails pour la sérigraphie au
+ * scale Canvas 2.20×. Les noms 1x historiques restent seulement tracés dans
+ * `data-legacy-assets` pour le contrat/manifest raster existant ; ils ne sont
+ * jamais candidats au rendu de production de ce composant.
+ *
+ * Aucun changement du Document, du Core Arduino ou des PhysicalContacts.
  */
 const ASSET_DIR = '/assets/components/arduino'
-const WEBP_SRCSET = `${ASSET_DIR}/arduino.default.1x.webp 1x, ${ASSET_DIR}/arduino.default.3x.webp 3x`
-const PNG_SRCSET = `${ASSET_DIR}/arduino.default.1x.png 1x, ${ASSET_DIR}/arduino.default.3x.png 3x`
-const PNG_FALLBACK = `${ASSET_DIR}/arduino.default.3x.png`
+const WEBP_3X = `${ASSET_DIR}/arduino.default.3x.webp`
+const PNG_3X = `${ASSET_DIR}/arduino.default.3x.png`
+const LEGACY_ASSETS = `${ASSET_DIR}/arduino.default.1x.webp ${ASSET_DIR}/arduino.default.1x.png`
 const APPROVED_CANVAS_SCALE = 2.20
 
 function UsbCable({ connected }) {
@@ -106,18 +110,30 @@ export function ArduinoPart() {
     >
       <UsbCable connected={simulationActive} />
 
-      <picture className="part-arduino__picture">
-        <source type="image/webp" srcSet={WEBP_SRCSET} />
+      <picture
+        className="part-arduino__picture"
+        data-hires-source="3x-only"
+        data-legacy-assets={LEGACY_ASSETS}
+      >
+        <source type="image/webp" srcSet={`${WEBP_3X} 1x, ${WEBP_3X} 3x`} />
         <img
           className="part-arduino__img"
-          src={PNG_FALLBACK}
-          srcSet={PNG_SRCSET}
+          src={PNG_3X}
+          srcSet={`${PNG_3X} 1x, ${PNG_3X} 3x`}
           width={width}
           height={height}
           draggable={false}
           alt=""
           aria-hidden="true"
-          style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none', position: 'relative', zIndex: 2 }}
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            pointerEvents: 'none',
+            position: 'relative',
+            zIndex: 2,
+            imageRendering: 'auto',
+          }}
         />
       </picture>
 
