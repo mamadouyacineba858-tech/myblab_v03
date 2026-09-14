@@ -43,16 +43,17 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 54, dy: 31 }, style: "metallic-wire" },
     },
   },
-  // MB-L1-PROP-007 — diode axiale : le raster conserve uniquement le corps
-  // central et sa bande cathode (DiodePart.jsx). Les deux pattes fonctionnelles
-  // sont désormais dessinées par AssemblyLeadsLayer de la racine mécanique
-  // jusqu'aux pins canoniques. Aucun paramètre électrique n'est projeté dans
-  // le visuel : forwardVoltage/onResistance restent strictement simulation.
+  // MB-L1-PROP-007-R1 — diode axiale : le raster conserve uniquement le
+  // cylindre central et sa bande cathode (DiodePart.jsx). Le premier Canvas
+  // Gate a montré que 24/60 s'arrêtaient dans les marges transparentes du
+  // raster, donc avant le cylindre visible. Les racines sont recalées sur les
+  // bords opaques du corps x=31/x=51 ; les endpoints électriques restent
+  // strictement anode(0,15)/cathode(84,15).
   DIODE: {
     kind: "through-hole",
     leads: {
-      anode: { root: { dx: 24, dy: 15 }, style: "metallic-wire" },
-      cathode: { root: { dx: 60, dy: 15 }, style: "metallic-wire" },
+      anode: { root: { dx: 31, dy: 15 }, style: "metallic-wire" },
+      cathode: { root: { dx: 51, dy: 15 }, style: "metallic-wire" },
     },
   },
   // MB-L1-PROP-005-R1 — la logique de marquage reste inchangée ; seul le
@@ -83,14 +84,12 @@ const ASSEMBLY_PROFILES = {
   },
   // FT-C-COMP-004 — buzzer piézo traversant (asset 120×120). Les deux pattes
   // métalliques sont cuites dans le raster (x≈42 / 77, y≈79..114), suivies
-  // d'une ombre de contact pâle et large. `bodyClip.bottom = 42` masque tout
-  // ce qui est sous y=78 (les pattes cuites + l'ombre parasite) tout en
-  // CONSERVANT l'intégralité du corps cylindrique noir, le trou acoustique et
-  // le symbole « + ». AssemblyLeadsLayer dessine ensuite les deux pattes
-  // fonctionnelles fines et droites (style `wire`) depuis la racine
-  // (dx 42 / 78, dy 76, alignée sur les pieds visibles) jusqu'aux
-  // PhysicalContacts (dy 108) — longueur ~32 px, harmonisée avec
-  // LED / LDR / THERMISTOR / POLARIZED_CAPACITOR.
+  // d'une ombre de contact pâle et large. `bodyClip.bottom = 42` masque tout ce
+  // qui est sous y=78 (les pattes cuites + l'ombre parasite) tout en CONSERVANT
+  // l'intégralité du corps cylindrique noir, le trou acoustique et le symbole
+  // « + ». AssemblyLeadsLayer dessine ensuite les deux pattes fonctionnelles
+  // fines et droites (style `wire`) depuis la racine (dx 42 / 78, dy 76,
+  // alignée sur les pieds visibles) jusqu'aux PhysicalContacts (dy 108).
   BUZZER: {
     kind: "through-hole",
     leads: {
@@ -126,9 +125,7 @@ const ASSEMBLY_PROFILES = {
   // fonctionnelles naissaient directement sous le corps métallique.
   // AssemblyLeadsLayer garde les racines à dx 42 / 60 / 78, dy 86 : cette
   // portion est peinte derrière le raster puis n'émerge qu'après l'embase,
-  // vers y=100, jusqu'aux PhysicalContacts. On conserve ainsi le léger
-  // évasement des cosses extérieures et le wiper vertical, sans modifier les
-  // identités électriques left / wiper / right.
+  // vers y=100, jusqu'aux PhysicalContacts.
   POTENTIOMETER: {
     kind: "through-hole",
     leads: {
