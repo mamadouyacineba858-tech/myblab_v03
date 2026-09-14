@@ -1,6 +1,6 @@
 # MB-L1-PROP-008 — POTENTIOMETER Dynamic Wiper Position Rendering
 
-**Status:** IMPLEMENTED — PROJECT CANVAS GATE PENDING
+**Status:** CLOSED — PROJECT CANVAS PASS
 
 ## Base
 
@@ -25,6 +25,11 @@
 - `1.00` → butée droite.
 - modification de `resistance` seule : angle inchangé.
 - drag / wire / breadboard / zoom inchangés.
-- Canvas final réservé au CTO.
+
+## Project Canvas Gate
+
+- CTO validation: **PASS**.
+- Observation CTO: le comportement dynamique du repère blanc fonctionne correctement sur le Canvas.
+- Décision CSA: ticket fermé après qualification visuelle utilisateur.
 
 Voir `docs/pmo/blueprints/MB-L1-PROP-008-potentiometer-dynamic-position-blueprint.md`.
