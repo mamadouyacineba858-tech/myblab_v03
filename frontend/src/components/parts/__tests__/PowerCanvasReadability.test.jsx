@@ -7,22 +7,26 @@ import { PowerPart } from '../PowerPart.jsx'
 import { getComponentDef } from '../../../config/componentDefinitions.js'
 
 describe('MB-L1-POWER-001 — Canvas readability', () => {
-  it('agrandit uniquement la présentation POWER à 2.5×', () => {
+  it('agrandit uniquement la présentation POWER à 3.3×', () => {
     const { container } = render(<PowerPart />)
     const root = container.querySelector('.part-power')
-    expect(root.getAttribute('data-canvas-scale')).toBe('2.5')
-    expect(root.style.transform).toBe('scale(2.5)')
+    expect(root.getAttribute('data-canvas-scale')).toBe('3.3')
+    expect(root.style.transform).toBe('scale(3.3)')
     expect(root.style.transformOrigin).toBe('center center')
   })
 
-  it('utilise directement la référence haute résolution approuvée', () => {
+  it('utilise uniquement le raster 3x stable sans overlays DOM', () => {
     const { container } = render(<PowerPart />)
     const root = container.querySelector('.part-power')
-    const img = container.querySelector('.part-power__img--approved-reference')
+    const picture = container.querySelector('.part-power__picture')
+    const img = container.querySelector('.part-power__img')
+    const source = container.querySelector('picture > source[type="image/webp"]')
 
-    expect(root.getAttribute('data-visual-authority')).toBe('approved-reference')
-    expect(img).not.toBeNull()
-    expect(img.getAttribute('src')).toBe('/assets/components/power/power.reference.hires.webp')
+    expect(root.getAttribute('data-visual-source')).toBe('stable-raster-3x')
+    expect(picture.getAttribute('data-hires-source')).toBe('3x-only')
+    expect(img.getAttribute('src')).toBe('/assets/components/power/power.default.3x.png')
+    expect(img.getAttribute('srcset')).not.toContain('power.default.1x.png')
+    expect(source.getAttribute('srcset')).not.toContain('power.default.1x.webp')
     expect(img.style.pointerEvents).toBe('none')
     expect(container.querySelector('.part-power__facade-overlay')).toBeNull()
     expect(container.querySelector('.part-power__facade-label')).toBeNull()
