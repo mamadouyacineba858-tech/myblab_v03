@@ -10,6 +10,12 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  * tandis que AssemblyLeadsLayer dessine les deux pattes fonctionnelles depuis
  * les racines mécaniques jusqu'aux pins canoniques anode/cathode.
  *
+ * Correction Canvas R1 : les premières racines 24/60 correspondaient à une
+ * fenêtre trop large autour du raster et laissaient un espace visible entre
+ * les pattes et le cylindre réel. La fenêtre est resserrée sur les bords
+ * opaques observés du corps (31..51), de sorte que les pattes metallic-wire
+ * arrivent directement aux embouts du cylindre sans modifier les endpoints.
+ *
  * Cette consolidation ne modifie aucune donnée électrique :
  * - anode = (0,15), cathode = (84,15) ;
  * - forwardVoltage / onResistance inchangés ;
@@ -21,12 +27,13 @@ const WEBP_SRCSET = `${ASSET_DIR}/diode.default.1x.webp 1x, ${ASSET_DIR}/diode.d
 const PNG_SRCSET = `${ASSET_DIR}/diode.default.1x.png 1x, ${ASSET_DIR}/diode.default.3x.png 3x`
 const PNG_FALLBACK = `${ASSET_DIR}/diode.default.3x.png`
 
-// Contrat mécanique PROP-007 : le corps utile reste centré entre x=24 et x=60
-// dans la boîte canonique 84×30. Les segments extérieurs sont remplacés par
-// AssemblyLeadsLayer (profil DIODE, style metallic-wire).
+// Contrat mécanique PROP-007-R1 : le cylindre réellement opaque du raster est
+// centré entre x=31 et x=51 dans la boîte canonique 84×30. Les segments
+// extérieurs sont remplacés par AssemblyLeadsLayer ; les racines du profil
+// DIODE utilisent exactement ces mêmes abscisses pour garantir la continuité.
 const BODY_WINDOW = Object.freeze({
-  left: 24,
-  right: 60,
+  left: 31,
+  right: 51,
 })
 
 export function DiodePart() {
