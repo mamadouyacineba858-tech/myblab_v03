@@ -1,6 +1,6 @@
 # MB-L1-PROP-010 — POLARIZED CAPACITOR — Dynamic Capacitance Marking
 
-**Status:** IMPLEMENTED — PROJECT CANVAS GATE PENDING
+**Status:** CLOSED — PROJECT CANVAS PASS
 
 ## Base
 - Base SHA: `eb24fe68b2d6ae412327b712c6462d691230b86a`
@@ -51,15 +51,12 @@ Faire refléter la valeur persistante `parameters.capacitance` de l'Inspector da
 - polarité inchangée ;
 - contacts inchangés.
 
-## Validation technique locale requise
-Le connecteur GitHub a réalisé l'implémentation mais n'exécute pas Vite/Vitest localement. À valider dans VS Code : tests ciblés, tests raster historiques, lint ciblé, build, puis Canvas Gate.
+## Validation finale
+- Canvas Gate : **PASS**, validé par le Project Lead / CTO le 2026-09-14.
+- Le marquage dynamique de capacitance est accepté sur le Canvas.
+- `25V`, polarité, bande négative, pins, contacts et modèle DC restent hors modification de ce ticket.
 
-## Canvas Gate
-PASS seulement si :
-- la modification de `capacitance` dans l'Inspector met immédiatement à jour le marquage ;
-- `25V` reste fixe ;
-- la bande négative reste clairement visible ;
-- aucun ancien `100µF` parasite n'est lisible ;
-- drag / zoom / sélection / câblage restent inchangés.
+## Ruling CSA
+MB-L1-PROP-010 est **CLOSED — PROJECT CANVAS PASS**. Toute évolution ultérieure de tension nominale ou de comportement transitoire devra passer par un contrat dédié et ne doit pas réouvrir ce ticket.
 
 Voir `docs/pmo/blueprints/MB-L1-PROP-010-polarized-capacitor-dynamic-marking-blueprint.md`.
