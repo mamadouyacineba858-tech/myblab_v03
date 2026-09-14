@@ -113,9 +113,13 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "vcc", label: "VCC", dx: 90, dy: 35, breadboardInsertable: false },
     { id: "gnd", label: "GND", dx: 90, dy: 50, breadboardInsertable: false },
   ],
+  // MB-L1-PROP-009 — le Core reste inchangé (+ à 0,25 ; - à 84,25), mais
+  // les PhysicalContacts de présentation suivent désormais les DEUX vraies
+  // cosses électriques de l'overlay arrière. L'arbre mécanique à droite n'est
+  // jamais connectable. Le moteur reste non-insérable sur breadboard.
   DC_MOTOR: [
-    { id: "plus", label: "+", dx: 0, dy: 25, breadboardInsertable: false },
-    { id: "minus", label: "-", dx: 84, dy: 25, breadboardInsertable: false },
+    { id: "plus", label: "+", dx: 0, dy: 25, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "plus", dx: 3.5, dy: 16, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "minus", label: "-", dx: 84, dy: 25, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 3.5, dy: 34, wireConnectable: true, breadboardInsertable: false }] },
   ],
 }
 
