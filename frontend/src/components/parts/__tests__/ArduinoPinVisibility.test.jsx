@@ -22,7 +22,7 @@ function renderArduino(simulationActive) {
   )
 }
 
-describe('MB-L1-ARDUINO-001 — visible Arduino OFF/RUN presentation', () => {
+describe('MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation', () => {
   it('n’ajoute aucun badge, numéro ou pastille artificielle autour des pins', () => {
     const { container } = render(<ArduinoPart />)
     expect(container.querySelector('.part-arduino__visible-pin')).toBeNull()
@@ -30,12 +30,12 @@ describe('MB-L1-ARDUINO-001 — visible Arduino OFF/RUN presentation', () => {
     expect(container.querySelector('[data-arduino-pin]')).toBeNull()
   })
 
-  it('conserve la taille Canvas validée à 2.20×', () => {
+  it('verrouille le raffinement Canvas à 2.45×', () => {
     const { container } = render(<ArduinoPart />)
     const root = container.querySelector('.part-arduino')
     expect(root).not.toBeNull()
-    expect(root.getAttribute('data-canvas-scale')).toBe('2.2')
-    expect(root.style.transform).toBe('scale(2.2)')
+    expect(root.getAttribute('data-canvas-scale')).toBe('2.45')
+    expect(root.style.transform).toBe('scale(2.45)')
     expect(root.style.transformOrigin).toBe('center center')
   })
 
@@ -52,6 +52,8 @@ describe('MB-L1-ARDUINO-001 — visible Arduino OFF/RUN presentation', () => {
     expect(source.getAttribute('srcset')).not.toContain('arduino.default.1x.webp')
     expect(img.getAttribute('srcset')).toContain('arduino.default.3x.png')
     expect(source.getAttribute('srcset')).toContain('arduino.default.3x.webp')
+    expect(img.style.filter).toContain('contrast(1.08)')
+    expect(img.style.filter).toContain('saturate(1.04)')
   })
 
   it('ARRÊT — câble visuellement débranché et LED ON éteinte', () => {
