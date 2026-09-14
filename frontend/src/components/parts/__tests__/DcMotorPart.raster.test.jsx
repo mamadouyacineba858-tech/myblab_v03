@@ -8,7 +8,6 @@
  * - overlay asset SVG chargé comme <img>, jamais comme DOM <svg> ;
  * - hit targets / wires rendus aux contacts (3.5,16) et (3.5,34).
  */
-import React from 'react'
 import { describe, it, expect } from 'vitest'
 import { render, act, fireEvent } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
