@@ -1,6 +1,6 @@
 # MB-L1-PROP-009 — DC MOTOR — Physical Electrical Terminal Presentation
 
-**Status:** READY — ASSET IMPLEMENTATION PENDING
+**Status:** IMPLEMENTED — PROJECT CANVAS GATE PENDING
 
 ## Base
 
@@ -17,54 +17,65 @@ Corriger la correspondance entre les deux bornes électriques `plus` / `minus` e
 - pins `plus` / `minus` ;
 - paramètre `resistance` ;
 - modèle DC existant ;
-- dimensions 84×50 si le nouvel asset le permet ;
+- dimensions 84×50 ;
 - arbre mécanique réaliste ;
 - architecture générique des `PhysicalContacts`.
 
-## À modifier
+## Implémentation réalisée
 
-1. Asset DC MOTOR
-   - deux vraies cosses électriques visibles côté arrière ;
-   - arbre mécanique clairement séparé ;
-   - aucune fausse borne sur l'arbre.
+1. Asset physique
+   - le raster historique du moteur reste la source du corps, du carter et de l'arbre ;
+   - l'ancienne cosse unique cuite côté arrière est masquée par un crop de 15 px ;
+   - `frontend/public/assets/components/dc-motor/dc-motor.terminals.svg` ajoute deux cosses métalliques distinctes côté arrière ;
+   - les trous de connexion sont centrés en `(3.5,16)` et `(3.5,34)` ;
+   - l'arbre reste à droite et n'est associé à aucun contact électrique.
 
 2. `manifest.json`
-   - mettre à jour la géométrie de présentation si nécessaire.
+   - version 4.1.0 ;
+   - géométrie canonique inchangée : `plus(0,25)` / `minus(84,25)` ;
+   - section `presentation.contacts` ajoutée pour les deux cosses ;
+   - `mechanicalShaft.connectable = false` ;
+   - overlay déclaré comme asset de présentation.
 
 3. `componentDefinitions.js`
-   - conserver les coordonnées électriques canoniques ;
-   - ajouter des contacts de présentation dédiés :
-     - `plus` → cosse + ;
-     - `minus` → cosse - ;
+   - coordonnées électriques canoniques inchangées ;
+   - `plus` reçoit un `PhysicalContact` en `(3.5,16)` ;
+   - `minus` reçoit un `PhysicalContact` en `(3.5,34)` ;
+   - `wireConnectable = true` ;
    - `breadboardInsertable = false` ;
-   - `wireConnectable = true`.
+   - aucune branche `DC_MOTOR` ajoutée dans `pinPresentationGeometry.js` ou `CircuitComponent.jsx`.
 
 4. Tests
-   - deux contacts distincts ;
-   - aucun contact sur l'arbre ;
-   - fils visuellement attachés aux vraies cosses ;
-   - aucune régression simulation.
+   - test raster mis à jour pour verrouiller le corps + overlay ;
+   - verrouillage des deux contacts distincts ;
+   - verrouillage des hit targets aux positions physiques ;
+   - verrouillage de l'absence de contact sur l'ancien endpoint droit / arbre ;
+   - verrouillage de la géométrie électrique canonique inchangée ;
+   - verrouillage de l'architecture générique sans branche `DC_MOTOR` centrale.
 
-## Interdits
+5. Intégrité assets
+   - `ASSET-INTEGRITY.json` étendu avec `dc-motor.terminals.svg` et le manifeste 4.1.0.
 
-- déplacer ou renommer `plus` / `minus` dans le Core ;
-- considérer l'arbre comme borne ;
-- modifier le modèle DC ;
-- ajouter vitesse / couple / animation dans ce ticket ;
-- ajouter une branche `DC_MOTOR` dans `pinPresentationGeometry.js` ;
-- inventer les coordonnées de contacts avant mesure sur l'asset final.
+## Interdits respectés
+
+- aucune modification du Core `plus` / `minus` ;
+- aucune utilisation de l'arbre comme borne ;
+- aucune modification du modèle DC ;
+- aucune vitesse, couple ou animation ajoutée ;
+- aucune branche spéciale ajoutée à `pinPresentationGeometry.js`.
 
 ## Canvas Gate
 
 PASS seulement si :
 
-- deux cosses électriques sont clairement visibles ;
-- les deux fils peuvent être connectés dessus ;
-- l'arbre reste purement mécanique ;
-- aucune ambiguïté visuelle n'existe entre cosse et arbre.
+- deux cosses électriques sont clairement visibles côté arrière ;
+- les deux fils peuvent être démarrés / terminés sur ces deux cosses ;
+- aucun fil ne se connecte à l'arbre ;
+- le corps moteur reste visuellement cohérent après le crop de l'ancienne cosse ;
+- drag / zoom / sélection restent inchangés.
 
-## État actuel
+## Validation technique à exécuter localement
 
-Le ticket est architecturalement prêt. L'implémentation des coordonnées `PhysicalContact` est volontairement bloquée jusqu'à disponibilité et validation du nouvel asset, afin d'éviter toute géométrie fictive.
+Le connecteur GitHub a réalisé l'implémentation et les commits, mais n'exécute pas le runtime Vite/Vitest local. La validation technique et le Canvas Gate restent donc réservés au CTO dans VS Code.
 
 Voir `docs/pmo/blueprints/MB-L1-PROP-009-dc-motor-physical-terminals-blueprint.md`.
