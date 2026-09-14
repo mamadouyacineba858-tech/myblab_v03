@@ -39,12 +39,19 @@ describe('MB-L1-ARDUINO-001 — visible Arduino OFF/RUN presentation', () => {
     expect(root.style.transformOrigin).toBe('center center')
   })
 
-  it('rend le corps Arduino historique visible via picture + fallback PNG', () => {
+  it('force uniquement la source 3x pour le rendu visible sans réintroduire l’asset 1x comme candidat', () => {
     const { container } = render(<ArduinoPart />)
-    expect(container.querySelector('.part-arduino__picture')).not.toBeNull()
+    const picture = container.querySelector('.part-arduino__picture')
+    const source = container.querySelector('picture > source[type="image/webp"]')
     const img = container.querySelector('.part-arduino__img')
-    expect(img).not.toBeNull()
+
+    expect(picture).not.toBeNull()
+    expect(picture.getAttribute('data-hires-source')).toBe('3x-only')
     expect(img.getAttribute('src')).toBe('/assets/components/arduino/arduino.default.3x.png')
+    expect(img.getAttribute('srcset')).not.toContain('arduino.default.1x.png')
+    expect(source.getAttribute('srcset')).not.toContain('arduino.default.1x.webp')
+    expect(img.getAttribute('srcset')).toContain('arduino.default.3x.png')
+    expect(source.getAttribute('srcset')).toContain('arduino.default.3x.webp')
   })
 
   it('ARRÊT — câble visuellement débranché et LED ON éteinte', () => {
