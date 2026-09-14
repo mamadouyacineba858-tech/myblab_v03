@@ -15,30 +15,17 @@ describe('MB-L1-POWER-001 — Canvas readability', () => {
     expect(root.style.transformOrigin).toBe('center center')
   })
 
-  it('force la variante raster 3x pour le rendu visible', () => {
+  it('utilise directement la référence haute résolution approuvée', () => {
     const { container } = render(<PowerPart />)
-    const picture = container.querySelector('.part-power__picture')
-    const img = container.querySelector('.part-power__img')
-    const source = container.querySelector('picture > source[type="image/webp"]')
+    const root = container.querySelector('.part-power')
+    const img = container.querySelector('.part-power__img--approved-reference')
 
-    expect(picture.getAttribute('data-hires-source')).toBe('3x-only')
-    expect(img.getAttribute('src')).toBe('/assets/components/power/power.default.3x.png')
-    expect(img.getAttribute('srcset')).not.toContain('power.default.1x.png')
-    expect(source.getAttribute('srcset')).not.toContain('power.default.1x.webp')
-  })
-
-  it('rend lisibles les sérigraphies de commande sans interaction propre', () => {
-    const { container } = render(<PowerPart />)
-    const overlay = container.querySelector('.part-power__facade-overlay')
-    expect(overlay).not.toBeNull()
-    expect(overlay.style.pointerEvents).toBe('none')
-
-    const labels = [...container.querySelectorAll('.part-power__facade-label')]
-    const text = labels.map((el) => el.textContent)
-    for (const expected of ['VOLTAGE', 'CURRENT', 'POWER', 'MIN', 'MAX', 'DC POWER SUPPLY', 'MCH-305D']) {
-      expect(text).toContain(expected)
-    }
-    for (const label of labels) expect(label.style.pointerEvents).toBe('none')
+    expect(root.getAttribute('data-visual-authority')).toBe('approved-reference')
+    expect(img).not.toBeNull()
+    expect(img.getAttribute('src')).toBe('/assets/components/power/power.reference.hires.webp')
+    expect(img.style.pointerEvents).toBe('none')
+    expect(container.querySelector('.part-power__facade-overlay')).toBeNull()
+    expect(container.querySelector('.part-power__facade-label')).toBeNull()
   })
 
   it('ne modifie ni les pins ni les PhysicalContacts', () => {
