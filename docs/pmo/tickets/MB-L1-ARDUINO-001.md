@@ -7,55 +7,66 @@
 - Branch: `feat/MB-L1-ARDUINO-001-pin-visibility`
 
 ## Authority / cible Canvas révisée
-Le Project Lead a rejeté la première proposition à quatre badges `D2/D3/GND/5V` : elle reste trop petite et ajoute une signalétique artificielle absente de la référence Tinkercad.
+Le Project Lead a rejeté la première proposition à quatre badges `D2/D3/GND/5V`, puis la taille `1.30×`, car les sérigraphies du PCB restaient trop petites.
 
-La référence visuelle approuvée le 2026-09-14 impose :
-- Arduino UNO nettement plus grand sur le Canvas ;
-- lecture naturelle des headers/trous/sérigraphies du PCB ;
+La référence visuelle approuvée le 2026-09-14 impose désormais :
+- Arduino UNO nettement agrandi sur le Canvas ;
+- sérigraphies réelles du PCB naturellement lisibles ;
 - aucun badge, numéro, pastille ou label flottant ajouté par MYBlab ;
-- même taille de carte en mode arrêt et en mode simulation ;
-- cible de taille verrouillée pour cette correction : `1.30×` par rapport au rendu Canvas antérieur.
+- même taille et même géométrie de carte en ARRÊT et MARCHE ;
+- ARRÊT : câble USB visuellement débranché, LED ON éteinte ;
+- MARCHE : câble USB visuellement inséré, LED ON verte ;
+- nouvelle cible de taille : `2.20×` par rapport au renderer canonique historique.
 
 ## Audit réel
-- le raster actuel est `120×140` et ne possède qu'un état `default` dans son manifeste ;
-- les quatre PhysicalContacts historiques `D2`, `D3`, `GND`, `5V` existent déjà ;
-- le backend raster est `markerless`, donc les `<Pin>` fonctionnels restent invisibles ;
-- la première correction ajoutait des badges artificiels : **rejetée au Canvas Gate**.
+- le raster actuel est `120×140`, avec variantes `1x` et `3x` ;
+- le dépôt ne possède qu'un état raster `default` ;
+- `simulationActive` existe déjà dans le contexte stable du circuit ;
+- les quatre PhysicalContacts historiques `D2`, `D3`, `GND`, `5V` restent inchangés ;
+- le backend raster est `markerless`.
 
 ## Implémentation révisée
 ### `frontend/src/components/parts/ArduinoPart.jsx`
-- suppression complète des badges/pastilles/labels artificiels ;
-- raster UNO conservé comme unique source visuelle du PCB ;
-- scale Canvas `1.30×`, centré, pour atteindre la taille de référence approuvée ;
-- aucune modification de la simulation ou du Document.
+- suppression maintenue de tous les badges artificiels ;
+- raster UNO existant conservé comme corps physique ;
+- scale Canvas porté à `2.20×` pour rendre la sérigraphie lisible ;
+- lecture présentation-only de `simulationActive` via `CircuitContext` ;
+- overlay USB non interactif :
+  - `disconnected` en ARRÊT ;
+  - `connected` en MARCHE ;
+- LED ON de présentation :
+  - éteinte en ARRÊT ;
+  - verte/lumineuse en MARCHE ;
+- aucune mutation du Document, aucune modification du modèle électrique.
 
 ### `frontend/src/components/parts/__tests__/ArduinoPinVisibility.test.jsx`
-- verrouille l'absence de badges artificiels ;
-- verrouille `data-canvas-scale="1.3"` / `scale(1.3)` ;
-- préserve les quatre PhysicalContacts historiques ;
-- préserve les coordonnées électriques historiques.
+- absence de badges artificiels ;
+- scale `2.20×` verrouillé ;
+- mode ARRÊT : USB débranché + LED off ;
+- mode MARCHE : USB branché + LED on ;
+- PhysicalContacts historiques préservés ;
+- coordonnées électriques historiques préservées.
 
-## Limite explicitement constatée
-Le dépôt ne contient actuellement qu'un asset Arduino `default` : il n'existe pas encore deux assets raster distincts `OFF/unplugged` et `RUN/plugged`. La reproduction exacte de la référence câble débranché ↔ câble branché doit donc être un sous-ticket asset/runtime dédié ; elle ne doit pas être simulée par des badges ou par une fausse modification du Core.
-
-## Interdits
+## Invariants / interdits
 - aucun nouveau pin Arduino dans ce ticket ;
 - aucune modification du modèle électrique ;
-- aucune modification de la simulation ;
-- aucun badge artificiel sur le PCB ;
-- aucun faux connecteur décoratif.
+- aucun changement de firmware/runtime/scheduler ;
+- aucune persistance du mode visuel ;
+- aucun badge artificiel autour de la carte ;
+- overlays USB/LED avec `pointer-events:none` ;
+- taille de carte identique entre ARRÊT et MARCHE.
 
 ## Validation locale requise
 Le connecteur GitHub applique les modifications mais n'exécute pas Vitest/Vite localement. Validation CTO requise : tests ciblés, lint, build, puis Canvas Gate.
 
 ## Canvas Gate révisé
 PASS seulement si :
-- la taille de l'Arduino correspond visuellement à la référence approuvée ;
-- les headers, trous et sérigraphies deviennent naturellement lisibles ;
+- les écritures essentielles du PCB sont lisibles au niveau de zoom de travail normal ;
+- la taille correspond à la référence approuvée ;
+- ARRÊT montre le câble débranché et la LED ON éteinte ;
+- MARCHE montre le câble inséré et la LED ON verte ;
 - aucun badge `D2/D3/GND/5V` n'apparaît ;
 - drag, sélection et zoom restent acceptables ;
 - aucune régression technique ciblée.
-
-Le comportement exact OFF câble débranché / RUN câble branché reste explicitement ouvert tant que les deux assets physiques correspondants ne sont pas intégrés.
 
 Voir `docs/pmo/blueprints/MB-L1-ARDUINO-001-pin-visibility-blueprint.md`.
