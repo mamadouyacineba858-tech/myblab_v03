@@ -1,6 +1,6 @@
 # MB-L1-PROP-006 — Thermistor realistic shared silhouette & dynamic nominal marking
 
-**Status:** IMPLEMENTED — PROJECT CANVAS GATE PENDING
+**Status:** CLOSED — PROJECT CANVAS PASS
 
 ## Base
 
@@ -24,6 +24,6 @@
 - 470 kΩ → `474`.
 - 12 345 Ω → corps neutre, aucune fausse inscription.
 - Drag / wire / breadboard / zoom inchangés.
-- Canvas final réservé au CTO.
+- Project Canvas Gate : PASS, validé par le CTO Dr. Mamadou Yacine Ba.
 
 Voir `docs/pmo/blueprints/MB-L1-PROP-006-thermistor-dynamic-marking-blueprint.md`.
