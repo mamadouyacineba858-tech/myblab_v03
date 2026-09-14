@@ -40,6 +40,22 @@ describe('MB-L1-ARDUINO-001 — Tinkercad-like Arduino presentation', () => {
     expect(container.querySelector('.part-arduino__img')).not.toBeNull()
   })
 
+  it('rend une sérigraphie SVG nette et non interactive au-dessus du raster', () => {
+    const { container } = render(<ArduinoPart />)
+    const silkscreen = container.querySelector('.part-arduino__silkscreen')
+    expect(silkscreen).not.toBeNull()
+    expect(silkscreen.getAttribute('data-vector-silkscreen')).toBe('true')
+    expect(silkscreen.style.pointerEvents).toBe('none')
+    const text = silkscreen.textContent
+    expect(text).toContain('DIGITAL (PWM ~)')
+    expect(text).toContain('ARDUINO')
+    expect(text).toContain('POWER')
+    expect(text).toContain('ANALOG IN')
+    expect(text).toContain('A0')
+    expect(text).toContain('5V')
+    expect(text).toContain('GND')
+  })
+
   it('ARRÊT — câble visuellement débranché et LED ON éteinte', () => {
     const { container } = renderArduino(false)
     expect(container.querySelector('.part-arduino').getAttribute('data-arduino-mode')).toBe('off')
