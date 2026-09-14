@@ -8,18 +8,16 @@ import { CircuitContext } from '../../context/CircuitContext.js'
  * Arduino UNO — backend raster.
  *
  * MB-L1-ARDUINO-001 — mécanisme Canvas verrouillé :
- * - taille 2.20× inchangée ;
  * - câble ARRÊT/MARCHE inchangé ;
  * - LED ON ARRÊT/MARCHE inchangée ;
  * - aucun badge/pastille/label artificiel autour des pins.
  *
- * Correctif de netteté : le navigateur ne choisit plus librement l'asset 1x
- * via le srcset au moment où le composant est ensuite agrandi en CSS. Les
- * sources réellement rendues pointent toutes vers les variantes 3x
- * (360×420), ce qui conserve davantage de détails pour la sérigraphie au
- * scale Canvas 2.20×. Les noms 1x historiques restent seulement tracés dans
- * `data-legacy-assets` pour le contrat/manifest raster existant ; ils ne sont
- * jamais candidats au rendu de production de ce composant.
+ * Raffinement Canvas après validation intermédiaire :
+ * - source 3x uniquement pour éviter tout fallback visuel vers 1x ;
+ * - scale porté à 2.45× pour rapprocher la présence visuelle de la référence
+ *   approuvée sans changer la géométrie interne du composant ;
+ * - micro-renforcement de contraste/saturation appliqué uniquement au raster
+ *   pour améliorer la lecture de la sérigraphie sans ajouter de faux texte.
  *
  * Aucun changement du Document, du Core Arduino ou des PhysicalContacts.
  */
@@ -27,7 +25,7 @@ const ASSET_DIR = '/assets/components/arduino'
 const WEBP_3X = `${ASSET_DIR}/arduino.default.3x.webp`
 const PNG_3X = `${ASSET_DIR}/arduino.default.3x.png`
 const LEGACY_ASSETS = `${ASSET_DIR}/arduino.default.1x.webp ${ASSET_DIR}/arduino.default.1x.png`
-const APPROVED_CANVAS_SCALE = 2.20
+const APPROVED_CANVAS_SCALE = 2.45
 
 function UsbCable({ connected }) {
   return (
@@ -133,6 +131,7 @@ export function ArduinoPart() {
             position: 'relative',
             zIndex: 2,
             imageRendering: 'auto',
+            filter: 'contrast(1.08) saturate(1.04)',
           }}
         />
       </picture>
