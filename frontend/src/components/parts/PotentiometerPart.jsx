@@ -1,5 +1,6 @@
 import React from 'react'
 import { getComponentDef } from '../../config/componentDefinitions.js'
+import { resolvePotentiometerVisualPosition } from '../../visualization/potentiometerPosition.js'
 
 /**
  * Rendu visuel Potentiomètre — backend RASTER.
@@ -13,6 +14,11 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  * RGBA, 3x = 3×1x). Le concept « slider / linéaire » est abandonné — aucun
  * asset slider.
  *
+ * MB-L1-PROP-008 : le repère blanc du bouton n'est plus statique. Sa rotation
+ * est dérivée directement de `parameters.position` via la primitive pure
+ * `resolvePotentiometerVisualPosition()` : 0 -> -135°, 0.5 -> 0°, 1 -> +135°.
+ * Aucune seconde vérité n'est persistée ; `resistance` ne pilote pas l'angle.
+ *
  * Intégré via le mécanisme déclaratif de MB-VIS-INDUSTRIAL-001
  * (`defaultRegistrations` → `visual: { backend: 'raster' }` →
  * `getComponentPresentation('POTENTIOMETER')` → wrapper `data-bare-body` +
@@ -22,12 +28,10 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  * web → `/assets/components/potentiometer/…`, priorité WebP via `<picture>`,
  * fallback PNG, aucune logique JS de sélection d'asset.
  *
- * Composant STATIQUE — comportement électrique STRICTEMENT inchangé : aucune
- * prop reçue ni consommée, état unique `default`. Le modèle électrique
- * (`canonicalRegistry` : left/passive, wiper/output, right/passive ;
- * `PotentiometerModel`, `resistance` 10000 Ω, `position` 0.5) n'est pas
- * touché. La synchronisation visuelle du bouton avec `position` (asset
- * multi-états / rotation) est hors périmètre FT-C-COMP-003.
+ * Comportement électrique STRICTEMENT inchangé : le modèle canonique garde
+ * left/passive, wiper/output, right/passive ; `resistance` et `position` sont
+ * toujours résolus par le pipeline générique PartRenderer. PROP-008 ne crée
+ * ni interaction souris sur le bouton, ni nouvel état runtime, ni mutation.
  *
  * Contrat :
  *  - dimensions dérivées de `getComponentDef("POTENTIOMETER")` (120×120,
@@ -41,30 +45,27 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  *  - le raster source contient encore deux coins blancs résiduels autour de
  *    la base des cosses. Un clip polygonal local au renderer retire uniquement
  *    ces zones de fond aux coins inférieurs tout en conservant l'embase bleue ;
- *  - le trait blanc du bouton est une surcouche VISUELLE pure, ancrée dans
- *    la boîte canonique 120×120. Elle restaure le repère de position validé
- *    par le PO lorsque le raster redimensionné ne le rend pas suffisamment
- *    visible ; elle ne porte aucun événement et ne modifie pas `position` ;
- *  - l'`<img>` ne porte AUCUN gestionnaire, `draggable={false}`,
- *    `pointer-events: none` → drag / sélection / câblage / hit-test / zoom
- *    restent la responsabilité du wrapper `.circuit-component` ;
- *  - rendu déterministe, aucun id DOM → aucune collision entre deux
- *    potentiomètres simultanés.
+ *  - l'`<img>` et le repère ne portent aucun événement : drag / sélection /
+ *    câblage / hit-test / zoom restent la responsabilité du wrapper ;
+ *  - rendu déterministe pour un même jeu de paramètres, aucun id DOM.
  */
 const ASSET_DIR = '/assets/components/potentiometer'
 const WEBP_SRCSET = `${ASSET_DIR}/potentiometer.default.1x.webp 1x, ${ASSET_DIR}/potentiometer.default.3x.webp 3x`
 const PNG_SRCSET = `${ASSET_DIR}/potentiometer.default.1x.png 1x, ${ASSET_DIR}/potentiometer.default.3x.png 3x`
 const PNG_FALLBACK = `${ASSET_DIR}/potentiometer.default.3x.png`
 
-export function PotentiometerPart() {
+export function PotentiometerPart({ parameters = {} } = {}) {
   const def = getComponentDef("POTENTIOMETER")
   const width = def?.width ?? 120
   const height = def?.height ?? 120
+  const visualPosition = resolvePotentiometerVisualPosition(parameters.position)
 
   return (
     <div
       className="part-potentiometer"
       aria-label="Potentiomètre"
+      data-position={String(visualPosition.position)}
+      data-angle-deg={String(visualPosition.angleDeg)}
       style={{ position: 'relative', width: '100%', height: '100%' }}
     >
       <picture className="part-potentiometer__picture">
@@ -96,7 +97,8 @@ export function PotentiometerPart() {
           top: '8%',
           width: '4%',
           height: '22%',
-          transform: 'translateX(-50%)',
+          transform: `translateX(-50%) rotate(${visualPosition.angleDeg}deg)`,
+          transformOrigin: '50% 100%',
           borderRadius: '999px',
           background: '#f4f4f2',
           boxShadow: '0 0 1px rgba(0,0,0,0.65)',
