@@ -20,8 +20,13 @@
     "sha256": "9d54073a595fdfa565d0ab223d1234b7dbbe8c9ba42917c75c8f1b260dbed11d"
   },
   {
+    "file": "dc-motor.terminals.svg",
+    "bytes": 1233,
+    "sha256": "a49be967a2151e32ce3179cd93f65ca034195c8c343ec68e8015ea946ea86424"
+  },
+  {
     "file": "manifest.json",
-    "bytes": 952,
-    "sha256": "c3e28048fe1f2f8085a5cb7bb86fd85a2964fbc1d5a9db82fe2c641461953c86"
+    "bytes": 1230,
+    "sha256": "bbd20e9a67317678f25bcec5875dcbf03925d602b027db4d9b7989280c222aa9"
   }
 ]
