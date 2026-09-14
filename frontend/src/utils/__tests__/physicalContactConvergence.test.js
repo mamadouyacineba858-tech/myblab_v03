@@ -5,11 +5,6 @@
  * Verrouille la convergence de la présentation des points physiques sur le
  * modèle PhysicalContact générique (contactModel.js), SANS toucher au contrat
  * d'attachement breadboard historique (POWER / ARDUINO — TODO S5).
- *
- * Couvre : S4-A (héritage contactModel), S4-B (registres *_VISUAL_PINS retirés
- * / conservés), S4-C (aucune branche de type pour la coordonnée de contact
- * générique), S4-D (BUTTON / BUTTON_LATCHING), S4-F/G (POWER / ARDUINO
- * inchangés), S4-H (DC_MOTOR / BUZZER / SERVO), S4-K/N (matrice API 16/16).
  */
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
@@ -30,9 +25,6 @@ import { COMPONENT_TYPES, getComponentDef } from '../../config/componentDefiniti
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ALL_TYPES = Object.keys(COMPONENT_TYPES)
 
-// ---------------------------------------------------------------------------
-// TEST S4-A — héritage pin-level générique dans contactModel
-// ---------------------------------------------------------------------------
 describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pin-level', () => {
   it('contact IMPLICITE hérite de pinDef.wireConnectable', () => {
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0 })[0].wireConnectable).toBe(true)
@@ -46,13 +38,9 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
   })
 
   it('contact EXPLICITE : drapeau du contact > drapeau de la pin > true', () => {
-    // contact impose false malgré pin true
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0, wireConnectable: true, contacts: [{ id: 'a', wireConnectable: false }] })[0].wireConnectable).toBe(false)
-    // contact impose true malgré pin false
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0, breadboardInsertable: false, contacts: [{ id: 'a', breadboardInsertable: true }] })[0].breadboardInsertable).toBe(true)
-    // contact silencieux -> hérite de la pin
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0, breadboardInsertable: false, contacts: [{ id: 'a' }] })[0].breadboardInsertable).toBe(false)
-    // contact silencieux + pin silencieuse -> true
     expect(resolveContacts({ id: 'p', dx: 0, dy: 0, contacts: [{ id: 'a' }] })[0].wireConnectable).toBe(true)
   })
 
@@ -68,14 +56,11 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
     expect(resolveContacts(pin).map((c) => c.id)).toEqual(['1a', '1b'])
     expect(getDefaultContact(pin).id).toBe('1a')
     expect(resolveContact(pin, '1b').id).toBe('1b')
-    expect(resolveContact(pin, 'ZZZ').id).toBe('1a') // périmé -> défaut MÊME pin
-    expect(resolveContact({ id: 'q', dx: 0, dy: 0 }, 'anything').id).toBe('q') // mono-contact
+    expect(resolveContact(pin, 'ZZZ').id).toBe('1a')
+    expect(resolveContact({ id: 'q', dx: 0, dy: 0 }, 'anything').id).toBe('q')
   })
 
   it('tous les types du catalogue -> drapeaux de contact booléens ; classification d\'enfichage FT-B-001-S5', () => {
-    // wireConnectable : true partout (tout composant est câblable).
-    // breadboardInsertable : false pour POWER / ARDUINO / DC_MOTOR / SERVO
-    // (drapeau pin-level ou contact explicite), true partout ailleurs.
     const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032'])
     for (const type of ALL_TYPES) {
       for (const pin of getComponentDef(type).pins) {
@@ -90,13 +75,8 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
   })
 })
 
-// ---------------------------------------------------------------------------
-// TEST S4-B / S5 — les 6 registres *_VISUAL_PINS de la dette FT-B sont SUPPRIMÉS
-// ---------------------------------------------------------------------------
 describe('FT-B-001-S5 — TEST S4-B/S5 : plus aucun registre *_VISUAL_PINS', () => {
   const rawSrc = readFileSync(resolve(__dirname, '../pinPresentationGeometry.js'), 'utf-8')
-  // stripComments : retirer d'abord les `//`, puis les blocs `/* */` (ordre de
-  // MB-VIS-COMP-007) — on teste le CODE, pas les commentaires explicatifs.
   const code = rawSrc.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '')
 
   it('les 6 registres *_VISUAL_PINS + getLedVisualPinPosition sont SUPPRIMÉS du code', () => {
@@ -117,9 +97,6 @@ describe('FT-B-001-S5 — TEST S4-B/S5 : plus aucun registre *_VISUAL_PINS', () 
   })
 })
 
-// ---------------------------------------------------------------------------
-// TEST S4-C / S5 — résolution de contact 100% générique, tous types
-// ---------------------------------------------------------------------------
 describe('FT-B-001-S5 — TEST S4-C/S5 : résolution de contact générique, TOUS les types', () => {
   for (const type of ALL_TYPES) {
     it(`${type} : hit target == contact par défaut, sans registre parallèle`, () => {
@@ -129,7 +106,6 @@ describe('FT-B-001-S5 — TEST S4-C/S5 : résolution de contact générique, TOU
         const dflt = getDefaultContact(pin)
         const pres = getPinPresentationPosition(comp, pin)
         expect(pres).toEqual({ x: comp.x + dflt.dx, y: comp.y + dflt.dy })
-        // pour un mono-contact, c'est aussi exactement la géométrie canonique
         if (!Array.isArray(pin.contacts) || pin.contacts.length === 0) {
           expect(pres).toEqual(getPinPosition(comp, pin))
         }
@@ -138,9 +114,6 @@ describe('FT-B-001-S5 — TEST S4-C/S5 : résolution de contact générique, TOU
   }
 })
 
-// ---------------------------------------------------------------------------
-// TEST S4-D — BUTTON / BUTTON_LATCHING
-// ---------------------------------------------------------------------------
 describe('FT-B-001-S4 — TEST S4-D : BUTTON / BUTTON_LATCHING', () => {
   for (const type of ['BUTTON', 'BUTTON_LATCHING']) {
     it(`${type} : 4 contacts physiques / 2 pins canoniques, coordonnées S2 inchangées`, () => {
@@ -161,9 +134,7 @@ describe('FT-B-001-S4 — TEST S4-D : BUTTON / BUTTON_LATCHING', () => {
       const def = getComponentDef(type)
       const comp = { uid: 'b', type, x: 0, y: 0 }
       for (const pin of def.pins) {
-        // 2-arg (aucun contact) -> contact par défaut = patte basse (dy 58)
         expect(getPinPresentationPosition(comp, pin)).toEqual({ x: pin.dx, y: 58 })
-        // contact explicite haut ("1b"/"2b") -> patte haute dy 2
         const high = pin.id === 'pin1' ? '1b' : '2b'
         expect(getPinPresentationPosition(comp, pin, { contact: resolveContact(pin, high) })).toEqual({ x: pin.dx, y: 2 })
       }
@@ -176,7 +147,7 @@ describe('FT-B-001-S4 — TEST S4-D : BUTTON / BUTTON_LATCHING', () => {
     const wire = { id: 'w', fromUid: 'btn', fromPin: 'pin1', toUid: 'r', toPin: 'A' }
     const [path] = buildWirePaths([button, resistor], [wire])
     const pin1 = getComponentDef('BUTTON').pins[0]
-    const expected = getPinPresentationPosition(button, pin1) // (114, 158)
+    const expected = getPinPresentationPosition(button, pin1)
     expect(path.d.startsWith(`M ${expected.x} ${expected.y}`)).toBe(true)
     expect(expected).toEqual({ x: 114, y: 158 })
   })
@@ -186,13 +157,10 @@ describe('FT-B-001-S4 — TEST S4-D : BUTTON / BUTTON_LATCHING', () => {
     const resistor = { uid: 'r', type: 'RESISTOR', x: 400, y: 100 }
     const wire = { id: 'w', fromUid: 'btn', fromPin: 'pin1', fromContact: '1b', toUid: 'r', toPin: 'A' }
     const [path] = buildWirePaths([button, resistor], [wire])
-    expect(path.d.startsWith('M 114 102')).toBe(true) // (100+14, 100+2)
+    expect(path.d.startsWith('M 114 102')).toBe(true)
   })
 })
 
-// ---------------------------------------------------------------------------
-// TEST S4-F / S4-G / S5 — POWER / ARDUINO / NPN : présentation via PhysicalContact
-// ---------------------------------------------------------------------------
 describe('FT-B-001-S5 — TEST S4-F/G/S5 : POWER / ARDUINO / NPN présentation via contacts déclarés', () => {
   it('POWER : hit target / endpoint sur les CONTACTS raster (35,67)/(22,67) ; pin.dx/dy canonique intacte', () => {
     const comp = { uid: 'p', type: 'POWER', x: 0, y: 0 }
@@ -201,7 +169,6 @@ describe('FT-B-001-S5 — TEST S4-F/G/S5 : POWER / ARDUINO / NPN présentation v
     const pgnd = def.pins.find((p) => p.id === 'GND')
     expect(getPinPresentationPosition(comp, p5v)).toEqual({ x: 35, y: 67 })
     expect(getPinPresentationPosition(comp, pgnd)).toEqual({ x: 22, y: 67 })
-    // pin.dx/dy (géométrie canonique / électrique, MB-BREADBOARD-005) intacte
     expect([p5v.dx, p5v.dy]).toEqual([70, 37])
     expect([pgnd.dx, pgnd.dy]).toEqual([58, 25])
     expect(getPinPresentationPosition(comp, p5v, { contact: getDefaultContact(p5v) })).toEqual({ x: 35, y: 67 })
@@ -220,7 +187,7 @@ describe('FT-B-001-S5 — TEST S4-F/G/S5 : POWER / ARDUINO / NPN présentation v
     }
   })
 
-  it('NPN_TRANSISTOR : présentation sur les CONTACTS probe-validés B/C/E = (31.5,58.5)/(42.5,58.5)/(53.5,58.5) ; canonique intacte', () => {
+  it('NPN_TRANSISTOR : présentation sur les CONTACTS probe-validés B/C/E ; canonique intacte', () => {
     const comp = { uid: 'n', type: 'NPN_TRANSISTOR', x: 0, y: 0 }
     const def = getComponentDef('NPN_TRANSISTOR')
     const expected = { base: [31.5, 58.5], collector: [42.5, 58.5], emitter: [53.5, 58.5] }
@@ -234,9 +201,6 @@ describe('FT-B-001-S5 — TEST S4-F/G/S5 : POWER / ARDUINO / NPN présentation v
   })
 })
 
-// ---------------------------------------------------------------------------
-// TEST S4-H / S5 — DC_MOTOR / BUZZER / SERVO
-// ---------------------------------------------------------------------------
 describe('FT-B-001-S5 — TEST S4-H/S5 : DC_MOTOR / BUZZER / SERVO', () => {
   it('BUZZER : reste enfichable (contact implicite en pin.dx/dy, breadboardInsertable:true)', () => {
     const comp = { uid: 'c', type: 'BUZZER', x: 0, y: 0 }
@@ -246,20 +210,29 @@ describe('FT-B-001-S5 — TEST S4-H/S5 : DC_MOTOR / BUZZER / SERVO', () => {
     }
   })
 
-  for (const type of ['DC_MOTOR', 'SERVO']) {
-    it(`${type} : contact implicite en pin.dx/dy, wireConnectable:true, breadboardInsertable:false (drapeau pin-level)`, () => {
-      const comp = { uid: 'c', type, x: 0, y: 0 }
-      for (const pin of getComponentDef(type).pins) {
-        expect(resolveContacts(pin)).toEqual([{ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: false }])
-        expect(getPinPresentationPosition(comp, pin)).toEqual(getPinPosition(comp, pin))
-      }
-    })
-  }
+  it('MB-L1-PROP-009 — DC_MOTOR : contacts explicites sur les deux cosses arrière ; canonique électrique inchangée', () => {
+    const comp = { uid: 'm', type: 'DC_MOTOR', x: 0, y: 0 }
+    const def = getComponentDef('DC_MOTOR')
+    const plus = def.pins.find((p) => p.id === 'plus')
+    const minus = def.pins.find((p) => p.id === 'minus')
+
+    expect([plus.dx, plus.dy]).toEqual([0, 25])
+    expect([minus.dx, minus.dy]).toEqual([84, 25])
+    expect(resolveContacts(plus)).toEqual([{ id: 'plus', dx: 3.5, dy: 16, wireConnectable: true, breadboardInsertable: false }])
+    expect(resolveContacts(minus)).toEqual([{ id: 'minus', dx: 3.5, dy: 34, wireConnectable: true, breadboardInsertable: false }])
+    expect(getPinPresentationPosition(comp, plus)).toEqual({ x: 3.5, y: 16 })
+    expect(getPinPresentationPosition(comp, minus)).toEqual({ x: 3.5, y: 34 })
+  })
+
+  it('SERVO : contact implicite en pin.dx/dy, wireConnectable:true, breadboardInsertable:false (drapeau pin-level)', () => {
+    const comp = { uid: 's', type: 'SERVO', x: 0, y: 0 }
+    for (const pin of getComponentDef('SERVO').pins) {
+      expect(resolveContacts(pin)).toEqual([{ id: pin.id, dx: pin.dx, dy: pin.dy, wireConnectable: true, breadboardInsertable: false }])
+      expect(getPinPresentationPosition(comp, pin)).toEqual(getPinPosition(comp, pin))
+    }
+  })
 })
 
-// ---------------------------------------------------------------------------
-// TEST S4-K / S4-N — matrice API PhysicalContact du catalogue
-// ---------------------------------------------------------------------------
 describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue', () => {
   const CATALOGUE = [
     'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032',
@@ -280,7 +253,6 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
       for (const pin of def.pins) {
         expect(typeof pin.id).toBe('string')
         expect(pin.id.length).toBeGreaterThan(0)
-
         const contacts = resolveContacts(pin)
         expect(contacts.length).toBeGreaterThanOrEqual(1)
         for (const c of contacts) {
@@ -291,14 +263,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
           expect(typeof c.wireConnectable).toBe('boolean')
           expect(typeof c.breadboardInsertable).toBe('boolean')
         }
-        // wire-connectable / breadboard-insertable ⊆ resolveContacts
         expect(resolveWireConnectableContacts(pin).length).toBeLessThanOrEqual(contacts.length)
         expect(resolveBreadboardInsertableContacts(pin).length).toBeLessThanOrEqual(contacts.length)
-
-        // resolveContact(pin, absent) -> un contact de CETTE pin, jamais null
         const dflt = resolveContact(pin, undefined)
         expect(dflt).not.toBeNull()
-        // contactId n'est pas pin.id sauf pour un mono-contact implicite
         const explicit = Array.isArray(pin.contacts) && pin.contacts.length > 0
         if (!explicit) expect(dflt.id).toBe(pin.id)
       }
@@ -322,7 +290,6 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     }
   })
 
-  // FT-B-001-S5 — classification d'enfichage breadboard verrouillée (§15).
   it('classification breadboardInsertable finale S5 : 13 enfichables / 7 non-directs', () => {
     const INSERTABLE = ['RESISTOR', 'LED', 'DIODE', 'CAPACITOR', 'LDR', 'THERMISTOR',
       'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER',
@@ -339,7 +306,6 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     for (const type of NON_DIRECT) {
       expect(insertableContactCount(type), `${type} ne doit PAS être enfichable directement`).toBe(0)
     }
-    // wireConnectable : true pour TOUS (aucun composant n'est non-câblable)
     for (const type of CATALOGUE) {
       const wc = getComponentDef(type).pins.reduce((n, pin) => n + resolveWireConnectableContacts(pin).length, 0)
       expect(wc, `${type} doit être câblable`).toBeGreaterThan(0)
