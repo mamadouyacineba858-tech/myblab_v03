@@ -7,10 +7,10 @@ IMPLEMENTED — PROJECT CANVAS GATE PENDING
 `c5be04b2864feabe059f0bd0752439cc28559376`
 
 ## Problème observé
-Le composant `POWER` est rendu dans sa boîte canonique 70×90. La première correction à `2.5×` améliore nettement la présence visuelle, mais le Project Lead a constaté que les inscriptions autour des deux curseurs restaient illisibles.
+Le composant `POWER` était trop petit et les inscriptions autour des deux curseurs restaient illisibles. Une première tentative par labels DOM superposés a amélioré la lisibilité mais a produit des décalages visibles par rapport à la référence approuvée.
 
-## Objectif
-Conserver le réalisme du raster tout en rendant la façade effectivement lisible à l'échelle normale du Canvas.
+## Autorité visuelle
+La référence approuvée par le Project Lead le 2026-09-14 devient l'autorité directe pour ce ticket : alimentation DC de laboratoire réaliste, façade nette, afficheurs `5.00 V / 0.00 A`, commandes `VOLTAGE` / `CURRENT`, `MIN` / `MAX`, interrupteur `POWER`, bornes noire/rouge/verte et plage `0 - 30V / 0 - 5A`.
 
 ## Décision CSA
 - conserver le type `POWER` ;
@@ -20,9 +20,9 @@ Conserver le réalisme du raster tout en rendant la façade effectivement lisibl
 - conserver le modèle DC et `parameters.voltage` ;
 - conserver la borne verte EARTH comme élément purement visuel ;
 - conserver le scale Canvas `2.5×` ;
-- utiliser uniquement le raster 3x comme corps visible ;
-- redessiner uniquement la sérigraphie de façade essentielle par-dessus le raster : `DC POWER SUPPLY`, `MCH-305D`, `VOLTAGE`, `CURRENT`, `POWER`, `MIN`, `MAX`, signes des bornes et plage `0 - 30V / 0 - 5A` ;
-- tous ces éléments sont presentation-only, `pointer-events:none`, sans nouveau hit target.
+- supprimer les labels DOM de façade ajoutés lors de la correction intermédiaire ;
+- utiliser directement l'asset haute résolution approuvé : `frontend/public/assets/components/power/power.reference.hires.webp` ;
+- l'image reste `pointer-events:none` et ne crée aucun nouveau hit target.
 
 ## Interdictions
 - aucun nouveau pin ;
@@ -31,11 +31,13 @@ Conserver le réalisme du raster tout en rendant la façade effectivement lisibl
 - aucune modification du modèle de simulation ;
 - aucun déplacement des PhysicalContacts ;
 - aucune nouvelle borne logique pour EARTH ;
-- aucun label flottant autour du composant : les textes ajoutés appartiennent exclusivement à la façade réelle de l'instrument.
+- aucun label flottant ou texte DOM compensatoire autour du composant.
 
 ## Fichiers d'implémentation
+- `frontend/public/assets/components/power/power.reference.hires.webp`
 - `frontend/src/components/parts/PowerPart.jsx`
 - `frontend/src/components/parts/__tests__/PowerCanvasReadability.test.jsx`
+- `frontend/src/components/parts/__tests__/PowerPart.raster.test.jsx`
 
 ## Gate Canvas
 Le ticket ne peut être fermé qu'après validation visuelle du Project Lead :
