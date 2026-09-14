@@ -31,11 +31,16 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 54, dy: 29 }, style: "wire" },
     },
   },
+  // MB-L1-PROP-006 — meme silhouette radiale que CAPACITOR V2, decalee de
+  // +7px en X et +4px en Y dans la boite THERMISTOR 84x36 : les pieds du
+  // corps tombent donc exactement sur x=30/54, y=31. Les PhysicalContacts
+  // restent A/B (30,62)/(54,62). Le style metallic-wire reutilise le rendu
+  // de pattes brillantes valide au Canvas pour CAPACITOR.
   THERMISTOR: {
     kind: "through-hole",
     leads: {
-      A: { root: { dx: 30, dy: 31 }, style: "wire" },
-      B: { root: { dx: 54, dy: 31 }, style: "wire" },
+      A: { root: { dx: 30, dy: 31 }, style: "metallic-wire" },
+      B: { root: { dx: 54, dy: 31 }, style: "metallic-wire" },
     },
   },
   // MB-L1-PROP-005-R1 — la logique de marquage reste inchangée ; seul le
