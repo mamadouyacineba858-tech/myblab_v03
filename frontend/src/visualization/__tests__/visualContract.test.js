@@ -268,16 +268,16 @@ describe('G — Backend Contract', () => {
     // ticket. Le catalogue visuel reste ENTIÈREMENT implémenté (chaque type
     // a un renderer réaliste et déterministe) ; le choix raster vs. svg reste
     // une décision de présentation par type, pas un critère de qualité.
+    // A3-SW1-R1 : SLIDE_SWITCH passé au backend raster (paquet d'assets
+    // réaliste validé par le Founder, left/right).
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO'])
+    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH'])
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')
-    // A3-SW1 : SLIDE_SWITCH ajouté — renderer CSS/DOM (backend 'svg' par
-    // défaut, aucun asset raster validé), même statut que THERMISTOR.
-    expect(svgTypes.slice().sort()).toEqual(['SLIDE_SWITCH', 'THERMISTOR'])
+    expect(svgTypes.slice().sort()).toEqual(['THERMISTOR'])
     expect(rasterTypes.length + svgTypes.length).toBe(DEFAULT_REGISTRATIONS.length)
   })
 })

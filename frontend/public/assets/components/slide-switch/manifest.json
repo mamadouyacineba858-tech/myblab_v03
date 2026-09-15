@@ -1,0 +1,101 @@
+{
+  "component": "SLIDE_SWITCH",
+  "version": "1.0.0",
+  "backend": "raster",
+  "states": [
+    "left",
+    "right"
+  ],
+  "formats": [
+    "webp",
+    "png"
+  ],
+  "scales": [
+    "1x",
+    "3x"
+  ],
+  "dimensions": {
+    "1x": {
+      "width": 72,
+      "height": 48
+    },
+    "3x": {
+      "width": 216,
+      "height": 144
+    }
+  },
+  "visualContract": {
+    "style": "spdt-slide-switch-realistic",
+    "transparentBackground": true,
+    "physicalLeads": 3,
+    "logicalPins": 3,
+    "left": "actuator slid to the left throw",
+    "right": "actuator slid to the right throw"
+  },
+  "variants": [
+    {
+      "file": "slide-switch.left.1x.png",
+      "state": "left",
+      "scale": "1x",
+      "format": "png",
+      "width": 72,
+      "height": 48
+    },
+    {
+      "file": "slide-switch.left.1x.webp",
+      "state": "left",
+      "scale": "1x",
+      "format": "webp",
+      "width": 72,
+      "height": 48
+    },
+    {
+      "file": "slide-switch.left.3x.png",
+      "state": "left",
+      "scale": "3x",
+      "format": "png",
+      "width": 216,
+      "height": 144
+    },
+    {
+      "file": "slide-switch.left.3x.webp",
+      "state": "left",
+      "scale": "3x",
+      "format": "webp",
+      "width": 216,
+      "height": 144
+    },
+    {
+      "file": "slide-switch.right.1x.png",
+      "state": "right",
+      "scale": "1x",
+      "format": "png",
+      "width": 72,
+      "height": 48
+    },
+    {
+      "file": "slide-switch.right.1x.webp",
+      "state": "right",
+      "scale": "1x",
+      "format": "webp",
+      "width": 72,
+      "height": 48
+    },
+    {
+      "file": "slide-switch.right.3x.png",
+      "state": "right",
+      "scale": "3x",
+      "format": "png",
+      "width": 216,
+      "height": 144
+    },
+    {
+      "file": "slide-switch.right.3x.webp",
+      "state": "right",
+      "scale": "3x",
+      "format": "webp",
+      "width": 216,
+      "height": 144
+    }
+  ]
+}

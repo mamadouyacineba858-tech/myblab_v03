@@ -1,0 +1,47 @@
+[
+  {
+    "file": "slide-switch.left.1x.png",
+    "bytes": 4722,
+    "sha256": "1b78fa2a71c0250ec8e3f4093ec50636c3a629a2934e6cb876022c89ceb7e4a5"
+  },
+  {
+    "file": "slide-switch.left.1x.webp",
+    "bytes": 2994,
+    "sha256": "e414683e2c7f8195ccee92a0f98e0f00f38d744ba005a4564c9152cb1b33733f"
+  },
+  {
+    "file": "slide-switch.left.3x.png",
+    "bytes": 32384,
+    "sha256": "e640ea20ddd4b95a7b0aea9c3b4e8e8c51d5f3e8d26dd10b44245a0549148b43"
+  },
+  {
+    "file": "slide-switch.left.3x.webp",
+    "bytes": 15326,
+    "sha256": "0ac84b18ea873d29f4ab195a8eb748a81678d2ee555e2faf61121afea53d7385"
+  },
+  {
+    "file": "slide-switch.right.1x.png",
+    "bytes": 4245,
+    "sha256": "71cecb4aa834dff432972f41a02734cc934d20511c9cdf5a579854f48c963ecf"
+  },
+  {
+    "file": "slide-switch.right.1x.webp",
+    "bytes": 2610,
+    "sha256": "806ac10113a16a8ff5b044b01bd4d24342104d4b9e6d02e8a0c8d4d68fd94077"
+  },
+  {
+    "file": "slide-switch.right.3x.png",
+    "bytes": 29494,
+    "sha256": "25b5bd8db6e49793a54d922fceeeb8587ebfaac8f780add2c98747d33641cdc2"
+  },
+  {
+    "file": "slide-switch.right.3x.webp",
+    "bytes": 13988,
+    "sha256": "42912ef840f6ea33f9be83d6e8200afbb034c4e76de031c6f5cf64a87621d654"
+  },
+  {
+    "file": "manifest.json",
+    "bytes": 1911,
+    "sha256": "dd67025e73c7d96beab84e7fadf952140d3fb08023c2afece1c330e477c6b7ab"
+  }
+]

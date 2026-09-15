@@ -37,6 +37,7 @@ import { RgbLedPart } from "../RgbLedPart.jsx"
 import { NpnTransistorPart } from "../NpnTransistorPart.jsx"
 import { ServoPart } from "../ServoPart.jsx"
 import { DcMotorPart } from "../DcMotorPart.jsx"
+import { SlideSwitchPart } from "../SlideSwitchPart.jsx"
 import { COMPONENT_TYPES, getComponentDef } from "../../../config/componentDefinitions.js"
 import { getComponentPresentation } from "../../../visualization/defaultRegistrations.js"
 
@@ -66,6 +67,7 @@ const CATALOG = [
   { type: "NPN_TRANSISTOR", Component: NpnTransistorPart },
   { type: "SERVO", Component: ServoPart },
   { type: "DC_MOTOR", Component: DcMotorPart },
+  { type: "SLIDE_SWITCH", Component: SlideSwitchPart },
 ]
 // [MB-L1-CONS-002] THERMISTOR a abandonné le raster pour un renderer CSS/DOM
 // pur (corps `<div>` stylé, ni <svg> ni <img>) — `backend` résout à `svg`

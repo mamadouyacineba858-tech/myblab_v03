@@ -178,11 +178,11 @@ export const DEFAULT_REGISTRATIONS = [
   // même mécanisme déclaratif que RESISTOR / CAPACITOR / LED — aucun code
   // central spécifique, aucune condition `type === "POLARIZED_CAPACITOR"`.
   { type: 'POLARIZED_CAPACITOR', component: PolarizedCapacitorPart, visual: { backend: 'raster' } },
-  // SLIDE_SWITCH : A3-SW1, renderer CSS/DOM (aucun asset raster validé,
-  // parité fonctionnelle d'abord, cf. ticket §9). Backend par défaut ('svg')
-  // : pas de bareBody/markerless — les marqueurs de <Pin> restent visibles
-  // sur les 3 contacts, comme pour tout composant sans paquet raster.
-  { type: 'SLIDE_SWITCH', component: SlideSwitchPart },
+  // SLIDE_SWITCH : A3-SW1-R1 — paquet d'assets raster réaliste validé par le
+  // Founder (états left/right). raster => bareBody + markerless dérivés,
+  // même mécanisme déclaratif que BUTTON_LATCHING / LED / RESISTOR / … —
+  // aucun code central spécifique, aucune condition `type === "SLIDE_SWITCH"`.
+  { type: 'SLIDE_SWITCH', component: SlideSwitchPart, visual: { backend: 'raster' } },
 ];
 
 /**
