@@ -2,19 +2,15 @@
 
 ## 1. Objet
 
-Cette roadmap définit la trajectoire de construction de la plateforme MYBlab à partir de la Vision 2030 et de l'architecture décrite dans PLATFORM_ARCHITECTURE.md.
+Cette roadmap définit la trajectoire de construction de la plateforme MYBlab à partir de la Vision 2030 et de l'architecture décrite dans `PLATFORM_ARCHITECTURE.md`.
 
 Elle établit la hiérarchie :
 
 **Vision → Piliers → Programmes → Épics → Tickets PMO**
 
-La roadmap ne définit pas les mécanismes d'implémentation. Elle ne remplace ni le Tome I, ni le Tome II, ni les ADR, ni les spécifications PMO.
-
-Elle définit les grandes unités de progression, leurs dépendances, leurs priorités et leurs jalons.
+La roadmap ne remplace ni le Tome I, ni le Tome II, ni les ADR, ni les spécifications PMO. Elle définit les grandes unités de progression, leurs dépendances, leurs priorités et leurs jalons.
 
 ### 1.1 Trajectoire stratégique de l'expérience MYBlab
-
-L'évolution de l'expérience utilisateur et de la représentation des circuits suit une trajectoire stratégique en trois niveaux. Cette trajectoire constitue une orientation durable de la plateforme et doit guider les futurs Épics et Tickets PMO sans devenir elle-même un mécanisme d'implémentation.
 
 ```text
 MYBlab actuel
@@ -29,37 +25,167 @@ NIVEAU 3 — Tendre vers un laboratoire électronique virtuel
 
 **Tinkercad est un benchmark intermédiaire, pas la destination finale de MYBlab.**
 
-Le niveau 1 vise notamment à atteindre un niveau de référence en matière de :
+Le niveau 1 vise la parité produit utile avec Tinkercad : composants, simulation, assemblage physique, breadboard et wiring, systèmes embarqués, instrumentation et cohérence de l'expérience. Le niveau 2 vise les capacités propres permettant de dépasser ce benchmark. Le niveau 3 constitue la direction à long terme vers un laboratoire électronique virtuel avancé, réaliste et immersif.
 
-* qualité et cohérence de la représentation des composants ;
-* manipulation et expérience du canvas ;
-* câblage et assemblage des circuits ;
-* breadboard, cartes et composants usuels ;
-* cohérence générale de l'environnement de travail.
-
-Le niveau 2 vise à identifier puis construire les capacités par lesquelles MYBlab pourra dépasser ce benchmark, en privilégiant les capacités qui apportent une valeur propre à la plateforme plutôt qu'une simple reproduction de fonctionnalités existantes.
-
-Le niveau 3 constitue la direction d'évolution à long terme vers un véritable laboratoire électronique virtuel, notamment :
-
-* représentation physique et réalisme avancés ;
-* environnement de laboratoire immersif ;
-* composants et assemblages complexes ;
-* instrumentation et observation des phénomènes ;
-* visualisation avancée des états de simulation ;
-* interaction spatiale et, lorsque l'architecture le permettra, représentation 3D ;
-* intégration cohérente entre expérience, simulation et apprentissage.
-
-Les références externes utilisées pour éclairer cette trajectoire sont des **benchmarks et sources d'inspiration**, et non des spécifications à reproduire. Elles comprennent notamment Tinkercad pour le premier seuil de référence, les références vidéo fournies pour le niveau de réalisme et d'immersion recherché, ainsi que des plateformes telles que Wokwi, LogixSim 3DLab et ExoSynk pour certaines dimensions de simulation, de laboratoire virtuel et d'instrumentation.
+Les références externes sont des benchmarks et sources d'inspiration, non des spécifications à recopier mécaniquement.
 
 ### 1.2 Principe de continuité stratégique
 
-Cette trajectoire doit rester visible dans la roadmap même lorsque les travaux immédiats portent sur des fondations, de la gouvernance, du Core, de la Simulation ou d'autres dépendances.
+La trajectoire **Atteindre Tinkercad → Dépasser Tinkercad → Laboratoire virtuel MYBlab avancé** doit rester visible même lorsque les travaux immédiats portent sur le Core, la Simulation, la gouvernance ou d'autres fondations.
 
-Les futurs tickets ne doivent donc pas être évalués uniquement selon leur valeur locale. Ils doivent également être examinés selon leur contribution à la trajectoire :
+Toute évolution architecturale nécessaire suit les ADR et le cycle PMO appropriés.
 
-**Atteindre Tinkercad → Dépasser Tinkercad → Laboratoire virtuel MYBlab avancé.**
+### 1.3 Conclusion de l'audit stratégique Level 1 — 15 septembre 2026
 
-Cette orientation ne constitue pas une autorisation d'implémenter immédiatement une architecture 3D ou une fonctionnalité particulière. Toute évolution architecturale nécessaire devra suivre les règles de gouvernance, les ADR et le cycle PMO appropriés.
+L'audit croisé du dépôt réel, du catalogue MYBlab, du `canonicalRegistry`, du contrat de bibliothèque de composants, des tickets `MB-VIS-COMP-001..007` et du benchmark Tinkercad conduit aux décisions suivantes.
+
+#### 1.3.1 Niveau 1 = parité produit, pas seulement parité visuelle
+
+La présence d'un composant sur le Canvas ne suffit pas à déclarer la parité. Chaque référence du benchmark doit être suivie selon trois gates indépendants :
+
+```text
+PRESENT
+   ↓
+définition + pins + renderer + palette
+   ↓
+FUNCTIONAL
+   ↓
+comportement électronique principal opérationnel
+   ↓
+PARITY
+   ↓
+comportement benchmark Tinkercad démontré
+```
+
+Un composant peut donc être `PRESENT` sans être `FUNCTIONAL`, et `FUNCTIONAL` sans être encore `PARITY`.
+
+#### 1.3.2 Découpage du Level 1
+
+```text
+LEVEL 1 — TINKERCAD PRODUCT PARITY
+│
+├── L1-A — Component Catalogue & Instance Contract Parity
+├── L1-B — Physical Assembly
+├── L1-C — Environmental Simulation
+├── L1-D — Electrical / Component Simulation Depth
+├── L1-E — Embedded & Programmable Components
+├── L1-F — Measurement & Instruments
+└── L1-G — Product Parity Certification
+```
+
+**L1-A reste le chantier actif avant L1-B.** Breadboard et Wire relèvent de L1-B et ne doivent pas interrompre la clôture du catalogue L1-A.
+
+#### 1.3.3 Invariants Level 1
+
+Les travaux Level 1 doivent préserver les invariants suivants :
+
+- Document = vérité persistante ;
+- les mutations persistantes passent par le canal Mutation/History autorisé ;
+- runtime et stimuli restent séparés des données persistantes ;
+- le Scheduler reste la source de vérité du temps simulé ;
+- Presentation ne devient pas un second modèle métier ;
+- la géométrie électrique reste indépendante de la géométrie visuelle ;
+- les contrats génériques sont préférés aux branches type-spécifiques ;
+- l'ajout d'un composant ne doit pas imposer une modification du Core Canvas, du wiring ou du breadboard sauf nouvelle capacité transversale réellement démontrée.
+
+#### 1.3.4 L1-A — définition
+
+**L1-A — Component Catalogue & Instance Contract Parity** établit et maintient la matrice canonique des composants nécessaires au benchmark Tinkercad, industrialise leur introduction dans MYBlab, réalise immédiatement ceux compatibles avec les capacités existantes et route explicitement les comportements nécessitant des capacités supplémentaires vers L1-C/L1-D/L1-E/L1-F.
+
+L'industrialisation `MB-VIS-COMP-001..007` est une fondation de L1-A et ne doit pas être remplacée par une architecture parallèle. Le Rollout Gate doit être qualifié par preuves avant l'expansion massive.
+
+#### 1.3.5 Dépendance transversale découverte : propriétés persistantes d'instance
+
+Le Registry canonique possède déjà `parameterSchema`, `defaultParameters`, `capabilities` et `modelAvailable`, mais l'audit du modèle d'instance montre qu'il faut qualifier puis, si nécessaire, établir un transport générique des propriétés persistantes d'instance :
+
+```text
+Registry definition
+       ↓
+instance defaults
+       ↓
+Document persistence
+       ↓
+normalization
+       ↓
+serialization / import / export
+       ↓
+simulation + presentation
+```
+
+Cette capacité doit être résolue avant de multiplier les familles paramétrables. Elle ne doit pas être remplacée par des exceptions `if (type === ...)` ajoutées composant par composant.
+
+#### 1.3.6 Matrice maître des familles L1-A
+
+| Vague | Famille benchmark | État MYBlab / cible | Orientation |
+| --- | --- | --- | --- |
+| A0 | Industrialisation catalogue | Architecture V1 + VIS-COMP présents | qualifier Rollout Gate |
+| A1 | Instance Properties | contrat déclaratif partiel | persistance générique + defaults + round-trip |
+| A2 | DC Sources | POWER existe | famille Battery |
+| A3 | Switches | BUTTON / BUTTON_LATCHING existent | Slide Switch puis DIP Switch |
+| A4 | Passifs | Resistor / Capacitor présents | Inductor selon capacité temporelle |
+| A5 | Diodes | DIODE présent | Zener après reverse breakdown |
+| A6 | Actuators | Motor / Servo / Buzzer présents | Vibration Motor, Hobby Gearmotor |
+| A7 | Sensors | LDR / Thermistor présents | TMP36, Force/Flex, Soil, PIR, Ultrasonic ; comportement complet via L1-C si nécessaire |
+| A8 | Semiconductor / Power Control | NPN présent | PNP, MOSFET, relais, régulateurs, H-Bridge |
+| A9 | Digital Logic | absent | combinatoire puis séquentiel |
+| A10 | Displays | absent | 7-Segment puis LCD 16×2 |
+| A11 | Analog IC | absent | 555, Dual Timer, Op-Amp, comparateurs, optocoupleur |
+| A12 | Addressable RGB | RGB LED présent | moteur générique NeoPixel + variantes |
+| A13 | Programmable Devices | Arduino présent | qualification Arduino, ATtiny, micro:bit via L1-E |
+| A14 | Instruments | POWER présent | Multimeter, Function Generator, Oscilloscope via L1-F |
+
+Cette matrice est un registre stratégique : le détail exact des références et leur statut `PRESENT/FUNCTIONAL/PARITY` doit rester versionné et vérifiable au fil des tickets.
+
+#### 1.3.7 Ordre de dépendance initial L1-A
+
+```text
+A0 — Rollout Gate qualification
+        ↓
+A1 — Generic Component Instance Properties
+        ↓
+A2 — DC Source Family
+     └── Battery Family (sous-famille de A2, pas une famille distincte)
+          ├── 1.5 V
+          ├── 9 V
+          └── Coin Cell 3 V
+        ↓
+A3 — Switch topology / Slide Switch / DIP Switch
+        ↓
+A6 — Actuator variants
+     ├── Vibration Motor
+     └── Hobby Gearmotor
+        ↓
+A7 — Sensor integration contract
+        ↓
+A4 / A5 / A8+ — autres familles dépendantes des capacités L1-C/L1-D/L1-E/L1-F
+```
+
+L'ordre du catalogue Tinkercad n'est pas l'ordre d'implémentation. Le DAG de capacités détermine les tickets.
+
+**Note de réconciliation (2026-09-15) :** un audit antérieur avait détecté une collision de nomenclature — cette séquence de dépendance réutilisait `A3` pour désigner l'étape "Battery Family" alors que la matrice maître §1.3.6 attribue `A3` à la famille Switches et rattache Battery à `A2` (DC Sources). La séquence ci-dessus a été corrigée pour utiliser les identifiants de famille réels de la matrice ; l'ordre d'exécution proprement dit n'a pas été modifié. Battery reste une sous-famille de DC Sources et `A3` ne désigne que Switches dans tout ce document.
+
+#### 1.3.8 Politique familles / variantes
+
+Une référence du benchmark n'implique pas automatiquement un nouveau moteur ou un nouveau type électrique MYBlab. Les variantes partageant le même comportement doivent privilégier un contrat commun et des propriétés/variantes déclaratives lorsque le modèle d'instance le permet.
+
+Exemple cible à confirmer par ticket d'architecture : les batteries 1.5 V, 9 V et Coin Cell 3 V partagent une sémantique de source DC à deux terminaux mais possèdent des présentations physiques différentes. La logique électrique ne doit pas être dupliquée sans nécessité démontrée.
+
+#### 1.3.9 Définition de L1-A DONE
+
+L1-A n'est terminé que lorsque :
+
+1. le catalogue benchmark est inventorié et versionné ;
+2. chaque référence cible possède une entrée dans la matrice de parité ;
+3. chaque référence est intégrée ou explicitement rattachée à la capacité L1-C/L1-D/L1-E/L1-F nécessaire à sa qualification complète ;
+4. aucun composant absent n'est simplement oublié ;
+5. les ajouts respectent Component Contract V1 et les guards de complétude ;
+6. aucune extension ne contourne Registry, Document ou Simulation ;
+7. les états `PRESENT / FUNCTIONAL / PARITY` sont vérifiables ;
+8. le Component Library Rollout Gate est réellement validé par preuves.
+
+#### 1.3.10 Frontières avec les autres vagues
+
+L1-A possède le catalogue et les contrats d'instance. L1-B possède l'assemblage physique, breadboard et wiring. L1-C possède les stimuli environnementaux tels que lumière, température, distance et mouvement. L1-D possède la profondeur de simulation électrique et temporelle nécessaire aux composants avancés. L1-E possède l'exécution des composants programmables. L1-F possède la mesure, la génération et l'observation instrumentale. L1-G ferme le Level 1 uniquement lorsque les gaps critiques de parité produit sont éliminés.
 
 ---
 
@@ -69,38 +195,28 @@ La roadmap s'appuie sur quatre niveaux documentaires complémentaires :
 
 | Niveau | Référence | Rôle |
 | --- | --- | --- |
-| Vision | Tome I — Vision 2030 | Définit la direction, les valeurs, principes et piliers |
-| Architecture | Tome II — PLATFORM_ARCHITECTURE.md | Définit les couches, sous-systèmes, responsabilités et invariants |
-| Roadmap | ROADMAP_PLATFORM.md | Définit l'ordre de construction, les programmes, épics, dépendances et jalons |
-| PMO | docs/pmo/ | Transforme les épics en travaux exécutables et contrôlés |
+| Vision | Tome I — Vision 2030 | direction, valeurs et principes |
+| Architecture | Tome II — PLATFORM_ARCHITECTURE.md | couches, responsabilités et invariants |
+| Roadmap | ROADMAP_PLATFORM.md | ordre, programmes, épics, dépendances et jalons |
+| PMO | docs/pmo/ | travaux exécutables et contrôlés |
 
-Un Épic de cette roadmap peut donner naissance à plusieurs Tickets PMO. Un Ticket PMO ne doit pas introduire une responsabilité architecturale absente du Tome II.
-
-### 2.1 Prérequis de gouvernance
-
-La fusion de la branche documentaire docs/vision-2030 dans main constitue un prérequis de gouvernance avant l'ouverture d'une nouvelle génération de Tickets PMO fondés sur cette roadmap.
-
-Cette fusion ne constitue pas un Épic fonctionnel de la plateforme. Elle établit simplement que la Vision 2030 et l'Architecture de référence sont disponibles sur la branche principale du projet.
-
-Les artefacts historiques ou périmés identifiés pendant cette transition restent des objets de gouvernance documentaire distincts et ne sont pas automatiquement réécrits dans le cadre de cette roadmap.
+Un Ticket PMO ne doit pas introduire une responsabilité architecturale absente du Tome II.
 
 ---
 
 ## 3. Structure des Programmes
 
-La plateforme est organisée en sept Programmes, alignés sur les frontières architecturales du Tome II.
-
 | Programme | Périmètre principal |
 | --- | --- |
 | **Core Foundation** | Document, Mutation, Validation, Registry et frontières du Core |
 | **Simulation** | Simulation et évolution du moteur de calcul |
-| **Embedded Systems** | Embedded Runtime et exécution des comportements embarqués |
+| **Embedded Systems** | Embedded Runtime et comportements embarqués |
 | **Experience** | Presentation et restitution utilisateur |
 | **Knowledge & Learning** | Knowledge et Learning |
-| **Ecosystem** | Plugin Loader et capacités d'extension |
+| **Ecosystem** | Plugin Loader et extensions |
 | **Collaboration** | Project Synchronization et Collaboration |
 
-Cette organisation respecte la séparation des responsabilités du Tome II. Un sous-système appartient à un Programme de référence unique, même lorsqu'il fournit des capacités utilisées par plusieurs autres Programmes.
+Les vagues L1-A..L1-G sont transversales : elles orchestrent ces Programmes sans déplacer leurs responsabilités architecturales.
 
 ---
 
@@ -108,36 +224,18 @@ Cette organisation respecte la séparation des responsabilités du Tome II. Un s
 
 ## 4.1 Objectif
 
-Stabiliser les fondations métier du Core Layer afin que les autres Programmes puissent évoluer sur une représentation canonique, un canal de mutation contrôlé, un registre cohérent et une validation clairement séparée.
+Stabiliser les fondations métier du Core Layer afin que les autres Programmes évoluent sur une représentation canonique et contrôlée.
 
 ## 4.2 Épics
 
-| ID | Épic | État initial |
+| ID | Épic | État de référence |
 | --- | --- | --- |
 | CF1 | Unification du Document | Partiel |
 | CF2 | Migration et unification du ComponentRegistry | Partiel |
 | CF3 | Formalisation du canal Mutation unique | Partiel |
 | CF4 | Stabilisation de la Validation | PROPOSED / à formaliser |
 
-### CF1 — Unification du Document
-
-Établir une représentation canonique unique du projet et stabiliser la frontière entre le Document architectural et les couches qui le consomment.
-
-### CF2 — Migration et unification du ComponentRegistry
-
-Éliminer la dualité des registres existants et établir Registry comme catalogue déclaratif de référence.
-
-L'ancien chantier **MB-SIM-001-B2** est considéré comme un antécédent historique de cet Épic. Il ne doit pas être recréé sous un autre Programme.
-
-### CF3 — Formalisation du canal Mutation unique
-
-Stabiliser Mutation comme unique canal d'évolution du Document et clarifier la gestion des états successifs et de la réversibilité.
-
-### CF4 — Stabilisation de la Validation
-
-Transformer la responsabilité architecturale de Validation en une capacité suffisamment stable pour servir de fondation aux consommateurs qui dépendent de résultats de validation.
-
-L'ADR-010 reste une décision PROPOSED tant qu'une décision explicite ultérieure ne modifie pas son statut.
+CF1 établit la représentation canonique du projet. CF2 établit Registry comme catalogue déclaratif de référence. CF3 stabilise Mutation comme canal d'évolution du Document. CF4 stabilise Validation. Les travaux L1-A sur les propriétés d'instance se rattachent à ces responsabilités et ne créent pas un Core parallèle.
 
 ---
 
@@ -145,56 +243,28 @@ L'ADR-010 reste une décision PROPOSED tant qu'une décision explicite ultérieu
 
 ## 5.1 Objectif
 
-Faire évoluer le moteur de simulation depuis les capacités déjà établies vers une simulation temporelle et des comportements plus complets, tout en conservant la séparation architecturale définie par le Tome II.
+Faire évoluer le moteur depuis les capacités établies vers une simulation temporelle et des comportements plus complets.
 
 ## 5.2 Épics
 
-| ID | Épic | État initial |
+| ID | Épic | État de référence |
 | --- | --- | --- |
 | SIM1 | Composants analogiques | Planifié |
 | SIM2 | Scheduler / temps simulé | Planifié |
-| SIM3 | Intégration du runtime embarqué avec le Scheduler et la Simulation | Planifié |
+| SIM3 | Intégration runtime embarqué / Scheduler / Simulation | Planifié |
 
-### SIM1 — Composants analogiques
-
-Étendre les capacités de simulation aux composants analogiques nécessaires à l'évolution du moteur.
-
-### SIM2 — Scheduler / temps simulé
-
-Introduire la capacité architecturale nécessaire à l'évolution temporelle de la simulation.
-
-### SIM3 — Intégration du runtime embarqué avec le Scheduler et la Simulation
-
-Établir l'intégration entre la simulation temporelle et un runtime embarqué consommable par Simulation.
-
-SIM3 ne constitue pas l'implémentation du runtime firmware réel. Il définit l'intégration nécessaire entre les deux domaines.
+SIM1 supporte notamment L1-D. SIM2 introduit la capacité temporelle nécessaire aux phénomènes dynamiques. SIM3 établit l'intégration Simulation/Embedded sans absorber le runtime firmware réel.
 
 ---
 
 # 6. Embedded Systems
 
-## 6.1 Objectif
-
-Permettre l'exécution fidèle de comportements programmés dans le cadre du chemin de conception vers les systèmes embarqués.
-
-## 6.2 Épics
-
-| ID | Épic | État initial |
+| ID | Épic | État de référence |
 | --- | --- | --- |
 | EMB1 | Runtime firmware réel | Non commencé |
 | EMB2 | Extension multi-cartes | Hors périmètre immédiat |
 
-### EMB1 — Runtime firmware réel
-
-Établir un runtime capable d'exécuter réellement le comportement programmé d'un système embarqué.
-
-EMB1 est distinct de SIM3.
-
-SIM3 traite l'intégration entre Simulation, Scheduler et runtime embarqué. EMB1 traite la capacité du runtime à exécuter un comportement firmware réel.
-
-### EMB2 — Extension multi-cartes
-
-Étendre le périmètre à plusieurs familles de cartes après stabilisation du premier cas d'exécution réel.
+EMB1 porte l'exécution réelle du comportement programmé. EMB2 étend le périmètre à plusieurs familles de cartes après stabilisation du premier runtime. Ces épics supportent L1-E.
 
 ---
 
@@ -202,13 +272,11 @@ SIM3 traite l'intégration entre Simulation, Scheduler et runtime embarqué. EMB
 
 ## 7.1 Objectif
 
-Faire évoluer la restitution utilisateur sans déplacer dans Presentation des responsabilités appartenant au Core, à l'Execution ou aux autres sous-systèmes de l'Application Layer.
-
-La trajectoire stratégique de l'expérience est définie en §1.1 : **atteindre le niveau Tinkercad, dépasser ce benchmark, puis tendre vers un laboratoire électronique virtuel avancé**. Les Épics Experience doivent contribuer à cette trajectoire sans transformer la roadmap en spécification d'implémentation.
+Faire évoluer la restitution utilisateur sans déplacer dans Presentation les responsabilités du Core ou de l'Execution.
 
 ## 7.2 Épics
 
-| ID | Épic | État initial |
+| ID | Épic | État de référence |
 | --- | --- | --- |
 | EXP1 | Formalisation et clôture de MB-VIS-001 | Réalisé techniquement |
 | EXP2 | Visualisation des fils | Non commencé |
@@ -216,13 +284,7 @@ La trajectoire stratégique de l'expérience est définie en §1.1 : **atteindre
 | EXP4 | Dépassement du benchmark Tinkercad | Futur |
 | EXP5 | Laboratoire virtuel avancé et immersif | Vision long terme |
 
-### EXP1 — Formalisation et clôture de MB-VIS-001
-
-Consolider la traçabilité PMO de la capacité déjà réalisée, sans refaire son implémentation.
-
-### EXP2 — Visualisation des fils
-
-Étendre la restitution graphique aux fils et connexions du circuit, dans le respect des responsabilités de Presentation.
+Les travaux de rendu des composants et de bibliothèque visuelle alimentent L1-A ; le breadboard et les wires sont qualifiés dans L1-B. Une amélioration visuelle ne doit jamais modifier la vérité électrique pour résoudre un problème purement graphique.
 
 ### EXP3 — Parité visuelle composants & expérience — seuil Tinkercad
 
@@ -397,108 +459,56 @@ EXP5 — Laboratoire virtuel avancé et immersif
 
 # 8. Knowledge & Learning
 
-## 8.1 Objectif
-
-Introduire progressivement la capacité de MYBlab à transformer des résultats techniques en compréhension, puis à adapter cette présentation à la progression de l'utilisateur.
-
-## 8.2 Épics
-
-| ID | Épic | État initial |
+| ID | Épic | État de référence |
 | --- | --- | --- |
 | KL1 | Premier mécanisme d'explication | Non commencé |
 | KL2 | Premier mécanisme d'adaptation pédagogique | Non commencé |
 
-### KL1 — Premier mécanisme d'explication
-
-Établir Knowledge comme responsable de la production d'explications, diagnostics et annotations à partir de résultats qualifiés.
-
-### KL2 — Premier mécanisme d'adaptation pédagogique
-
-Établir Learning comme responsable de la décision de quelles informations pédagogiques produire et montrer selon la progression de l'utilisateur.
-
-KL2 dépend de KL1.
+KL1 transforme des résultats techniques qualifiés en explications. KL2 décide quelles informations pédagogiques produire et montrer selon la progression de l'utilisateur. KL2 dépend de KL1.
 
 ---
 
 # 9. Ecosystem
 
-## 9.1 Objectif
-
-Permettre l'extension contrôlée de MYBlab sans déplacer la responsabilité du catalogue des composants hors du Core.
-
-## 9.2 Épics
-
-| ID | Épic | État initial |
+| ID | Épic | État de référence |
 | --- | --- | --- |
 | ECO1 | Plugin Loader — première implémentation | Non commencé |
 | ECO2 | Extension lifecycle | Non commencé |
 | ECO3 | Contrat d'extension basé sur Registry | Non commencé |
 
-### ECO1 — Plugin Loader
-
-Établir le chargement et l'activation d'extensions déjà cataloguées par Registry.
-
-Registry n'appartient pas à Ecosystem : il reste un sous-système du Core Layer et relève exclusivement de Core Foundation.
-
-### ECO2 — Extension lifecycle
-
-Structurer le cycle de vie des extensions après établissement du mécanisme de chargement.
-
-### ECO3 — Contrat d'extension basé sur Registry
-
-Établir la frontière contractuelle entre le catalogue déclaratif du Core et les extensions utilisables par la plateforme.
-
-ECO1 dépend de CF2.
+Registry reste une responsabilité du Core. ECO1 dépend de CF2.
 
 ---
 
 # 10. Collaboration
 
-## 10.1 Objectif
-
-Permettre le travail collectif autour d'un même projet sans dupliquer les responsabilités du Document ou de Project Synchronization.
-
-## 10.2 Épics
-
-| ID | Épic | État initial |
+| ID | Épic | État de référence |
 | --- | --- | --- |
 | COL1 | Project Synchronization — première implémentation | Non commencé |
 | COL2 | Collaboration | Non commencé |
 
-### COL1 — Project Synchronization
-
-Établir la capacité de gérer les versions métier d'un projet, notamment la réplication, la résolution de conflits et la fusion.
-
-COL1 dépend de CF1 et CF3.
-
-### COL2 — Collaboration
-
-Introduire les capacités de présence, commentaires, permissions, notifications et travail collectif.
-
-COL2 dépend de COL1.
+COL1 dépend de CF1 et CF3. COL2 dépend de COL1.
 
 ---
 
 # 11. Graphe global de dépendances
 
-Le graphe de référence est le suivant :
-
 ```text
 CF1 - Document
  ├── CF2 - Registry ───── ECO1 ─ ECO2 ─ ECO3
  │       │
- │       └──── [porte d'intégration] ──── SIM1
+ │       ├──── [porte d'intégration] ──── SIM1
+ │       └──── L1-A Instance/Component Contracts
  │
  └── CF3 - Mutation ───── COL1 ─ COL2
 
-CF4 - Validation ────────── KL1 ─ KL2
+CF4 - Validation ───────── KL1 ─ KL2
 
 SIM1 ─ SIM2 ─ SIM3
-                     │
-                     └── intégration Simulation / Embedded Runtime
+                 │
+                 └── intégration Simulation / Embedded Runtime
 
 EMB1 - Runtime firmware réel
- └── exécution du comportement firmware
 
 EXP1 ───────────────────── EXP2 ───── EXP3 ───── EXP4 ───── EXP5
                               │
@@ -506,65 +516,40 @@ EXP1 ───────────────────── EXP2 ──
                                   FT-A → FT-B → FT-C → FT-D
                                              ↓
                                   MB-VIS-TINKERCAD-048
+
+L1-A ──→ L1-B / L1-C / L1-D / L1-E / L1-F ──→ L1-G
+   │
+   └── alimenté notamment par EXP3 (rendu et bibliothèque de composants,
+       cf. §1.3.4 : l'industrialisation MB-VIS-COMP-001..007 est une
+       fondation de L1-A)
 ```
 
-Ce graphe ne signifie pas que chaque Épic doit attendre la clôture complète de toutes ses dépendances pour commencer.
+Le graphe exprime les dépendances, non une obligation de sérialiser tous les travaux.
 
 ---
 
 # 12. Règles de parallélisme
 
-## 12.1 CF2 et SIM1
+SIM1 peut progresser en parallèle de CF2 lorsqu'une porte d'intégration empêche une divergence durable. SIM3 et EMB1 restent distincts : SIM3 porte l'intégration Simulation/Scheduler/runtime ; EMB1 porte l'exécution firmware réelle.
 
-SIM1 peut progresser en parallèle de CF2 lorsque les capacités existantes permettent de poursuivre le travail.
-
-Cependant, la stabilisation définitive de SIM1 doit passer par une **porte d'intégration avec le Registry canonique** établi par CF2.
-
-Le parallélisme est donc autorisé.
-
-Le contournement durable du Core ne l'est pas.
-
-```text
-CF2 ────────────────────────────────────────┐
-                          ├──→ Porte d'intégration ───→ Simulation stabilisée
-SIM1 ───────────────────────────────────────┘
-```
-
-Cette règle permet de préserver la vitesse d'avancement de Simulation sans créer une nouvelle dette architecturale.
-
-## 12.2 SIM3 et EMB1
-
-SIM3 et EMB1 sont deux Épics distincts.
-
-**SIM3** porte l'intégration entre Scheduler, Simulation et runtime embarqué.
-
-**EMB1** porte l'exécution réelle du firmware.
-
-Aucun des deux ne doit absorber la responsabilité de l'autre.
+Pour Level 1, un composant peut devenir `PRESENT` dans L1-A avant que son comportement complet soit disponible, mais son état `PARITY` reste bloqué tant que les capacités L1-C/L1-D/L1-E/L1-F nécessaires ne sont pas qualifiées.
 
 ---
 
 # 13. Priorités
 
-Les priorités sont établies selon six critères :
+Les priorités sont déterminées par fondation architecturale, dépendances, risque, valeur produit, état réel du code et cohérence Vision 2030.
 
-1. fondation architecturale ;
-2. dépendances ;
-3. risque ;
-4. valeur pour MYBlab ;
-5. état réel du code ;
-6. cohérence avec la Vision 2030.
-
-| Priorité | Domaine | Justification |
-| --- | --- | --- |
-| **P0** | Gouvernance | Établir la base documentaire commune avant une nouvelle génération de Tickets PMO |
-| **P1** | Core Foundation | Stabiliser les fondations du Core Layer |
-| **P1 parallèle** | Simulation | Exploiter l'avance existante sans attendre inutilement la totalité du Core |
-| **P2** | Embedded Systems | Prolonger la simulation vers l'exécution embarquée réelle |
-| **P3** | Knowledge & Learning | Introduire la compréhension et l'adaptation pédagogique |
-| **P4 / Fast Track actif** | Experience | Atteindre le seuil Tinkercad par capacités complètes de bout en bout |
-| **P5** | Ecosystem | Construire l'extensibilité sur un Registry stabilisé |
-| **P6** | Collaboration | Construire la collaboration sur Document et Mutation stabilisés |
+| Priorité | Domaine |
+| --- | --- |
+| **P0** | Gouvernance et preuves de base |
+| **P1** | Core Foundation + L1-A Catalogue/Instance Contracts |
+| **P1 parallèle** | Simulation lorsque les dépendances l'autorisent |
+| **P2** | Embedded Systems / capacités L1-E |
+| **P3** | Knowledge & Learning |
+| **P4** | Experience selon dépendances |
+| **P5** | Ecosystem |
+| **P6** | Collaboration |
 
 Les priorités ne constituent pas un calendrier. Elles indiquent un ordre stratégique de traitement.
 
@@ -573,67 +558,31 @@ Les priorités ne constituent pas un calendrier. Elles indiquent un ordre strat�
 # 14. Jalons
 
 ## J0 — Gouvernance stabilisée
-
-Résultats attendus :
-
-* Vision 2030 et Tome II disponibles sur `main` ;
-* structure de roadmap officielle établie ;
-* séparation Roadmap / PMO confirmée ;
-* artefacts historiques identifiés sans confusion avec les références courantes.
+Vision, architecture et roadmap disponibles et traçables.
 
 ## J1 — Fondations en construction
+CF1/CF2/CF3/CF4 progressent ; Simulation peut avancer avec portes d'intégration.
 
-Résultats attendus :
-
-* CF1 en progression ;
-* CF2 en progression ;
-* CF3 et CF4 engagés selon les dépendances ;
-* SIM1 pouvant progresser en parallèle ;
-* porte d'intégration Core/Simulation définie.
+## J1-L1A — Catalogue Tinkercad gouverné
+Matrice benchmark versionnée, Rollout Gate qualifié, contrat d'instance générique établi si nécessaire, ordre des familles fixé et aucun gap de catalogue laissé sans propriétaire.
 
 ## J2 — Core canonique et Simulation intégrée
-
-Résultats attendus :
-
-* Document stabilisé ;
-* Registry canonique stabilisé ;
-* canal Mutation stabilisé ;
-* Validation suffisamment stable ;
-* Simulation raccordée au Core canonique ;
-* SIM2 disponible ;
-* décision d'intégration préparant SIM3.
+Document, Registry, Mutation et Validation suffisamment stabilisés ; Simulation raccordée au Core canonique ; Scheduler disponible selon besoin.
 
 ## J3 — Runtime embarqué
-
-Résultats attendus :
-
-* SIM3 établi ;
-* EMB1 réalisé ;
-* frontière Simulation / Embedded Runtime stabilisée.
+SIM3 et EMB1 établissent la frontière et l'exécution embarquée nécessaires à L1-E.
 
 ## J4 — Première boucle de connaissance
-
-Résultats attendus :
-
-* KL1 établi ;
-* KL2 engagé ou établi selon les dépendances ;
-* première boucle cohérente entre résultat technique, explication et adaptation.
+KL1 établi et KL2 engagé selon dépendances.
 
 ## J5 — Écosystème et collaboration
-
-Résultats attendus :
-
-* ECO1 à ECO3 progressivement établis ;
-* COL1 puis COL2 établis ;
-* extensions et collaboration respectent les frontières du Tome II.
+ECO1..ECO3 et COL1..COL2 progressent sans violer les frontières du Tome II.
 
 ## J6 — Consolidation Experience
+Restitution et interaction qualifiées sur les fondations stabilisées.
 
-Résultats attendus :
-
-* EXP1 formellement tracé ;
-* EXP2 traité selon les capacités stabilisées du Core et de l'Execution ;
-* cohérence globale de la restitution vérifiée.
+## J7 — Level 1 Product Parity Certification
+L1-G audite la matrice `PRESENT/FUNCTIONAL/PARITY`. Level 1 n'est fermé qu'en l'absence de gap critique non traité par rapport au benchmark Tinkercad retenu.
 
 ## J7 — Seuil Tinkercad
 
@@ -654,32 +603,31 @@ J7 est un jalon Experience. Il ne modifie pas à lui seul les responsabilités a
 # 15. Règles de gouvernance de la roadmap
 
 ### R1 — La roadmap ne remplace pas l'architecture
-
-Une évolution architecturale doit être traitée dans le Tome II et/ou par une ADR appropriée avant d'être considérée comme une base stable de planification.
+Une évolution architecturale passe par le Tome II et/ou une ADR appropriée.
 
 ### R2 — Un Épic appartient à un Programme de référence
-
-Un Épic ne doit pas être dupliqué dans plusieurs Programmes sous des noms différents.
+Les vagues Level 1 orchestrent les Programmes sans dupliquer leurs responsabilités.
 
 ### R3 — Les antécédents historiques ne sont pas recréés
-
-Un ancien ticket ou chantier peut être rattaché à un Épic actuel comme antécédent sans être recréé artificiellement.
+Un ancien chantier peut être rattaché à un Épic sans être recréé artificiellement.
 
 ### R4 — Les détails d'implémentation restent hors de la roadmap
-
-Les fichiers, fonctions, bibliothèques, APIs concrètes et choix technologiques relèvent des Tickets PMO, Blueprints, ADR et décisions d'implémentation appropriées.
+Fichiers, fonctions, bibliothèques et choix techniques relèvent des tickets, Blueprints et ADR.
 
 ### R5 — Les dépendances peuvent autoriser le parallélisme
+Une porte d'intégration doit empêcher qu'une divergence temporaire devienne permanente.
 
-Une dépendance architecturale ne signifie pas nécessairement une impossibilité de travailler en parallèle. Lorsqu'un parallélisme est autorisé, une porte d'intégration doit empêcher qu'une divergence temporaire devienne une architecture permanente.
+### R6 — Les Tickets PMO dérivent des Épics et vagues applicables
+Chaque ticket doit être rattachable sans ambiguïté à son Programme et, pour la parité produit, à la vague Level 1 concernée.
 
-### R6 — Les Tickets PMO dérivent des Épics
+### R7 — La roadmap reste révisable et traçable
+Toute modification significative doit être justifiée par l'état réel du dépôt, une décision architecturale ou une contrainte majeure.
 
-Un Ticket PMO doit pouvoir être rattaché sans ambiguïté à un Programme et à un Épic de cette roadmap.
+### R8 — Aucun faux progrès de parité
+`PRESENT`, `FUNCTIONAL` et `PARITY` sont des états distincts. Aucun ticket visuel ou d'enregistrement ne peut à lui seul certifier une parité fonctionnelle non démontrée.
 
-### R7 — La roadmap reste révisable
-
-Les priorités et jalons peuvent évoluer lorsque l'état réel du dépôt, une nouvelle décision architecturale ou une contrainte majeure le justifie. Toute modification significative doit toutefois rester traçable.
+### R9 — Le benchmark ne dicte pas une mauvaise architecture
+L'ordre d'implémentation suit le DAG de capacités et les contrats MYBlab, non l'ordre d'affichage du catalogue Tinkercad.
 
 ### R8 — La trajectoire Tinkercad est un benchmark, pas une spécification
 
@@ -709,60 +657,38 @@ Le CSA conserve la responsabilité de l'architecture, du séquencement, des inva
 
 # 16. Traçabilité
 
-La chaîne de référence est :
-
 ```text
 MYBLAB_VISION_2030.md
-        │
-        ▼
+        ↓
 PLATFORM_ARCHITECTURE.md
-        │
-        ▼
+        ↓
 ROADMAP_PLATFORM.md
-        │
-        ▼
-Épic / Capability Gate
-        │
-        ▼
+        ↓
+Programme / Vague Level 1 / Épic / Capability Gate
+        ↓
 Ticket PMO ou unité d'exécution Fast Track
-        │
-        ▼
+        ↓
 Execution Blueprint
-        │
-        ▼
+        ↓
 Implémentation
-        │
-        ▼
+        ↓
 Delivery Report
-        │
-        ▼
-Audit architectural / contrôle de conformité
+        ↓
+Audit architectural / contrôle de conformité / Parity Gate
 ```
-
-La roadmap constitue ainsi le niveau intermédiaire entre la décision stratégique, l'architecture permanente et l'exécution opérationnelle.
-
-Elle ne doit ni descendre jusqu'au détail du code, ni remonter jusqu'à redéfinir la Vision.
 
 ---
 
 # 17. État de référence
 
-Cette version de ROADMAP_PLATFORM.md constitue la roadmap stratégique de référence du Programme Platform après capitalisation complète de la vague raster EXP3.
+Cette version de `ROADMAP_PLATFORM.md` intègre la conclusion de l'audit stratégique Level 1 du 15 septembre 2026, tout en conservant la capitalisation complète de la vague raster EXP3 réalisée sous le Programme Experience.
 
-Le recalage conserve les identifiants historiques `031` à `048` pour assurer la traçabilité, mais remplace leur exécution séquentielle par le **FAST TRACK TINKERCAD FT-A → FT-B → FT-C → FT-D**.
+Le recalage conserve les identifiants historiques `031` à `048` pour assurer la traçabilité, et capitalise le **FAST TRACK TINKERCAD FT-A → FT-B → FT-C → FT-D** comme mécanique d'exécution des travaux relevant du Programme Experience.
 
-Les **16 composants sur 16** du catalogue de la vague visuelle sont désormais capitalisés en raster : LED, RESISTOR, DIODE, CAPACITOR, LDR, THERMISTOR, DC_MOTOR, BUTTON, BUTTON_LATCHING, BUZZER, POTENTIOMETER, RGB_LED, NPN_TRANSISTOR, SERVO, POWER et ARDUINO. Il ne reste donc plus de campagne de rasterisation POWER/ARDUINO à ouvrir.
+Les **16 composants sur 16** du catalogue de la vague visuelle sont capitalisés en raster : LED, RESISTOR, DIODE, CAPACITOR, LDR, THERMISTOR, DC_MOTOR, BUTTON, BUTTON_LATCHING, BUZZER, POTENTIOMETER, RGB_LED, NPN_TRANSISTOR, SERVO, POWER et ARDUINO. Il ne reste donc plus de campagne de rasterisation POWER/ARDUINO à ouvrir.
 
-La règle de pilotage opérationnelle devient :
+Elle conserve la trajectoire durable : **atteindre le niveau Tinkercad → dépasser Tinkercad → tendre vers un laboratoire électronique virtuel MYBlab avancé, réaliste, immersif et extensible.**
 
-**Capability Gate → audit ciblé → implémentation principale → tests ciblés → une suite complète finale → review ciblée si nécessaire → QA CSA/Product → versionnage.**
+**La conclusion opérationnelle de l'audit du 15 septembre 2026 prévaut pour la campagne actuelle : L1-A n'est pas terminé ; il reste prioritaire avant L1-B.** Le prochain travail exécutable doit être déterminé à partir du dépôt réel et du DAG L1-A (§1.3.7), en commençant par la qualification du Rollout Gate (A0) et du contrat générique de propriétés d'instance (A1) avant toute expansion massive du catalogue. `FT-A-001 — 16/16 Component Capability Matrix & Gap Closure` reste une unité valide du Programme Experience, mais n'est plus à lui seul la prochaine unité opérationnelle prioritaire : il est désormais séquencé dans le DAG L1-A comme contribution à la clôture du catalogue, et non comme point d'entrée de la campagne actuelle.
 
-Chaque Capability Gate conserve les exigences de Blueprint, invariants, limites de périmètre, tests, preuve navigateur lorsque pertinente et CSA Visual/Technical GO. Une modification architecturale ou technologique majeure reste soumise au Tome II et aux ADR appropriées.
-
-La trajectoire stratégique demeure :
-
-**Atteindre le niveau Tinkercad → Dépasser Tinkercad → Tendre vers un laboratoire virtuel MYBlab avancé, réaliste, immersif et extensible.**
-
-La prochaine unité opérationnelle après clôture de `MB-VIS-BUTTON-INTERACTION-008` est désormais :
-
-**`FT-A-001 — 16/16 Component Capability Matrix & Gap Closure`.**
+Les états « réalisé », « partiel », « planifié » ou « non commencé », ainsi que les états `PRESENT`, `FUNCTIONAL` et `PARITY` (§1.3.1), ne constituent pas des décisions de clôture PMO. Toute clôture exige les preuves prévues par la gouvernance.
