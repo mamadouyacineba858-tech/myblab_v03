@@ -19,7 +19,10 @@
  *  T-R1-14 : IDs de pins inchangés (1A..4B) ;
  *  T-R1-15/16 : Undo/Redo et topologie électrique A3-SW2 non régressés ;
  *  T-R1-17/18/19 : BUTTON / BUTTON_LATCHING / SLIDE_SWITCH non régressés ;
- *  T-R1-20 : DIP_SWITCH reste breadboardInsertable:false.
+ *  T-R1-20 (RÉVISÉ A3-SW3) : DIP_SWITCH est désormais breadboardInsertable
+ *    (géométrie corrigée pitch-12, cf. breadboardSwitchFit.test.js) — la
+ *    couverture géométrique/enfichage vit dans ce nouveau fichier dédié,
+ *    non dupliquée ici.
  *
  * Environnement jsdom (.test.jsx).
  */
@@ -184,13 +187,12 @@ describe("A3-SW2-R1 — DIP_SWITCH rend le paquet d'assets raster validé", () =
     expect(def.pins.map((p) => p.id)).toEqual(['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B'])
     for (const p of def.pins) {
       expect(p.wireConnectable).toBe(true)
-      expect(p.breadboardInsertable).toBe(false)
     }
   })
 
-  it('T-R1-20 — DIP_SWITCH reste breadboardInsertable:false (verrouillé volontairement)', () => {
+  it('T-R1-20 (RÉVISÉ A3-SW3) — DIP_SWITCH est désormais breadboardInsertable:true (géométrie pitch-12 prouvée, cf. breadboardSwitchFit.test.js)', () => {
     const def = getComponentDef('DIP_SWITCH')
-    for (const p of def.pins) expect(p.breadboardInsertable).toBe(false)
+    for (const p of def.pins) expect(p.breadboardInsertable).toBe(true)
   })
 
   it('déterminisme — deux rendus du même state produisent un HTML strictement identique', () => {

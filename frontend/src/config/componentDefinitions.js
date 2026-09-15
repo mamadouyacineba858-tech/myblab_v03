@@ -122,29 +122,37 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "minus", label: "-", dx: 84, dy: 25, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 3.5, dy: 34, wireConnectable: true, breadboardInsertable: false }] },
   ],
   // A3-SW1 — Slide Switch (SPDT). Renderer CSS/DOM (SlideSwitchPart.jsx),
-  // aucun asset raster validé pour ce composant (parité fonctionnelle
-  // d'abord, cf. ticket §9). Géométrie non probée sur un pitch breadboard
-  // réel : breadboardInsertable reste false (ticket §8, ne pas forcer une
-  // compatibilité non démontrée) ; wireConnectable reste true.
+  // A3-SW3 : géométrie déjà compatible BREADBOARD_PITCH=12 SANS modification
+  // (12, 36, 60 sont tous des multiples exacts de 12 ; dy=44 uniforme pour les
+  // 3 contacts) — démontré par breadboardSwitchFit.test.js (T1-T4). Un seul
+  // changement : breadboardInsertable false -> true (pin-level + contact-level).
   SLIDE_SWITCH: [
-    { id: "throwA", label: "A", dx: 12, dy: 44, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "throwA", dx: 12, dy: 44, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "common", label: "C", dx: 36, dy: 44, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "common", dx: 36, dy: 44, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "throwB", label: "B", dx: 60, dy: 44, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "throwB", dx: 60, dy: 44, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "throwA", label: "A", dx: 12, dy: 44, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "throwA", dx: 12, dy: 44, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "common", label: "C", dx: 36, dy: 44, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "common", dx: 36, dy: 44, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "throwB", label: "B", dx: 60, dy: 44, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "throwB", dx: 60, dy: 44, wireConnectable: true, breadboardInsertable: true }] },
   ],
-  // A3-SW2 — DIP Switch 4 positions : 4 canaux SPST × 2 pins (A/B), pins
-  // alignées en bas du boîtier (même convention que SLIDE_SWITCH), pattes A/B
-  // de chaque canal rapprochées (12px), canaux espacés (28px). Aucun asset
-  // raster validé : renderer CSS/DOM (DipSwitchPart.jsx, ticket §9).
-  // breadboardInsertable reste false (aucune géométrie de pitch démontrée).
+  // A3-SW3 : géométrie CORRIGÉE — l'espacement A3-SW2 d'origine (8,20,36,48,
+  // 64,76,92,104 = alternance 12/16) mélangeait TROIS résidus mod 12 distincts
+  // (8, 0, 4) : aucune origine commune ne pouvait aligner les 8 contacts sur le
+  // pitch breadboard à la fois (démontré par breadboardSwitchFit.test.js avant
+  // correction). Corrigé en espacement UNIFORME de 12 (8 pattes réellement au
+  // pas 0.1", conforme à l'asset réel : un DIP switch à corps DIP-8 breadboard-
+  // friendly a ses 8 broches à pas constant, cf. rapport final §D) :
+  // 14,26,38,50,62,74,86,98 (7 intervalles de 12, centrés dans la boîte
+  // canonique 112 large, marge 14 de chaque côté). dy=50 inchangé (rangée
+  // unique — l'asset ne montre PAS deux rangées opposées, cf. rapport final
+  // §D). Topologie électrique 1A/1B/2A/2B/3A/3B/4A/4B INCHANGÉE : seule la
+  // géométrie PHYSIQUE de présentation est corrigée. breadboardInsertable
+  // false -> true (pin-level + contact-level) après preuve géométrique.
   DIP_SWITCH: [
-    { id: "1A", label: "1A", dx: 8, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "1A", dx: 8, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "1B", label: "1B", dx: 20, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "1B", dx: 20, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "2A", label: "2A", dx: 36, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "2A", dx: 36, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "2B", label: "2B", dx: 48, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "2B", dx: 48, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "3A", label: "3A", dx: 64, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "3A", dx: 64, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "3B", label: "3B", dx: 76, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "3B", dx: 76, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "4A", label: "4A", dx: 92, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "4A", dx: 92, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "4B", label: "4B", dx: 104, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "4B", dx: 104, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "1A", label: "1A", dx: 14, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1A", dx: 14, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1B", label: "1B", dx: 26, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1B", dx: 26, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2A", label: "2A", dx: 38, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2A", dx: 38, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2B", label: "2B", dx: 50, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2B", dx: 50, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3A", label: "3A", dx: 62, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3A", dx: 62, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3B", label: "3B", dx: 74, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3B", dx: 74, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4A", label: "4A", dx: 86, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4A", dx: 86, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4B", label: "4B", dx: 98, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4B", dx: 98, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
   ],
 }
 

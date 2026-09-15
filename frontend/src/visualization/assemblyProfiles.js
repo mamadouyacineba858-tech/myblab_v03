@@ -135,6 +135,29 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 20 },
   },
+  // A3-SW3 — interrupteur à glissière SPDT (asset 72×48, prise de vue
+  // orthographique — pas de perspective, cf. rapport final §F). Le raster
+  // cuit 3 pattes métalliques pleine longueur (housing visible jusqu'à
+  // y≈30, pattes de y≈31 à y≈41) qui NE terminaient jamais sur un trou de
+  // breadboard réel (position figée dans la photo, indépendante de
+  // channelStates/de la position d'insertion). `bodyClip.bottom = 17` masque
+  // ces 3 pattes cuites (garde le boîtier visible jusqu'à y=30) ;
+  // AssemblyLeadsLayer dessine ensuite 3 pattes fonctionnelles fines
+  // (style metallic-wire, même rendu que CAPACITOR/DIODE/THERMISTOR) depuis
+  // la racine (dy=29, juste sous le boîtier visible) jusqu'aux
+  // PhysicalContacts throwA(12,44)/common(36,44)/throwB(60,44) INCHANGÉS —
+  // qui, une fois enfiché, coïncident exactement avec le trou résolu
+  // (résolveComponentContactHoles), donnant l'apparence réelle d'une patte
+  // entrant dans le breadboard (§9 du ticket).
+  SLIDE_SWITCH: {
+    kind: "through-hole",
+    leads: {
+      throwA: { root: { dx: 12, dy: 29 }, style: "metallic-wire" },
+      common: { root: { dx: 36, dy: 29 }, style: "metallic-wire" },
+      throwB: { root: { dx: 60, dy: 29 }, style: "metallic-wire" },
+    },
+    bodyClip: { bottom: 17 },
+  },
 }
 
 export function getAssemblyProfile(type) {
