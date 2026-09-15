@@ -65,6 +65,7 @@ import { HistoryManager } from "../history/HistoryManager.js"
 import { DeleteCommand } from "../history/commands/DeleteCommand.js"
 import { ToggleLatchingButtonCommand } from "../history/commands/ToggleLatchingButtonCommand.js"
 import { SetComponentStateCommand } from "../history/commands/SetComponentStateCommand.js"
+import { SetComponentChannelStateCommand } from "../history/commands/SetComponentChannelStateCommand.js"
 // MB-CF3-001 (amendement CSA-CF3-001-A) : canal de mutation cible
 // (CommandBus -> Handler -> HistoryService).
 // MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) : étendu à ADD_WIRE.
@@ -742,6 +743,12 @@ const getUndoCount = useCallback(() => {
     updateComponentPositions,
     updateComponentState: (uid, state) => {
       setComponents(prev => prev.map(c => c.uid === uid ? { ...c, state } : c))
+    },
+    // A3-SW2 : équivalent multi-canaux de updateComponentState ci-dessus —
+    // remplace channelStates dans son ENTIER (snapshot complet, jamais un
+    // patch partiel), même patron que le reste de ce documentApi.
+    updateComponentChannelStates: (uid, channelStates) => {
+      setComponents(prev => prev.map(c => c.uid === uid ? { ...c, channelStates } : c))
     },
     removeComponents: (componentIds) => {
       setComponents(prev => prev.filter(c => !componentIds.includes(c.uid)))
@@ -2658,6 +2665,33 @@ if (import.meta.env.DEV) {
     const command = new SetComponentStateCommand(documentApi, uid, oldState, newState)
     historyManagerRef.current.execute(command)
   }, [components, documentApi])
+
+  // A3-SW2 : capacité déclarative interaction.type === "multi-state-toggle"
+  // — bascule un SEUL canal (channelId) vers son état suivant dans
+  // interaction.states (cyclique), en préservant les AUTRES canaux à
+  // l'identique (I-DIP-09). Commande dédiée (SetComponentChannelStateCommand,
+  // justifiée dans le rapport de ticket) ; toggleComponentState/
+  // SetComponentStateCommand ci-dessus restent inchangés pour SLIDE_SWITCH.
+  const toggleComponentChannel = useCallback((uid, channelId) => {
+    const comp = components.find(c => c.uid === uid && getComponentDef(c.type)?.interaction?.type === "multi-state-toggle")
+    if (!comp) return
+
+    const def = getComponentDef(comp.type)
+    const channels = def?.interaction?.channels
+    const states = def?.interaction?.states
+    if (!Array.isArray(channels) || !channels.includes(channelId) || !Array.isArray(states) || states.length < 2) return
+
+    const oldChannelStates = comp.channelStates && typeof comp.channelStates === "object" ? comp.channelStates : {}
+    const oldState = oldChannelStates[channelId]
+    const currentIndex = states.indexOf(oldState)
+    const newState = states[(currentIndex + 1) % states.length]
+    if (!newState || oldState === newState) return
+
+    const newChannelStates = { ...oldChannelStates, [channelId]: newState }
+
+    const command = new SetComponentChannelStateCommand(documentApi, uid, oldChannelStates, newChannelStates)
+    historyManagerRef.current.execute(command)
+  }, [components, documentApi])
   const setThemeMode = useCallback((mode) => { if (mode !== "dark" && mode !== "light") return; setTheme(mode) }, [])
 
   return useMemo(() => ({
@@ -2784,6 +2818,7 @@ if (import.meta.env.DEV) {
   selectOnly,
   toggleLatchingButton,
   toggleComponentState,
+  toggleComponentChannel,
   toggleSelection,
   isSelected,
   clearSelection,
@@ -2889,6 +2924,7 @@ if (import.meta.env.DEV) {
   selectOnly,
   toggleLatchingButton,
   toggleComponentState,
+  toggleComponentChannel,
   toggleSelection,
   isSelected,
   clearSelection,

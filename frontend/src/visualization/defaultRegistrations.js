@@ -38,6 +38,7 @@ import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
 import { DcMotorPart } from '../components/parts/DcMotorPart.jsx';
 import { SlideSwitchPart } from '../components/parts/SlideSwitchPart.jsx';
+import { DipSwitchPart } from '../components/parts/DipSwitchPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -183,6 +184,12 @@ export const DEFAULT_REGISTRATIONS = [
   // même mécanisme déclaratif que BUTTON_LATCHING / LED / RESISTOR / … —
   // aucun code central spécifique, aucune condition `type === "SLIDE_SWITCH"`.
   { type: 'SLIDE_SWITCH', component: SlideSwitchPart, visual: { backend: 'raster' } },
+  // DIP_SWITCH : A3-SW2, renderer CSS/DOM provisoire (aucun asset raster
+  // validé, FUNCTIONAL — Canvas visuel à qualifier, cf. ticket §9). Backend
+  // par défaut ('svg') : pas de bareBody/markerless — les marqueurs de
+  // <Pin> restent visibles sur les 8 contacts, comme pour tout composant
+  // sans paquet raster.
+  { type: 'DIP_SWITCH', component: DipSwitchPart },
 ];
 
 /**

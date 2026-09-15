@@ -22,9 +22,18 @@ const DECLARED_TYPES_PINS = {
   // A3-SW1 — Slide Switch (SPDT) : 3 pins, une seule connexion interne active
   // à la fois selon la position (cf. DECLARED_INTERNAL_CONNECTIONS ci-dessous).
   SLIDE_SWITCH:[{id:'throwA',role:'switch'},{id:'common',role:'switch'},{id:'throwB',role:'switch'}],
+  // A3-SW2 — DIP Switch 4 positions : 4 canaux SPST indépendants, 8 pins
+  // électriques (2 par canal). Aucune connexion croisée entre canaux (cf.
+  // DECLARED_INTERNAL_CONNECTIONS.channels ci-dessous).
+  DIP_SWITCH:[
+    {id:'1A',role:'switch'},{id:'1B',role:'switch'},
+    {id:'2A',role:'switch'},{id:'2B',role:'switch'},
+    {id:'3A',role:'switch'},{id:'3B',role:'switch'},
+    {id:'4A',role:'switch'},{id:'4B',role:'switch'},
+  ],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -106,18 +115,40 @@ const DECLARED_INTERNAL_CONNECTIONS = {
   BUTTON_LATCHING:{ states:{ on:[['pin1','pin2']] } },
   // A3-SW1 : SPDT — une seule paire active par position, jamais throwA↔throwB.
   SLIDE_SWITCH:{ states:{ left:[['common','throwA']], right:[['common','throwB']] } },
+  // A3-SW2 : composition de canaux indépendants — extension générique du
+  // contrat A3-SW0 (forme `channels`, alternative à `states`). Chaque canal
+  // résout sa propre paire selon SON PROPRE état (component.channelStates),
+  // jamais une union croisée entre canaux.
+  DIP_SWITCH:{
+    channels:{
+      '1':{ states:{ on:[['1A','1B']], off:[] } },
+      '2':{ states:{ on:[['2A','2B']], off:[] } },
+      '3':{ states:{ on:[['3A','3B']], off:[] } },
+      '4':{ states:{ on:[['4A','4B']], off:[] } },
+    },
+  },
 }
 
 function cloneParameterSchema(schema){ return schema.map((param)=>Object.freeze({...param})) }
 function cloneDefaultParameters(parameters){ return Object.freeze({...parameters}) }
 function cloneCapabilities(capabilities){ return Object.freeze([...capabilities]) }
 function clonePins(pins){ return Object.freeze(pins.map((pin)=>Object.freeze({...pin}))) }
+function cloneStatesMap(statesMap){
+  return Object.freeze(Object.fromEntries(
+    Object.entries(statesMap).map(([state,pairs])=>[state,Object.freeze(pairs.map((pair)=>Object.freeze([...pair])))])
+  ))
+}
 function cloneInternalConnections(internalConnections){
   if(!internalConnections) return null
-  const states=Object.fromEntries(
-    Object.entries(internalConnections.states).map(([state,pairs])=>[state,Object.freeze(pairs.map((pair)=>Object.freeze([...pair])))])
-  )
-  return Object.freeze({ states:Object.freeze(states) })
+  // A3-SW2 : forme `channels` (composition de canaux indépendants) —
+  // alternative générique à `states` (topologie globale, A3-SW0).
+  if(internalConnections.channels){
+    const channels=Object.fromEntries(
+      Object.entries(internalConnections.channels).map(([channelId,channelDef])=>[channelId,Object.freeze({ states:cloneStatesMap(channelDef.states) })])
+    )
+    return Object.freeze({ channels:Object.freeze(channels) })
+  }
+  return Object.freeze({ states:cloneStatesMap(internalConnections.states) })
 }
 
 function buildEntry(type){
@@ -165,22 +196,36 @@ export function validateCanonicalEntry(entry){
   if(entry.capabilities!==null && !Array.isArray(entry.capabilities)) errors.push('capabilities must be an array or null')
   if(entry.internalConnections!==null && entry.internalConnections!==undefined){
     const ic=entry.internalConnections
-    if(typeof ic!=='object' || Array.isArray(ic) || !ic.states || typeof ic.states!=='object' || Array.isArray(ic.states)){
-      errors.push('internalConnections must be an object with a states object')
-    } else {
-      const pinIds=new Set(Array.isArray(entry.pins) ? entry.pins.filter((pin)=>pin && typeof pin.id==='string').map((pin)=>pin.id) : [])
-      Object.entries(ic.states).forEach(([stateName,pairs])=>{
-        if(!Array.isArray(pairs)){ errors.push(`internalConnections.states.${stateName} must be an array`); return }
+    const pinIds=new Set(Array.isArray(entry.pins) ? entry.pins.filter((pin)=>pin && typeof pin.id==='string').map((pin)=>pin.id) : [])
+    const validateStatesMap=(statesMap,prefix)=>{
+      if(!statesMap || typeof statesMap!=='object' || Array.isArray(statesMap)){ errors.push(`${prefix} must be an object with a states object`); return }
+      Object.entries(statesMap).forEach(([stateName,pairs])=>{
+        if(!Array.isArray(pairs)){ errors.push(`${prefix}.${stateName} must be an array`); return }
         pairs.forEach((pair,index)=>{
           if(!Array.isArray(pair) || pair.length!==2 || typeof pair[0]!=='string' || typeof pair[1]!=='string'){
-            errors.push(`internalConnections.states.${stateName}[${index}] must be a pair of two pin ids`)
+            errors.push(`${prefix}.${stateName}[${index}] must be a pair of two pin ids`)
             return
           }
           const [pinA,pinB]=pair
-          if(!pinIds.has(pinA)) errors.push(`internalConnections.states.${stateName}[${index}] references unknown pin "${pinA}"`)
-          if(!pinIds.has(pinB)) errors.push(`internalConnections.states.${stateName}[${index}] references unknown pin "${pinB}"`)
+          if(!pinIds.has(pinA)) errors.push(`${prefix}.${stateName}[${index}] references unknown pin "${pinA}"`)
+          if(!pinIds.has(pinB)) errors.push(`${prefix}.${stateName}[${index}] references unknown pin "${pinB}"`)
         })
       })
+    }
+    if(typeof ic!=='object' || Array.isArray(ic)){
+      errors.push('internalConnections must be an object with a states object or a channels object')
+    } else if(ic.channels!==undefined){
+      // A3-SW2 : composition de canaux indépendants — chaque canal valide
+      // séparément son propre vocabulaire d'états, sur le MÊME jeu de pins.
+      if(!ic.channels || typeof ic.channels!=='object' || Array.isArray(ic.channels)){
+        errors.push('internalConnections.channels must be an object')
+      } else {
+        Object.entries(ic.channels).forEach(([channelId,channelDef])=>{
+          validateStatesMap(channelDef && channelDef.states, `internalConnections.channels.${channelId}.states`)
+        })
+      }
+    } else {
+      validateStatesMap(ic.states, 'internalConnections.states')
     }
   }
   if(typeof entry.modelAvailable!=='boolean') errors.push('modelAvailable must be a boolean')
@@ -204,20 +249,41 @@ export function getCanonicalEntry(type){return hasCanonicalType(type)?CANONICAL_
 export function getAllCanonicalEntries(){return CANONICAL_ENTRIES_LIST}
 
 /**
- * A3-SW0 : résolution générique de la topologie interne active d'un
- * composant. Ne connaît aucun nom de type ; lit uniquement le contrat
- * déclaratif internalConnections de l'entry et l'état courant du
- * composant. Retourne toujours un tableau (jamais d'exception).
+ * A3-SW0 (étendu par A3-SW2) : résolution générique de la topologie
+ * interne active d'un composant. Ne connaît aucun nom de type ; lit
+ * uniquement le contrat déclaratif internalConnections de l'entry et
+ * l'état courant du composant. Retourne toujours un tableau (jamais
+ * d'exception).
+ *
+ * Deux formes de contrat, mutuellement exclusives :
+ * - `states` (A3-SW0) : topologie globale, lue depuis `component.state`.
+ * - `channels` (A3-SW2) : composition de canaux indépendants, chaque
+ *   canal résolu depuis SA PROPRE entrée de `component.channelStates`
+ *   (jamais une union croisée entre canaux — chaque canal ne peut
+ *   produire que des paires impliquant ses propres pins déclarées).
  *
  * @param {object|null} entry canonical entry (getCanonicalEntry)
- * @param {{ state?: string }} component instance/state
+ * @param {{ state?: string, channelStates?: Record<string,string> }} component instance/state
  * @returns {Array<[string,string]>}
  */
 export function resolveInternalConnections(entry,component){
   if(!entry || !entry.internalConnections) return []
+  const ic=entry.internalConnections
+  if(ic.channels){
+    const channelStates=component && component.channelStates
+    if(!channelStates || typeof channelStates!=='object') return []
+    const pairs=[]
+    for(const [channelId,channelDef] of Object.entries(ic.channels)){
+      const state=channelStates[channelId]
+      if(typeof state!=='string') continue
+      const channelPairs=channelDef.states[state]
+      if(Array.isArray(channelPairs)) for(const pair of channelPairs) pairs.push(pair)
+    }
+    return pairs.map(([pinA,pinB])=>[pinA,pinB])
+  }
   const state=component && component.state
   if(typeof state!=='string') return []
-  const pairs=entry.internalConnections.states[state]
+  const pairs=ic.states[state]
   if(!Array.isArray(pairs)) return []
   return pairs.map(([pinA,pinB])=>[pinA,pinB])
 }

@@ -277,7 +277,9 @@ describe('G — Backend Contract', () => {
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')
-    expect(svgTypes.slice().sort()).toEqual(['THERMISTOR'])
+    // A3-SW2 : DIP_SWITCH ajouté — renderer CSS/DOM (backend 'svg' par
+    // défaut, aucun asset raster validé), même statut que THERMISTOR.
+    expect(svgTypes.slice().sort()).toEqual(['DIP_SWITCH', 'THERMISTOR'])
     expect(rasterTypes.length + svgTypes.length).toBe(DEFAULT_REGISTRATIONS.length)
   })
 })

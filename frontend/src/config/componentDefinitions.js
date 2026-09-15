@@ -131,6 +131,21 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "common", label: "C", dx: 36, dy: 44, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "common", dx: 36, dy: 44, wireConnectable: true, breadboardInsertable: false }] },
     { id: "throwB", label: "B", dx: 60, dy: 44, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "throwB", dx: 60, dy: 44, wireConnectable: true, breadboardInsertable: false }] },
   ],
+  // A3-SW2 — DIP Switch 4 positions : 4 canaux SPST × 2 pins (A/B), pins
+  // alignées en bas du boîtier (même convention que SLIDE_SWITCH), pattes A/B
+  // de chaque canal rapprochées (12px), canaux espacés (28px). Aucun asset
+  // raster validé : renderer CSS/DOM (DipSwitchPart.jsx, ticket §9).
+  // breadboardInsertable reste false (aucune géométrie de pitch démontrée).
+  DIP_SWITCH: [
+    { id: "1A", label: "1A", dx: 8, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "1A", dx: 8, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "1B", label: "1B", dx: 20, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "1B", dx: 20, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "2A", label: "2A", dx: 36, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "2A", dx: 36, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "2B", label: "2B", dx: 48, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "2B", dx: 48, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "3A", label: "3A", dx: 64, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "3A", dx: 64, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "3B", label: "3B", dx: 76, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "3B", dx: 76, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "4A", label: "4A", dx: 92, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "4A", dx: 92, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "4B", label: "4B", dx: 104, dy: 50, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "4B", dx: 104, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+  ],
 }
 
 function buildPins(type) {
@@ -184,6 +199,14 @@ export const COMPONENT_TYPES = {
   // interaction.type === "state-toggle") — BUTTON_LATCHING (type "latching",
   // on/off) reste inchangé et distinct.
   SLIDE_SWITCH: { id: "SLIDE_SWITCH", label: "Interrupteur à glissière", icon: "⇄", width: 72, height: 48, pins: buildPins("SLIDE_SWITCH"), interaction: { type: "state-toggle", states: ["left", "right"] }, initialState: "left" },
+  // A3-SW2 — DIP Switch : capacité déclarative généralisée pour un composant
+  // à PLUSIEURS canaux de commutation indépendants (cf. CircuitComponent.jsx,
+  // interaction.type === "multi-state-toggle" ; canonicalRegistry.js,
+  // internalConnections.channels). `channels` énumère les canaux déclarés,
+  // `states` leur vocabulaire commun (off/on) — ni l'un ni l'autre n'est
+  // figé sur "4" ou sur DIP_SWITCH : un futur composant multi-canaux
+  // réutilise ce même contrat sans modification de CircuitComponent.jsx.
+  DIP_SWITCH: { id: "DIP_SWITCH", label: "Interrupteur DIP 4 positions", icon: "▦", width: 112, height: 56, pins: buildPins("DIP_SWITCH"), interaction: { type: "multi-state-toggle", channels: ["1", "2", "3", "4"], states: ["off", "on"] }, initialChannelStates: { "1": "off", "2": "off", "3": "off", "4": "off" } },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -210,12 +233,16 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 
 export function createComponent(type, x, y) {
   const def = getComponentDef(type)
   if (!def) return null
-  return { uid: createUid(), type: def.id, x, y, pins: def.pins.map((pin) => ({ ...pin })), ...(def.initialState !== undefined ? { state: def.initialState } : {}) }
+  return {
+    uid: createUid(), type: def.id, x, y, pins: def.pins.map((pin) => ({ ...pin })),
+    ...(def.initialState !== undefined ? { state: def.initialState } : {}),
+    ...(def.initialChannelStates !== undefined ? { channelStates: { ...def.initialChannelStates } } : {}),
+  }
 }

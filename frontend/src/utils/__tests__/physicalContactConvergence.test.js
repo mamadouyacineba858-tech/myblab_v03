@@ -61,9 +61,10 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
   })
 
   it('tous les types du catalogue -> drapeaux de contact booléens ; classification d\'enfichage FT-B-001-S5', () => {
-    // A3-SW1 : SLIDE_SWITCH ajouté — breadboardInsertable:false (géométrie
-    // non probée sur un pitch réel, componentDefinitions.js).
-    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'SLIDE_SWITCH'])
+    // A3-SW1/A3-SW2 : SLIDE_SWITCH et DIP_SWITCH ajoutés —
+    // breadboardInsertable:false (géométrie non probée sur un pitch réel,
+    // componentDefinitions.js).
+    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'SLIDE_SWITCH', 'DIP_SWITCH'])
     for (const type of ALL_TYPES) {
       for (const pin of getComponentDef(type).pins) {
         for (const c of resolveContacts(pin)) {
@@ -240,12 +241,12 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032',
     'LED', 'RESISTOR', 'ARDUINO', 'BUTTON', 'BUTTON_LATCHING', 'POWER', 'CAPACITOR',
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR',
-    'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH',
+    'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH',
   ]
 
-  it('le catalogue compte exactement 21 types', () => {
-    // A3-SW1 : 20 -> 21 (SLIDE_SWITCH ajouté).
-    expect(new Set(CATALOGUE).size).toBe(21)
+  it('le catalogue compte exactement 22 types', () => {
+    // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté).
+    expect(new Set(CATALOGUE).size).toBe(22)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -293,12 +294,13 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     }
   })
 
-  it('classification breadboardInsertable finale S5 : 13 enfichables / 8 non-directs', () => {
+  it('classification breadboardInsertable finale S5 : 13 enfichables / 9 non-directs', () => {
     const INSERTABLE = ['RESISTOR', 'LED', 'DIODE', 'CAPACITOR', 'LDR', 'THERMISTOR',
       'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER',
       'POLARIZED_CAPACITOR']
-    // A3-SW1 : SLIDE_SWITCH ajouté à NON_DIRECT (breadboardInsertable:false).
-    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'SLIDE_SWITCH']
+    // A3-SW1/A3-SW2 : SLIDE_SWITCH et DIP_SWITCH ajoutés à NON_DIRECT
+    // (breadboardInsertable:false).
+    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'SLIDE_SWITCH', 'DIP_SWITCH']
     expect([...INSERTABLE, ...NON_DIRECT].sort()).toEqual([...CATALOGUE].sort())
 
     const insertableContactCount = (type) =>

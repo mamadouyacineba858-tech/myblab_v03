@@ -85,9 +85,12 @@ describe("A3-SW1 — architecture guard", () => {
 })
 
 describe("A3-SW1 — non-régression Registry", () => {
-  it("T-SW1-23 : les entrées canoniques complètes restent valides (20 -> 21)", () => {
+  it("T-SW1-23 : les entrées canoniques complètes restent valides", () => {
+    // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté après ce ticket A3-SW1) — le
+    // compte exact n'est plus le sujet de CE test, verrouillé séparément par
+    // canonicalRegistry.test.js (même traitement que T-SW0-12/switchTopology.test.js).
     const entries = getAllCanonicalEntries()
-    expect(entries).toHaveLength(21)
+    expect(entries.length).toBeGreaterThanOrEqual(21)
     expect(validateCanonicalEntrySet(entries)).toEqual({ valid: true, errors: [] })
   })
 })

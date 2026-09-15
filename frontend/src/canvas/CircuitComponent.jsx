@@ -60,6 +60,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
     setButtonState,
     toggleLatchingButton,
     toggleComponentState,
+    toggleComponentChannel,
   } = useCircuit()
 
   const uid = component?.uid
@@ -266,6 +267,58 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
     toggleComponentState(uid)
   }, [toggleComponentState, uid])
 
+  // A3-SW2 : capacité déclarative interaction.type === "multi-state-toggle"
+  // (componentDefinitions.js) — même geste pointerdown/seuil de
+  // mouvement/click que le state-toggle ci-dessus (drag du corps ≠ toggle,
+  // I-DIP-14), mais résout le CANAL cliqué génériquement via l'attribut DOM
+  // `data-channel-id` (convention de présentation, jamais un nom de type)
+  // porté par l'actuateur cliqué dans le renderer, et route vers
+  // toggleComponentChannel(uid, channelId) — jamais toggleComponentState().
+  // DIP Switch est le premier consommateur ; un futur composant multi-canaux
+  // réutilise cette même capacité sans modification de ce fichier.
+  const isMultiStateToggle = def?.interaction?.type === "multi-state-toggle"
+  const multiTogglePointerDownRef = useRef(null)
+
+  const handleMultiTogglePointerDown = useCallback((e) => {
+    e.stopPropagation()
+    multiTogglePointerDownRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      moved: false,
+    }
+  }, [])
+
+  const handleMultiTogglePointerMove = useCallback((e) => {
+    const gesture = multiTogglePointerDownRef.current
+    if (!gesture || gesture.moved) return
+
+    const dx = e.clientX - gesture.x
+    const dy = e.clientY - gesture.y
+
+    if (Math.hypot(dx, dy) >= 4) {
+      gesture.moved = true
+    }
+  }, [])
+
+  const handleMultiToggleClick = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const start = multiTogglePointerDownRef.current
+    multiTogglePointerDownRef.current = null
+
+    if (start) {
+      const dx = e.clientX - start.x
+      const dy = e.clientY - start.y
+      if (start.moved || Math.hypot(dx, dy) >= 4) return
+    }
+
+    const channelId = e.target?.closest?.("[data-channel-id]")?.getAttribute("data-channel-id")
+    if (channelId == null) return
+
+    toggleComponentChannel(uid, channelId)
+  }, [toggleComponentChannel, uid])
+
   useEffect(() => {
     if (!isButton) return
 
@@ -367,6 +420,12 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
             onPointerDown: handleStateTogglePointerDown,
             onPointerMove: handleStateTogglePointerMove,
             onClick: handleStateToggleClick,
+          } : {})}
+          {...(isMultiStateToggle ? {
+            channelStates: component.channelStates,
+            onPointerDown: handleMultiTogglePointerDown,
+            onPointerMove: handleMultiTogglePointerMove,
+            onClick: handleMultiToggleClick,
           } : {})}
         />
       </div>

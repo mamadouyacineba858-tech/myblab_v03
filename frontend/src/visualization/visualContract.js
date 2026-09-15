@@ -112,6 +112,9 @@ export const SCALE_REFERENCE = Object.freeze([
   // A3-SW1 : interrupteur à glissière SPDT, renderer CSS/DOM (aucun asset
   // raster validé, cf. componentDefinitions.js/SlideSwitchPart.jsx).
   { type: 'SLIDE_SWITCH',   box: [72, 48],   physicalMm: [12, 6],     ref: 'interrupteur à glissière SPDT ~12×6 (indicatif)', impliedUnitsPerMm: 72 / 12 },
+  // A3-SW2 : DIP switch 4 positions SPST×4, renderer CSS/DOM (aucun asset
+  // raster validé, cf. componentDefinitions.js/DipSwitchPart.jsx).
+  { type: 'DIP_SWITCH',     box: [112, 56],  physicalMm: [10.2, 7.6], ref: 'DIP switch 4 positions ~10.2×7.6 (indicatif)',    impliedUnitsPerMm: 112 / 10.2 },
   { type: 'POWER',          box: [70, 90],   physicalMm: [50, 70],    ref: 'bloc alim breadboard (indicatif)',                impliedUnitsPerMm: 1.3 },
   { type: 'BUZZER',         box: [120, 120], physicalMm: [12, 20],    ref: 'buzzer piézo Ø12, pattes comprises ~20 mm (FT-C-COMP-004)', impliedUnitsPerMm: 120 / 20 },
   { type: 'POTENTIOMETER',  box: [120, 120], physicalMm: [16, 26],    ref: 'potentiomètre rotatif Ø16, axe/bouton compris ~26 mm (FT-C-COMP-003)', impliedUnitsPerMm: 120 / 26 },

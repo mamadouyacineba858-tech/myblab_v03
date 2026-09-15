@@ -72,6 +72,7 @@ export function normalizeComponent(component) {
     ...(component.properties && typeof component.properties === "object" && !Array.isArray(component.properties)
       ? { properties: { ...component.properties } } : {}),
     ..._normalizeInteractionState(component),
+    ..._normalizeChannelStates(component),
   }
 }
 
@@ -118,6 +119,49 @@ function _normalizeInteractionState(component) {
     }
   }
   return {}
+}
+
+/**
+ * [A3-SW2] Dérive la clé `channelStates` (si applicable) du contrat
+ * déclaratif `interaction.type === "multi-state-toggle"` — même principe
+ * que `_normalizeInteractionState()` ci-dessus, mais pour UNE INSTANCE
+ * possédant PLUSIEURS canaux de commutation indépendants (DIP Switch en
+ * étant le premier consommateur). Ne connaît aucun type concret, aucun
+ * nombre de canaux codé en dur : `interaction.channels` (liste des canaux
+ * déclarés) et `interaction.states` (vocabulaire commun, ex. off/on) sont
+ * entièrement lus depuis componentDefinitions.js.
+ *
+ * - Aucune capacité `multi-state-toggle` déclarée → aucune clé
+ *   `channelStates` ajoutée (comportement inchangé pour tout composant
+ *   existant, y compris BUTTON/BUTTON_LATCHING/SLIDE_SWITCH).
+ * - Pour chaque canal déclaré : un état d'instance déjà valide (membre de
+ *   `interaction.states`) est préservé tel quel ; sinon secours
+ *   `initialChannelStates[canal]` (ou le premier état déclaré si absent).
+ *   Un canal absent de l'état d'instance ou déclaré avec une valeur
+ *   invalide ne modifie jamais les AUTRES canaux (indépendance stricte).
+ *
+ * @param {object} component
+ * @returns {{channelStates?: Record<string,string>}}
+ */
+function _normalizeChannelStates(component) {
+  const def = getComponentDef(component.type)
+  if (def?.interaction?.type !== "multi-state-toggle") return {}
+
+  const channels = def?.interaction?.channels
+  const states = def?.interaction?.states
+  if (!Array.isArray(channels) || channels.length === 0 || !Array.isArray(states) || states.length === 0) return {}
+
+  const initialChannelStates = def?.initialChannelStates ?? {}
+  const existing = component.channelStates && typeof component.channelStates === "object" && !Array.isArray(component.channelStates)
+    ? component.channelStates
+    : {}
+
+  const channelStates = {}
+  for (const channelId of channels) {
+    const value = existing[channelId]
+    channelStates[channelId] = states.includes(value) ? value : (initialChannelStates[channelId] ?? states[0])
+  }
+  return { channelStates }
 }
 
 /**
