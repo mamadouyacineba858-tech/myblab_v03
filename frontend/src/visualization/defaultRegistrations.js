@@ -184,12 +184,15 @@ export const DEFAULT_REGISTRATIONS = [
   // même mécanisme déclaratif que BUTTON_LATCHING / LED / RESISTOR / … —
   // aucun code central spécifique, aucune condition `type === "SLIDE_SWITCH"`.
   { type: 'SLIDE_SWITCH', component: SlideSwitchPart, visual: { backend: 'raster' } },
-  // DIP_SWITCH : A3-SW2, renderer CSS/DOM provisoire (aucun asset raster
-  // validé, FUNCTIONAL — Canvas visuel à qualifier, cf. ticket §9). Backend
-  // par défaut ('svg') : pas de bareBody/markerless — les marqueurs de
-  // <Pin> restent visibles sur les 8 contacts, comme pour tout composant
-  // sans paquet raster.
-  { type: 'DIP_SWITCH', component: DipSwitchPart },
+  // DIP_SWITCH : A3-SW2-R1 — paquet d'assets raster réaliste validé par le
+  // Founder (photo housing statique, état de référence unique). raster =>
+  // bareBody + markerless dérivés, même mécanisme déclaratif que
+  // SLIDE_SWITCH / BUTTON_LATCHING / LED / RESISTOR / … — aucun code central
+  // spécifique, aucune condition `type === "DIP_SWITCH"`. Les 4 canaux
+  // restent pilotés dynamiquement par DipSwitchPart.jsx (overlay
+  // track/thumb par canal, cf. commentaire du fichier) — l'asset ne fige
+  // qu'un décor de boîtier, jamais l'état électrique.
+  { type: 'DIP_SWITCH', component: DipSwitchPart, visual: { backend: 'raster' } },
 ];
 
 /**

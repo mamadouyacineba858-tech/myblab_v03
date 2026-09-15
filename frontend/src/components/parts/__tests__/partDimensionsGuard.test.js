@@ -60,10 +60,11 @@ const RASTER_PART_FILES = new Set(
 // A3-SW1-R1 : SlideSwitchPart.jsx est passé au backend raster (paquet
 // d'assets validé par le Founder) — couvert par RASTER_PART_FILES
 // ci-dessus, n'est plus un renderer CSS/DOM physique.
-// A3-SW2 : DipSwitchPart.jsx est un renderer CSS/DOM provisoire (aucun
-// asset raster validé, FUNCTIONAL — cf. ticket §9), même catégorie que
-// ThermistorPart.jsx.
-const PHYSICAL_DOM_PART_FILES = new Set(["ThermistorPart.jsx", "DipSwitchPart.jsx"])
+// A3-SW2-R1 : DipSwitchPart.jsx est passé au backend raster (paquet
+// d'assets réaliste validé par le Founder, photo housing statique + overlay
+// track/thumb par canal) — couvert par RASTER_PART_FILES ci-dessus, n'est
+// plus un renderer CSS/DOM physique. Retiré de cette liste.
+const PHYSICAL_DOM_PART_FILES = new Set(["ThermistorPart.jsx"])
 
 // [MB-L1-CONS-002] RgbLedPart.jsx est un cas distinct, pré-existant et
 // indépendant de la réconciliation CAPACITOR/THERMISTOR : il gère son propre

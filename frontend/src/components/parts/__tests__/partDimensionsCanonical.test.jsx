@@ -80,9 +80,10 @@ const CATALOG = [
 // cf. delivery report MB-L1-CONS-002. CAPACITOR est repassé au backend
 // raster par MB-L1-PROP-005 — couvert par RASTER_PARTS ci-dessous, retiré
 // de cette liste.
-// A3-SW2 : DIP_SWITCH est également un renderer CSS/DOM pur (aucun asset
-// raster validé, FUNCTIONAL — cf. ticket §9), même catégorie que THERMISTOR.
-const PHYSICAL_DOM_TYPES = new Set(["THERMISTOR", "DIP_SWITCH"])
+// A3-SW2-R1 : DIP_SWITCH est passé au backend raster (paquet d'assets
+// réaliste validé par le Founder) — retiré de cette catégorie, couvert par
+// RASTER_PARTS ci-dessous comme SLIDE_SWITCH (A3-SW1-R1).
+const PHYSICAL_DOM_TYPES = new Set(["THERMISTOR"])
 // LDR déclare bien `backend: 'raster'` et rend un <img> réel, mais celui-ci
 // porte les dimensions NATIVES de l'asset (fixes, avec crop CSS) — seul le
 // <div> racine (`.part-ldr`) porte la boîte canonique dynamique

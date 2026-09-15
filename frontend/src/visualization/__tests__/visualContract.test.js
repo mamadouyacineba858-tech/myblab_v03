@@ -270,16 +270,18 @@ describe('G — Backend Contract', () => {
     // une décision de présentation par type, pas un critère de qualité.
     // A3-SW1-R1 : SLIDE_SWITCH passé au backend raster (paquet d'assets
     // réaliste validé par le Founder, left/right).
+    // A3-SW2-R1 : DIP_SWITCH passé au backend raster (paquet d'assets
+    // réaliste validé par le Founder, photo housing statique + overlay
+    // track/thumb par canal piloté par channelStates).
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH'])
+    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH'])
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')
-    // A3-SW2 : DIP_SWITCH ajouté — renderer CSS/DOM (backend 'svg' par
-    // défaut, aucun asset raster validé), même statut que THERMISTOR.
-    expect(svgTypes.slice().sort()).toEqual(['DIP_SWITCH', 'THERMISTOR'])
+    // THERMISTOR reste 'svg' ([MB-L1-CONS-002], hors périmètre).
+    expect(svgTypes.slice().sort()).toEqual(['THERMISTOR'])
     expect(rasterTypes.length + svgTypes.length).toBe(DEFAULT_REGISTRATIONS.length)
   })
 })

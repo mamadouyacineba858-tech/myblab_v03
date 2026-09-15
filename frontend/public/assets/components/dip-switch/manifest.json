@@ -1,0 +1,75 @@
+{
+  "component": "DIP_SWITCH",
+  "version": "1.0.0",
+  "backend": "raster",
+  "complexity": "complex",
+  "states": [
+    "reference"
+  ],
+  "formats": [
+    "webp",
+    "png"
+  ],
+  "scales": [
+    "1x",
+    "3x"
+  ],
+  "dimensions": {
+    "1x": {
+      "width": 160,
+      "height": 80
+    },
+    "3x": {
+      "width": 480,
+      "height": 240
+    }
+  },
+  "visualContract": {
+    "style": "dip-switch-4position-realistic",
+    "transparentBackground": true,
+    "physicalLeads": 8,
+    "logicalPins": 8,
+    "channels": 4,
+    "referenceChannelStates": {
+      "1": "on",
+      "2": "off",
+      "3": "on",
+      "4": "off"
+    },
+    "note": "Static photographic housing (body, ON label, numbers 1-4, 8 metal leads). Per-channel actuator position is NOT baked as electrical truth: DipSwitchPart.jsx draws its own track/thumb overlay per channel, driven exclusively by component.channelStates. This image is presentation only."
+  },
+  "variants": [
+    {
+      "file": "dip-switch.reference.1x.png",
+      "state": "reference",
+      "scale": "1x",
+      "format": "png",
+      "width": 160,
+      "height": 80
+    },
+    {
+      "file": "dip-switch.reference.1x.webp",
+      "state": "reference",
+      "scale": "1x",
+      "format": "webp",
+      "width": 160,
+      "height": 80
+    },
+    {
+      "file": "dip-switch.reference.3x.png",
+      "state": "reference",
+      "scale": "3x",
+      "format": "png",
+      "width": 480,
+      "height": 240
+    },
+    {
+      "file": "dip-switch.reference.3x.webp",
+      "state": "reference",
+      "scale": "3x",
+      "format": "webp",
+      "width": 480,
+      "height": 240
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "file": "dip-switch.reference.1x.png",
+    "bytes": 16836,
+    "sha256": "80f56b75dd37060a6eeda1638c670eff6e868704568ef7683c03b390b9c45595"
+  },
+  {
+    "file": "dip-switch.reference.1x.webp",
+    "bytes": 11374,
+    "sha256": "6ee55aed345861ac26f7b458453fc9efdc9130b3f433ded58633e45f5de10362"
+  },
+  {
+    "file": "dip-switch.reference.3x.png",
+    "bytes": 120954,
+    "sha256": "76a20f22b60d47ed70826694568d868cbdc3da572b0ee557af8f44f424f31106"
+  },
+  {
+    "file": "dip-switch.reference.3x.webp",
+    "bytes": 78508,
+    "sha256": "e76a4499d839cd3dac246370a4553ba7a0b9d9c3a0a698300a2d4495542c1d8e"
+  },
+  {
+    "file": "manifest.json",
+    "bytes": 1714,
+    "sha256": "f248dfdbeebf4480a683c97f8d0526e6c4cd4a1f34d80f567546c911adb1a90f"
+  }
+]
