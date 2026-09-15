@@ -109,6 +109,9 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'THERMISTOR',     box: [84, 36],   physicalMm: [3, 3],      ref: 'perle NTC Ø3, époxy ~5 (pattes comprises ~24 mm)', impliedUnitsPerMm: 3.5 },
   { type: 'BUTTON',         box: [60, 60],   physicalMm: [6.5, 6.5],  ref: 'tact switch 6×6',                                 impliedUnitsPerMm: 9.2 },
   { type: 'BUTTON_LATCHING',box: [60, 60],   physicalMm: [13, 8],     ref: 'interrupteur à bascule ~13×8',                    impliedUnitsPerMm: 4.6 },
+  // A3-SW1 : interrupteur à glissière SPDT, renderer CSS/DOM (aucun asset
+  // raster validé, cf. componentDefinitions.js/SlideSwitchPart.jsx).
+  { type: 'SLIDE_SWITCH',   box: [72, 48],   physicalMm: [12, 6],     ref: 'interrupteur à glissière SPDT ~12×6 (indicatif)', impliedUnitsPerMm: 72 / 12 },
   { type: 'POWER',          box: [70, 90],   physicalMm: [50, 70],    ref: 'bloc alim breadboard (indicatif)',                impliedUnitsPerMm: 1.3 },
   { type: 'BUZZER',         box: [120, 120], physicalMm: [12, 20],    ref: 'buzzer piézo Ø12, pattes comprises ~20 mm (FT-C-COMP-004)', impliedUnitsPerMm: 120 / 20 },
   { type: 'POTENTIOMETER',  box: [120, 120], physicalMm: [16, 26],    ref: 'potentiomètre rotatif Ø16, axe/bouton compris ~26 mm (FT-C-COMP-003)', impliedUnitsPerMm: 120 / 26 },

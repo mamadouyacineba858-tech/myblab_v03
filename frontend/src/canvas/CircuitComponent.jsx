@@ -59,6 +59,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
     isSelected,
     setButtonState,
     toggleLatchingButton,
+    toggleComponentState,
   } = useCircuit()
 
   const uid = component?.uid
@@ -218,6 +219,53 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
     toggleLatchingButton(uid)
   }, [toggleLatchingButton, uid])
 
+  // A3-SW1 : capacité déclarative interaction.type === "state-toggle"
+  // (componentDefinitions.js) — généralisation minimale du même geste
+  // pointerdown/seuil de mouvement/click que la latching ci-dessus, mais
+  // routée vers toggleComponentState() (état persistant à N valeurs via
+  // SetComponentStateCommand) au lieu de toggleLatchingButton() (spécialisé
+  // on/off). BUTTON_LATCHING continue d'utiliser exclusivement le bloc
+  // latching ci-dessus, sans aucune modification (I-SW1-12).
+  const isStateToggle = def?.interaction?.type === "state-toggle"
+  const stateTogglePointerDownRef = useRef(null)
+
+  const handleStateTogglePointerDown = useCallback((e) => {
+    e.stopPropagation()
+    stateTogglePointerDownRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      moved: false,
+    }
+  }, [])
+
+  const handleStateTogglePointerMove = useCallback((e) => {
+    const gesture = stateTogglePointerDownRef.current
+    if (!gesture || gesture.moved) return
+
+    const dx = e.clientX - gesture.x
+    const dy = e.clientY - gesture.y
+
+    if (Math.hypot(dx, dy) >= 4) {
+      gesture.moved = true
+    }
+  }, [])
+
+  const handleStateToggleClick = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const start = stateTogglePointerDownRef.current
+    stateTogglePointerDownRef.current = null
+
+    if (start) {
+      const dx = e.clientX - start.x
+      const dy = e.clientY - start.y
+      if (start.moved || Math.hypot(dx, dy) >= 4) return
+    }
+
+    toggleComponentState(uid)
+  }, [toggleComponentState, uid])
+
   useEffect(() => {
     if (!isButton) return
 
@@ -313,6 +361,12 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
             onPointerDown: handleLatchingButtonPointerDown,
             onPointerMove: handleLatchingButtonPointerMove,
             onClick: handleLatchingButtonClick,
+          } : {})}
+          {...(isStateToggle ? {
+            state: component.state,
+            onPointerDown: handleStateTogglePointerDown,
+            onPointerMove: handleStateTogglePointerMove,
+            onClick: handleStateToggleClick,
           } : {})}
         />
       </div>

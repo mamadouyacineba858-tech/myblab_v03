@@ -19,9 +19,12 @@ const DECLARED_TYPES_PINS = {
   NPN_TRANSISTOR:[{id:'collector',role:'input'},{id:'base',role:'input'},{id:'emitter',role:'output'}],
   SERVO:[{id:'signal',role:'gpio'},{id:'vcc',role:'power'},{id:'gnd',role:'ground'}],
   DC_MOTOR:[{id:'plus',role:'input'},{id:'minus',role:'input'}],
+  // A3-SW1 — Slide Switch (SPDT) : 3 pins, une seule connexion interne active
+  // à la fois selon la position (cf. DECLARED_INTERNAL_CONNECTIONS ci-dessous).
+  SLIDE_SWITCH:[{id:'throwA',role:'switch'},{id:'common',role:'switch'},{id:'throwB',role:'switch'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -101,6 +104,8 @@ const DECLARED_MODEL_AVAILABLE = {
 const DECLARED_INTERNAL_CONNECTIONS = {
   BUTTON:{ states:{ pressed:[['pin1','pin2']] } },
   BUTTON_LATCHING:{ states:{ on:[['pin1','pin2']] } },
+  // A3-SW1 : SPDT — une seule paire active par position, jamais throwA↔throwB.
+  SLIDE_SWITCH:{ states:{ left:[['common','throwA']], right:[['common','throwB']] } },
 }
 
 function cloneParameterSchema(schema){ return schema.map((param)=>Object.freeze({...param})) }

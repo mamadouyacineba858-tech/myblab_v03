@@ -275,7 +275,9 @@ describe('G — Backend Contract', () => {
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')
-    expect(svgTypes.slice().sort()).toEqual(['THERMISTOR'])
+    // A3-SW1 : SLIDE_SWITCH ajouté — renderer CSS/DOM (backend 'svg' par
+    // défaut, aucun asset raster validé), même statut que THERMISTOR.
+    expect(svgTypes.slice().sort()).toEqual(['SLIDE_SWITCH', 'THERMISTOR'])
     expect(rasterTypes.length + svgTypes.length).toBe(DEFAULT_REGISTRATIONS.length)
   })
 })

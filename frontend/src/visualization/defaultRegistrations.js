@@ -37,6 +37,7 @@ import { RgbLedPart } from '../components/parts/RgbLedPart.jsx';
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
 import { DcMotorPart } from '../components/parts/DcMotorPart.jsx';
+import { SlideSwitchPart } from '../components/parts/SlideSwitchPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -177,6 +178,11 @@ export const DEFAULT_REGISTRATIONS = [
   // même mécanisme déclaratif que RESISTOR / CAPACITOR / LED — aucun code
   // central spécifique, aucune condition `type === "POLARIZED_CAPACITOR"`.
   { type: 'POLARIZED_CAPACITOR', component: PolarizedCapacitorPart, visual: { backend: 'raster' } },
+  // SLIDE_SWITCH : A3-SW1, renderer CSS/DOM (aucun asset raster validé,
+  // parité fonctionnelle d'abord, cf. ticket §9). Backend par défaut ('svg')
+  // : pas de bareBody/markerless — les marqueurs de <Pin> restent visibles
+  // sur les 3 contacts, comme pour tout composant sans paquet raster.
+  { type: 'SLIDE_SWITCH', component: SlideSwitchPart },
 ];
 
 /**

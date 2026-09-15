@@ -57,7 +57,10 @@ const RASTER_PART_FILES = new Set(
 // MB-L1-CONS-002. CAPACITOR est repassé au backend raster par
 // MB-L1-PROP-005 — couvert par RASTER_PART_FILES ci-dessus, retiré de cette
 // liste.
-const PHYSICAL_DOM_PART_FILES = new Set(["ThermistorPart.jsx"])
+// A3-SW1 : SlideSwitchPart.jsx est également un renderer CSS/DOM pur (aucun
+// asset raster validé pour ce composant, ticket §9) — même catégorie que
+// ThermistorPart.jsx.
+const PHYSICAL_DOM_PART_FILES = new Set(["ThermistorPart.jsx", "SlideSwitchPart.jsx"])
 
 // [MB-L1-CONS-002] RgbLedPart.jsx est un cas distinct, pré-existant et
 // indépendant de la réconciliation CAPACITOR/THERMISTOR : il gère son propre
@@ -103,6 +106,7 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
         "ResistorPart.jsx",
         "RgbLedPart.jsx",
         "ServoPart.jsx",
+        "SlideSwitchPart.jsx",
         "ThermistorPart.jsx",
       ].sort()
     )

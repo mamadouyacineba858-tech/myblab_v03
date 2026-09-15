@@ -91,6 +91,11 @@ export function normalizeComponent(component) {
  *   `componentDefinitions.js` déclarant toujours les deux ensemble).
  * - `interaction.type === "latching"` → même principe, vocabulaire
  *   {"on","off"}, secours "off".
+ * - `interaction.type === "state-toggle"` (A3-SW1) → même principe, mais le
+ *   vocabulaire n'est pas figé : il est lu dans `interaction.states` (tableau
+ *   déclaré par le type, ex. `["left","right"]` pour SLIDE_SWITCH). Un état
+ *   déjà membre de `interaction.states` est préservé tel quel ; sinon secours
+ *   `initialState` (ou le premier état déclaré si `initialState` est absent).
  *
  * @param {object} component
  * @returns {{state?: string}}
@@ -105,6 +110,12 @@ function _normalizeInteractionState(component) {
   }
   if (interactionType === "latching") {
     return { state: component.state === "on" ? "on" : (initialState ?? "off") }
+  }
+  if (interactionType === "state-toggle") {
+    const states = def?.interaction?.states
+    if (Array.isArray(states) && states.length > 0) {
+      return { state: states.includes(component.state) ? component.state : (initialState ?? states[0]) }
+    }
   }
   return {}
 }

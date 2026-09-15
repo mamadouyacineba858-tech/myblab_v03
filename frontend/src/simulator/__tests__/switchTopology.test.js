@@ -132,9 +132,13 @@ describe("A3-SW0 — architecture guard preparation.js", () => {
 })
 
 describe("A3-SW0 — non-régression Registry", () => {
-  it("T-SW0-12 : canonicalRegistry continue à valider les 20 composants existants", () => {
+  it("T-SW0-12 : canonicalRegistry continue à valider tous les composants existants", () => {
+    // A3-SW1 : 20 -> 21 (SLIDE_SWITCH ajouté après ce ticket A3-SW0) — le
+    // compte exact n'est plus le sujet de CE test (T-SW0-12 porte sur la
+    // validité de l'ensemble, pas sur son cardinal, verrouillé séparément
+    // par canonicalRegistry.test.js).
     const entries = getAllCanonicalEntries()
-    expect(entries).toHaveLength(20)
+    expect(entries.length).toBeGreaterThanOrEqual(20)
     expect(validateCanonicalEntrySet(entries)).toEqual({ valid: true, errors: [] })
   })
 })

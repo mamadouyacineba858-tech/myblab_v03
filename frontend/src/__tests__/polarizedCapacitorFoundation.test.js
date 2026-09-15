@@ -145,8 +145,8 @@ describe('FT-C-COMP-002 — non-régression', () => {
     }
   })
 
-  it('POLARIZED_CAPACITOR est bien un AJOUT (20 types) sans retrait', () => {
-    expect(getAllCanonicalTypes()).toHaveLength(20)
+  it('POLARIZED_CAPACITOR est bien un AJOUT (21 types, A3-SW1 : SLIDE_SWITCH ajouté depuis) sans retrait', () => {
+    expect(getAllCanonicalTypes()).toHaveLength(21)
     for (const t of ['LED', 'RESISTOR', 'CAPACITOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR', 'POWER', 'BATTERY_9V']) {
       expect(hasCanonicalType(t), t).toBe(true)
     }

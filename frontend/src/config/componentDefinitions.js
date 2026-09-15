@@ -121,6 +121,16 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "plus", label: "+", dx: 0, dy: 25, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "plus", dx: 3.5, dy: 16, wireConnectable: true, breadboardInsertable: false }] },
     { id: "minus", label: "-", dx: 84, dy: 25, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 3.5, dy: 34, wireConnectable: true, breadboardInsertable: false }] },
   ],
+  // A3-SW1 — Slide Switch (SPDT). Renderer CSS/DOM (SlideSwitchPart.jsx),
+  // aucun asset raster validé pour ce composant (parité fonctionnelle
+  // d'abord, cf. ticket §9). Géométrie non probée sur un pitch breadboard
+  // réel : breadboardInsertable reste false (ticket §8, ne pas forcer une
+  // compatibilité non démontrée) ; wireConnectable reste true.
+  SLIDE_SWITCH: [
+    { id: "throwA", label: "A", dx: 12, dy: 44, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "throwA", dx: 12, dy: 44, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "common", label: "C", dx: 36, dy: 44, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "common", dx: 36, dy: 44, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "throwB", label: "B", dx: 60, dy: 44, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "throwB", dx: 60, dy: 44, wireConnectable: true, breadboardInsertable: false }] },
+  ],
 }
 
 function buildPins(type) {
@@ -169,6 +179,11 @@ export const COMPONENT_TYPES = {
   SERVO: { id: "SERVO", label: "Micro Servo", icon: "⚙️", width: 90, height: 70, pins: buildPins("SERVO") },
   DC_MOTOR: { id: "DC_MOTOR", label: "Moteur DC", icon: "🌀", width: 84, height: 50, pins: buildPins("DC_MOTOR") },
   POLARIZED_CAPACITOR: { id: "POLARIZED_CAPACITOR", label: "Condensateur polarisé", icon: "⊕║", width: 33, height: 120, pins: buildPins("POLARIZED_CAPACITOR") },
+  // A3-SW1 — Slide Switch : interaction déclarative généralisée pour un
+  // composant à état persistant à N valeurs (cf. CircuitComponent.jsx,
+  // interaction.type === "state-toggle") — BUTTON_LATCHING (type "latching",
+  // on/off) reste inchangé et distinct.
+  SLIDE_SWITCH: { id: "SLIDE_SWITCH", label: "Interrupteur à glissière", icon: "⇄", width: 72, height: 48, pins: buildPins("SLIDE_SWITCH"), interaction: { type: "state-toggle", states: ["left", "right"] }, initialState: "left" },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -195,7 +210,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

@@ -64,6 +64,7 @@ import { getSelectionKey, parseSelectionKey, promoteActiveItem } from "../utils/
 import { HistoryManager } from "../history/HistoryManager.js"
 import { DeleteCommand } from "../history/commands/DeleteCommand.js"
 import { ToggleLatchingButtonCommand } from "../history/commands/ToggleLatchingButtonCommand.js"
+import { SetComponentStateCommand } from "../history/commands/SetComponentStateCommand.js"
 // MB-CF3-001 (amendement CSA-CF3-001-A) : canal de mutation cible
 // (CommandBus -> Handler -> HistoryService).
 // MB-CF3-002 (ruling CSA-CF3-002-ADD-WIRE-001) : étendu à ADD_WIRE.
@@ -2635,6 +2636,28 @@ if (import.meta.env.DEV) {
     )
     historyManagerRef.current.execute(command)
   }, [components, documentApi])
+
+  // A3-SW1 : capacité déclarative interaction.type === "state-toggle" —
+  // bascule l'état courant vers le suivant dans interaction.states
+  // (cyclique), via une commande générique (SetComponentStateCommand) qui
+  // ne connaît aucun type concret. Introduit pour SLIDE_SWITCH ;
+  // toggleLatchingButton/ToggleLatchingButtonCommand restent inchangés pour
+  // BUTTON_LATCHING (I-SW1-12).
+  const toggleComponentState = useCallback((uid) => {
+    const comp = components.find(c => c.uid === uid && getComponentDef(c.type)?.interaction?.type === "state-toggle")
+    if (!comp) return
+
+    const states = getComponentDef(comp.type)?.interaction?.states
+    if (!Array.isArray(states) || states.length < 2) return
+
+    const oldState = comp.state
+    const currentIndex = states.indexOf(oldState)
+    const newState = states[(currentIndex + 1) % states.length]
+    if (!newState || oldState === newState) return
+
+    const command = new SetComponentStateCommand(documentApi, uid, oldState, newState)
+    historyManagerRef.current.execute(command)
+  }, [components, documentApi])
   const setThemeMode = useCallback((mode) => { if (mode !== "dark" && mode !== "light") return; setTheme(mode) }, [])
 
   return useMemo(() => ({
@@ -2760,6 +2783,7 @@ if (import.meta.env.DEV) {
 
   selectOnly,
   toggleLatchingButton,
+  toggleComponentState,
   toggleSelection,
   isSelected,
   clearSelection,
@@ -2864,6 +2888,7 @@ if (import.meta.env.DEV) {
 
   selectOnly,
   toggleLatchingButton,
+  toggleComponentState,
   toggleSelection,
   isSelected,
   clearSelection,
