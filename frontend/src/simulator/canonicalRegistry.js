@@ -93,10 +93,27 @@ const DECLARED_MODEL_AVAILABLE = {
   NPN_TRANSISTOR:true,
 }
 
+/**
+ * A3-SW0 : topologie interne déclarative, générique (aucun nom de type
+ * n'est connu en dehors de cette table de déclaration). Une entrée
+ * absente ici reçoit internalConnections: null (aucune topologie).
+ */
+const DECLARED_INTERNAL_CONNECTIONS = {
+  BUTTON:{ states:{ pressed:[['pin1','pin2']] } },
+  BUTTON_LATCHING:{ states:{ on:[['pin1','pin2']] } },
+}
+
 function cloneParameterSchema(schema){ return schema.map((param)=>Object.freeze({...param})) }
 function cloneDefaultParameters(parameters){ return Object.freeze({...parameters}) }
 function cloneCapabilities(capabilities){ return Object.freeze([...capabilities]) }
 function clonePins(pins){ return Object.freeze(pins.map((pin)=>Object.freeze({...pin}))) }
+function cloneInternalConnections(internalConnections){
+  if(!internalConnections) return null
+  const states=Object.fromEntries(
+    Object.entries(internalConnections.states).map(([state,pairs])=>[state,Object.freeze(pairs.map((pair)=>Object.freeze([...pair])))])
+  )
+  return Object.freeze({ states:Object.freeze(states) })
+}
 
 function buildEntry(type){
   const modelAvailable=DECLARED_MODEL_AVAILABLE[type] === true
@@ -107,6 +124,7 @@ function buildEntry(type){
     defaultParameters:modelAvailable ? cloneDefaultParameters(DECLARED_DEFAULT_PARAMETERS[type]) : null,
     capabilities:modelAvailable ? cloneCapabilities(DECLARED_CAPABILITIES[type]) : null,
     modelAvailable,
+    internalConnections:cloneInternalConnections(DECLARED_INTERNAL_CONNECTIONS[type] ?? null),
   })
 }
 
@@ -140,6 +158,26 @@ export function validateCanonicalEntry(entry){
   }
   if(entry.defaultParameters!==null && (!entry.defaultParameters || typeof entry.defaultParameters!=='object' || Array.isArray(entry.defaultParameters))) errors.push('defaultParameters must be an object or null')
   if(entry.capabilities!==null && !Array.isArray(entry.capabilities)) errors.push('capabilities must be an array or null')
+  if(entry.internalConnections!==null && entry.internalConnections!==undefined){
+    const ic=entry.internalConnections
+    if(typeof ic!=='object' || Array.isArray(ic) || !ic.states || typeof ic.states!=='object' || Array.isArray(ic.states)){
+      errors.push('internalConnections must be an object with a states object')
+    } else {
+      const pinIds=new Set(Array.isArray(entry.pins) ? entry.pins.filter((pin)=>pin && typeof pin.id==='string').map((pin)=>pin.id) : [])
+      Object.entries(ic.states).forEach(([stateName,pairs])=>{
+        if(!Array.isArray(pairs)){ errors.push(`internalConnections.states.${stateName} must be an array`); return }
+        pairs.forEach((pair,index)=>{
+          if(!Array.isArray(pair) || pair.length!==2 || typeof pair[0]!=='string' || typeof pair[1]!=='string'){
+            errors.push(`internalConnections.states.${stateName}[${index}] must be a pair of two pin ids`)
+            return
+          }
+          const [pinA,pinB]=pair
+          if(!pinIds.has(pinA)) errors.push(`internalConnections.states.${stateName}[${index}] references unknown pin "${pinA}"`)
+          if(!pinIds.has(pinB)) errors.push(`internalConnections.states.${stateName}[${index}] references unknown pin "${pinB}"`)
+        })
+      })
+    }
+  }
   if(typeof entry.modelAvailable!=='boolean') errors.push('modelAvailable must be a boolean')
   if(entry.modelAvailable && (entry.parameterSchema===null || entry.defaultParameters===null || entry.capabilities===null)) errors.push('available model must expose parameterSchema, defaultParameters and capabilities')
   if(!entry.modelAvailable && (entry.parameterSchema!==null || entry.defaultParameters!==null || entry.capabilities!==null)) errors.push('unavailable model must not expose model-specific declarative metadata')
@@ -159,3 +197,22 @@ export function getAllCanonicalTypes(){return CANONICAL_TYPES}
 export function hasCanonicalType(type){return typeof type==='string'&&Object.prototype.hasOwnProperty.call(CANONICAL_ENTRIES,type)}
 export function getCanonicalEntry(type){return hasCanonicalType(type)?CANONICAL_ENTRIES[type]:null}
 export function getAllCanonicalEntries(){return CANONICAL_ENTRIES_LIST}
+
+/**
+ * A3-SW0 : résolution générique de la topologie interne active d'un
+ * composant. Ne connaît aucun nom de type ; lit uniquement le contrat
+ * déclaratif internalConnections de l'entry et l'état courant du
+ * composant. Retourne toujours un tableau (jamais d'exception).
+ *
+ * @param {object|null} entry canonical entry (getCanonicalEntry)
+ * @param {{ state?: string }} component instance/state
+ * @returns {Array<[string,string]>}
+ */
+export function resolveInternalConnections(entry,component){
+  if(!entry || !entry.internalConnections) return []
+  const state=component && component.state
+  if(typeof state!=='string') return []
+  const pairs=entry.internalConnections.states[state]
+  if(!Array.isArray(pairs)) return []
+  return pairs.map(([pinA,pinB])=>[pinA,pinB])
+}

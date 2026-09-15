@@ -1,4 +1,4 @@
-import { getCanonicalEntry } from "./canonicalRegistry.js"
+import { getCanonicalEntry, resolveInternalConnections } from "./canonicalRegistry.js"
 
 /**
  * Union-Find pour regrouper les pins connectées par fils.
@@ -57,13 +57,12 @@ export function prepareCircuit(components, wires) {
     uf.union(a, b)
   }
 
-    /** Boutons : court-circuit interne pin1 ↔ pin2 selon l'état */
+  /** A3-SW0 : topologie interne générique (déclarative, cf. canonicalRegistry) */
   for (const comp of components) {
-    if (comp.type === "BUTTON" && comp.state === "pressed") {
-      uf.union(uf.key(comp.uid, "pin1"), uf.key(comp.uid, "pin2"))
-    }
-    if (comp.type === "BUTTON_LATCHING" && comp.state === "on") {
-      uf.union(uf.key(comp.uid, "pin1"), uf.key(comp.uid, "pin2"))
+    const def = getCanonicalEntry(comp.type)
+    if (!def) continue
+    for (const [pinA, pinB] of resolveInternalConnections(def, comp)) {
+      uf.union(uf.key(comp.uid, pinA), uf.key(comp.uid, pinB))
     }
   }
 
