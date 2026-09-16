@@ -186,9 +186,14 @@ describe("A7-C0 — le moteur générique environmentalStimulus.js ne connaît a
     expect(responseRegistrySource).not.toMatch(/environmentalStimulusRegistry/)
   })
 
-  it("aucun nouveau composant de production (TMP36 ou autre) n'est enregistré dans environmentalResponseRegistry.js (T27/T37)", () => {
+  it("A7-C1 : TMP36 est le SEUL nouveau composant de production enregistré dans environmentalResponseRegistry.js — aucun autre type n'y est ajouté (T27/T37)", () => {
+    // A7-C0 interdisait tout TMP36 ici (prérequis architectural seul, aucun
+    // composant). A7-C1 l'ajoute légitimement (premier consommateur réel de
+    // l'extensibilité A7-C0) — cette assertion verrouille désormais qu'AUCUN
+    // AUTRE type de production (FORCE/MOISTURE/... A7-C2+) n'a été ajouté en
+    // même temps, jamais que TMP36 lui-même soit absent.
     const source = readSourceWithoutComments(envRegistryPath)
-    expect(source).not.toMatch(/TMP36/)
-    expect(source).toMatch(/\bLDR\b/)
+    const registeredTypes = [...source.matchAll(/^\s*([A-Z][A-Z0-9_]*):\s*Object\.freeze\(\{\s*stimulus:/gm)].map((m) => m[1])
+    expect(registeredTypes.sort()).toEqual(["LDR", "TMP36"])
   })
 })

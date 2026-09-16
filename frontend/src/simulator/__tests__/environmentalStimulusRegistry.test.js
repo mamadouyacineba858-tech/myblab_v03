@@ -7,24 +7,32 @@ import {
 } from "../environmentalStimulusRegistry.js"
 
 /**
- * A7-C0 — Environmental Stimulus Registry (contrat générique des kinds).
+ * A7-C0/A7-C1 — Environmental Stimulus Registry (contrat générique des kinds).
  *
  * Ces tests verrouillent le contrat déclaratif lui-même : la liste des
  * kinds connus, la validation générique par clé, et le rejet défensif d'un
- * kind inconnu — les propriétés qu'un futur A7-C1 (TEMPERATURE) devra
- * pouvoir satisfaire en ajoutant une seule entrée à la table, sans toucher
- * `environmentalStimulus.js` (T29/T30).
+ * kind inconnu. A7-C1 a ajouté TEMPERATURE (première preuve réelle de
+ * l'extensibilité promise par A7-C0, cf. environmentalResponseRegistry.js
+ * TMP36) en ajoutant une seule entrée à la table, sans toucher
+ * `environmentalStimulus.js` (T29/T30) — les assertions ci-dessous sont
+ * mises à jour en conséquence ; FORCE/MOISTURE/MOTION/DISTANCE/IR/GAS
+ * (A7-C2..A7-C5) restent les exemples de kinds encore non enregistrés.
  */
 
-describe("A7-C0 — getSupportedStimulusKinds / isKnownStimulusKind", () => {
+describe("A7-C0/A7-C1 — getSupportedStimulusKinds / isKnownStimulusKind", () => {
   it("LIGHT est enregistré (T1)", () => {
     expect(getSupportedStimulusKinds()).toContain("LIGHT")
     expect(isKnownStimulusKind("LIGHT")).toBe(true)
   })
 
-  it("un kind inconnu (par ex. futur TEMPERATURE) n'est pas encore enregistré (T11)", () => {
-    expect(isKnownStimulusKind("TEMPERATURE")).toBe(false)
-    expect(getSupportedStimulusKinds()).not.toContain("TEMPERATURE")
+  it("TEMPERATURE est enregistré (A7-C1 — preuve réelle d'extensibilité de A7-C0)", () => {
+    expect(getSupportedStimulusKinds()).toContain("TEMPERATURE")
+    expect(isKnownStimulusKind("TEMPERATURE")).toBe(true)
+  })
+
+  it("un kind inconnu (par ex. futur FORCE, A7-C2) n'est pas encore enregistré (T11)", () => {
+    expect(isKnownStimulusKind("FORCE")).toBe(false)
+    expect(getSupportedStimulusKinds()).not.toContain("FORCE")
   })
 })
 
@@ -42,7 +50,7 @@ describe("A7-C0 — isValidStimulusValue : validation générique par clé", () 
   })
 
   it("rejette défensivement tout kind non enregistré, quelle que soit la valeur (T11)", () => {
-    expect(isValidStimulusValue("TEMPERATURE", 0.5)).toBe(false)
+    expect(isValidStimulusValue("FORCE", 0.5)).toBe(false)
     expect(isValidStimulusValue("UNKNOWN_KIND", 0)).toBe(false)
     expect(isValidStimulusValue("__proto__", 0)).toBe(false)
   })
@@ -52,15 +60,16 @@ describe("A7-C0 — isValidStimulusValue : validation générique par clé", () 
   })
 })
 
-describe("A7-C0 — preuve d'extensibilité architecturale (T30)", () => {
+describe("A7-C0/A7-C1 — preuve d'extensibilité architecturale (T30)", () => {
   it("isValidStimulusValue et getSupportedStimulusKinds n'énumèrent jamais les kinds via un if/switch : la table est la seule source", () => {
-    // Un kind ajouté à la table déclarative deviendrait immédiatement
-    // connu par `isKnownStimulusKind`/`isValidStimulusValue` sans toucher
-    // leur code : ce test verrouille qu'aujourd'hui, avec une table à une
-    // seule entrée, le comportement pour toute clé absente de la table est
-    // uniformément "rejeté", jamais un cas spécial supplémentaire.
+    // A7-C1 : TEMPERATURE a rejoint LIGHT dans la table déclarative sans
+    // qu'aucune ligne de isValidStimulusValue/getSupportedStimulusKinds
+    // n'ait été modifiée (voir environmentalStimulusRegistry.js) — preuve
+    // réelle, pas seulement architecturale, que A7-C0 tient sa promesse.
+    // Le comportement pour toute clé encore absente de la table (A7-C2..
+    // A7-C5) reste uniformément "rejeté", jamais un cas spécial.
     const knownKinds = getSupportedStimulusKinds()
-    expect(knownKinds).toEqual(["LIGHT"])
+    expect(knownKinds).toEqual(["LIGHT", "TEMPERATURE"])
     for (const candidateKind of ["FORCE", "MOISTURE", "MOTION", "DISTANCE", "IR", "GAS"]) {
       expect(isKnownStimulusKind(candidateKind)).toBe(false)
       expect(isValidStimulusValue(candidateKind, 0.5)).toBe(false)

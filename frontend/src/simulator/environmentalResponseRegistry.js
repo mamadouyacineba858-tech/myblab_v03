@@ -55,15 +55,37 @@ function ldrLightResponse(stimuli) {
 }
 
 /**
+ * A7-C1 — TMP36 : sortie analogique linéaire standard (datasheet Analog
+ * Devices) Vout = 0.5 V + 0.01 V/°C × T. Aux bornes de la plage validée par
+ * `environmentalStimulusRegistry.js` ([-40, 125] °C), cette formule produit
+ * EXACTEMENT les bornes canoniques `outputVoltage` de TMP36 dans
+ * `canonicalRegistry.js` (0.1 V / 1.75 V) — aucune borne dupliquée ici,
+ * aucun clamp nécessaire : la plage de stimulus valide et la plage de sortie
+ * canonique sont dérivées de la même relation physique.
+ *
+ * Ce Registry ne fait ici, comme pour LDR, que produire le paramètre
+ * EFFECTIF `outputVoltage` : `dcContributionRegistry.js` reste seul
+ * responsable de la conséquence électrique (tension/courant exposés à
+ * Observation/Measurement), et seulement si TMP36 est alimenté (+Vs/GND).
+ */
+function tmp36TemperatureResponse(stimuli) {
+  const { TEMPERATURE: celsius } = stimuli
+  return { outputVoltage: 0.5 + 0.01 * celsius }
+}
+
+/**
  * Table déclarative type -> { stimulus, respond }. `respond(stimuli)` reçoit
  * le stimulus environnemental déjà validé (voir `environmentalStimulus.js`)
  * et retourne un objet d'overrides de paramètres, ou `null` si aucun effet
- * ne s'applique. Pour ce ticket, seul `LDR` répond à `LIGHT` (ENV-21) ;
+ * ne s'applique. `LDR` répond à `LIGHT` (ENV-21) ; A7-C1 ajoute `TMP36`
+ * répondant à `TEMPERATURE`, sur le même principe déclaratif — aucune
+ * modification d'`environmentalStimulus.js` n'a été nécessaire pour cela.
  * `RESISTOR`/`THERMISTOR` et tout autre type restent absents de cette table
  * (ENV-22).
  */
 const ENVIRONMENTAL_RESPONSES = Object.freeze({
   LDR: Object.freeze({ stimulus: "LIGHT", respond: ldrLightResponse }),
+  TMP36: Object.freeze({ stimulus: "TEMPERATURE", respond: tmp36TemperatureResponse }),
 })
 
 /**

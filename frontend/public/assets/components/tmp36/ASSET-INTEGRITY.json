@@ -1,0 +1,23 @@
+{
+  "component": "TMP36",
+  "version": "3.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "tmp36.default.1x.png": {
+      "sha256": "254866c928ab94481714a2dbede4bc28e7fe1b72c709209d7c38350e01696f66",
+      "bytes": 3126
+    },
+    "tmp36.default.1x.webp": {
+      "sha256": "29dde45f74dd17b49ca963be9893a44063644bfba5a0ab71cb2ff219b8f5e76d",
+      "bytes": 2380
+    },
+    "tmp36.default.3x.png": {
+      "sha256": "e8d1bfe6bac2539b3e451f34ae8c11e9f85aa6c3b743ebee2fca3618dc7a8509",
+      "bytes": 16575
+    },
+    "tmp36.default.3x.webp": {
+      "sha256": "cd0651b93a68702e7c5fb14fc240f2c69128ff25ffef9793ef36b1acab5c4a1f",
+      "bytes": 11296
+    }
+  }
+}

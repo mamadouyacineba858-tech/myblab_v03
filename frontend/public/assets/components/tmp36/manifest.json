@@ -1,0 +1,67 @@
+{
+  "component": "TMP36",
+  "backend": "raster",
+  "state": "default",
+  "version": "3.0.0-founder-pass",
+  "canonical": {
+    "width": 60,
+    "height": 72,
+    "orientation": "vertical-front-view",
+    "breadboardPitch": 12,
+    "breadboardInsertable": true,
+    "wireConnectable": true
+  },
+  "technicalContactTargets": {
+    "plus": [
+      18,
+      68
+    ],
+    "vout": [
+      30,
+      68
+    ],
+    "gnd": [
+      42,
+      68
+    ]
+  },
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      19,
+      4,
+      45,
+      69
+    ],
+    "note": "R3 Founder-approved source preserved. No programmatic lead redraw. Final Assembly roots/bodyClip must be derived from packaged raster."
+  },
+  "assets": [
+    {
+      "file": "tmp36.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 60,
+      "height": 72
+    },
+    {
+      "file": "tmp36.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 60,
+      "height": 72
+    },
+    {
+      "file": "tmp36.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 180,
+      "height": 216
+    },
+    {
+      "file": "tmp36.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 180,
+      "height": 216
+    }
+  ]
+}

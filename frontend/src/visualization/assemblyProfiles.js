@@ -208,6 +208,26 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 12 },
   },
+  // A7-C1 — TMP36 (asset raster 60×72 Founder-approved R3). Pixel-probe réel
+  // (alpha>=32, méthode frontend/scripts/lead-anchor-probe.md, System.Drawing
+  // sur le paquet copié dans ce worktree) : bounding box opaque globale (1x)
+  // x∈[21,43] y∈[6,67] — AUCUN pixel opaque à/sous y=68, donc strictement
+  // AVANT les PhysicalContacts (y=68, cf. componentDefinitions.js) : aucun
+  // bodyClip requis (même situation que VIBRATION_MOTOR). Les 3 colonnes
+  // exactes des PhysicalContacts (x=18/30/42, y=68) sont transparentes
+  // (alpha=0) : racines mesurées par ring-search (même algorithme documenté
+  // que LIGHT_BULB) depuis chaque contact -> plus (25,61) à distance de
+  // Chebyshev 7 ; vout (31,67) à distance 1 ; gnd (40,66) à distance 2.
+  // Racines mesurées sur le raster réel, PAS inventées pour coller au
+  // Blueprint (§7 du ticket A7-C1).
+  TMP36: {
+    kind: "through-hole",
+    leads: {
+      plus: { root: { dx: 25, dy: 61 }, style: "wire" },
+      vout: { root: { dx: 31, dy: 67 }, style: "wire" },
+      gnd: { root: { dx: 40, dy: 66 }, style: "wire" },
+    },
+  },
 }
 
 export function getAssemblyProfile(type) {

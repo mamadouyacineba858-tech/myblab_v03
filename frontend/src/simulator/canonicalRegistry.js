@@ -51,9 +51,17 @@ const DECLARED_TYPES_PINS = {
   // (wireConnectable:true / breadboardInsertable:false sur les deux
   // broches, cf. componentDefinitions.js) — jamais enfichable breadboard.
   HOBBY_GEARMOTOR:[{id:'plus',role:'input'},{id:'minus',role:'input'}],
+  // A7-C1 — TMP36 : capteur de température analogique alimenté, 3 broches
+  // DIRECTIONNELLES (à la différence de LDR/THERMISTOR, non polarisées) —
+  // même vocabulaire de rôles que SERVO/ARDUINO (power/output/ground), pas
+  // de nouveau rôle introduit. `vout` est en sortie (role 'output', comme
+  // POTENTIOMETER.wiper/DIODE.cathode) : sa tension effective est produite
+  // par environmentalResponseRegistry.js à partir du stimulus TEMPERATURE
+  // (contrat générique A7-C0), jamais calculée ici.
+  TMP36:[{id:'plus',role:'power'},{id:'vout',role:'output'},{id:'gnd',role:'ground'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -95,6 +103,16 @@ const DECLARED_PARAMETER_SCHEMA = {
     {key:'position',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0.5,description:'Position du curseur (0 = extrémité LEFT, 1 = extrémité RIGHT) : détermine les deux résistances équivalentes LEFT↔WIPER et WIPER↔RIGHT (modèle DC simplifié, MB-SIM-008 v2).'},
   ],
   NPN_TRANSISTOR:[{key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:1,description:'Résistance équivalente collecteur-émetteur à l\'état passant (modèle logique simplifié, MB-SIM-008 v2) : commande tout-ou-rien par BASE, sans β réel, sans courbes Ic/Vce, sans dynamique.'}],
+  // A7-C1 : sortie analogique TMP36 (datasheet Analog Devices) — Vout(T) =
+  // 0.5 V + 0.01 V/°C × T. Bornes 0.1 V / 1.75 V = Vout(-40°C) / Vout(125°C),
+  // exactement la plage opérationnelle du capteur (jamais une plage
+  // arbitraire). Valeur par défaut 0.75 V = Vout(25°C), fallback historique
+  // tant qu'aucun stimulus environnemental TEMPERATURE actif n'est fourni —
+  // même convention que LDR.resistance (MB-L1-ENV-001) : sous TEMPERATURE
+  // actif (A7-C1), la tension EFFECTIVE de ce TMP36 est calculée par le
+  // Registry environnemental dédié entre ces mêmes bornes minimum/maximum,
+  // sans jamais modifier ce paramètre persistant.
+  TMP36:[{key:'outputVoltage',parameterType:'voltage',unit:'V',minimum:0.1,maximum:1.75,defaultValue:0.75,description:'Tension de sortie Vout (fallback historique / valeur à 25°C) tant qu\'aucun stimulus environnemental TEMPERATURE actif n\'est fourni. Sous TEMPERATURE actif (A7-C1), la tension EFFECTIVE de ce TMP36 est calculée par le Registry environnemental dédié entre ces mêmes bornes minimum/maximum, sans jamais modifier ce paramètre persistant.'}],
 }
 
 const DECLARED_DEFAULT_PARAMETERS = {
@@ -114,6 +132,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   POLARIZED_CAPACITOR:{capacitance:0.0001},
   POTENTIOMETER:{resistance:10000,position:0.5},
   NPN_TRANSISTOR:{onResistance:1},
+  TMP36:{outputVoltage:0.75},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -133,6 +152,7 @@ const DECLARED_CAPABILITIES = {
   POLARIZED_CAPACITOR:['digital','dc'],
   POTENTIOMETER:['digital','dc'],
   NPN_TRANSISTOR:['digital','dc'],
+  TMP36:['digital','dc'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -152,6 +172,7 @@ const DECLARED_MODEL_AVAILABLE = {
   POLARIZED_CAPACITOR:true,
   POTENTIOMETER:true,
   NPN_TRANSISTOR:true,
+  TMP36:true,
 }
 
 /**

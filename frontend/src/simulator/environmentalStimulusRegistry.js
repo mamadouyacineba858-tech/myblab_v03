@@ -33,13 +33,31 @@ export function isValidLightStimulus(value) {
 }
 
 /**
+ * A7-C1 — TEMPERATURE est une valeur en degrés Celsius, bornée à la plage
+ * opérationnelle réelle du premier (et seul, pour ce ticket) composant qui y
+ * répond : TMP36 (datasheet Analog Devices, -40°C à +125°C — pas une plage
+ * arbitraire choisie pour faire passer un test). NaN/Infinity/-Infinity/
+ * hors-borne/non-numérique sont rejetés, exactement comme LIGHT : une valeur
+ * invalide est traitée comme « stimulus absent » pour ce kind.
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isValidTemperatureStimulus(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= -40 && value <= 125
+}
+
+/**
  * Table déclarative kind -> définition. Chaque définition porte au minimum
  * `validate(value)`. Aucun moteur générique ne doit connaître cette table
  * par son contenu — seulement par ses clés (`getSupportedStimulusKinds`) et
- * son comportement (`isValidStimulusValue`).
+ * son comportement (`isValidStimulusValue`). A7-C1 ajoute TEMPERATURE ici,
+ * exactement comme prévu par A7-C0 : aucune autre modification n'est requise
+ * dans `environmentalStimulus.js` pour que ce nouveau kind soit reconnu.
  */
 const STIMULUS_DEFINITIONS = Object.freeze({
   LIGHT: Object.freeze({ validate: isValidLightStimulus }),
+  TEMPERATURE: Object.freeze({ validate: isValidTemperatureStimulus }),
 })
 
 /**

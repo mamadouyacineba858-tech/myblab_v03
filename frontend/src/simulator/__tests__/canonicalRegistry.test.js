@@ -11,10 +11,11 @@ import * as CanonicalRegistry from '../canonicalRegistry.js';
 import { COMPONENT_TYPES } from '../../config/componentDefinitions.js';
 
 describe('canonicalRegistry — contract shape', () => {
-  it('exposes all 25 declared types', () => {
+  it('exposes all 26 declared types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
     // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
-    expect(getAllCanonicalTypes()).toHaveLength(25);
+    // A7-C1 : 25 -> 26 (TMP36 ajouté).
+    expect(getAllCanonicalTypes()).toHaveLength(26);
     expect(getAllCanonicalTypes()).toContain('LED');
     expect(getAllCanonicalTypes()).toContain('POWER');
     expect(getAllCanonicalTypes()).toContain('RESISTOR');
@@ -207,8 +208,8 @@ describe('canonicalRegistry — contract shape', () => {
     }
   });
 
-  it('getAllCanonicalEntries returns all 25 entries', () => {
-    expect(getAllCanonicalEntries()).toHaveLength(25);
+  it('getAllCanonicalEntries returns all 26 entries', () => {
+    expect(getAllCanonicalEntries()).toHaveLength(26);
   });
 
   it('A6-OUT3 : HOBBY_GEARMOTOR entry exposes the complete declarative contract (reuses DC_MOTOR family)', () => {

@@ -162,6 +162,29 @@ function npnTransistorDc({ pins, params, supplyVoltage }) {
   return { voltage: supplyVoltage, current: 0 }
 }
 
+function tmp36Dc({ pins, params }) {
+  // A7-C1 : +Vs/GND sont DIRECTIONNELS (rôles power/ground, comme
+  // SERVO/ARDUINO) — à la différence des paires non polarisées A/B
+  // (RESISTOR/LDR/THERMISTOR/LIGHT_BULB), l'alimentation n'est reconnue que
+  // dans le bon sens (+Vs=HIGH, GND=LOW), jamais l'inverse (même principe de
+  // directionnalité que diodeDc/npnTransistorDc) : un TMP36 mal alimenté ou
+  // non alimenté ne produit aucune sortie valide (absent de dcAnalysis,
+  // Observation retourne UNAVAILABLE — cf. §17 du ticket).
+  //
+  // `params.outputVoltage` est déjà la tension EFFECTIVE : soit le fallback
+  // canonique (aucun stimulus TEMPERATURE actif), soit la valeur produite
+  // par `environmentalResponseRegistry.js` à partir de TEMPERATURE — cette
+  // fonction ne fait qu'exposer cette tension une fois l'alimentation
+  // vérifiée, jamais de calcul de température ici (séparation des
+  // responsabilités, §13 du ticket). `current: 0` : Vout est un point de
+  // mesure haute impédance (aucun modèle de charge/consommation Vout à ce
+  // niveau de simulation), supplyVoltage n'intervient pas dans le résultat
+  // (TMP36 n'est pas une charge résistive du bus d'alimentation dans ce
+  // modèle simplifié).
+  if (pins.plus !== Signal.HIGH || pins.gnd !== Signal.LOW) return null
+  return { voltage: params.outputVoltage, current: 0 }
+}
+
 const DC_CONTRIBUTIONS = new Map([
   ["RESISTOR", resistorDc],
   ["LDR", ldrDc],
@@ -193,6 +216,7 @@ const DC_CONTRIBUTIONS = new Map([
   ["POLARIZED_CAPACITOR", polarizedCapacitorDc],
   ["POTENTIOMETER", potentiometerDc],
   ["NPN_TRANSISTOR", npnTransistorDc],
+  ["TMP36", tmp36Dc],
 ])
 
 /**

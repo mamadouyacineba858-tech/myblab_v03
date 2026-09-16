@@ -42,6 +42,7 @@ import { DipSwitchPart } from '../components/parts/DipSwitchPart.jsx';
 import { VibrationMotorPart } from '../components/parts/VibrationMotorPart.jsx';
 import { LightBulbPart } from '../components/parts/LightBulbPart.jsx';
 import { HobbyGearmotorPart } from '../components/parts/HobbyGearmotorPart.jsx';
+import { Tmp36Part } from '../components/parts/Tmp36Part.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -221,6 +222,14 @@ export const DEFAULT_REGISTRATIONS = [
   // via dcContributionRegistry.js (aucune duplication). Wire-only : jamais
   // breadboardInsertable (cf. componentDefinitions.js).
   { type: 'HOBBY_GEARMOTOR', component: HobbyGearmotorPart, visual: { backend: 'raster' } },
+  // TMP36 : A7-C1 — paquet d'assets raster réaliste Founder-approved R3
+  // (asset 60×72, état unique `default`). raster => bareBody + markerless
+  // dérivés, même mécanisme déclaratif que VIBRATION_MOTOR / LIGHT_BULB /
+  // HOBBY_GEARMOTOR — aucun code central spécifique, aucune condition
+  // `type === "TMP36"`. Modèle électrique dédié (tmp36Dc) : sortie Vout
+  // dépendante du stimulus environnemental TEMPERATURE (contrat générique
+  // A7-C0, environmentalResponseRegistry.js).
+  { type: 'TMP36', component: Tmp36Part, visual: { backend: 'raster' } },
 ];
 
 /**

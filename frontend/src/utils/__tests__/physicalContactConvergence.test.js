@@ -252,13 +252,14 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'LED', 'RESISTOR', 'ARDUINO', 'BUTTON', 'BUTTON_LATCHING', 'POWER', 'CAPACITOR',
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR',
     'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH', 'VIBRATION_MOTOR',
-    'LIGHT_BULB', 'HOBBY_GEARMOTOR',
+    'LIGHT_BULB', 'HOBBY_GEARMOTOR', 'TMP36',
   ]
 
-  it('le catalogue compte exactement 25 types', () => {
+  it('le catalogue compte exactement 26 types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
     // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
-    expect(new Set(CATALOGUE).size).toBe(25)
+    // A7-C1 : 25 -> 26 (TMP36 ajouté).
+    expect(new Set(CATALOGUE).size).toBe(26)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -318,7 +319,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
       'VIBRATION_MOTOR',
       // A6-OUT2 : même géométrie compatible BREADBOARD_PITCH=12 (entraxe
       // 24 = 2×12, cf. lightBulbA6Out2.test.jsx) -> breadboardInsertable:true.
-      'LIGHT_BULB']
+      'LIGHT_BULB',
+      // A7-C1 : 3 PhysicalContacts entraxe 12 = 1×BREADBOARD_PITCH exact
+      // entre contacts adjacents (cf. tmp36A7C1.test.js) -> breadboardInsertable:true.
+      'TMP36']
     // A6-OUT1-R1 : VIBRATION_MOTOR quitte NON_DIRECT (rejoint INSERTABLE ci-dessus).
     // A6-OUT3 : HOBBY_GEARMOTOR ajouté à NON_DIRECT — wire-only par contrat
     // produit (jamais de géométrie breadboard recherchée, cf.

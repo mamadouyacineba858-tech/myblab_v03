@@ -132,6 +132,10 @@ export const SCALE_REFERENCE = Object.freeze([
   // A6-OUT3 : motoréducteur hobby, asset raster réaliste VERTICAL FINAL
   // validé par le Founder (cf. componentDefinitions.js/HobbyGearmotorPart.jsx).
   { type: 'HOBBY_GEARMOTOR', box: [72, 120], physicalMm: [12, 35], ref: 'motoréducteur hobby (réducteur + carter moteur), fils compris ~35 mm (indicatif, A6-OUT3)', impliedUnitsPerMm: 120 / 35 },
+  // A7-C1 : capteur TMP36, boîtier TO-92 (datasheet Analog Devices), asset
+  // raster réaliste R3 validé par le Founder (cf.
+  // componentDefinitions.js/Tmp36Part.jsx).
+  { type: 'TMP36', box: [60, 72], physicalMm: [10, 20], ref: 'TMP36 TO-92, boîtier + pattes ~20 mm (indicatif, A7-C1)', impliedUnitsPerMm: 72 / 20 },
 ])
 
 /**

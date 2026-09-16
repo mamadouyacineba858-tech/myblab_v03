@@ -201,6 +201,17 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "plus", label: "+", dx: 18, dy: 97, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "plus", dx: 18, dy: 97, wireConnectable: true, breadboardInsertable: false }] },
     { id: "minus", label: "-", dx: 17, dy: 89, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 17, dy: 89, wireConnectable: true, breadboardInsertable: false }] },
   ],
+  // A7-C1 — TMP36 (asset raster 60×72 Founder-approved R3). PhysicalContacts
+  // = cibles techniques du paquet Founder (manifest.json
+  // `technicalContactTargets`) : plus(18,68) / vout(30,68) / gnd(42,68),
+  // entraxe 12 = 1 × BREADBOARD_PITCH exact entre contacts adjacents (§6 du
+  // ticket) — jamais les racines visuelles des pattes (voir
+  // assemblyProfiles.js pour ces dernières, dérivées du pixel-probe réel).
+  TMP36: [
+    { id: "plus", label: "+Vs", dx: 18, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "plus", dx: 18, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "vout", label: "Vout", dx: 30, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "vout", dx: 30, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "gnd", label: "GND", dx: 42, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "gnd", dx: 42, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
+  ],
 }
 
 function buildPins(type) {
@@ -278,6 +289,11 @@ export const COMPONENT_TYPES = {
   // VIBRATION_MOTOR/LIGHT_BULB qui sont 72×96) — wire-only, jamais
   // enfichable breadboard.
   HOBBY_GEARMOTOR: { id: "HOBBY_GEARMOTOR", label: "Motoréducteur", icon: "⚙️", width: 72, height: 120, pins: buildPins("HOBBY_GEARMOTOR") },
+  // A7-C1 — TMP36 : premier capteur environnemental analogique de la famille
+  // A7-C (contrat générique A7-C0). Renderer raster (Tmp36Part.jsx, paquet
+  // Founder-approved R3), boîte canonique 60×72 (dimensions natives @1x du
+  // paquet).
+  TMP36: { id: "TMP36", label: "Capteur de température (TMP36)", icon: "🌡️", width: 60, height: 72, pins: buildPins("TMP36") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -304,7 +320,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 
