@@ -2,53 +2,16 @@ import React from 'react'
 import { getComponentDef } from '../../config/componentDefinitions.js'
 
 /**
- * Rendu visuel Bouton-poussoir — backend RASTER (MB-VIS-PROTOTYPE-008).
+ * Rendu raster du bouton-poussoir.
  *
- * Remplace l'ancien rendu SVG (base carrée + capuchon rond dessinés en
- * primitives SVG) par le paquet d'assets raster produit et vérifié pour
- * MB-VIS-PROTOTYPE-008 (probe pixel v3.2 PASS), intégré via le mécanisme
- * déclaratif de MB-VIS-INDUSTRIAL-001 (`defaultRegistrations` →
- * `visual: { backend: 'raster' }` → `getComponentPresentation('BUTTON')` →
- * wrapper `data-bare-body` + pins `markerless`, sans aucun `type === "BUTTON"`
- * ni règle CSS spécifique dans le renderer central).
+ * A3-GATE-FIX : l'actionneur central et le corps ont désormais deux rôles
+ * d'interaction distincts. L'actionneur reçoit les événements momentary et
+ * bloque le mousedown de compatibilité afin qu'une pression ne démarre pas
+ * startDrag() sur le wrapper CircuitComponent. La couronne/base reste sans
+ * handler pointer : un drag initié dessus remonte normalement au wrapper et
+ * conserve donc la possibilité de déplacer le composant.
  *
- * Patron identique à `LedPart.jsx` / `ResistorPart.jsx` : `frontend/public/`
- * est servi à la racine web → `/assets/components/button/…`, priorité WebP
- * via `<picture>`, fallback PNG, aucune logique JS de sélection d'asset
- * au-delà du choix released/pressed.
- *
- * Différence structurelle majeure avec LedPart (composant purement passif) :
- * BUTTON reste un composant INTERACTIF. Le contrat de props et de handlers
- * de ce fichier avant ce ticket est STRICTEMENT CONSERVÉ et reste attaché à
- * l'élément racine (le `<div>` reste la cible des événements pointer/mouse,
- * exactement comme avant) :
- *  - state, onPointerDown, onPointerUp, onPointerCancel,
- *    onLostPointerCapture — tous fournis par CircuitComponent.jsx ;
- *  - classes `part-button` / `part-button--pressed` (LOCK-19, VIS-TEST-08) ;
- *  - `aria-label="Bouton"`.
- *
- * [MB-VIS-BUTTON-INTERACTION-003] `onMouseDown` retiré du contrat de props
- * (n'est plus fourni par CircuitComponent.jsx) : ce handler interceptait le
- * `mousedown` de compatibilité sur le corps du bouton, empêchant
- * `.circuit-component` (le wrapper ancêtre) de jamais le recevoir — cause
- * confirmée (MB-VIS-CONTACT-AUDIT-002) de l'impossibilité de sélectionner/
- * déplacer BUTTON en cliquant sur son corps. Le `mousedown` remonte
- * désormais naturellement jusqu'au wrapper, qui gère seul la sélection et
- * le drag — comme pour tout composant non interactif. La racine reste la
- * cible des événements pointer restants (press/release), inchangés.
- * Le `<picture>`/`<img>` ajouté est purement visuel et non interactif :
- * `pointer-events: none`, `draggable={false}` — le hit-test, le drag et le
- * câblage restent entièrement gérés par le wrapper `.circuit-component` /
- * cet élément racine, jamais par l'image.
- *
- * Contrat inchangé :
- *  - dimensions dérivées de `getComponentDef("BUTTON")` (60×60) — aucune
- *    valeur recopiée, `componentDefinitions.js` NON modifié ;
- *  - pins pin1(0,30) / pin2(60,30) : produits par CircuitComponent/Pin,
- *    jamais dessinés dans l'asset ni ici ;
- *  - sélection d'asset : released → `button.released.*`, pressed →
- *    `button.pressed.*` — dérivée exclusivement de la prop `state` existante,
- *    aucune logique de simulation déplacée ici.
+ * L'état visuel reste dérivé exclusivement de `state` : released/pressed.
  */
 const ASSET_DIR = '/assets/components/button'
 
@@ -73,24 +36,29 @@ export function ButtonPart({
   onPointerLeave,
   onLostPointerCapture,
 }) {
-  const def = getComponentDef("BUTTON")
+  const def = getComponentDef('BUTTON')
   const width = def?.width ?? 60
   const height = def?.height ?? 60
-  const isPressed = state === "pressed"
+  const isPressed = state === 'pressed'
   const source = isPressed ? ASSET_SOURCES.pressed : ASSET_SOURCES.released
+
+  // Pointer Events génère normalement un mousedown de compatibilité après
+  // pointerdown. CircuitComponent utilise ce mousedown pour startDrag().
+  // Sur l'actionneur, preventDefault() supprime uniquement ce mousedown :
+  // la pression momentary reste donc une pression et ne déplace pas le bouton.
+  const handleActuatorPointerDown = (event) => {
+    event.preventDefault()
+    onPointerDown?.(event)
+  }
 
   return (
     <div
-      className={`part-button${isPressed ? " part-button--pressed" : ""}`}
+      className={`part-button${isPressed ? ' part-button--pressed' : ''}`}
       aria-label="Bouton"
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
-      onPointerLeave={onPointerLeave}
-      onLostPointerCapture={onLostPointerCapture}
       style={{
-        cursor: "pointer",
-        userSelect: "none",
+        cursor: 'default',
+        userSelect: 'none',
+        position: 'relative',
       }}
     >
       <picture className="part-button__picture">
@@ -107,6 +75,27 @@ export function ButtonPart({
           style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
         />
       </picture>
+
+      <div
+        className="part-button__actuator"
+        data-button-actuator="true"
+        aria-hidden="true"
+        onPointerDown={handleActuatorPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+        onPointerLeave={onPointerLeave}
+        onLostPointerCapture={onLostPointerCapture}
+        style={{
+          position: 'absolute',
+          left: '25%',
+          top: '25%',
+          width: '50%',
+          height: '50%',
+          borderRadius: '50%',
+          cursor: 'pointer',
+          touchAction: 'none',
+        }}
+      />
     </div>
   )
 }
