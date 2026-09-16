@@ -39,6 +39,7 @@ import { ServoPart } from "../ServoPart.jsx"
 import { DcMotorPart } from "../DcMotorPart.jsx"
 import { SlideSwitchPart } from "../SlideSwitchPart.jsx"
 import { DipSwitchPart } from "../DipSwitchPart.jsx"
+import { VibrationMotorPart } from "../VibrationMotorPart.jsx"
 import { COMPONENT_TYPES, getComponentDef } from "../../../config/componentDefinitions.js"
 import { getComponentPresentation } from "../../../visualization/defaultRegistrations.js"
 
@@ -70,6 +71,7 @@ const CATALOG = [
   { type: "DC_MOTOR", Component: DcMotorPart },
   { type: "SLIDE_SWITCH", Component: SlideSwitchPart },
   { type: "DIP_SWITCH", Component: DipSwitchPart },
+  { type: "VIBRATION_MOTOR", Component: VibrationMotorPart },
 ]
 // [MB-L1-CONS-002] THERMISTOR a abandonné le raster pour un renderer CSS/DOM
 // pur (corps `<div>` stylé, ni <svg> ni <img>) — `backend` résout à `svg`
@@ -83,7 +85,9 @@ const CATALOG = [
 // A3-SW2-R1 : DIP_SWITCH est passé au backend raster (paquet d'assets
 // réaliste validé par le Founder) — retiré de cette catégorie, couvert par
 // RASTER_PARTS ci-dessous comme SLIDE_SWITCH (A3-SW1-R1).
-const PHYSICAL_DOM_TYPES = new Set(["THERMISTOR"])
+// A6-OUT1 : VIBRATION_MOTOR rejoint THERMISTOR — renderer CSS/DOM pur (ni
+// <svg> ni <img>, cf. VibrationMotorPart.jsx).
+const PHYSICAL_DOM_TYPES = new Set(["THERMISTOR", "VIBRATION_MOTOR"])
 // LDR déclare bien `backend: 'raster'` et rend un <img> réel, mais celui-ci
 // porte les dimensions NATIVES de l'asset (fixes, avec crop CSS) — seul le
 // <div> racine (`.part-ldr`) porte la boîte canonique dynamique

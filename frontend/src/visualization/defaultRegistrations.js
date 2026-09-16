@@ -39,6 +39,7 @@ import { ServoPart } from '../components/parts/ServoPart.jsx';
 import { DcMotorPart } from '../components/parts/DcMotorPart.jsx';
 import { SlideSwitchPart } from '../components/parts/SlideSwitchPart.jsx';
 import { DipSwitchPart } from '../components/parts/DipSwitchPart.jsx';
+import { VibrationMotorPart } from '../components/parts/VibrationMotorPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -193,6 +194,14 @@ export const DEFAULT_REGISTRATIONS = [
   // track/thumb par canal, cf. commentaire du fichier) — l'asset ne fige
   // qu'un décor de boîtier, jamais l'état électrique.
   { type: 'DIP_SWITCH', component: DipSwitchPart, visual: { backend: 'raster' } },
+  // VIBRATION_MOTOR : A6-OUT1 — aucun asset raster Founder-approved n'existe
+  // encore (ticket §8) : renderer CSS/DOM pur (VibrationMotorPart.jsx), même
+  // mécanisme déclaratif que THERMISTOR ci-dessus (backend 'svg' par défaut,
+  // `bareBody`/`markerless` explicites à `true` car le renderer dessine
+  // lui-même son corps et ses pattes) — aucun code central spécifique,
+  // aucune condition `type === "VIBRATION_MOTOR"`. Modèle électrique
+  // réutilisant DC_MOTOR via dcContributionRegistry.js (aucune duplication).
+  { type: 'VIBRATION_MOTOR', component: VibrationMotorPart, visual: { bareBody: true, markerless: true } },
 ];
 
 /**

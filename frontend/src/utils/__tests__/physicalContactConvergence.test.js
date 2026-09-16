@@ -64,7 +64,9 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
     // A3-SW3 : SLIDE_SWITCH et DIP_SWITCH sont passés à breadboardInsertable:
     // true (géométrie prouvée compatible BREADBOARD_PITCH=12,
     // componentDefinitions.js) — retirés de NON_INSERTABLE.
-    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032'])
+    // A6-OUT1 : VIBRATION_MOTOR réutilise le même statut non-enfichable que
+    // DC_MOTOR (aucune géométrie enfichable démontrée, cf. componentDefinitions.js).
+    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'VIBRATION_MOTOR'])
     for (const type of ALL_TYPES) {
       for (const pin of getComponentDef(type).pins) {
         for (const c of resolveContacts(pin)) {
@@ -241,12 +243,12 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032',
     'LED', 'RESISTOR', 'ARDUINO', 'BUTTON', 'BUTTON_LATCHING', 'POWER', 'CAPACITOR',
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR',
-    'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH',
+    'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH', 'VIBRATION_MOTOR',
   ]
 
-  it('le catalogue compte exactement 22 types', () => {
-    // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté).
-    expect(new Set(CATALOGUE).size).toBe(22)
+  it('le catalogue compte exactement 23 types', () => {
+    // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
+    expect(new Set(CATALOGUE).size).toBe(23)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -294,14 +296,15 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     }
   })
 
-  it('classification breadboardInsertable finale S5 : 15 enfichables / 7 non-directs', () => {
+  it('classification breadboardInsertable finale S5 : 15 enfichables / 8 non-directs', () => {
     const INSERTABLE = ['RESISTOR', 'LED', 'DIODE', 'CAPACITOR', 'LDR', 'THERMISTOR',
       'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER',
       'POLARIZED_CAPACITOR',
       // A3-SW3 : géométrie prouvée compatible BREADBOARD_PITCH=12 (cf.
       // breadboardSwitchFit.test.js) -> breadboardInsertable:true.
       'SLIDE_SWITCH', 'DIP_SWITCH']
-    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032']
+    // A6-OUT1 : VIBRATION_MOTOR rejoint DC_MOTOR (même statut non-direct).
+    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'VIBRATION_MOTOR']
     expect([...INSERTABLE, ...NON_DIRECT].sort()).toEqual([...CATALOGUE].sort())
 
     const insertableContactCount = (type) =>

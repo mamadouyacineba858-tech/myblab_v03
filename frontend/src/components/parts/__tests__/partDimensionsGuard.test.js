@@ -64,7 +64,10 @@ const RASTER_PART_FILES = new Set(
 // d'assets réaliste validé par le Founder, photo housing statique + overlay
 // track/thumb par canal) — couvert par RASTER_PART_FILES ci-dessus, n'est
 // plus un renderer CSS/DOM physique. Retiré de cette liste.
-const PHYSICAL_DOM_PART_FILES = new Set(["ThermistorPart.jsx"])
+// A6-OUT1 : VibrationMotorPart.jsx rejoint ThermistorPart.jsx — renderer
+// CSS/DOM physique (aucun asset raster Founder-approved encore disponible,
+// cf. ticket §8), pas un composant statique quelconque.
+const PHYSICAL_DOM_PART_FILES = new Set(["ThermistorPart.jsx", "VibrationMotorPart.jsx"])
 
 // [MB-L1-CONS-002] RgbLedPart.jsx est un cas distinct, pré-existant et
 // indépendant de la réconciliation CAPACITOR/THERMISTOR : il gère son propre
@@ -113,6 +116,7 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
         "ServoPart.jsx",
         "SlideSwitchPart.jsx",
         "ThermistorPart.jsx",
+        "VibrationMotorPart.jsx",
       ].sort()
     )
   })

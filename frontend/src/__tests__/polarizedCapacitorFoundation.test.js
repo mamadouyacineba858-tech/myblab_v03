@@ -145,8 +145,8 @@ describe('FT-C-COMP-002 — non-régression', () => {
     }
   })
 
-  it('POLARIZED_CAPACITOR est bien un AJOUT (22 types, A3-SW2 : DIP_SWITCH ajouté depuis) sans retrait', () => {
-    expect(getAllCanonicalTypes()).toHaveLength(22)
+  it('POLARIZED_CAPACITOR est bien un AJOUT (23 types, A3-SW2 : DIP_SWITCH ajouté depuis, A6-OUT1 : VIBRATION_MOTOR ajouté depuis) sans retrait', () => {
+    expect(getAllCanonicalTypes()).toHaveLength(23)
     for (const t of ['LED', 'RESISTOR', 'CAPACITOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR', 'POWER', 'BATTERY_9V']) {
       expect(hasCanonicalType(t), t).toBe(true)
     }

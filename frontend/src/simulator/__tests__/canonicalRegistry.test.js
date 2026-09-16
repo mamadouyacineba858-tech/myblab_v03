@@ -11,9 +11,9 @@ import * as CanonicalRegistry from '../canonicalRegistry.js';
 import { COMPONENT_TYPES } from '../../config/componentDefinitions.js';
 
 describe('canonicalRegistry — contract shape', () => {
-  it('exposes all 22 declared types', () => {
-    // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté).
-    expect(getAllCanonicalTypes()).toHaveLength(22);
+  it('exposes all 23 declared types', () => {
+    // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
+    expect(getAllCanonicalTypes()).toHaveLength(23);
     expect(getAllCanonicalTypes()).toContain('LED');
     expect(getAllCanonicalTypes()).toContain('POWER');
     expect(getAllCanonicalTypes()).toContain('RESISTOR');
@@ -206,8 +206,8 @@ describe('canonicalRegistry — contract shape', () => {
     }
   });
 
-  it('getAllCanonicalEntries returns all 22 entries', () => {
-    expect(getAllCanonicalEntries()).toHaveLength(22);
+  it('getAllCanonicalEntries returns all 23 entries', () => {
+    expect(getAllCanonicalEntries()).toHaveLength(23);
   });
 });
 

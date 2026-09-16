@@ -13,8 +13,9 @@ import { Signal } from "../signals.js"
 const SUPPLY = 5
 
 describe("dcContributionRegistry — registre générique", () => {
-  it("expose une fonction de contribution pour les 9 types DC attendus", () => {
-    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR"]
+  it("expose une fonction de contribution pour les 10 types DC attendus", () => {
+    // A6-OUT1 : VIBRATION_MOTOR ajouté (réutilise dcMotorDc, cf. dcContributionRegistry.js).
+    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR"]
     expect([...getAllDcContributionTypes()].sort()).toEqual([...expected].sort())
     for (const type of expected) {
       expect(hasDcContribution(type)).toBe(true)
@@ -55,6 +56,26 @@ describe("dcContributionRegistry — DIODE", () => {
 describe("dcContributionRegistry — DC_MOTOR", () => {
   const contribute = getDcContribution("DC_MOTOR")
   const params = { resistance: 20 }
+
+  it("calcule I = U / R quand alimenté (les deux orientations sont équivalentes)", () => {
+    const r1 = contribute({ pins: { plus: Signal.HIGH, minus: Signal.LOW }, params, supplyVoltage: SUPPLY })
+    const r2 = contribute({ pins: { plus: Signal.LOW, minus: Signal.HIGH }, params, supplyVoltage: SUPPLY })
+    expect(r1).toEqual({ voltage: SUPPLY, current: SUPPLY / 20 })
+    expect(r2).toEqual({ voltage: SUPPLY, current: SUPPLY / 20 })
+  })
+
+  it("ne contribue rien si non alimenté", () => {
+    expect(contribute({ pins: { plus: Signal.UNKNOWN, minus: Signal.UNKNOWN }, params, supplyVoltage: SUPPLY })).toBeNull()
+  })
+})
+
+describe("dcContributionRegistry — VIBRATION_MOTOR (A6-OUT1, réutilise dcMotorDc)", () => {
+  const contribute = getDcContribution("VIBRATION_MOTOR")
+  const params = { resistance: 20 }
+
+  it("est LITTÉRALEMENT la même fonction que DC_MOTOR (aucune copie de la physique)", () => {
+    expect(getDcContribution("VIBRATION_MOTOR")).toBe(getDcContribution("DC_MOTOR"))
+  })
 
   it("calcule I = U / R quand alimenté (les deux orientations sont équivalentes)", () => {
     const r1 = contribute({ pins: { plus: Signal.HIGH, minus: Signal.LOW }, params, supplyVoltage: SUPPLY })

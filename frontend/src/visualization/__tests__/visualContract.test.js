@@ -280,8 +280,10 @@ describe('G — Backend Contract', () => {
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')
-    // THERMISTOR reste 'svg' ([MB-L1-CONS-002], hors périmètre).
-    expect(svgTypes.slice().sort()).toEqual(['THERMISTOR'])
+    // THERMISTOR reste 'svg' ([MB-L1-CONS-002], hors périmètre). A6-OUT1 :
+    // VIBRATION_MOTOR rejoint THERMISTOR (renderer CSS/DOM, aucun asset
+    // raster Founder-approved encore disponible — ticket §8).
+    expect(svgTypes.slice().sort()).toEqual(['THERMISTOR', 'VIBRATION_MOTOR'])
     expect(rasterTypes.length + svgTypes.length).toBe(DEFAULT_REGISTRATIONS.length)
   })
 })

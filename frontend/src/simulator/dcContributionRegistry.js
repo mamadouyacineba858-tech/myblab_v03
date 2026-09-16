@@ -70,6 +70,17 @@ function dcMotorDc({ pins, params, supplyVoltage }) {
   // MB-SIM-008 v2 : modèle électrique DC simplifié uniquement (résistance
   // fixe équivalente du bobinage). Aucun comportement mécanique (vitesse,
   // couple, inertie, FEM dynamique) — hors périmètre, voir DcMotorModel.js.
+  //
+  // A6-OUT1 : cette fonction est RÉUTILISÉE TELLE QUELLE (même référence de
+  // fonction, voir DC_CONTRIBUTIONS ci-dessous) pour VIBRATION_MOTOR — pas
+  // une copie. VIBRATION_MOTOR déclare exactement les mêmes broches
+  // (plus/minus) et le même paramètre (resistance) que DC_MOTOR dans
+  // canonicalRegistry.js ; il n'existe donc aucune raison physique ou
+  // architecturale d'écrire une seconde fonction identique
+  // (`vibrationMotorDc`) — cela dupliquerait `resistiveTwoTerminalDc` sans
+  // rien y ajouter. Si VIBRATION_MOTOR devait un jour diverger
+  // électriquement de DC_MOTOR, cette réutilisation serait le premier
+  // endroit à revoir (introduire alors une fonction dédiée, jamais avant).
   return resistiveTwoTerminalDc(pins.plus, pins.minus, params.resistance, supplyVoltage)
 }
 
@@ -156,6 +167,10 @@ const DC_CONTRIBUTIONS = new Map([
   ["LDR", ldrDc],
   ["THERMISTOR", thermistorDc],
   ["DC_MOTOR", dcMotorDc],
+  // A6-OUT1 : VIBRATION_MOTOR pointe vers LA MÊME fonction que DC_MOTOR
+  // (référence partagée, pas une fonction "vibrationMotorDc" dupliquée) —
+  // voir le commentaire de dcMotorDc ci-dessus pour la justification.
+  ["VIBRATION_MOTOR", dcMotorDc],
   ["DIODE", diodeDc],
   ["CAPACITOR", capacitorDc],
   ["POLARIZED_CAPACITOR", polarizedCapacitorDc],

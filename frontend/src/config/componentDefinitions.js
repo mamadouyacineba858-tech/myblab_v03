@@ -154,6 +154,19 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "4A", label: "4A", dx: 86, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4A", dx: 86, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
     { id: "4B", label: "4B", dx: 98, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4B", dx: 98, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A6-OUT1 — Vibration Motor : réutilisation de la famille DC_MOTOR (même
+  // contrat électrique plus/minus, cf. canonicalRegistry.js). Boîte
+  // canonique portrait 50×70 (renderer CSS/DOM VibrationMotorPart.jsx : petit
+  // corps cylindrique en haut, deux pattes-fil souples verticales en bas).
+  // Aucun asset raster Founder-approved n'existe encore (ticket §8) : les
+  // deux PhysicalContacts tombent sur l'extrémité basse des pattes dessinées
+  // par le renderer, exactement comme le corps l'exige (pas de recalage
+  // ultérieur nécessaire). breadboardInsertable:false par défaut, comme
+  // DC_MOTOR (aucune géométrie enfichable démontrée).
+  VIBRATION_MOTOR: [
+    { id: "plus", label: "+", dx: 18, dy: 68, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "plus", dx: 18, dy: 68, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "minus", label: "-", dx: 32, dy: 68, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 32, dy: 68, wireConnectable: true, breadboardInsertable: false }] },
+  ],
 }
 
 function buildPins(type) {
@@ -215,6 +228,11 @@ export const COMPONENT_TYPES = {
   // figé sur "4" ou sur DIP_SWITCH : un futur composant multi-canaux
   // réutilise ce même contrat sans modification de CircuitComponent.jsx.
   DIP_SWITCH: { id: "DIP_SWITCH", label: "Interrupteur DIP 4 positions", icon: "▦", width: 112, height: 56, pins: buildPins("DIP_SWITCH"), interaction: { type: "multi-state-toggle", channels: ["1", "2", "3", "4"], states: ["off", "on"] }, initialChannelStates: { "1": "off", "2": "off", "3": "off", "4": "off" } },
+  // A6-OUT1 — Vibration Motor : réutilisation DC_MOTOR (aucune duplication de
+  // simulation, cf. simulator/dcContributionRegistry.js). Renderer CSS/DOM
+  // provisoire (VibrationMotorPart.jsx), visuellement distinct du carter
+  // raster DC_MOTOR — cf. ticket A6-OUT1 §8.
+  VIBRATION_MOTOR: { id: "VIBRATION_MOTOR", label: "Moteur à vibration", icon: "📳", width: 50, height: 70, pins: buildPins("VIBRATION_MOTOR") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -241,7 +259,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 
