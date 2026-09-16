@@ -154,18 +154,20 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "4A", label: "4A", dx: 86, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4A", dx: 86, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
     { id: "4B", label: "4B", dx: 98, dy: 50, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4B", dx: 98, dy: 50, wireConnectable: true, breadboardInsertable: true }] },
   ],
-  // A6-OUT1 — Vibration Motor : réutilisation de la famille DC_MOTOR (même
-  // contrat électrique plus/minus, cf. canonicalRegistry.js). Boîte
-  // canonique portrait 50×70 (renderer CSS/DOM VibrationMotorPart.jsx : petit
-  // corps cylindrique en haut, deux pattes-fil souples verticales en bas).
-  // Aucun asset raster Founder-approved n'existe encore (ticket §8) : les
-  // deux PhysicalContacts tombent sur l'extrémité basse des pattes dessinées
-  // par le renderer, exactement comme le corps l'exige (pas de recalage
-  // ultérieur nécessaire). breadboardInsertable:false par défaut, comme
-  // DC_MOTOR (aucune géométrie enfichable démontrée).
+  // A6-OUT1-R1 — Vibration Motor : réutilisation de la famille DC_MOTOR
+  // (même contrat électrique plus/minus, cf. canonicalRegistry.js) ; passage
+  // au paquet d'assets raster réaliste Founder-approved (coin-type ERM,
+  // asset 72×96 @1x). Boîte canonique portrait 72×96 (était 50×70
+  // provisoire A6-OUT1). PhysicalContacts recalés à plus(24,84)/minus(48,84)
+  // — entraxe 24 = 2 × BREADBOARD_PITCH (12), exact, donc enfichable
+  // proprement (preuve géométrique : vibrationMotorA6Out1R1.test.js). Racines
+  // AssemblyLeadsLayer dérivées du pixel-probe réel de l'asset (voir
+  // assemblyProfiles.js) — pas de bodyClip : le contenu opaque du raster
+  // s'arrête naturellement à y=83 (colonne plus) / y=80 (colonne minus),
+  // AVANT les PhysicalContacts (y=84), sans rien à masquer.
   VIBRATION_MOTOR: [
-    { id: "plus", label: "+", dx: 18, dy: 68, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "plus", dx: 18, dy: 68, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "minus", label: "-", dx: 32, dy: 68, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 32, dy: 68, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "plus", label: "+", dx: 24, dy: 84, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "plus", dx: 24, dy: 84, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "minus", label: "-", dx: 48, dy: 84, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "minus", dx: 48, dy: 84, wireConnectable: true, breadboardInsertable: true }] },
   ],
 }
 
@@ -228,11 +230,11 @@ export const COMPONENT_TYPES = {
   // figé sur "4" ou sur DIP_SWITCH : un futur composant multi-canaux
   // réutilise ce même contrat sans modification de CircuitComponent.jsx.
   DIP_SWITCH: { id: "DIP_SWITCH", label: "Interrupteur DIP 4 positions", icon: "▦", width: 112, height: 56, pins: buildPins("DIP_SWITCH"), interaction: { type: "multi-state-toggle", channels: ["1", "2", "3", "4"], states: ["off", "on"] }, initialChannelStates: { "1": "off", "2": "off", "3": "off", "4": "off" } },
-  // A6-OUT1 — Vibration Motor : réutilisation DC_MOTOR (aucune duplication de
-  // simulation, cf. simulator/dcContributionRegistry.js). Renderer CSS/DOM
-  // provisoire (VibrationMotorPart.jsx), visuellement distinct du carter
-  // raster DC_MOTOR — cf. ticket A6-OUT1 §8.
-  VIBRATION_MOTOR: { id: "VIBRATION_MOTOR", label: "Moteur à vibration", icon: "📳", width: 50, height: 70, pins: buildPins("VIBRATION_MOTOR") },
+  // A6-OUT1-R1 — Vibration Motor : réutilisation DC_MOTOR (aucune duplication
+  // de simulation, cf. simulator/dcContributionRegistry.js). Renderer raster
+  // (VibrationMotorPart.jsx, paquet Founder-approved), boîte canonique 72×96
+  // (était 50×70 provisoire A6-OUT1) — cf. ticket A6-OUT1-R1.
+  VIBRATION_MOTOR: { id: "VIBRATION_MOTOR", label: "Moteur à vibration", icon: "📳", width: 72, height: 96, pins: buildPins("VIBRATION_MOTOR") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.

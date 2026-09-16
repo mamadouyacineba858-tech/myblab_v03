@@ -276,14 +276,14 @@ describe('G — Backend Contract', () => {
     const rasterTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'raster')
-    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH'])
+    // A6-OUT1-R1 : VIBRATION_MOTOR passe au backend raster (paquet d'assets
+    // réaliste Founder-approved, coin-type ERM) — rejoint rasterTypes.
+    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'LDR', 'LED', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH', 'VIBRATION_MOTOR'])
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')
-    // THERMISTOR reste 'svg' ([MB-L1-CONS-002], hors périmètre). A6-OUT1 :
-    // VIBRATION_MOTOR rejoint THERMISTOR (renderer CSS/DOM, aucun asset
-    // raster Founder-approved encore disponible — ticket §8).
-    expect(svgTypes.slice().sort()).toEqual(['THERMISTOR', 'VIBRATION_MOTOR'])
+    // THERMISTOR reste 'svg' ([MB-L1-CONS-002], hors périmètre).
+    expect(svgTypes.slice().sort()).toEqual(['THERMISTOR'])
     expect(rasterTypes.length + svgTypes.length).toBe(DEFAULT_REGISTRATIONS.length)
   })
 })

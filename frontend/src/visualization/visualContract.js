@@ -123,9 +123,9 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'SERVO',          box: [90, 70],   physicalMm: [29, 12],    ref: 'micro servo SG90 23×12×29',                       impliedUnitsPerMm: 3.1 },
   { type: 'DC_MOTOR',       box: [84, 50],   physicalMm: [28, 20],    ref: 'moteur 130 Ø20 × ~28 (arbre en plus)',            impliedUnitsPerMm: 3.0 },
   { type: 'ARDUINO',        box: [120, 140], physicalMm: [68.6, 53.4],ref: 'Arduino UNO 68.6×53.4',                           impliedUnitsPerMm: 1.75 },
-  // A6-OUT1 : moteur vibreur (« pager motor ») cylindrique, renderer CSS/DOM
-  // (aucun asset raster validé, cf. componentDefinitions.js/VibrationMotorPart.jsx).
-  { type: 'VIBRATION_MOTOR', box: [50, 70],  physicalMm: [10, 22],    ref: 'moteur vibreur cylindrique Ø10, pattes-fil comprises ~22 mm (indicatif)', impliedUnitsPerMm: 70 / 22 },
+  // A6-OUT1-R1 : moteur vibreur coin-type ERM, asset raster réaliste validé
+  // par le Founder (cf. componentDefinitions.js/VibrationMotorPart.jsx).
+  { type: 'VIBRATION_MOTOR', box: [72, 96],  physicalMm: [10, 4],     ref: 'moteur vibreur coin-type ERM Ø10, pattes très courtes (FT-A6-OUT1-R1)', impliedUnitsPerMm: 96 / 4 },
 ])
 
 /**

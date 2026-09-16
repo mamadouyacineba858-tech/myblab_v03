@@ -194,14 +194,14 @@ export const DEFAULT_REGISTRATIONS = [
   // track/thumb par canal, cf. commentaire du fichier) — l'asset ne fige
   // qu'un décor de boîtier, jamais l'état électrique.
   { type: 'DIP_SWITCH', component: DipSwitchPart, visual: { backend: 'raster' } },
-  // VIBRATION_MOTOR : A6-OUT1 — aucun asset raster Founder-approved n'existe
-  // encore (ticket §8) : renderer CSS/DOM pur (VibrationMotorPart.jsx), même
-  // mécanisme déclaratif que THERMISTOR ci-dessus (backend 'svg' par défaut,
-  // `bareBody`/`markerless` explicites à `true` car le renderer dessine
-  // lui-même son corps et ses pattes) — aucun code central spécifique,
-  // aucune condition `type === "VIBRATION_MOTOR"`. Modèle électrique
-  // réutilisant DC_MOTOR via dcContributionRegistry.js (aucune duplication).
-  { type: 'VIBRATION_MOTOR', component: VibrationMotorPart, visual: { bareBody: true, markerless: true } },
+  // VIBRATION_MOTOR : A6-OUT1-R1 — paquet d'assets raster réaliste (coin-type
+  // ERM) Founder-approved (asset 72×96, état unique `default`). raster =>
+  // bareBody + markerless dérivés, même mécanisme déclaratif que BUZZER /
+  // POLARIZED_CAPACITOR / SLIDE_SWITCH / DIP_SWITCH — aucun code central
+  // spécifique, aucune condition `type === "VIBRATION_MOTOR"`. Modèle
+  // électrique réutilisant DC_MOTOR via dcContributionRegistry.js (aucune
+  // duplication, aucun changement de ce ticket).
+  { type: 'VIBRATION_MOTOR', component: VibrationMotorPart, visual: { backend: 'raster' } },
 ];
 
 /**

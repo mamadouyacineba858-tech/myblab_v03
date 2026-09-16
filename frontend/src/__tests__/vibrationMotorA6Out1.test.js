@@ -27,13 +27,16 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 /**
  * vibrationMotorA6Out1.test.js — Ticket A6-OUT1 (Vibration Motor).
  *
- * Couvre T1-T25 du ticket. VIBRATION_MOTOR est ajouté au catalogue par
- * RÉUTILISATION DE LA FAMILLE DC_MOTOR (roadmap A6 : "aucune duplication du
- * moteur DC") : même contrat électrique (resistiveTwoTerminalDc, I = U / R),
- * même fonction de contribution DC (dcMotorDc, référence PARTAGÉE — jamais
- * une fonction "vibrationMotorDc" copiée), présentation CSS/DOM distincte
- * (VibrationMotorPart.jsx, aucun asset raster Founder-approved encore
- * disponible).
+ * Couvre T1-T25 du ticket A6-OUT1 original (contrat électrique / registres
+ * déclaratifs). VIBRATION_MOTOR est ajouté au catalogue par RÉUTILISATION DE
+ * LA FAMILLE DC_MOTOR (roadmap A6 : "aucune duplication du moteur DC") :
+ * même contrat électrique (resistiveTwoTerminalDc, I = U / R), même fonction
+ * de contribution DC (dcMotorDc, référence PARTAGÉE — jamais une fonction
+ * "vibrationMotorDc" copiée). A6-OUT1-R1 (cf. vibrationMotorA6Out1R1.test.js)
+ * remplace la présentation CSS/DOM provisoire par le paquet raster réaliste
+ * Founder-approved et prouve la géométrie breadboard — les deux tests T11 et
+ * "présentation" ci-dessous sont mis à jour en conséquence ; le reste de ce
+ * fichier (modèle électrique, registres) reste inchangé et non régressé.
  */
 
 function poweredCircuit(type, pinFrom, pinTo) {
@@ -132,11 +135,11 @@ describe('A6-OUT1 — T10-T11 : contacts physiques', () => {
     }
   })
 
-  it('T11 : breadboardInsertable reste false (aucune géométrie enfichable démontrée)', () => {
+  it('T11 (A6-OUT1-R1) : breadboardInsertable passe à true — géométrie désormais prouvée compatible BREADBOARD_PITCH=12 (cf. vibrationMotorA6Out1R1.test.js)', () => {
     const def = getComponentDef('VIBRATION_MOTOR')
     for (const pin of def.pins) {
-      expect(resolveBreadboardInsertableContacts(pin)).toHaveLength(0)
-      expect(resolveContacts(pin)[0].breadboardInsertable).toBe(false)
+      expect(resolveBreadboardInsertableContacts(pin)).toHaveLength(1)
+      expect(resolveContacts(pin)[0].breadboardInsertable).toBe(true)
     }
   })
 })
@@ -150,9 +153,9 @@ describe('A6-OUT1 — T12-T13 : présentation (VisualizationManager, PartRendere
     expect(element).not.toBeNull()
   })
 
-  it('présentation : CSS/DOM (backend svg par défaut, bareBody + markerless), pas raster', () => {
+  it('présentation (A6-OUT1-R1) : backend raster (paquet Founder-approved), bareBody + markerless dérivés', () => {
     const presentation = getComponentPresentation('VIBRATION_MOTOR')
-    expect(presentation.backend).toBe('svg')
+    expect(presentation.backend).toBe('raster')
     expect(presentation.bareBody).toBe(true)
     expect(presentation.markerless).toBe(true)
   })

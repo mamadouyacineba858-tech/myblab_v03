@@ -1,0 +1,27 @@
+{
+  "component": "VIBRATION_MOTOR",
+  "version": "1.0.0-realistic",
+  "algorithm": "SHA-256",
+  "files": [
+    {
+      "file": "vibration-motor.default.1x.png",
+      "bytes": 11482,
+      "sha256": "7da9a17784e38fecee44a151ff6cb608f7674e480bd539d46648af10bcf4f13f"
+    },
+    {
+      "file": "vibration-motor.default.1x.webp",
+      "bytes": 8774,
+      "sha256": "432f8a61160eea662cc19a4fcf344fca1b28ec1a0d828a6d7e3c6d6ddad8fce7"
+    },
+    {
+      "file": "vibration-motor.default.3x.png",
+      "bytes": 92367,
+      "sha256": "87ae8b03e378f549b8d232cb52d85288a898a99c402bf7dcd1e4eac0f6eabd77"
+    },
+    {
+      "file": "vibration-motor.default.3x.webp",
+      "bytes": 67028,
+      "sha256": "8178be784c74b5e1f8b946415785e2eea4a3fef4c7b8b121842bea9b2a9d17e5"
+    }
+  ]
+}

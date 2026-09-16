@@ -158,6 +158,29 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 17 },
   },
+  // A6-OUT1-R1 — moteur à vibration coin-type ERM (asset 72×96). Pixel-probe
+  // réel (alpha>=32, DevTools console via frontend/scripts/lead-anchor-probe.md,
+  // rejoué sur le paquet copié) : bounding box opaque globale x∈[4,68] y∈[12,83]
+  // (disque + pattes courtes, silhouette UNIQUE, jamais séparée en deux pattes
+  // fines distinctes — cohérent avec un moteur coin-type dont les deux cosses
+  // sont quasiment affleurantes sous le corps). Colonne x=24 (plus) opaque en
+  // continu jusqu'à y=83 ; colonne x=48 (minus) opaque en continu jusqu'à
+  // y=80 ; alpha strictement 0 dès y=84 dans les deux colonnes (bord net, sans
+  // anti-aliasing résiduel). Racines = dernier pixel opaque mesuré de chaque
+  // colonne, PAS une valeur inventée : plus (24,83) -> patte fonctionnelle de
+  // 1 px jusqu'au contact (24,84) ; minus (48,80) -> patte fonctionnelle de
+  // 4 px jusqu'au contact (48,84). AUCUN bodyClip : le contenu opaque du
+  // raster s'arrête naturellement AVANT les PhysicalContacts (y=83/80 < 84
+  // dans les deux colonnes) — rien à masquer, contrairement à BUZZER /
+  // POLARIZED_CAPACITOR / POTENTIOMETER / SLIDE_SWITCH dont les pattes cuites
+  // dépassent leurs PhysicalContacts fonctionnels.
+  VIBRATION_MOTOR: {
+    kind: "through-hole",
+    leads: {
+      plus: { root: { dx: 24, dy: 83 }, style: "wire" },
+      minus: { root: { dx: 48, dy: 80 }, style: "wire" },
+    },
+  },
 }
 
 export function getAssemblyProfile(type) {

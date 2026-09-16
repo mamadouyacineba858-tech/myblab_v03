@@ -85,9 +85,10 @@ const CATALOG = [
 // A3-SW2-R1 : DIP_SWITCH est passé au backend raster (paquet d'assets
 // réaliste validé par le Founder) — retiré de cette catégorie, couvert par
 // RASTER_PARTS ci-dessous comme SLIDE_SWITCH (A3-SW1-R1).
-// A6-OUT1 : VIBRATION_MOTOR rejoint THERMISTOR — renderer CSS/DOM pur (ni
-// <svg> ni <img>, cf. VibrationMotorPart.jsx).
-const PHYSICAL_DOM_TYPES = new Set(["THERMISTOR", "VIBRATION_MOTOR"])
+// A6-OUT1-R1 : VIBRATION_MOTOR est passé au backend raster (paquet d'assets
+// réaliste Founder-approved) — retiré de cette catégorie (n'était CSS/DOM
+// que le temps d'A6-OUT1, faute d'asset), couvert par RASTER_PARTS ci-dessous.
+const PHYSICAL_DOM_TYPES = new Set(["THERMISTOR"])
 // LDR déclare bien `backend: 'raster'` et rend un <img> réel, mais celui-ci
 // porte les dimensions NATIVES de l'asset (fixes, avec crop CSS) — seul le
 // <div> racine (`.part-ldr`) porte la boîte canonique dynamique

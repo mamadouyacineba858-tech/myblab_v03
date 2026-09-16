@@ -1,0 +1,101 @@
+{
+  "version": "1.0.0-realistic",
+  "component": "VIBRATION_MOTOR",
+  "backend": "raster",
+  "assetFamily": "vibration-motor",
+  "complexity": "complex",
+  "canonical": {
+    "width": 72,
+    "height": 96,
+    "origin": "top-left",
+    "pins": {
+      "plus": [
+        24,
+        84
+      ],
+      "minus": [
+        48,
+        84
+      ]
+    }
+  },
+  "states": [
+    "default"
+  ],
+  "visualReference": "Coin-type ERM vibration motor, circular metallic body, black face, two bottom electrical leads.",
+  "probe": {
+    "contacts1x": {
+      "plus": [
+        24,
+        84
+      ],
+      "minus": [
+        48,
+        84
+      ]
+    },
+    "contacts3x": {
+      "plus": [
+        72,
+        252
+      ],
+      "minus": [
+        144,
+        252
+      ]
+    },
+    "horizontalPitch1xPx": 24,
+    "estimatedLeadHeight1xPx": 30,
+    "reconciliation": "A6-OUT1-R1 — canonical contacts intentionally aligned to 2 x BREADBOARD_PITCH (24 px). Final baked-lead bodyClip/root probe must be verified in renderer against actual alpha pixels; functional endpoints remain plus(24,84)/minus(48,84).",
+    "electricalOrder": [
+      "plus",
+      "minus"
+    ]
+  },
+  "variants": [
+    {
+      "file": "vibration-motor.default.1x.png",
+      "state": "default",
+      "scale": "1x",
+      "format": "png",
+      "width": 72,
+      "height": 96,
+      "bytes": 11482,
+      "sha256": "7da9a17784e38fecee44a151ff6cb608f7674e480bd539d46648af10bcf4f13f",
+      "alpha": true
+    },
+    {
+      "file": "vibration-motor.default.1x.webp",
+      "state": "default",
+      "scale": "1x",
+      "format": "webp",
+      "width": 72,
+      "height": 96,
+      "bytes": 8774,
+      "sha256": "432f8a61160eea662cc19a4fcf344fca1b28ec1a0d828a6d7e3c6d6ddad8fce7",
+      "alpha": true
+    },
+    {
+      "file": "vibration-motor.default.3x.png",
+      "state": "default",
+      "scale": "3x",
+      "format": "png",
+      "width": 216,
+      "height": 288,
+      "bytes": 92367,
+      "sha256": "87ae8b03e378f549b8d232cb52d85288a898a99c402bf7dcd1e4eac0f6eabd77",
+      "alpha": true
+    },
+    {
+      "file": "vibration-motor.default.3x.webp",
+      "state": "default",
+      "scale": "3x",
+      "format": "webp",
+      "width": 216,
+      "height": 288,
+      "bytes": 67028,
+      "sha256": "8178be784c74b5e1f8b946415785e2eea4a3fef4c7b8b121842bea9b2a9d17e5",
+      "alpha": true
+    }
+  ]
+}
