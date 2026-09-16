@@ -48,16 +48,57 @@ export function isValidTemperatureStimulus(value) {
 }
 
 /**
+ * A7-C2 — FORCE est une valeur normalisée [0,1] (0 = aucune force appliquée,
+ * 1 = force maximale du capteur), même convention que LIGHT — pas une unité
+ * physique (Newton) : aucune fiche technique de force réelle ne justifierait
+ * une plage précise à ce niveau pédagogique, et LIGHT établit déjà ce même
+ * choix de normalisation pour un stimulus dont seule la réponse RELATIVE
+ * (extrémités + monotonie) importe (ticket §4). NaN/Infinity/-Infinity/
+ * hors-borne/non-numérique sont rejetés, exactement comme LIGHT/TEMPERATURE.
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isValidForceStimulus(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1
+}
+
+/**
+ * A7-C2 — FLEX est une valeur normalisée [0,1] (0 = capteur à plat, 1 =
+ * flexion maximale du capteur), même convention que FORCE/LIGHT ci-dessus.
+ * FORCE et FLEX restent deux kinds SÉPARÉS (pas un kind MECHANICAL unifié) :
+ * ce sont deux grandeurs physiques incompatibles — une pression appliquée
+ * perpendiculairement à un FSR n'est pas la même grandeur qu'un rayon de
+ * courbure appliqué le long d'un flex sensor, et leurs composants répondent
+ * dans des directions opposées (force croissante -> résistance
+ * décroissante ; flexion croissante -> résistance croissante, cf.
+ * environmentalResponseRegistry.js) — les fusionner sous un seul kind
+ * obligerait à réintroduire une branche par type pour savoir quelle
+ * direction appliquer, exactement ce que le contrat générique A7-C0 interdit
+ * (ticket §3). NaN/Infinity/-Infinity/hors-borne/non-numérique sont rejetés,
+ * exactement comme les autres kinds.
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isValidFlexStimulus(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1
+}
+
+/**
  * Table déclarative kind -> définition. Chaque définition porte au minimum
  * `validate(value)`. Aucun moteur générique ne doit connaître cette table
  * par son contenu — seulement par ses clés (`getSupportedStimulusKinds`) et
  * son comportement (`isValidStimulusValue`). A7-C1 ajoute TEMPERATURE ici,
  * exactement comme prévu par A7-C0 : aucune autre modification n'est requise
  * dans `environmentalStimulus.js` pour que ce nouveau kind soit reconnu.
+ * A7-C2 ajoute FORCE et FLEX sur le même principe.
  */
 const STIMULUS_DEFINITIONS = Object.freeze({
   LIGHT: Object.freeze({ validate: isValidLightStimulus }),
   TEMPERATURE: Object.freeze({ validate: isValidTemperatureStimulus }),
+  FORCE: Object.freeze({ validate: isValidForceStimulus }),
+  FLEX: Object.freeze({ validate: isValidFlexStimulus }),
 })
 
 /**

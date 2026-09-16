@@ -59,9 +59,19 @@ const DECLARED_TYPES_PINS = {
   // par environmentalResponseRegistry.js à partir du stimulus TEMPERATURE
   // (contrat générique A7-C0), jamais calculée ici.
   TMP36:[{id:'plus',role:'power'},{id:'vout',role:'output'},{id:'gnd',role:'ground'}],
+  // A7-C2 — Force Sensor (FSR) / Flex Sensor : capteurs résistifs deux
+  // bornes NON polarisées, même vocabulaire de rôles que LDR/THERMISTOR
+  // ('sensor'/'sensor') — aucun nouveau rôle introduit. Leur résistance
+  // EFFECTIVE dépend d'un stimulus environnemental runtime (FORCE / FLEX,
+  // cf. environmentalStimulusRegistry.js + environmentalResponseRegistry.js,
+  // même contrat générique A7-C0 que LDR/LIGHT et TMP36/TEMPERATURE) ; ce
+  // paramètre `resistance` reste le fallback historique tant qu'aucun
+  // stimulus actif n'est fourni.
+  FORCE_SENSOR:[{id:'A',role:'sensor'},{id:'B',role:'sensor'}],
+  FLEX_SENSOR:[{id:'A',role:'sensor'},{id:'B',role:'sensor'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -113,6 +123,26 @@ const DECLARED_PARAMETER_SCHEMA = {
   // Registry environnemental dédié entre ces mêmes bornes minimum/maximum,
   // sans jamais modifier ce paramètre persistant.
   TMP36:[{key:'outputVoltage',parameterType:'voltage',unit:'V',minimum:0.1,maximum:1.75,defaultValue:0.75,description:'Tension de sortie Vout (fallback historique / valeur à 25°C) tant qu\'aucun stimulus environnemental TEMPERATURE actif n\'est fourni. Sous TEMPERATURE actif (A7-C1), la tension EFFECTIVE de ce TMP36 est calculée par le Registry environnemental dédié entre ces mêmes bornes minimum/maximum, sans jamais modifier ce paramètre persistant.'}],
+  // A7-C2 : Force Sensor (FSR) — plage indicative type Interlink FSR40x
+  // (no-load >1 MΩ ; pleine charge ~250 Ω), bornes arrondies en ordre de
+  // grandeur pédagogique. Valeur par défaut = borne maximum (état "aucune
+  // force appliquée", fallback historique tant qu'aucun stimulus
+  // environnemental FORCE actif n'est fourni — même convention que
+  // LDR.resistance / TMP36.outputVoltage, MB-L1-ENV-001/A7-C1). Sous FORCE
+  // actif (A7-C2), la résistance EFFECTIVE est calculée par le Registry
+  // environnemental dédié entre ces mêmes bornes minimum/maximum, sans
+  // jamais modifier ce paramètre persistant.
+  FORCE_SENSOR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:250,maximum:1000000,defaultValue:1000000,description:'Résistance fixe par défaut (fallback historique = état "aucune force appliquée") tant qu\'aucun stimulus environnemental FORCE actif n\'est fourni. Sous FORCE actif (A7-C2), la résistance EFFECTIVE de ce capteur est calculée par le Registry environnemental dédié entre ces mêmes bornes minimum/maximum, sans jamais modifier ce paramètre persistant.'}],
+  // A7-C2 : Flex Sensor — plage indicative type capteur flex résistif
+  // 2.2" (à plat ~10 kΩ ; pleine flexion ~40 kΩ), bornes arrondies en
+  // ordre de grandeur pédagogique. Valeur par défaut = borne minimum
+  // (état "à plat", fallback historique tant qu'aucun stimulus
+  // environnemental FLEX actif n'est fourni — même convention que
+  // FORCE_SENSOR.resistance ci-dessus). Sous FLEX actif (A7-C2), la
+  // résistance EFFECTIVE est calculée par le Registry environnemental
+  // dédié entre ces mêmes bornes minimum/maximum, sans jamais modifier ce
+  // paramètre persistant.
+  FLEX_SENSOR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:10000,maximum:40000,defaultValue:10000,description:'Résistance fixe par défaut (fallback historique = état "à plat") tant qu\'aucun stimulus environnemental FLEX actif n\'est fourni. Sous FLEX actif (A7-C2), la résistance EFFECTIVE de ce capteur est calculée par le Registry environnemental dédié entre ces mêmes bornes minimum/maximum, sans jamais modifier ce paramètre persistant.'}],
 }
 
 const DECLARED_DEFAULT_PARAMETERS = {
@@ -133,6 +163,8 @@ const DECLARED_DEFAULT_PARAMETERS = {
   POTENTIOMETER:{resistance:10000,position:0.5},
   NPN_TRANSISTOR:{onResistance:1},
   TMP36:{outputVoltage:0.75},
+  FORCE_SENSOR:{resistance:1000000},
+  FLEX_SENSOR:{resistance:10000},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -153,6 +185,8 @@ const DECLARED_CAPABILITIES = {
   POTENTIOMETER:['digital','dc'],
   NPN_TRANSISTOR:['digital','dc'],
   TMP36:['digital','dc'],
+  FORCE_SENSOR:['digital','dc'],
+  FLEX_SENSOR:['digital','dc'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -173,6 +207,8 @@ const DECLARED_MODEL_AVAILABLE = {
   POTENTIOMETER:true,
   NPN_TRANSISTOR:true,
   TMP36:true,
+  FORCE_SENSOR:true,
+  FLEX_SENSOR:true,
 }
 
 /**

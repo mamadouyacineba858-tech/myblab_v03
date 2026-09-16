@@ -284,7 +284,9 @@ describe('G — Backend Contract', () => {
     // d'assets réaliste Founder-approved "VERTICAL FINAL", motoréducteur).
     // A7-C1 : TMP36 rejoint également rasterTypes (paquet d'assets réaliste
     // Founder-approved R3).
-    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'HOBBY_GEARMOTOR', 'LDR', 'LED', 'LIGHT_BULB', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH', 'TMP36', 'VIBRATION_MOTOR'])
+    // A7-C2 : FORCE_SENSOR + FLEX_SENSOR rejoignent également rasterTypes
+    // (paquets d'assets réalistes Founder-approved).
+    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'FLEX_SENSOR', 'FORCE_SENSOR', 'HOBBY_GEARMOTOR', 'LDR', 'LED', 'LIGHT_BULB', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH', 'TMP36', 'VIBRATION_MOTOR'])
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')

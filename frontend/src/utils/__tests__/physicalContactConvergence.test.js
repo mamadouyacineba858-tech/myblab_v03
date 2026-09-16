@@ -74,7 +74,10 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
     // A6-OUT3 : HOBBY_GEARMOTOR est wire-only (breadboardInsertable:false sur
     // les deux broches, comme DC_MOTOR — jamais de géométrie BREADBOARD_PITCH
     // démontrée ni recherchée, cf. componentDefinitions.js) -> NON_INSERTABLE.
-    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR'])
+    // A7-C2 : FORCE_SENSOR / FLEX_SENSOR sont wire-only (queue plate à deux
+    // pastilles rapprochées, pas deux pattes traversantes au pas breadboard,
+    // même précédent que HOBBY_GEARMOTOR) -> NON_INSERTABLE.
+    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR', 'FORCE_SENSOR', 'FLEX_SENSOR'])
     for (const type of ALL_TYPES) {
       for (const pin of getComponentDef(type).pins) {
         for (const c of resolveContacts(pin)) {
@@ -252,14 +255,14 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'LED', 'RESISTOR', 'ARDUINO', 'BUTTON', 'BUTTON_LATCHING', 'POWER', 'CAPACITOR',
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR',
     'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH', 'VIBRATION_MOTOR',
-    'LIGHT_BULB', 'HOBBY_GEARMOTOR', 'TMP36',
+    'LIGHT_BULB', 'HOBBY_GEARMOTOR', 'TMP36', 'FORCE_SENSOR', 'FLEX_SENSOR',
   ]
 
-  it('le catalogue compte exactement 26 types', () => {
+  it('le catalogue compte exactement 28 types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
     // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
-    // A7-C1 : 25 -> 26 (TMP36 ajouté).
-    expect(new Set(CATALOGUE).size).toBe(26)
+    // A7-C1 : 25 -> 26 (TMP36 ajouté). A7-C2 : 26 -> 28 (FORCE_SENSOR + FLEX_SENSOR ajoutés).
+    expect(new Set(CATALOGUE).size).toBe(28)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -307,7 +310,7 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     }
   })
 
-  it('classification breadboardInsertable finale S5 : 16 enfichables / 8 non-directs', () => {
+  it('classification breadboardInsertable finale S5 : 16 enfichables / 10 non-directs', () => {
     const INSERTABLE = ['RESISTOR', 'LED', 'DIODE', 'CAPACITOR', 'LDR', 'THERMISTOR',
       'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER',
       'POLARIZED_CAPACITOR',
@@ -327,7 +330,9 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     // A6-OUT3 : HOBBY_GEARMOTOR ajouté à NON_DIRECT — wire-only par contrat
     // produit (jamais de géométrie breadboard recherchée, cf.
     // componentDefinitions.js), comme DC_MOTOR.
-    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR']
+    // A7-C2 : FORCE_SENSOR / FLEX_SENSOR ajoutés à NON_DIRECT — wire-only,
+    // même précédent que HOBBY_GEARMOTOR.
+    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR', 'FORCE_SENSOR', 'FLEX_SENSOR']
     expect([...INSERTABLE, ...NON_DIRECT].sort()).toEqual([...CATALOGUE].sort())
 
     const insertableContactCount = (type) =>

@@ -217,6 +217,19 @@ const DC_CONTRIBUTIONS = new Map([
   ["POTENTIOMETER", potentiometerDc],
   ["NPN_TRANSISTOR", npnTransistorDc],
   ["TMP36", tmp36Dc],
+  // A7-C2 : FORCE_SENSOR et FLEX_SENSOR sont des capteurs résistifs à deux
+  // bornes NON polarisées, exactement le même contrat que RESISTOR/LIGHT_BULB
+  // (pins canoniques 'A'/'B', paramètre 'resistance') — pas de câblage
+  // plus/minus comme DC_MOTOR. Ils pointent donc vers LA MÊME fonction que
+  // RESISTOR (référence partagée, aucune fonction "forceSensorDc"/
+  // "flexSensorDc" dupliquée) : même pins, même paramètre, même physique.
+  // La résistance EFFECTIVE reçue ici (params.resistance) est déjà celle
+  // produite par environmentalResponseRegistry.js sous stimulus FORCE/FLEX
+  // actif, ou le fallback canonique sinon — cette fonction ne calcule rien
+  // de spécifique à FORCE/FLEX, elle ne fait qu'appliquer la loi d'Ohm
+  // générique (aucune branche if(type==='FORCE_SENSOR') introduite ici).
+  ["FORCE_SENSOR", resistorDc],
+  ["FLEX_SENSOR", resistorDc],
 ])
 
 /**

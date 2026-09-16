@@ -43,6 +43,8 @@ import { VibrationMotorPart } from '../components/parts/VibrationMotorPart.jsx';
 import { LightBulbPart } from '../components/parts/LightBulbPart.jsx';
 import { HobbyGearmotorPart } from '../components/parts/HobbyGearmotorPart.jsx';
 import { Tmp36Part } from '../components/parts/Tmp36Part.jsx';
+import { ForceSensorPart } from '../components/parts/ForceSensorPart.jsx';
+import { FlexSensorPart } from '../components/parts/FlexSensorPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -230,6 +232,19 @@ export const DEFAULT_REGISTRATIONS = [
   // dépendante du stimulus environnemental TEMPERATURE (contrat générique
   // A7-C0, environmentalResponseRegistry.js).
   { type: 'TMP36', component: Tmp36Part, visual: { backend: 'raster' } },
+  // FORCE_SENSOR / FLEX_SENSOR : A7-C2 — paquets d'assets raster réalistes
+  // Founder-approved (72×144 / 72×180, état unique `default`). raster =>
+  // bareBody + markerless dérivés, même mécanisme déclaratif que TMP36 /
+  // HOBBY_GEARMOTOR — aucun code central spécifique, aucune condition
+  // `type === "FORCE_SENSOR"` / `type === "FLEX_SENSOR"`. Modèle électrique
+  // réutilisant directement resistorDc via dcContributionRegistry.js
+  // (aucune duplication) ; résistance EFFECTIVE dépendante des stimuli
+  // environnementaux FORCE / FLEX (contrat générique A7-C0,
+  // environmentalResponseRegistry.js). Wire-only : jamais
+  // breadboardInsertable (même précédent que DC_MOTOR/HOBBY_GEARMOTOR, cf.
+  // componentDefinitions.js).
+  { type: 'FORCE_SENSOR', component: ForceSensorPart, visual: { backend: 'raster' } },
+  { type: 'FLEX_SENSOR', component: FlexSensorPart, visual: { backend: 'raster' } },
 ];
 
 /**

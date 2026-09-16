@@ -1,0 +1,53 @@
+{
+  "component": "FORCE_SENSOR",
+  "displayName": "Force Sensor (FSR)",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "canonical": {
+    "width": 72,
+    "height": 144,
+    "orientation": "vertical",
+    "connections": 2,
+    "wireConnectable": true
+  },
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      20,
+      29,
+      56,
+      115
+    ],
+    "note": "Founder-approved master preserved; resize/reposition only. No terminal redraw. PhysicalContact/Assembly geometry must be locked from packaged raster and repository conventions during implementation."
+  },
+  "assets": [
+    {
+      "file": "force-sensor.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 72,
+      "height": 144
+    },
+    {
+      "file": "force-sensor.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 72,
+      "height": 144
+    },
+    {
+      "file": "force-sensor.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 216,
+      "height": 432
+    },
+    {
+      "file": "force-sensor.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 216,
+      "height": 432
+    }
+  ]
+}

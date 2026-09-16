@@ -1,0 +1,54 @@
+{
+  "component": "FLEX_SENSOR",
+  "displayName": "Flex Sensor",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "complexity": "complex",
+  "canonical": {
+    "width": 72,
+    "height": 180,
+    "orientation": "vertical",
+    "connections": 2,
+    "wireConnectable": true
+  },
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      25,
+      3,
+      49,
+      174
+    ],
+    "note": "Founder-approved master preserved; resize/reposition/background transparency only. No body, sensing strip, terminal or lead redraw. PhysicalContact/Assembly geometry must be locked from the packaged raster and repository conventions during implementation."
+  },
+  "assets": [
+    {
+      "file": "flex-sensor.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 72,
+      "height": 180
+    },
+    {
+      "file": "flex-sensor.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 72,
+      "height": 180
+    },
+    {
+      "file": "flex-sensor.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 216,
+      "height": 540
+    },
+    {
+      "file": "flex-sensor.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 216,
+      "height": 540
+    }
+  ]
+}

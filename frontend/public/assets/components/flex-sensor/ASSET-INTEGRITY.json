@@ -1,0 +1,23 @@
+{
+  "component": "FLEX_SENSOR",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "flex-sensor.default.1x.png": {
+      "sha256": "6cd0e0590247ebde00f80e3105bb70104140014e85ba852d27429a8639836fe5",
+      "bytes": 10333
+    },
+    "flex-sensor.default.1x.webp": {
+      "sha256": "85355a4d5ce4cc755d5aac9800b44dfa308bde0e8289fedec9cfb7cdc1cd8e9c",
+      "bytes": 10136
+    },
+    "flex-sensor.default.3x.png": {
+      "sha256": "24b39e6f33c1ba75a19639b5e4e2844c28c2e3f1da6652ab4fb9bf3e980f1a53",
+      "bytes": 68199
+    },
+    "flex-sensor.default.3x.webp": {
+      "sha256": "a161595a50ef115ac0bc2ab639120bf8eb401b2dc4a5c19745fabd474e89bb3c",
+      "bytes": 49732
+    }
+  }
+}

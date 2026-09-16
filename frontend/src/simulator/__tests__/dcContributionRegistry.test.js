@@ -13,12 +13,13 @@ import { Signal } from "../signals.js"
 const SUPPLY = 5
 
 describe("dcContributionRegistry — registre générique", () => {
-  it("expose une fonction de contribution pour les 13 types DC attendus", () => {
+  it("expose une fonction de contribution pour les 15 types DC attendus", () => {
     // A6-OUT1 : VIBRATION_MOTOR ajouté (réutilise dcMotorDc, cf. dcContributionRegistry.js).
     // A6-OUT2 : LIGHT_BULB ajouté (réutilise resistorDc, cf. dcContributionRegistry.js).
     // A6-OUT3 : HOBBY_GEARMOTOR ajouté (réutilise dcMotorDc, cf. dcContributionRegistry.js).
     // A7-C1 : TMP36 ajouté (contribution dédiée tmp36Dc, cf. dcContributionRegistry.js).
-    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "LIGHT_BULB", "HOBBY_GEARMOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR", "TMP36"]
+    // A7-C2 : FORCE_SENSOR + FLEX_SENSOR ajoutés (réutilisent resistorDc, cf. dcContributionRegistry.js).
+    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "LIGHT_BULB", "HOBBY_GEARMOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR", "TMP36", "FORCE_SENSOR", "FLEX_SENSOR"]
     expect([...getAllDcContributionTypes()].sort()).toEqual([...expected].sort())
     for (const type of expected) {
       expect(hasDcContribution(type)).toBe(true)

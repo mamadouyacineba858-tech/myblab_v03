@@ -136,6 +136,14 @@ export const SCALE_REFERENCE = Object.freeze([
   // raster réaliste R3 validé par le Founder (cf.
   // componentDefinitions.js/Tmp36Part.jsx).
   { type: 'TMP36', box: [60, 72], physicalMm: [10, 20], ref: 'TMP36 TO-92, boîtier + pattes ~20 mm (indicatif, A7-C1)', impliedUnitsPerMm: 72 / 20 },
+  // A7-C2 : capteur de force FSR (type Interlink FSR40x), pastille de
+  // détection ~18.3 mm de diamètre + queue de connexion, asset raster
+  // réaliste Founder-approved (cf. componentDefinitions.js/ForceSensorPart.jsx).
+  { type: 'FORCE_SENSOR', box: [72, 144], physicalMm: [18.3, 44.4], ref: 'capteur de force FSR, pastille Ø18.3 + queue de connexion ~44.4 mm (indicatif, A7-C2)', impliedUnitsPerMm: 144 / 44.4 },
+  // A7-C2 : capteur de flexion résistif (type flex sensor 2.2"), lame
+  // ~6.35 mm de large sur ~55.9 mm de long, asset raster réaliste
+  // Founder-approved (cf. componentDefinitions.js/FlexSensorPart.jsx).
+  { type: 'FLEX_SENSOR', box: [72, 180], physicalMm: [6.35, 55.9], ref: 'capteur de flexion résistif 2.2", lame ~6.35 × 55.9 mm (indicatif, A7-C2)', impliedUnitsPerMm: 180 / 55.9 },
 ])
 
 /**

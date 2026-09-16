@@ -1,0 +1,23 @@
+{
+  "component": "FORCE_SENSOR",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "force-sensor.default.1x.png": {
+      "sha256": "fb1b6cf4cc71b9107d01adca7f755bb896af620ff2f208b9e5a087508bbdcd7f",
+      "bytes": 4954
+    },
+    "force-sensor.default.1x.webp": {
+      "sha256": "befb3b7655ab5d80351bf0cab894121eed5be75f5acd60e8f6afcc79d37ab662",
+      "bytes": 4020
+    },
+    "force-sensor.default.3x.png": {
+      "sha256": "4d0646fa074629ace64b8a93a15c2ea8b74a067d8579e93a4cf9f6673a4c5efb",
+      "bytes": 29592
+    },
+    "force-sensor.default.3x.webp": {
+      "sha256": "e58046ef4efd7ce69baf0279a19be7be42bf1139c4d428719c3c82d1d1ebe799",
+      "bytes": 19670
+    }
+  }
+}

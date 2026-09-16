@@ -186,14 +186,15 @@ describe("A7-C0 — le moteur générique environmentalStimulus.js ne connaît a
     expect(responseRegistrySource).not.toMatch(/environmentalStimulusRegistry/)
   })
 
-  it("A7-C1 : TMP36 est le SEUL nouveau composant de production enregistré dans environmentalResponseRegistry.js — aucun autre type n'y est ajouté (T27/T37)", () => {
+  it("A7-C1/A7-C2 : LDR/TMP36/FORCE_SENSOR/FLEX_SENSOR sont les SEULS composants de production enregistrés dans environmentalResponseRegistry.js — aucun autre type n'y est ajouté (T27/T37)", () => {
     // A7-C0 interdisait tout TMP36 ici (prérequis architectural seul, aucun
-    // composant). A7-C1 l'ajoute légitimement (premier consommateur réel de
-    // l'extensibilité A7-C0) — cette assertion verrouille désormais qu'AUCUN
-    // AUTRE type de production (FORCE/MOISTURE/... A7-C2+) n'a été ajouté en
-    // même temps, jamais que TMP36 lui-même soit absent.
+    // composant). A7-C1 l'a ajouté légitimement (premier consommateur réel de
+    // l'extensibilité A7-C0). A7-C2 ajoute FORCE_SENSOR et FLEX_SENSOR sur le
+    // même principe (deuxième preuve réelle) — cette assertion verrouille
+    // désormais qu'AUCUN AUTRE type de production (MOISTURE/... A7-C3+) n'a
+    // été ajouté en même temps, jamais que ces quatre types soient absents.
     const source = readSourceWithoutComments(envRegistryPath)
     const registeredTypes = [...source.matchAll(/^\s*([A-Z][A-Z0-9_]*):\s*Object\.freeze\(\{\s*stimulus:/gm)].map((m) => m[1])
-    expect(registeredTypes.sort()).toEqual(["LDR", "TMP36"])
+    expect(registeredTypes.sort()).toEqual(["FLEX_SENSOR", "FORCE_SENSOR", "LDR", "TMP36"])
   })
 })

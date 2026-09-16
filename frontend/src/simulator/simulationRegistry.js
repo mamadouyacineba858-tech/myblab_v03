@@ -14,6 +14,8 @@ import { PolarizedCapacitorModel } from './models/PolarizedCapacitorModel.js'
 import { PotentiometerModel } from './models/PotentiometerModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
 import { Tmp36Model } from './models/Tmp36Model.js'
+import { ForceSensorModel } from './models/ForceSensorModel.js'
+import { FlexSensorModel } from './models/FlexSensorModel.js'
 import {
   UnknownComponentTypeError,
   SimulationModelUnavailableError,
@@ -110,6 +112,8 @@ const defaultRegistry = createSimulationRegistry({
     PotentiometerModel,
     NpnTransistorModel,
     Tmp36Model,
+    ForceSensorModel,
+    FlexSensorModel,
   ],
 })
 

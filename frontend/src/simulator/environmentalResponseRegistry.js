@@ -74,18 +74,71 @@ function tmp36TemperatureResponse(stimuli) {
 }
 
 /**
+ * A7-C2 — FORCE_SENSOR (FSR) : même patron que `ldrLightResponse` ci-dessus
+ * (interpolation logarithmique entre les bornes canoniques de `resistance`,
+ * strictement monotone décroissante) — physiquement cohérent avec un FSR
+ * réel : une force croissante fait chuter la résistance de la couche
+ * sensible, du même ordre de grandeur qu'un éclairement croissant fait
+ * chuter la résistance d'une LDR (ticket §4).
+ *
+ *   R(force) = Rmax * (Rmin / Rmax) ^ force
+ *
+ * force = 0 -> Rmax (aucune force) ; force = 1 -> Rmin (force maximale) ;
+ * les deux bornes sont retournées exactement, sans passer par `Math.pow`,
+ * pour les mêmes raisons de précision flottante que `ldrLightResponse`.
+ */
+function forceSensorForceResponse(stimuli) {
+  const bounds = resistanceBounds("FORCE_SENSOR", "resistance")
+  if (!bounds) return null
+  const { minimum: rMin, maximum: rMax } = bounds
+  const { FORCE: force } = stimuli
+  if (force === 0) return { resistance: rMax }
+  if (force === 1) return { resistance: rMin }
+  return { resistance: rMax * Math.pow(rMin / rMax, force) }
+}
+
+/**
+ * A7-C2 — FLEX_SENSOR : modèle pédagogique V1 simple et déterministe (ticket
+ * §5, sans hystérésis ni dynamique de fatigue matériau) — interpolation
+ * LINÉAIRE entre les bornes canoniques de `resistance`, strictement monotone
+ * CROISSANTE (sens opposé à FORCE/LIGHT ci-dessus) : un flex sensor résistif
+ * classique voit sa résistance AUGMENTER avec la flexion, à la différence
+ * d'un FSR dont la résistance diminue sous la force.
+ *
+ *   R(flex) = Rmin + (Rmax - Rmin) * flex
+ *
+ * flex = 0 -> Rmin (à plat) ; flex = 1 -> Rmax (flexion maximale) ; les deux
+ * bornes sont retournées exactement (la formule linéaire ne souffre pas de
+ * l'imprécision flottante du couple division/puissance utilisé pour
+ * FORCE/LIGHT, mais les cas 0/1 restent explicites pour rester symétriques
+ * et immédiatement lisibles).
+ */
+function flexSensorFlexResponse(stimuli) {
+  const bounds = resistanceBounds("FLEX_SENSOR", "resistance")
+  if (!bounds) return null
+  const { minimum: rMin, maximum: rMax } = bounds
+  const { FLEX: flex } = stimuli
+  if (flex === 0) return { resistance: rMin }
+  if (flex === 1) return { resistance: rMax }
+  return { resistance: rMin + (rMax - rMin) * flex }
+}
+
+/**
  * Table déclarative type -> { stimulus, respond }. `respond(stimuli)` reçoit
  * le stimulus environnemental déjà validé (voir `environmentalStimulus.js`)
  * et retourne un objet d'overrides de paramètres, ou `null` si aucun effet
  * ne s'applique. `LDR` répond à `LIGHT` (ENV-21) ; A7-C1 ajoute `TMP36`
  * répondant à `TEMPERATURE`, sur le même principe déclaratif — aucune
  * modification d'`environmentalStimulus.js` n'a été nécessaire pour cela.
- * `RESISTOR`/`THERMISTOR` et tout autre type restent absents de cette table
- * (ENV-22).
+ * A7-C2 ajoute `FORCE_SENSOR` répondant à `FORCE` et `FLEX_SENSOR` répondant
+ * à `FLEX`, sur le même principe déclaratif. `RESISTOR`/`THERMISTOR` et tout
+ * autre type restent absents de cette table (ENV-22).
  */
 const ENVIRONMENTAL_RESPONSES = Object.freeze({
   LDR: Object.freeze({ stimulus: "LIGHT", respond: ldrLightResponse }),
   TMP36: Object.freeze({ stimulus: "TEMPERATURE", respond: tmp36TemperatureResponse }),
+  FORCE_SENSOR: Object.freeze({ stimulus: "FORCE", respond: forceSensorForceResponse }),
+  FLEX_SENSOR: Object.freeze({ stimulus: "FLEX", respond: flexSensorFlexResponse }),
 })
 
 /**

@@ -212,6 +212,50 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "vout", label: "Vout", dx: 30, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "vout", dx: 30, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
     { id: "gnd", label: "GND", dx: 42, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "gnd", dx: 42, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A7-C2 — Force Sensor (FSR). Boîte canonique VERTICALE 72×144 = pixels
+  // natifs @1x de l'asset raster Founder-approved (manifest.json canonical).
+  // Composant WIRE-ONLY (wireConnectable:true / breadboardInsertable:false
+  // sur les DEUX broches, même précédent que DC_MOTOR/HOBBY_GEARMOTOR) :
+  // contrairement à LDR/THERMISTOR/TMP36, le raster ne montre PAS deux
+  // pattes fines individuellement écartées au pas breadboard — les deux
+  // bornes émergent d'une même queue plate étroite (~6 px d'écart @1x),
+  // conforme à la forme réelle d'un FSR (pastille de détection + queue
+  // plate à pastilles de connexion, jamais des pattes traversantes) ;
+  // forcer breadboardInsertable:true déformerait artificiellement la
+  // géométrie électrique par rapport au raster (interdit, cf. ticket §9).
+  // Coordonnées dérivées d'un pixel-probe RÉEL du raster livré
+  // (force-sensor.default.1x.png, 72×144), méthode
+  // frontend/scripts/lead-anchor-probe.md (seuil alpha>=200, deux régions
+  // opaques solides distinctes dans la queue) : borne A (gauche) x∈[32,38]
+  // y∈[107,115], centroïde (36.00, 110.5) -> arrondi (36, 111) ; borne B
+  // (droite) x∈[39,45] y∈[107,115], centroïde (41.00, 110.5) -> arrondi
+  // (41, 111) — les deux bornes sont géométriquement séparées (écart 5 px)
+  // et distinctes de la pastille de détection au-dessus ; aucune coordonnée
+  // inventée.
+  FORCE_SENSOR: [
+    { id: "A", label: "A", dx: 36, dy: 111, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "A", dx: 36, dy: 111, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "B", label: "B", dx: 41, dy: 111, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "B", dx: 41, dy: 111, wireConnectable: true, breadboardInsertable: false }] },
+  ],
+  // A7-C2 — Flex Sensor. Boîte canonique VERTICALE 72×180 = pixels natifs
+  // @1x de l'asset raster Founder-approved (manifest.json canonical).
+  // Composant WIRE-ONLY (wireConnectable:true / breadboardInsertable:false
+  // sur les DEUX broches), même justification géométrique que FORCE_SENSOR
+  // ci-dessus : la longue lame résistive se termine par une queue plate à
+  // deux pastilles de connexion rapprochées (~8 px d'écart @1x), pas deux
+  // pattes traversantes individuelles — jamais déformé pour forcer une
+  // insertion breadboard (ticket §9). Coordonnées dérivées d'un
+  // pixel-probe RÉEL du raster livré (flex-sensor.default.1x.png, 72×180),
+  // méthode frontend/scripts/lead-anchor-probe.md (seuil alpha>=200, deux
+  // régions opaques solides distinctes en bas de la queue) : borne A
+  // (gauche) x∈[29,35] y∈[154,172], centroïde (33.05, 162.05) -> arrondi
+  // (33, 162) ; borne B (droite) x∈[38,44] y∈[154,172], centroïde
+  // (41.00, 162.5) -> arrondi (41, 163) — bornes géométriquement séparées
+  // (écart 8 px), distinctes de la lame résistive au-dessus ; aucune
+  // coordonnée inventée.
+  FLEX_SENSOR: [
+    { id: "A", label: "A", dx: 33, dy: 162, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "A", dx: 33, dy: 162, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "B", label: "B", dx: 41, dy: 163, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "B", dx: 41, dy: 163, wireConnectable: true, breadboardInsertable: false }] },
+  ],
 }
 
 function buildPins(type) {
@@ -294,6 +338,16 @@ export const COMPONENT_TYPES = {
   // Founder-approved R3), boîte canonique 60×72 (dimensions natives @1x du
   // paquet).
   TMP36: { id: "TMP36", label: "Capteur de température (TMP36)", icon: "🌡️", width: 60, height: 72, pins: buildPins("TMP36") },
+  // A7-C2 — Force Sensor (FSR) : capteur résistif environnemental (contrat
+  // générique A7-C0, stimulus FORCE). Renderer raster (ForceSensorPart.jsx,
+  // paquet Founder-approved), boîte canonique VERTICALE 72×144 (dimensions
+  // natives @1x du paquet) — wire-only, jamais enfichable breadboard.
+  FORCE_SENSOR: { id: "FORCE_SENSOR", label: "Capteur de force (FSR)", icon: "👆", width: 72, height: 144, pins: buildPins("FORCE_SENSOR") },
+  // A7-C2 — Flex Sensor : capteur résistif environnemental (contrat
+  // générique A7-C0, stimulus FLEX). Renderer raster (FlexSensorPart.jsx,
+  // paquet Founder-approved), boîte canonique VERTICALE 72×180 (dimensions
+  // natives @1x du paquet) — wire-only, jamais enfichable breadboard.
+  FLEX_SENSOR: { id: "FLEX_SENSOR", label: "Capteur de flexion", icon: "📏", width: 72, height: 180, pins: buildPins("FLEX_SENSOR") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -320,7 +374,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 
