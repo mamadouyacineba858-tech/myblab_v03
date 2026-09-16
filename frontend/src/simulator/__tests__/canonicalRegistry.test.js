@@ -11,10 +11,10 @@ import * as CanonicalRegistry from '../canonicalRegistry.js';
 import { COMPONENT_TYPES } from '../../config/componentDefinitions.js';
 
 describe('canonicalRegistry — contract shape', () => {
-  it('exposes all 24 declared types', () => {
+  it('exposes all 25 declared types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
-    // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté).
-    expect(getAllCanonicalTypes()).toHaveLength(24);
+    // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
+    expect(getAllCanonicalTypes()).toHaveLength(25);
     expect(getAllCanonicalTypes()).toContain('LED');
     expect(getAllCanonicalTypes()).toContain('POWER');
     expect(getAllCanonicalTypes()).toContain('RESISTOR');
@@ -207,8 +207,21 @@ describe('canonicalRegistry — contract shape', () => {
     }
   });
 
-  it('getAllCanonicalEntries returns all 24 entries', () => {
-    expect(getAllCanonicalEntries()).toHaveLength(24);
+  it('getAllCanonicalEntries returns all 25 entries', () => {
+    expect(getAllCanonicalEntries()).toHaveLength(25);
+  });
+
+  it('A6-OUT3 : HOBBY_GEARMOTOR entry exposes the complete declarative contract (reuses DC_MOTOR family)', () => {
+    const entry = getCanonicalEntry('HOBBY_GEARMOTOR');
+    expect(entry.type).toBe('HOBBY_GEARMOTOR');
+    expect(entry.pins).toEqual(COMPONENT_TYPES.HOBBY_GEARMOTOR.pins.map(({ id, role }) => ({ id, role })));
+    expect(entry.pins.map((p) => p.id)).toEqual(['plus', 'minus']);
+    expect(entry.parameterSchema).toEqual([
+      { key: 'resistance', parameterType: 'resistance', unit: 'Ω', minimum: 0.001, maximum: 1e6, defaultValue: 20, description: expect.stringMatching(/simplifié/i) },
+    ]);
+    expect(entry.defaultParameters).toEqual({ resistance: 20 });
+    expect(entry.capabilities).toEqual(['digital', 'dc']);
+    expect(entry.modelAvailable).toBe(true);
   });
 });
 

@@ -43,9 +43,17 @@ const DECLARED_TYPES_PINS = {
   // les composants résistifs non polarisés — aucune nouvelle convention de
   // nommage introduite. Aucun modèle thermique/filament : hors périmètre.
   LIGHT_BULB:[{id:'A',role:'passive'},{id:'B',role:'passive'}],
+  // A6-OUT3 — Hobby Gearmotor : réutilisation DE LA FAMILLE DC_MOTOR (mêmes
+  // rôles de broches plus/minus que DC_MOTOR/VIBRATION_MOTOR) — composant
+  // POLARISÉ, à la différence de LIGHT_BULB. Contrat électrique
+  // volontairement identique à DC_MOTOR ; seule la présentation
+  // (componentDefinitions.js + renderer) diffère. Câblage UNIQUEMENT
+  // (wireConnectable:true / breadboardInsertable:false sur les deux
+  // broches, cf. componentDefinitions.js) — jamais enfichable breadboard.
+  HOBBY_GEARMOTOR:[{id:'plus',role:'input'},{id:'minus',role:'input'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -74,6 +82,12 @@ const DECLARED_PARAMETER_SCHEMA = {
   // d'ampoule réelle) — aucun modèle thermique de filament, aucun
   // vieillissement, aucun claquage : hors périmètre de ce ticket.
   LIGHT_BULB:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:20,description:'Résistance électrique équivalente simplifiée du filament (modèle électrique DC simplifié, A6-OUT2) : aucun modèle thermique, aucune non-linéarité tungstène, aucun vieillissement/claquage — hors périmètre à ce niveau de simulation.'}],
+  // A6-OUT3 : même schéma/valeur par défaut que DC_MOTOR/VIBRATION_MOTOR —
+  // aucune fiche technique réelle du gearmotor ne justifie une valeur
+  // différente à ce stade (équivalence électrique simplifiée, pas une
+  // caractéristique moteur/réducteur mesurée). Aucun modèle mécanique du
+  // réducteur (couple, inertie, rapport de réduction) : hors périmètre.
+  HOBBY_GEARMOTOR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:20,description:'Résistance électrique équivalente simplifiée (modèle électrique DC simplifié, A6-OUT3, réutilise la convention DC_MOTOR de MB-SIM-008 v2) : vitesse, couple, inertie, rapport de réduction du réducteur et force contre-électromotrice dynamique sont hors périmètre.'}],
   CAPACITOR:[{key:'capacitance',parameterType:'capacitance',unit:'F',minimum:1e-12,maximum:1,defaultValue:1e-7,description:'Capacité (modèle DC établi, MB-SIM-008 v2) : le condensateur est traité comme un circuit ouvert en régime permanent (I=0) ; cette valeur n\'intervient pas dans l\'analyse DC et n\'est significative que pour un futur modèle Transitoire, hors périmètre de MB-SIM-008. Défaut 1e-7 F (100 nF, MB-L1-PROP-005) : cohérent avec le boîtier céramique radial Candidate C et son marquage EIA "104" dérivé dynamiquement — l\'ancien défaut 1e-4 F (100 µF) ne correspondait à aucune identité visuelle réaliste.'}],
   POLARIZED_CAPACITOR:[{key:'capacitance',parameterType:'capacitance',unit:'F',minimum:1e-12,maximum:1,defaultValue:0.0001,description:'Capacité (modèle DC établi, FT-C-COMP-002) : le condensateur électrolytique polarisé est traité, comme CAPACITOR, comme un circuit ouvert en régime permanent (I=0) quelle que soit la polarité ; cette valeur n\'intervient pas dans l\'analyse DC et n\'est significative que pour un futur modèle Transitoire, hors périmètre. La tension nominale 25 V est une caractéristique de l\'asset, pas un paramètre simulé.'}],
   POTENTIOMETER:[
@@ -95,6 +109,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   DC_MOTOR:{resistance:20},
   VIBRATION_MOTOR:{resistance:20},
   LIGHT_BULB:{resistance:20},
+  HOBBY_GEARMOTOR:{resistance:20},
   CAPACITOR:{capacitance:1e-7},
   POLARIZED_CAPACITOR:{capacitance:0.0001},
   POTENTIOMETER:{resistance:10000,position:0.5},
@@ -113,6 +128,7 @@ const DECLARED_CAPABILITIES = {
   DC_MOTOR:['digital','dc'],
   VIBRATION_MOTOR:['digital','dc'],
   LIGHT_BULB:['digital','dc'],
+  HOBBY_GEARMOTOR:['digital','dc'],
   CAPACITOR:['digital','dc'],
   POLARIZED_CAPACITOR:['digital','dc'],
   POTENTIOMETER:['digital','dc'],
@@ -131,6 +147,7 @@ const DECLARED_MODEL_AVAILABLE = {
   DC_MOTOR:true,
   VIBRATION_MOTOR:true,
   LIGHT_BULB:true,
+  HOBBY_GEARMOTOR:true,
   CAPACITOR:true,
   POLARIZED_CAPACITOR:true,
   POTENTIOMETER:true,

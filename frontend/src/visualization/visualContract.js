@@ -129,6 +129,9 @@ export const SCALE_REFERENCE = Object.freeze([
   // A6-OUT2 : ampoule miniature filament (asset raster réaliste validé par
   // le Founder, cf. componentDefinitions.js/LightBulbPart.jsx).
   { type: 'LIGHT_BULB', box: [72, 96], physicalMm: [10, 25], ref: 'ampoule miniature Ø10, culot + pattes compris ~25 mm (indicatif, A6-OUT2)', impliedUnitsPerMm: 96 / 25 },
+  // A6-OUT3 : motoréducteur hobby, asset raster réaliste VERTICAL FINAL
+  // validé par le Founder (cf. componentDefinitions.js/HobbyGearmotorPart.jsx).
+  { type: 'HOBBY_GEARMOTOR', box: [72, 120], physicalMm: [12, 35], ref: 'motoréducteur hobby (réducteur + carter moteur), fils compris ~35 mm (indicatif, A6-OUT3)', impliedUnitsPerMm: 120 / 35 },
 ])
 
 /**

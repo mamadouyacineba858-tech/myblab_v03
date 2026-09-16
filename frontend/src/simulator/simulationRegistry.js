@@ -8,6 +8,7 @@ import { DiodeModel } from './models/DiodeModel.js'
 import { DcMotorModel } from './models/DcMotorModel.js'
 import { VibrationMotorModel } from './models/VibrationMotorModel.js'
 import { LightBulbModel } from './models/LightBulbModel.js'
+import { HobbyGearmotorModel } from './models/HobbyGearmotorModel.js'
 import { CapacitorModel } from './models/CapacitorModel.js'
 import { PolarizedCapacitorModel } from './models/PolarizedCapacitorModel.js'
 import { PotentiometerModel } from './models/PotentiometerModel.js'
@@ -102,6 +103,7 @@ const defaultRegistry = createSimulationRegistry({
     DcMotorModel,
     VibrationMotorModel,
     LightBulbModel,
+    HobbyGearmotorModel,
     CapacitorModel,
     PolarizedCapacitorModel,
     PotentiometerModel,

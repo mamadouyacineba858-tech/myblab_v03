@@ -104,6 +104,7 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
         "DcMotorPart.jsx",
         "DiodePart.jsx",
         "DipSwitchPart.jsx",
+        "HobbyGearmotorPart.jsx",
         "LatchingButtonPart.jsx",
         "LdrPart.jsx",
         "LedPart.jsx",

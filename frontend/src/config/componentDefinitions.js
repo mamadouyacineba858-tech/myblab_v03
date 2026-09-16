@@ -182,6 +182,25 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "A", label: "A", dx: 24, dy: 84, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "A", dx: 24, dy: 84, wireConnectable: true, breadboardInsertable: true }] },
     { id: "B", label: "B", dx: 48, dy: 84, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "B", dx: 48, dy: 84, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A6-OUT3 — Hobby Gearmotor : boîte canonique VERTICALE 72×120 (asset
+  // raster Founder-approved "VERTICAL FINAL"). Composant WIRE-ONLY
+  // (wireConnectable:true / breadboardInsertable:false sur les DEUX
+  // broches, comme DC_MOTOR — jamais enfichable breadboard, aucune
+  // contrainte BREADBOARD_PITCH). Coordonnées dérivées d'un pixel-probe RÉEL
+  // du raster livré (hobby-gearmotor.default.1x.png, 72×120), méthode
+  // frontend/scripts/lead-anchor-probe.md (seuil alpha>=32, classification
+  // de teinte HSV pour isoler les deux fils colorés du reste du corps) :
+  // fil ROUGE (borne plus) régions opaques solides (alpha>=200) x∈[14,20]
+  // y∈[94,102], centroïde (17.56, 96.56) -> arrondi (18, 97) ; fil NOIR
+  // (borne minus) x∈[14,19] y∈[88,91], centroïde (17.11, 89.39) -> arrondi
+  // (17, 89) — mesure recoupée sur le raster 3x (216×360) : centroïdes
+  // divisés par 3 cohérents à <0.3 px des valeurs 1x ci-dessus. Les deux
+  // fils sont visuellement distincts (rouge vs noir/carter moteur) et
+  // géométriquement séparés (distance ~8 px) — aucune coordonnée inventée.
+  HOBBY_GEARMOTOR: [
+    { id: "plus", label: "+", dx: 18, dy: 97, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "plus", dx: 18, dy: 97, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "minus", label: "-", dx: 17, dy: 89, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "minus", dx: 17, dy: 89, wireConnectable: true, breadboardInsertable: false }] },
+  ],
 }
 
 function buildPins(type) {
@@ -252,6 +271,13 @@ export const COMPONENT_TYPES = {
   // A/B). Renderer raster (LightBulbPart.jsx, paquet Founder-approved),
   // boîte canonique 72×96 (même famille géométrique que VIBRATION_MOTOR).
   LIGHT_BULB: { id: "LIGHT_BULB", label: "Ampoule", icon: "💡", width: 72, height: 96, pins: buildPins("LIGHT_BULB") },
+  // A6-OUT3 — Hobby Gearmotor : réutilisation DC_MOTOR (aucune duplication de
+  // simulation, cf. simulator/dcContributionRegistry.js). Renderer raster
+  // (HobbyGearmotorPart.jsx, paquet Founder-approved "VERTICAL FINAL"),
+  // boîte canonique VERTICALE 72×120 (largeur < hauteur, à la différence de
+  // VIBRATION_MOTOR/LIGHT_BULB qui sont 72×96) — wire-only, jamais
+  // enfichable breadboard.
+  HOBBY_GEARMOTOR: { id: "HOBBY_GEARMOTOR", label: "Motoréducteur", icon: "⚙️", width: 72, height: 120, pins: buildPins("HOBBY_GEARMOTOR") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -278,7 +304,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

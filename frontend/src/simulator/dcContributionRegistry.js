@@ -181,6 +181,13 @@ const DC_CONTRIBUTIONS = new Map([
   // le même contributeur. Si LIGHT_BULB devait un jour diverger électriquement
   // (ex. modèle thermique de filament), ce point serait le premier à revoir.
   ["LIGHT_BULB", resistorDc],
+  // A6-OUT3 : HOBBY_GEARMOTOR pointe vers LA MÊME fonction que DC_MOTOR
+  // (référence partagée, comme VIBRATION_MOTOR ci-dessus) — mêmes broches
+  // canoniques plus/minus, même paramètre resistance, même physique
+  // simplifiée. Aucune fonction dédiée à ce composant, aucun solveur de
+  // réducteur mécanique n'existe : le réducteur n'entre dans aucun modèle
+  // électrique à ce niveau de simulation (Level 1).
+  ["HOBBY_GEARMOTOR", dcMotorDc],
   ["DIODE", diodeDc],
   ["CAPACITOR", capacitorDc],
   ["POLARIZED_CAPACITOR", polarizedCapacitorDc],

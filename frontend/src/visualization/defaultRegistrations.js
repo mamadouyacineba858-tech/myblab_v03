@@ -41,6 +41,7 @@ import { SlideSwitchPart } from '../components/parts/SlideSwitchPart.jsx';
 import { DipSwitchPart } from '../components/parts/DipSwitchPart.jsx';
 import { VibrationMotorPart } from '../components/parts/VibrationMotorPart.jsx';
 import { LightBulbPart } from '../components/parts/LightBulbPart.jsx';
+import { HobbyGearmotorPart } from '../components/parts/HobbyGearmotorPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -211,6 +212,15 @@ export const DEFAULT_REGISTRATIONS = [
   // Modèle électrique réutilisant RESISTOR via dcContributionRegistry.js
   // (aucune duplication, charge résistive DC simple non polarisée).
   { type: 'LIGHT_BULB', component: LightBulbPart, visual: { backend: 'raster' } },
+  // HOBBY_GEARMOTOR : A6-OUT3 — paquet d'assets raster réaliste "VERTICAL
+  // FINAL" (motoréducteur hobby) Founder-approved (asset 72×120, état
+  // unique `default`). raster => bareBody + markerless dérivés, même
+  // mécanisme déclaratif que VIBRATION_MOTOR / LIGHT_BULB / BUZZER —
+  // aucun code central spécifique, aucune condition
+  // `type === "HOBBY_GEARMOTOR"`. Modèle électrique réutilisant DC_MOTOR
+  // via dcContributionRegistry.js (aucune duplication). Wire-only : jamais
+  // breadboardInsertable (cf. componentDefinitions.js).
+  { type: 'HOBBY_GEARMOTOR', component: HobbyGearmotorPart, visual: { backend: 'raster' } },
 ];
 
 /**

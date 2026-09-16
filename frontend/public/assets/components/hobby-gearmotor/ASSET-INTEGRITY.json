@@ -1,0 +1,27 @@
+{
+  "component": "HOBBY_GEARMOTOR",
+  "version": "3.0.0-realistic-vertical",
+  "algorithm": "SHA-256",
+  "files": [
+    {
+      "file": "hobby-gearmotor.default.1x.png",
+      "bytes": 8318,
+      "sha256": "9ed47771f7459280b3cba7b1059197e52e7cfe18c30bcb992a05600fd0bcf54d"
+    },
+    {
+      "file": "hobby-gearmotor.default.1x.webp",
+      "bytes": 6586,
+      "sha256": "534fc9675968a4e977f40704037f93ef7ec87b88492cf7851a30101a11d52a73"
+    },
+    {
+      "file": "hobby-gearmotor.default.3x.png",
+      "bytes": 49515,
+      "sha256": "5d950d08a69e671a9a267971bf6cbeb955f21dc0086f3b9742d001d6f161f620"
+    },
+    {
+      "file": "hobby-gearmotor.default.3x.webp",
+      "bytes": 36870,
+      "sha256": "83a5fdb702c2750383166ab6a8040ac87ccd2eeb9ecb97a3d7b23efee420b809"
+    }
+  ]
+}
