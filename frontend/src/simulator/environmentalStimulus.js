@@ -1,15 +1,16 @@
 import { getEnvironmentalResponse } from "./environmentalResponseRegistry.js"
+import { getSupportedStimulusKinds, isValidStimulusValue, isValidLightStimulus } from "./environmentalStimulusRegistry.js"
 
 /**
- * MB-L1-ENV-001 — Environmental Stimulus Foundation (LIGHT -> LDR).
+ * MB-L1-ENV-001 / A7-C0 — Environmental Stimulus Foundation (générique).
  *
  * Primitive centrale et pure gouvernant la production des paramètres
- * électriques EFFECTIFS d'un circuit soumis à un stimulus environnemental
- * (ticket §7/§ENV-15) :
+ * électriques EFFECTIFS d'un circuit soumis à un ou plusieurs stimuli
+ * environnementaux (ticket A7-C0 §7) :
  *
- *   persistent component parameters + environmental stimulus
+ *   persistent component parameters + environmental stimuli
  *        ↓
- *   applyEnvironmentalStimuli()  ← ce fichier
+ *   applyEnvironmentalStimuli()  ← ce fichier (générique, ignore les kinds)
  *        ↓
  *   effective components (mêmes composants, `parameters` éventuellement
  *   remplacés pour les seuls types concernés)
@@ -29,31 +30,18 @@ import { getEnvironmentalResponse } from "./environmentalResponseRegistry.js"
  * historique sans environnement (ENV-18).
  *
  * Aucune horloge (ENV-04/ENV-05), aucun Runtime Arduino (ENV-08/ENV-09),
- * aucun import de `core/`/`history/`/`bridge/` (ENV-01/ENV-02/ENV-03) :
- * ce module n'importe que le Registry environnemental dédié.
- */
-
-const SUPPORTED_STIMULUS_KINDS = Object.freeze(["LIGHT"])
-
-/**
- * LIGHT est une valeur normalisée [0,1] (ticket §4) — jamais une valeur en
- * lux. NaN/Infinity/-Infinity/hors-borne/non-numérique sont explicitement
- * rejetés ici (ENV-20) : une valeur invalide ne contamine jamais le calcul
- * effectif, elle est simplement traitée comme « stimulus absent » pour ce
- * kind (§4 : « doivent être rejetées ou ignorées défensivement selon la
- * frontière appelée »).
+ * aucun import de `core/`/`history/`/`bridge/` (ENV-01/ENV-02/ENV-03) : ce
+ * module n'importe que le Registry de réponses et le contrat de stimuli,
+ * tous deux déclaratifs.
  *
- * @param {unknown} value
- * @returns {boolean}
+ * A7-C0 : ce fichier ne connaît plus AUCUN kind de stimulus par son nom
+ * (ni "LIGHT" ni un futur "TEMPERATURE"/"FORCE"/...). La liste des kinds
+ * supportés et leur validation viennent uniquement de
+ * `environmentalStimulusRegistry.js` (I-A7C0-08/I-A7C0-09) : ajouter un
+ * nouveau kind ne nécessite donc aucune modification ici.
  */
-export function isValidLightStimulus(value) {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1
-}
 
-function isValidStimulusValue(kind, value) {
-  if (kind === "LIGHT") return isValidLightStimulus(value)
-  return false
-}
+export { isValidLightStimulus }
 
 /**
  * @param {unknown} environmentalStimuli
@@ -63,7 +51,7 @@ function isValidStimulusValue(kind, value) {
  */
 function hasAnyValidStimulus(environmentalStimuli) {
   if (!environmentalStimuli || typeof environmentalStimuli !== "object") return false
-  return SUPPORTED_STIMULUS_KINDS.some((kind) => isValidStimulusValue(kind, environmentalStimuli[kind]))
+  return getSupportedStimulusKinds().some((kind) => isValidStimulusValue(kind, environmentalStimuli[kind]))
 }
 
 /**
@@ -75,7 +63,7 @@ function hasAnyValidStimulus(environmentalStimuli) {
  */
 function sanitizeStimuli(environmentalStimuli) {
   const sanitized = {}
-  for (const kind of SUPPORTED_STIMULUS_KINDS) {
+  for (const kind of getSupportedStimulusKinds()) {
     if (isValidStimulusValue(kind, environmentalStimuli[kind])) sanitized[kind] = environmentalStimuli[kind]
   }
   return sanitized

@@ -157,3 +157,38 @@ describe("MB-L1-ENV-001 — externalSignals reste un contrat électrique pur (EN
     }
   })
 })
+
+describe("A7-C0 — le moteur générique environmentalStimulus.js ne connaît aucun stimulus kind par son nom (I-A7C0-08/I-A7C0-09/T28/T29)", () => {
+  const envStimulusRegistryPath = path.join(dir, "..", "environmentalStimulusRegistry.js")
+
+  it("environmentalStimulus.js ne contient plus de branche if/switch par kind (aucun `kind === \"...\"`)", () => {
+    const source = readSourceWithoutComments(envStimulusPath)
+    expect(source).not.toMatch(/kind\s*===\s*["']/)
+    expect(source).not.toMatch(/switch\s*\(\s*kind\s*\)/)
+  })
+
+  it("environmentalStimulus.js ne mentionne plus littéralement \"LIGHT\" : la connaissance du kind vit uniquement dans environmentalStimulusRegistry.js", () => {
+    const source = readSourceWithoutComments(envStimulusPath)
+    expect(source).not.toMatch(/["']LIGHT["']/)
+  })
+
+  it("environmentalStimulus.js ne teste jamais component.type === \"LDR\"/\"TMP36\"/\"THERMISTOR\" (aucune connaissance composant)", () => {
+    const source = readSourceWithoutComments(envStimulusPath)
+    expect(source).not.toMatch(/component\.type\s*===\s*["'](LDR|TMP36|THERMISTOR)["']/)
+  })
+
+  it("le contrat de stimulus (environmentalStimulusRegistry.js) est bien séparé du moteur générique et du Registry de réponses", () => {
+    expect(fs.existsSync(envStimulusRegistryPath)).toBe(true)
+    const engineSource = readSourceWithoutComments(envStimulusPath)
+    expect(engineSource).toMatch(/from\s+["'][^"']*environmentalStimulusRegistry\.js["']/)
+
+    const responseRegistrySource = readSourceWithoutComments(envRegistryPath)
+    expect(responseRegistrySource).not.toMatch(/environmentalStimulusRegistry/)
+  })
+
+  it("aucun nouveau composant de production (TMP36 ou autre) n'est enregistré dans environmentalResponseRegistry.js (T27/T37)", () => {
+    const source = readSourceWithoutComments(envRegistryPath)
+    expect(source).not.toMatch(/TMP36/)
+    expect(source).toMatch(/\bLDR\b/)
+  })
+})
