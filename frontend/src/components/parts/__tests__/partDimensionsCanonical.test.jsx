@@ -40,6 +40,7 @@ import { DcMotorPart } from "../DcMotorPart.jsx"
 import { SlideSwitchPart } from "../SlideSwitchPart.jsx"
 import { DipSwitchPart } from "../DipSwitchPart.jsx"
 import { VibrationMotorPart } from "../VibrationMotorPart.jsx"
+import { LightBulbPart } from "../LightBulbPart.jsx"
 import { COMPONENT_TYPES, getComponentDef } from "../../../config/componentDefinitions.js"
 import { getComponentPresentation } from "../../../visualization/defaultRegistrations.js"
 
@@ -72,6 +73,7 @@ const CATALOG = [
   { type: "SLIDE_SWITCH", Component: SlideSwitchPart },
   { type: "DIP_SWITCH", Component: DipSwitchPart },
   { type: "VIBRATION_MOTOR", Component: VibrationMotorPart },
+  { type: "LIGHT_BULB", Component: LightBulbPart },
 ]
 // [MB-L1-CONS-002] THERMISTOR a abandonné le raster pour un renderer CSS/DOM
 // pur (corps `<div>` stylé, ni <svg> ni <img>) — `backend` résout à `svg`

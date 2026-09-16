@@ -1,0 +1,27 @@
+{
+  "component": "LIGHT_BULB",
+  "version": "1.0.0-realistic",
+  "algorithm": "SHA-256",
+  "files": [
+    {
+      "file": "light-bulb.default.1x.png",
+      "bytes": 7307,
+      "sha256": "0fa180e8e1bfbf36940a9e0e9de2ac7054070daa0378f7c98018586ea62d2f72"
+    },
+    {
+      "file": "light-bulb.default.1x.webp",
+      "bytes": 5078,
+      "sha256": "dbf09ba1718c7e945270f8950a0cd4ba9e71f44b5037a11df84768b0d63a5997"
+    },
+    {
+      "file": "light-bulb.default.3x.png",
+      "bytes": 42584,
+      "sha256": "6467cb1c460222722ca25f2e39898049b3b7d1b8c7e2c18d77daa479d54a5395"
+    },
+    {
+      "file": "light-bulb.default.3x.webp",
+      "bytes": 27434,
+      "sha256": "d64034a5d95eefca9892aff264b44c51ae0ca3d64004df628f218bd6421eaafa"
+    }
+  ]
+}

@@ -171,6 +171,16 @@ const DC_CONTRIBUTIONS = new Map([
   // (référence partagée, pas une fonction "vibrationMotorDc" dupliquée) —
   // voir le commentaire de dcMotorDc ci-dessus pour la justification.
   ["VIBRATION_MOTOR", dcMotorDc],
+  // A6-OUT2 : LIGHT_BULB est une charge résistive DC simple à deux bornes
+  // NON polarisée, exactement le même contrat que RESISTOR (pins canoniques
+  // 'A'/'B', paramètre 'resistance') — pas une différence de câblage comme
+  // pour VIBRATION_MOTOR/DC_MOTOR (pins 'plus'/'minus'). Elle pointe donc
+  // vers LA MÊME fonction que RESISTOR (référence partagée, aucune fonction
+  // "lightBulbDc" dupliquée) plutôt que de rappeler resistiveTwoTerminalDc
+  // séparément : même pins, même paramètre, même physique, donc littéralement
+  // le même contributeur. Si LIGHT_BULB devait un jour diverger électriquement
+  // (ex. modèle thermique de filament), ce point serait le premier à revoir.
+  ["LIGHT_BULB", resistorDc],
   ["DIODE", diodeDc],
   ["CAPACITOR", capacitorDc],
   ["POLARIZED_CAPACITOR", polarizedCapacitorDc],

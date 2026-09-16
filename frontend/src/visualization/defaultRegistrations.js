@@ -40,6 +40,7 @@ import { DcMotorPart } from '../components/parts/DcMotorPart.jsx';
 import { SlideSwitchPart } from '../components/parts/SlideSwitchPart.jsx';
 import { DipSwitchPart } from '../components/parts/DipSwitchPart.jsx';
 import { VibrationMotorPart } from '../components/parts/VibrationMotorPart.jsx';
+import { LightBulbPart } from '../components/parts/LightBulbPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -202,6 +203,14 @@ export const DEFAULT_REGISTRATIONS = [
   // électrique réutilisant DC_MOTOR via dcContributionRegistry.js (aucune
   // duplication, aucun changement de ce ticket).
   { type: 'VIBRATION_MOTOR', component: VibrationMotorPart, visual: { backend: 'raster' } },
+  // LIGHT_BULB : A6-OUT2 — paquet d'assets raster réaliste (ampoule
+  // filament) Founder-approved (asset 72×96, état unique `default`). raster
+  // => bareBody + markerless dérivés, même mécanisme déclaratif que BUZZER /
+  // POLARIZED_CAPACITOR / SLIDE_SWITCH / DIP_SWITCH / VIBRATION_MOTOR —
+  // aucun code central spécifique, aucune condition `type === "LIGHT_BULB"`.
+  // Modèle électrique réutilisant RESISTOR via dcContributionRegistry.js
+  // (aucune duplication, charge résistive DC simple non polarisée).
+  { type: 'LIGHT_BULB', component: LightBulbPart, visual: { backend: 'raster' } },
 ];
 
 /**

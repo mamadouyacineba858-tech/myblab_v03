@@ -107,6 +107,7 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
         "LatchingButtonPart.jsx",
         "LdrPart.jsx",
         "LedPart.jsx",
+        "LightBulbPart.jsx",
         "NpnTransistorPart.jsx",
         "PolarizedCapacitorPart.jsx",
         "PotentiometerPart.jsx",

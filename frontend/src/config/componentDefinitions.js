@@ -169,6 +169,19 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "plus", label: "+", dx: 24, dy: 84, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "plus", dx: 24, dy: 84, wireConnectable: true, breadboardInsertable: true }] },
     { id: "minus", label: "-", dx: 48, dy: 84, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "minus", dx: 48, dy: 84, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A6-OUT2 — Light Bulb : même famille géométrique que VIBRATION_MOTOR
+  // (boîte portrait 72×96, PhysicalContacts (24,84)/(48,84), entraxe
+  // 24 = 2 × BREADBOARD_PITCH) mais pins NON polarisées (A/B, convention
+  // RESISTOR/LDR/THERMISTOR) : une ampoule résistive simple n'a pas de sens
+  // électrique orienté. Racines AssemblyLeadsLayer dérivées du pixel-probe
+  // réel de l'asset Founder-approved (voir assemblyProfiles.js) : le corps
+  // opaque (culot doré + amorce des deux pattes noires) dépasse les
+  // PhysicalContacts (opaque jusqu'à y=93, contacts à y=84) — bodyClip requis,
+  // contrairement à VIBRATION_MOTOR.
+  LIGHT_BULB: [
+    { id: "A", label: "A", dx: 24, dy: 84, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "A", dx: 24, dy: 84, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "B", label: "B", dx: 48, dy: 84, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "B", dx: 48, dy: 84, wireConnectable: true, breadboardInsertable: true }] },
+  ],
 }
 
 function buildPins(type) {
@@ -235,6 +248,10 @@ export const COMPONENT_TYPES = {
   // (VibrationMotorPart.jsx, paquet Founder-approved), boîte canonique 72×96
   // (était 50×70 provisoire A6-OUT1) — cf. ticket A6-OUT1-R1.
   VIBRATION_MOTOR: { id: "VIBRATION_MOTOR", label: "Moteur à vibration", icon: "📳", width: 72, height: 96, pins: buildPins("VIBRATION_MOTOR") },
+  // A6-OUT2 — Light Bulb : charge résistive DC simple, NON polarisée (pins
+  // A/B). Renderer raster (LightBulbPart.jsx, paquet Founder-approved),
+  // boîte canonique 72×96 (même famille géométrique que VIBRATION_MOTOR).
+  LIGHT_BULB: { id: "LIGHT_BULB", label: "Ampoule", icon: "💡", width: 72, height: 96, pins: buildPins("LIGHT_BULB") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -261,7 +278,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

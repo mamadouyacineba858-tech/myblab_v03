@@ -13,9 +13,10 @@ import { Signal } from "../signals.js"
 const SUPPLY = 5
 
 describe("dcContributionRegistry — registre générique", () => {
-  it("expose une fonction de contribution pour les 10 types DC attendus", () => {
+  it("expose une fonction de contribution pour les 11 types DC attendus", () => {
     // A6-OUT1 : VIBRATION_MOTOR ajouté (réutilise dcMotorDc, cf. dcContributionRegistry.js).
-    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR"]
+    // A6-OUT2 : LIGHT_BULB ajouté (réutilise resistorDc, cf. dcContributionRegistry.js).
+    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "LIGHT_BULB", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR"]
     expect([...getAllDcContributionTypes()].sort()).toEqual([...expected].sort())
     for (const type of expected) {
       expect(hasDcContribution(type)).toBe(true)
@@ -86,6 +87,26 @@ describe("dcContributionRegistry — VIBRATION_MOTOR (A6-OUT1, réutilise dcMoto
 
   it("ne contribue rien si non alimenté", () => {
     expect(contribute({ pins: { plus: Signal.UNKNOWN, minus: Signal.UNKNOWN }, params, supplyVoltage: SUPPLY })).toBeNull()
+  })
+})
+
+describe("dcContributionRegistry — LIGHT_BULB (A6-OUT2, réutilise resistorDc)", () => {
+  const contribute = getDcContribution("LIGHT_BULB")
+  const params = { resistance: 20 }
+
+  it("est LITTÉRALEMENT la même fonction que RESISTOR (aucune copie de la physique)", () => {
+    expect(getDcContribution("LIGHT_BULB")).toBe(getDcContribution("RESISTOR"))
+  })
+
+  it("calcule I = U / R quand alimenté (les deux orientations sont équivalentes — non polarisé)", () => {
+    const r1 = contribute({ pins: { A: Signal.HIGH, B: Signal.LOW }, params, supplyVoltage: SUPPLY })
+    const r2 = contribute({ pins: { A: Signal.LOW, B: Signal.HIGH }, params, supplyVoltage: SUPPLY })
+    expect(r1).toEqual({ voltage: SUPPLY, current: SUPPLY / 20 })
+    expect(r2).toEqual({ voltage: SUPPLY, current: SUPPLY / 20 })
+  })
+
+  it("ne contribue rien si non alimenté", () => {
+    expect(contribute({ pins: { A: Signal.UNKNOWN, B: Signal.UNKNOWN }, params, supplyVoltage: SUPPLY })).toBeNull()
   })
 })
 

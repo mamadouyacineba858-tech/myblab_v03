@@ -344,9 +344,9 @@ describe('FT-C-COMP-004 — non-régression du modèle électrique et des autres
     expect([COMPONENT_TYPES.RGB_LED.width, COMPONENT_TYPES.RGB_LED.height]).toEqual([90, 56])
   })
 
-  it('T28 (catalogue) — toujours 23 types canoniques (A3-SW2 : DIP_SWITCH ajouté ; A6-OUT1 : VIBRATION_MOTOR ajouté), BUZZER inclus une seule fois', () => {
+  it('T28 (catalogue) — toujours 24 types canoniques (A3-SW2 : DIP_SWITCH ajouté ; A6-OUT1 : VIBRATION_MOTOR ajouté ; A6-OUT2 : LIGHT_BULB ajouté), BUZZER inclus une seule fois', () => {
     const types = getAllCanonicalTypes()
-    expect(types.length).toBe(23)
+    expect(types.length).toBe(24)
     expect(types.filter((t) => t === 'BUZZER')).toHaveLength(1)
   })
 })

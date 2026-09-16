@@ -126,6 +126,9 @@ export const SCALE_REFERENCE = Object.freeze([
   // A6-OUT1-R1 : moteur vibreur coin-type ERM, asset raster réaliste validé
   // par le Founder (cf. componentDefinitions.js/VibrationMotorPart.jsx).
   { type: 'VIBRATION_MOTOR', box: [72, 96],  physicalMm: [10, 4],     ref: 'moteur vibreur coin-type ERM Ø10, pattes très courtes (FT-A6-OUT1-R1)', impliedUnitsPerMm: 96 / 4 },
+  // A6-OUT2 : ampoule miniature filament (asset raster réaliste validé par
+  // le Founder, cf. componentDefinitions.js/LightBulbPart.jsx).
+  { type: 'LIGHT_BULB', box: [72, 96], physicalMm: [10, 25], ref: 'ampoule miniature Ø10, culot + pattes compris ~25 mm (indicatif, A6-OUT2)', impliedUnitsPerMm: 96 / 25 },
 ])
 
 /**

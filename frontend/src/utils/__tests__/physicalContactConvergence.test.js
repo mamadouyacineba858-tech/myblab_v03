@@ -68,6 +68,9 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
     // (géométrie prouvée compatible BREADBOARD_PITCH=12, entraxe 24 = 2×12,
     // cf. vibrationMotorA6Out1R1.test.js) — retiré de NON_INSERTABLE. DC_MOTOR
     // seul conserve le statut non-enfichable (aucune géométrie démontrée).
+    // A6-OUT2 : LIGHT_BULB rejoint directement les enfichables (même famille
+    // géométrique 72×96/(24,84)/(48,84) que VIBRATION_MOTOR, cf.
+    // lightBulbA6Out2.test.jsx) — n'a jamais été dans NON_INSERTABLE.
     const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032'])
     for (const type of ALL_TYPES) {
       for (const pin of getComponentDef(type).pins) {
@@ -246,11 +249,13 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'LED', 'RESISTOR', 'ARDUINO', 'BUTTON', 'BUTTON_LATCHING', 'POWER', 'CAPACITOR',
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR',
     'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH', 'VIBRATION_MOTOR',
+    'LIGHT_BULB',
   ]
 
-  it('le catalogue compte exactement 23 types', () => {
+  it('le catalogue compte exactement 24 types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
-    expect(new Set(CATALOGUE).size).toBe(23)
+    // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté).
+    expect(new Set(CATALOGUE).size).toBe(24)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -307,7 +312,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
       'SLIDE_SWITCH', 'DIP_SWITCH',
       // A6-OUT1-R1 : géométrie prouvée compatible BREADBOARD_PITCH=12
       // (entraxe 24 = 2×12, cf. vibrationMotorA6Out1R1.test.js) -> breadboardInsertable:true.
-      'VIBRATION_MOTOR']
+      'VIBRATION_MOTOR',
+      // A6-OUT2 : même géométrie compatible BREADBOARD_PITCH=12 (entraxe
+      // 24 = 2×12, cf. lightBulbA6Out2.test.jsx) -> breadboardInsertable:true.
+      'LIGHT_BULB']
     // A6-OUT1-R1 : VIBRATION_MOTOR quitte NON_DIRECT (rejoint INSERTABLE ci-dessus).
     const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032']
     expect([...INSERTABLE, ...NON_DIRECT].sort()).toEqual([...CATALOGUE].sort())

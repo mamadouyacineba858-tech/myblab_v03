@@ -181,6 +181,33 @@ const ASSEMBLY_PROFILES = {
       minus: { root: { dx: 48, dy: 80 }, style: "wire" },
     },
   },
+  // A6-OUT2 — Light Bulb (asset 72×96, culot doré + deux pattes noires).
+  // Pixel-probe réel (alpha>=32, méthode frontend/scripts/lead-anchor-probe.md,
+  // rejouée sur le paquet copié dans le worktree) : bounding box opaque
+  // globale x∈[4,67] y∈[2,93] (globe verre + culot + amorce de pattes,
+  // silhouette UNIQUE jusqu'à y=91 — le culot ne se scinde en deux pattes
+  // distinctes qu'aux 2 dernières lignes, y=92-93, x∈[29,35]/[39,44]).
+  // Aux colonnes des PhysicalContacts, alpha(24,84)=3 et alpha(48,84)=0
+  // (sous le seuil, donc transparent) : recherche du pixel opaque le plus
+  // proche par expansion en anneaux (méthode documentée, ring-search)
+  // depuis chaque contact -> A trouve (26,82) à distance de Chebyshev 2,
+  // B trouve (47,83) à distance 1. Racines = ces pixels mesurés (PAS une
+  // valeur inventée), légèrement DIAGONALES par rapport aux contacts —
+  // précédent déjà établi par DIODE (racines x=31/51 vs contacts x=0/84).
+  // Le corps opaque continue jusqu'à y=93, DONC dépasse les PhysicalContacts
+  // (y=84) de 9 px : `bodyClip.bottom = 12` (clip à y=96-12=84, exactement
+  // au niveau des contacts) masque cette portion — même logique que BUZZER /
+  // POLARIZED_CAPACITOR / POTENTIOMETER / SLIDE_SWITCH (pattes cuites qui
+  // dépassaient leurs PhysicalContacts fonctionnels), à la différence de
+  // VIBRATION_MOTOR (raster qui s'arrêtait déjà avant ses contacts).
+  LIGHT_BULB: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 26, dy: 82 }, style: "wire" },
+      B: { root: { dx: 47, dy: 83 }, style: "wire" },
+    },
+    bodyClip: { bottom: 12 },
+  },
 }
 
 export function getAssemblyProfile(type) {
