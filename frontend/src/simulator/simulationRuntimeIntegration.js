@@ -13,8 +13,10 @@ import { createScheduler } from "./scheduler.js"
 import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
 import { getDigitalContribution as defaultGetDigitalContribution, hasDigitalContribution as defaultHasDigitalContribution } from "./digitalContributionRegistry.js"
 import { getTimedDigitalContribution as defaultGetTimedDigitalContribution, hasTimedDigitalContribution as defaultHasTimedDigitalContribution } from "./timedDigitalContributionRegistry.js"
+import { getTransientContribution as defaultGetTransientContribution, hasTransientContribution as defaultHasTransientContribution } from "./transientContributionRegistry.js"
 import { resolveComponentParameters } from "./resolveComponentParameters.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
+import { getDcSource } from "./dcSourceRegistry.js"
 import { Signal } from "./signals.js"
 
 /**
@@ -219,6 +221,77 @@ export function computeTimedDigitalSignals(timedDigitalComponents, timedDigitalR
 }
 
 /**
+ * A4-D-PREQ1 — Generic Transient Electrical Simulation : composition.
+ *
+ * Sibling de `computeTimedDigitalSignals` ci-dessus, même patron Open/Closed
+ * (Registry consulté uniquement via `hasTransientContribution`/
+ * `getTransientContribution`, jamais un `if (component.type === "...")`),
+ * mais pour des contributeurs ÉLECTRIQUES (pas des sorties Signal
+ * numériques) : chaque appel reçoit `dt`/`currentTimeMs` (Scheduler partagé,
+ * même source unique de temps que `computeTimedDigitalSignals`, §6 du
+ * ticket) et l'état électrique privé du step précédent pour ce composant
+ * (`electricalTransientStates`, Map<uid, state> — volatile, hors Document,
+ * fournie par l'appelant pour persister entre plusieurs appels successifs).
+ *
+ * Réutilise `buildComponentSourceDrivenPinSignals` (même primitive que
+ * `computeComponentDigitalSignals`/`computeTimedDigitalSignals` : aucune
+ * seconde résolution, un contributeur observe uniquement les pins déjà
+ * déterminables avant résolution via `resolveSourceDrivenPinSignals`).
+ *
+ * Pure hormis la mutation de `electricalTransientStates` (le store d'état
+ * runtime fourni par l'appelant — jamais `effectiveComponents`, jamais le
+ * Document) : ne lit ni Scheduler ni Runtime directement, ne lit jamais
+ * wires/DOM/Canvas.
+ *
+ * Le résultat `{voltage, current}` par composant n'est PAS injecté dans
+ * `externalSignals`/`pinSignals` (ce n'est pas un Signal numérique — c'est
+ * une grandeur électrique, comme une entrée de `dcAnalysis`) : cette
+ * fonction produit et persiste uniquement l'état/la contribution
+ * électriques transitoires, fondation consommée par un futur ticket
+ * consommateur (§9 du ticket : scope le plus petit possible pour ce PREQ).
+ *
+ * @param {Array<{ uid, type, parameters? }>} transientComponents composants
+ *   EFFECTIFS déjà filtrés par le Registry transitoire (voir
+ *   `runSimulationWithRuntime`).
+ * @param {{ hasTransientContribution: (type: string) => boolean, getTransientContribution: (type: string) => import('./transientContributionRegistry.js').TransientContributionFn | null }} transientRegistry
+ * @param {Map<string, string>} sourceDrivenSignals `resolveSourceDrivenPinSignals()`
+ *   (resolution.js), clé "uid:pinId" — même Map que celle transmise à
+ *   `computeComponentDigitalSignals`/`computeTimedDigitalSignals` (une seule
+ *   résolution pré-électrique par step).
+ * @param {number | null} supplyVoltage Tension de la seule source DC du
+ *   circuit lorsqu'il n'en existe qu'une (même restriction que
+ *   `computeDcAnalysis`, resolution.js) ; `null` sinon.
+ * @param {number} dt Pas de temps simulé explicite du step courant (jamais
+ *   recalculé depuis `currentTimeMs`).
+ * @param {number} currentTimeMs Temps simulé courant, issu du Scheduler
+ *   partagé.
+ * @param {Map<string, object>} electricalTransientStates Store d'état
+ *   électrique runtime (uid -> state), muté en place par cette fonction —
+ *   jamais lu/écrit ailleurs que par cette fonction et son appelant.
+ * @returns {Map<string, {voltage:number, current:number}>} clé uid ->
+ *   contribution électrique (composants sans contribution pour ce step
+ *   absents de la Map, même convention que `dcContributionRegistry.js`).
+ */
+export function computeTransientElectricalContributions(transientComponents, transientRegistry, sourceDrivenSignals, supplyVoltage, dt, currentTimeMs, electricalTransientStates) {
+  const produced = new Map()
+  if (!Array.isArray(transientComponents)) return produced
+
+  for (const comp of transientComponents) {
+    if (!comp || !transientRegistry.hasTransientContribution(comp.type)) continue
+
+    const contribute = transientRegistry.getTransientContribution(comp.type)
+    const params = resolveComponentParameters(comp.type, comp.parameters)
+    const pins = buildComponentSourceDrivenPinSignals(comp, sourceDrivenSignals)
+    const previousState = electricalTransientStates.get(comp.uid)
+    const { state, contribution } = contribute({ pins, params, supplyVoltage, dt, currentTimeMs, previousState })
+    electricalTransientStates.set(comp.uid, state)
+    if (contribution) produced.set(comp.uid, contribution)
+  }
+
+  return produced
+}
+
+/**
  * A7-C3-PREQ2 (§6 du ticket) : projection `{ pinId -> Signal }` des SEULES
  * pins canoniques du composant, lues depuis `sourceDrivenSignals` (Map
  * "uid:pinId" -> Signal produite par `resolveSourceDrivenPinSignals`,
@@ -326,6 +399,15 @@ export function mergeExternalSignals(signalMaps) {
  *   pour test (§13 du ticket) — défaut : Registry de production
  *   (`digitalContributionRegistry.js`, table vide dans ce ticket). Jamais
  *   utilisé pour enregistrer un faux type de production.
+ *   `transientContributionRegistry`/`electricalTransientStates` [A4-D-PREQ1] :
+ *   même convention exacte que `timedDigitalContributionRegistry`/
+ *   `timedDigitalStates` ci-dessus, pour les contributeurs ÉLECTRIQUES
+ *   transitoires (CAPACITOR/POLARIZED_CAPACITOR, §5 du ticket) — Registry
+ *   optionnel injecté pour test (défaut : Registry de production,
+ *   `transientContributionRegistry.js`) ; `electricalTransientStates`
+ *   (Map<uid, state>) est le store d'état électrique runtime volatile,
+ *   fourni par l'appelant pour persister entre appels successifs — une
+ *   nouvelle Map par défaut si omise.
  * @returns {Map<string, string>} pinSignals — même format que
  *   runSimulation() (clé "uid:pinId" → Signal), désormais calculé avec les
  *   signaux Runtime ET/OU les sorties numériques calculées comme entrées de
@@ -391,29 +473,53 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
     (c) => c && timedDigitalRegistry.hasTimedDigitalContribution(c.type)
   )
 
-  // GATE 0 (§7/§15 du ticket, non-régression stricte) : pour un circuit sans
-  // ARDUINO, sans aucun composant enregistré dans le Registry de sorties
-  // numériques calculées, ET sans aucun composant enregistré dans le
-  // Registry temporel (tables de production vides dans ce ticket — donc
-  // TOUJOURS vrai aujourd'hui pour tout circuit réel), le comportement
-  // historique est préservé À L'IDENTIQUE — même référence de Map que
-  // `runSimulation()`, aucun Scheduler ni Runtime instancié.
-  if (runtimeComponents.length === 0 && computedDigitalSignals.size === 0 && timedDigitalComponents.length === 0) {
+  // A4-D-PREQ1 (§6 du ticket) : le Registry générique de contributions
+  // ÉLECTRIQUES TRANSITOIRES est consulté pour TOUS les composants,
+  // exactement comme `timedDigitalRegistry` ci-dessus — jamais un
+  // `if (component.type === "...")`. Sa taille conditionne, au même titre
+  // que `runtimeComponents`/`timedDigitalComponents`, si le chemin
+  // historique `runSimulation()` peut encore être emprunté (GATE 0) et si
+  // une source de temps simulé doit exister pour ce step (§6 du ticket : la
+  // seule présence d'un composant transitoire suffit à activer le chemin
+  // temporel générique, même sans aucun ARDUINO).
+  const transientRegistry = options.transientContributionRegistry ?? {
+    hasTransientContribution: defaultHasTransientContribution,
+    getTransientContribution: defaultGetTransientContribution,
+  }
+  const transientComponents = (effectiveComponents || []).filter(
+    (c) => c && transientRegistry.hasTransientContribution(c.type)
+  )
+
+  // GATE 0 (§7/§15 du ticket A7-C5-PREQ, étendu §7 A4-D-PREQ1, non-régression
+  // stricte) : pour un circuit sans ARDUINO, sans aucun composant enregistré
+  // dans le Registry de sorties numériques calculées, sans aucun composant
+  // enregistré dans le Registry temporel, ET sans aucun composant enregistré
+  // dans le Registry transitoire électrique, le comportement historique est
+  // préservé À L'IDENTIQUE — même référence de Map que `runSimulation()`,
+  // aucun Scheduler ni Runtime instancié.
+  if (
+    runtimeComponents.length === 0
+    && computedDigitalSignals.size === 0
+    && timedDigitalComponents.length === 0
+    && transientComponents.length === 0
+  ) {
     return runSimulation(effectiveComponents, wires)
   }
 
-  // A7-C3-PREQ (§12 du ticket) / A7-C5-PREQ (§14 du ticket) : la construction
-  // d'une source de temps simulé (Scheduler) est conditionnée à la présence
-  // d'au moins un ARDUINO OU d'au moins un timed digital producer — un
-  // circuit qui n'a QUE des sorties numériques calculées (stateless, sans
-  // ARDUINO ni timed producer) n'instancie ni Scheduler ni Runtime, exactement
-  // comme avant ce ticket pour un tel circuit. Un ArduinoSimulator, lui,
-  // n'est JAMAIS créé uniquement à cause d'un timed producer (§14, §32 du
-  // ticket) : seul un Scheduler générique (scheduler.js, inchangé) est requis
-  // dans ce cas.
+  // A7-C3-PREQ (§12 du ticket) / A7-C5-PREQ (§14 du ticket) / A4-D-PREQ1 (§6
+  // du ticket) : la construction d'une source de temps simulé (Scheduler)
+  // est conditionnée à la présence d'au moins un ARDUINO, OU d'au moins un
+  // timed digital producer, OU d'au moins un composant transitoire
+  // électrique — un circuit qui n'a QUE des sorties numériques calculées
+  // (stateless, sans ARDUINO/timed/transient) n'instancie ni Scheduler ni
+  // Runtime, exactement comme avant ce ticket pour un tel circuit. Un
+  // ArduinoSimulator, lui, n'est JAMAIS créé uniquement à cause d'un timed
+  // producer ou d'un composant transitoire (§14/§32 A7-C5-PREQ, §6
+  // A4-D-PREQ1) : seul un Scheduler générique (scheduler.js, inchangé) est
+  // requis dans ce cas.
   let runtimeSignals = new Map()
   let timedDigitalSignals = new Map()
-  if (runtimeComponents.length > 0 || timedDigitalComponents.length > 0) {
+  if (runtimeComponents.length > 0 || timedDigitalComponents.length > 0 || transientComponents.length > 0) {
     const dt = options.dt ?? 0
     const orchestrators = options.orchestrators instanceof Map ? options.orchestrators : new Map()
 
@@ -495,6 +601,35 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
         sourceDrivenSignals,
         currentTimeMs,
         timedDigitalStates
+      )
+    }
+
+    if (transientComponents.length > 0) {
+      // A4-D-PREQ1 (§4 du ticket) : store d'état électrique runtime
+      // volatile, fourni par l'appelant pour persister entre plusieurs
+      // appels successifs (même convention exacte que
+      // `options.timedDigitalStates`/`options.orchestrators`) — une nouvelle
+      // Map par défaut si omise (reset déterministe, §5/T6 du ticket).
+      //
+      // Le contrat transitoire n'accepte qu'une tension de bus UNIQUE
+      // (`supplyVoltage`), même restriction déjà existante que
+      // `computeDcAnalysis` (resolution.js) : au-delà d'une seule source DC
+      // dans le circuit, aucune tension de bus commune n'est définie dans ce
+      // modèle simplifié — un contributeur reçoit alors `null` et se
+      // comporte comme un composant non alimenté (voir
+      // `transientContributionRegistry.js`).
+      const dcSources = effectiveComponents.map((c) => getDcSource(c)).filter((source) => source !== null)
+      const supplyVoltage = dcSources.length === 1 ? dcSources[0].voltage : null
+
+      const electricalTransientStates = options.electricalTransientStates instanceof Map ? options.electricalTransientStates : new Map()
+      computeTransientElectricalContributions(
+        transientComponents,
+        transientRegistry,
+        sourceDrivenSignals,
+        supplyVoltage,
+        dt,
+        currentTimeMs,
+        electricalTransientStates
       )
     }
   }
