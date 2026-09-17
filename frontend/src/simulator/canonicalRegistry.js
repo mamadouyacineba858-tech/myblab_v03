@@ -69,9 +69,16 @@ const DECLARED_TYPES_PINS = {
   // stimulus actif n'est fourni.
   FORCE_SENSOR:[{id:'A',role:'sensor'},{id:'B',role:'sensor'}],
   FLEX_SENSOR:[{id:'A',role:'sensor'},{id:'B',role:'sensor'}],
+  // A7-C3 — Soil Moisture Sensor (YL-69 probe + YL-38 interface module) :
+  // 4 broches DIRECTIONNELLES, ordre verrouillé VCC/AO/DO/GND (§3 du ticket),
+  // même vocabulaire de rôles que TMP36/SERVO/ARDUINO (power/output/ground) —
+  // aucun nouveau rôle introduit. AO (analogique, dcContributionRegistry.js)
+  // et DO (numérique calculée, digitalContributionRegistry.js) sont deux
+  // sorties DISTINCTES, jamais fusionnées en un seul pin.
+  SOIL_MOISTURE_SENSOR:[{id:'VCC',role:'power'},{id:'AO',role:'output'},{id:'DO',role:'output'},{id:'GND',role:'ground'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -143,6 +150,19 @@ const DECLARED_PARAMETER_SCHEMA = {
   // dédié entre ces mêmes bornes minimum/maximum, sans jamais modifier ce
   // paramètre persistant.
   FLEX_SENSOR:[{key:'resistance',parameterType:'resistance',unit:'Ω',minimum:10000,maximum:40000,defaultValue:10000,description:'Résistance fixe par défaut (fallback historique = état "à plat") tant qu\'aucun stimulus environnemental FLEX actif n\'est fourni. Sous FLEX actif (A7-C2), la résistance EFFECTIVE de ce capteur est calculée par le Registry environnemental dédié entre ces mêmes bornes minimum/maximum, sans jamais modifier ce paramètre persistant.'}],
+  // A7-C3 — Soil Moisture Sensor : deux paramètres [0,1] (ratios, jamais une
+  // unité physique — même convention de normalisation que LIGHT/FORCE/FLEX).
+  // `analogRatio` est le niveau analogique normalisé EFFECTIF (1 = sol sec,
+  // 0 = sol saturé), fallback historique 1 tant qu'aucun stimulus MOISTURE
+  // actif n'est fourni. Sous MOISTURE actif (§5 du ticket), la valeur
+  // EFFECTIVE de `analogRatio` est calculée par environmentalResponseRegistry.js
+  // (analogRatio = 1 - MOISTURE) — jamais recalculée ici. `threshold` reste un
+  // paramètre d'instance/persistant PUR (jamais dérivé d'un stimulus) :
+  // consulté par digitalContributionRegistry.js pour décider DO HIGH/LOW.
+  SOIL_MOISTURE_SENSOR:[
+    {key:'analogRatio',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:1,description:'Niveau analogique normalisé EFFECTIF (1 = sol sec, 0 = sol saturé), fallback historique tant qu\'aucun stimulus environnemental MOISTURE actif n\'est fourni. Sous MOISTURE actif (A7-C3), la valeur EFFECTIVE est calculée par le Registry environnemental dédié (analogRatio = 1 - MOISTURE), sans jamais modifier ce paramètre persistant.'},
+    {key:'threshold',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0.5,description:'Seuil d\'humidité (échelle MOISTURE [0,1]) sous lequel la sortie numérique DO commute HIGH (sol jugé "sec") — paramètre d\'instance persistant, jamais dérivé d\'un stimulus environnemental.'},
+  ],
 }
 
 const DECLARED_DEFAULT_PARAMETERS = {
@@ -165,6 +185,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   TMP36:{outputVoltage:0.75},
   FORCE_SENSOR:{resistance:1000000},
   FLEX_SENSOR:{resistance:10000},
+  SOIL_MOISTURE_SENSOR:{analogRatio:1,threshold:0.5},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -187,6 +208,7 @@ const DECLARED_CAPABILITIES = {
   TMP36:['digital','dc'],
   FORCE_SENSOR:['digital','dc'],
   FLEX_SENSOR:['digital','dc'],
+  SOIL_MOISTURE_SENSOR:['digital','dc'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -209,6 +231,7 @@ const DECLARED_MODEL_AVAILABLE = {
   TMP36:true,
   FORCE_SENSOR:true,
   FLEX_SENSOR:true,
+  SOIL_MOISTURE_SENSOR:true,
 }
 
 /**

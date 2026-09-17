@@ -86,19 +86,34 @@ export function isValidFlexStimulus(value) {
 }
 
 /**
+ * A7-C3 — MOISTURE est une valeur normalisée [0,1] (0 = sol sec, 1 = sol
+ * humide/mouillé — convention verrouillée), même patron que FORCE/FLEX/LIGHT
+ * ci-dessus : pas une unité physique, seule la réponse RELATIVE (extrémités +
+ * monotonie) importe à ce niveau pédagogique. NaN/Infinity/-Infinity/
+ * hors-borne/non-numérique sont rejetés, exactement comme les autres kinds.
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isValidMoistureStimulus(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1
+}
+
+/**
  * Table déclarative kind -> définition. Chaque définition porte au minimum
  * `validate(value)`. Aucun moteur générique ne doit connaître cette table
  * par son contenu — seulement par ses clés (`getSupportedStimulusKinds`) et
  * son comportement (`isValidStimulusValue`). A7-C1 ajoute TEMPERATURE ici,
  * exactement comme prévu par A7-C0 : aucune autre modification n'est requise
  * dans `environmentalStimulus.js` pour que ce nouveau kind soit reconnu.
- * A7-C2 ajoute FORCE et FLEX sur le même principe.
+ * A7-C2 ajoute FORCE et FLEX sur le même principe. A7-C3 ajoute MOISTURE.
  */
 const STIMULUS_DEFINITIONS = Object.freeze({
   LIGHT: Object.freeze({ validate: isValidLightStimulus }),
   TEMPERATURE: Object.freeze({ validate: isValidTemperatureStimulus }),
   FORCE: Object.freeze({ validate: isValidForceStimulus }),
   FLEX: Object.freeze({ validate: isValidFlexStimulus }),
+  MOISTURE: Object.freeze({ validate: isValidMoistureStimulus }),
 })
 
 /**

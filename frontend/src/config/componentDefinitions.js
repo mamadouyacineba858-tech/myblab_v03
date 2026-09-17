@@ -254,6 +254,20 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "A", label: "A", dx: 30, dy: 180, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "A", dx: 30, dy: 180, wireConnectable: true, breadboardInsertable: true }] },
     { id: "B", label: "B", dx: 42, dy: 180, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "B", dx: 42, dy: 180, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A7-C3 — Soil Moisture Sensor (YL-69 probe + YL-38 interface module).
+  // Boîte canonique 144×144 = pixels natifs @1x du paquet Founder-approved.
+  // PhysicalContacts fonctionnels VERROUILLÉS par le ticket §11 :
+  // VCC(80,140)/AO(92,140)/DO(104,140)/GND(116,140), entraxe 12 px =
+  // 1 × BREADBOARD_PITCH exact entre CHAQUE paire adjacente, même rangée
+  // (dy=140 identique), même stratégie que TMP36/FORCE_SENSOR/FLEX_SENSOR
+  // (racines visuelles mesurées ≠ PhysicalContacts fonctionnels alignés
+  // grille — cf. assemblyProfiles.js pour les racines).
+  SOIL_MOISTURE_SENSOR: [
+    { id: "VCC", label: "VCC", dx: 80, dy: 140, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 80, dy: 140, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "AO", label: "AO", dx: 92, dy: 140, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "AO", dx: 92, dy: 140, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "DO", label: "DO", dx: 104, dy: 140, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DO", dx: 104, dy: 140, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 116, dy: 140, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 116, dy: 140, wireConnectable: true, breadboardInsertable: true }] },
+  ],
 }
 
 function buildPins(type) {
@@ -350,6 +364,13 @@ export const COMPONENT_TYPES = {
   // fonctionnels A(30,180)/B(42,180), entraxe 1×BREADBOARD_PITCH, correctif
   // Founder Canvas Gate A7-C2-R1).
   FLEX_SENSOR: { id: "FLEX_SENSOR", label: "Capteur de flexion", icon: "📏", width: 72, height: 180, pins: buildPins("FLEX_SENSOR") },
+  // A7-C3 — Soil Moisture Sensor : capteur environnemental analogique +
+  // numérique (contrat générique A7-C0, stimulus MOISTURE). Renderer raster
+  // (SoilMoistureSensorPart.jsx, paquet Founder-approved), boîte canonique
+  // 144×144 (dimensions natives @1x du paquet) — enfichable breadboard
+  // (PhysicalContacts fonctionnels VCC(80,140)/AO(92,140)/DO(104,140)/
+  // GND(116,140), entraxe 1×BREADBOARD_PITCH entre chaque paire adjacente).
+  SOIL_MOISTURE_SENSOR: { id: "SOIL_MOISTURE_SENSOR", label: "Capteur d'humidité du sol", icon: "🌱", width: 144, height: 144, pins: buildPins("SOIL_MOISTURE_SENSOR") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -376,7 +397,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

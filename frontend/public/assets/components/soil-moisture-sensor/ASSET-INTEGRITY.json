@@ -1,0 +1,23 @@
+{
+  "component": "SOIL_MOISTURE_SENSOR",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "soil-moisture-sensor.default.1x.png": {
+      "sha256": "4ec2bcde2ce1bbdd426c128d9b574719f312be29d14dc8fd34fc382cf03099ef",
+      "bytes": 22623
+    },
+    "soil-moisture-sensor.default.1x.webp": {
+      "sha256": "ffd55624c25438dfdd689cc909088568c5761e1137da009d0779556255748481",
+      "bytes": 18186
+    },
+    "soil-moisture-sensor.default.3x.png": {
+      "sha256": "5dba1a48619165d047ff8274a93975a2e11b0e48876d9716f34791d11a185088",
+      "bytes": 145306
+    },
+    "soil-moisture-sensor.default.3x.webp": {
+      "sha256": "b55ca835b5fe2f6a106ab58d334316c5773e517cdf73676763b57acea0097577",
+      "bytes": 108122
+    }
+  }
+}

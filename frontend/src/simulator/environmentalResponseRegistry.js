@@ -124,6 +124,25 @@ function flexSensorFlexResponse(stimuli) {
 }
 
 /**
+ * A7-C3 — SOIL_MOISTURE_SENSOR : produit UNIQUEMENT le paramètre EFFECTIF
+ * `analogRatio` (§6 du ticket) — aucun calcul électrique, aucune sortie
+ * HIGH/LOW ici (ça reste dcContributionRegistry.js/digitalContributionRegistry.js).
+ *
+ *   analogRatio = 1 - MOISTURE
+ *
+ * MOISTURE = 0 (sol sec) -> analogRatio = 1 ; MOISTURE = 1 (sol saturé) ->
+ * analogRatio = 0 ; strictement monotone décroissante, linéaire (contrat
+ * verrouillé §5 du ticket, pas un choix logarithmique comme LIGHT/LDR ou
+ * FORCE_SENSOR — l'inversion demandée est une simple complémentation [0,1],
+ * aucune bornes canoniques externes à consulter ici, à la différence de
+ * `resistanceBounds` ci-dessus).
+ */
+function soilMoistureSensorMoistureResponse(stimuli) {
+  const { MOISTURE: moisture } = stimuli
+  return { analogRatio: 1 - moisture }
+}
+
+/**
  * Table déclarative type -> { stimulus, respond }. `respond(stimuli)` reçoit
  * le stimulus environnemental déjà validé (voir `environmentalStimulus.js`)
  * et retourne un objet d'overrides de paramètres, ou `null` si aucun effet
@@ -139,6 +158,7 @@ const ENVIRONMENTAL_RESPONSES = Object.freeze({
   TMP36: Object.freeze({ stimulus: "TEMPERATURE", respond: tmp36TemperatureResponse }),
   FORCE_SENSOR: Object.freeze({ stimulus: "FORCE", respond: forceSensorForceResponse }),
   FLEX_SENSOR: Object.freeze({ stimulus: "FLEX", respond: flexSensorFlexResponse }),
+  SOIL_MOISTURE_SENSOR: Object.freeze({ stimulus: "MOISTURE", respond: soilMoistureSensorMoistureResponse }),
 })
 
 /**

@@ -45,6 +45,7 @@ import { HobbyGearmotorPart } from '../components/parts/HobbyGearmotorPart.jsx';
 import { Tmp36Part } from '../components/parts/Tmp36Part.jsx';
 import { ForceSensorPart } from '../components/parts/ForceSensorPart.jsx';
 import { FlexSensorPart } from '../components/parts/FlexSensorPart.jsx';
+import { SoilMoistureSensorPart } from '../components/parts/SoilMoistureSensorPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -247,6 +248,17 @@ export const DEFAULT_REGISTRATIONS = [
   // componentDefinitions.js / assemblyProfiles.js.
   { type: 'FORCE_SENSOR', component: ForceSensorPart, visual: { backend: 'raster' } },
   { type: 'FLEX_SENSOR', component: FlexSensorPart, visual: { backend: 'raster' } },
+  // SOIL_MOISTURE_SENSOR : A7-C3 — paquet d'assets raster réaliste
+  // Founder-approved (YL-69 probe + YL-38 interface module, 144×144, état
+  // unique `default`). raster => bareBody + markerless dérivés, même
+  // mécanisme déclaratif que TMP36 / FORCE_SENSOR / FLEX_SENSOR — aucun
+  // code central spécifique, aucune condition
+  // `type === "SOIL_MOISTURE_SENSOR"`. Modèle électrique dédié : AO
+  // (soilMoistureSensorDc, dcContributionRegistry.js) et DO
+  // (soilMoistureSensorDigital, digitalContributionRegistry.js) dépendent
+  // du stimulus environnemental MOISTURE (contrat générique A7-C0,
+  // environmentalResponseRegistry.js) et de l'alimentation VCC/GND (PREQ2).
+  { type: 'SOIL_MOISTURE_SENSOR', component: SoilMoistureSensorPart, visual: { backend: 'raster' } },
 ];
 
 /**

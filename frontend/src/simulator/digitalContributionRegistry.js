@@ -6,37 +6,37 @@
  * association `type de composant -> fonction pure qui calcule zéro ou
  * plusieurs sorties Signal.HIGH/Signal.LOW pour ses propres pins`. Exactement
  * le même principe Open/Closed que dcContributionRegistry.js : ajouter un
- * futur composant producteur (capteur d'humidité, détecteur de mouvement,
- * détecteur d'inclinaison, récepteur en lumière infrarouge, ...) se fait en
- * ajoutant UNE entrée déclarative ici, jamais en modifiant un fichier
- * générique (composition dans `simulationRuntimeIntegration.js`, résolution
- * dans `resolution.js`).
+ * futur composant producteur (détecteur de mouvement, détecteur
+ * d'inclinaison, récepteur en lumière infrarouge, ...) se fait en ajoutant
+ * UNE entrée déclarative ici, jamais en modifiant un fichier générique
+ * (composition dans `simulationRuntimeIntegration.js`, résolution dans
+ * `resolution.js`).
  *
- * Ce ticket (A7-C3-PREQ) construit UNIQUEMENT le mécanisme générique : la
- * table de production reste volontairement VIDE — aucun composant ni kind
- * de stimulus spécifique n'est enregistré ici, voir le rapport de livraison.
+ * A7-C3-PREQ a construit UNIQUEMENT le mécanisme générique (table de
+ * production volontairement vide). A7-C3-PREQ2 a étendu le contexte de
+ * contribution d'un champ `pinSignals` (voir contrat ci-dessous). A7-C3
+ * (ce ticket) enregistre le PREMIER composant producteur réel :
+ * SOIL_MOISTURE_SENSOR.
  *
  * Contrat d'une fonction de contribution :
  *
- *   ({ component, pins, params }) => Map<pinId, Signal> | null
+ *   ({ component, pins, params, pinSignals }) => Map<pinId, Signal> | null
  *
  * - `component` : le composant EFFECTIF (post applyEnvironmentalStimuli),
  *   tel que reçu par la composition — jamais muté ici.
  * - `pins` : `component.pins` (définitions de pins persistantes de
- *   l'instance), PAS un état de signal résolu — au moment où ce Registry
- *   est consulté (composition, AVANT resolveSignals()/propagate()), aucun
- *   pin du circuit n'a encore de valeur HIGH/LOW connue (voir
- *   simulationRuntimeIntegration.js pour la raison architecturale : les
- *   valeurs calculées ici DEVIENNENT elles-mêmes une entrée de
- *   `externalSignals`, appliquées avant la propagation). Un futur
- *   contributeur qui a besoin de connaître l'état d'alimentation de son
- *   propre composant (ex. "VCC=HIGH et GND=LOW requis") ne peut donc PAS le
- *   lire ici de façon générique avec l'architecture actuelle — c'est une
- *   limitation documentée, pas une omission (voir le rapport de livraison,
- *   section Écarts).
+ *   l'instance) — PAS un état de signal résolu.
  * - `params` : paramètres EFFECTIFS résolus (`resolveComponentParameters`,
  *   mêmes defaults canoniques + overrides d'instance validés que
  *   `dcContributionRegistry.js`).
+ * - `pinSignals` [A7-C3-PREQ2] : `{ pinId: Signal }`, les propres pins du
+ *   composant PRÉ-résolues UNIQUEMENT depuis les sources DC et la topologie
+ *   physique (`resolveSourceDrivenPinSignals`, resolution.js — AVANT toute
+ *   conduction passive, sortie numérique calculée, Runtime ou résolution
+ *   complète). Un contributeur qui a besoin de connaître l'état d'alimentation
+ *   de son propre composant (ex. "VCC=HIGH et GND=LOW requis") le lit ici de
+ *   façon générique — voir `soilMoistureSensorDigital` ci-dessous pour le
+ *   premier exemple réel de ce patron.
  * - Retour : soit `null`/absence de sortie (composant présent dans le
  *   Registry mais rien à produire pour cet appel), soit une `Map<pinId,
  *   Signal>` — jamais un objet plain, pour rester cohérent avec le format
@@ -47,8 +47,34 @@
  * fonction est pure, synchrone, sans effet de bord, exactement comme
  * `dcContributionRegistry.js`.
  *
- * @typedef {(ctx: { component: object, pins: Array<object>, params: Record<string, number> }) => Map<string, string> | null} DigitalContributionFn
+ * @typedef {(ctx: { component: object, pins: Array<object>, params: Record<string, number>, pinSignals: Record<string, string> }) => Map<string, string> | null} DigitalContributionFn
  */
+
+import { Signal } from "./signals.js"
+
+/**
+ * A7-C3 — SOIL_MOISTURE_SENSOR : sortie numérique DO (§8 du ticket).
+ *
+ * Garde d'alimentation obligatoire (réutilise PREQ2, aucune seconde
+ * résolution, aucune branche SOIL dans resolution.js/simulationRuntimeIntegration.js) :
+ * un composant non alimenté, en polarité inversée, ou dont la source est en
+ * conflit ne produit jamais de DO (pinSignals.VCC/GND ne sont jamais HIGH/LOW
+ * simultanément dans ces trois cas — voir resolveSourceDrivenPinSignals).
+ *
+ * Contrat pédagogique verrouillé : MOISTURE < threshold -> DO HIGH ; MOISTURE
+ * >= threshold -> DO LOW. Cette fonction ne relit JAMAIS environmentalStimuli
+ * (interdit par §8 du ticket) et ne duplique pas la formule MOISTURE ->
+ * analogRatio d'environmentalResponseRegistry.js : elle consomme uniquement
+ * le paramètre EFFECTIF `analogRatio` déjà produit en amont (fallback
+ * canonique, ou réponse MOISTURE) et en déduit localement le niveau
+ * d'humidité correspondant (moisture = 1 - analogRatio, inverse exact et
+ * autonome de la même relation bijective) pour appliquer le seuil.
+ */
+function soilMoistureSensorDigital({ params, pinSignals }) {
+  if (pinSignals.VCC !== Signal.HIGH || pinSignals.GND !== Signal.LOW) return null
+  const moisture = 1 - params.analogRatio
+  return new Map([["DO", moisture < params.threshold ? Signal.HIGH : Signal.LOW]])
+}
 
 /**
  * Fabrique un Registry isolé — même patron que `createSimulationRegistry`
@@ -80,11 +106,14 @@ export function createDigitalContributionRegistry({ contributions = new Map() } 
 }
 
 /**
- * Registry de production — table VOLONTAIREMENT VIDE dans ce ticket
- * (A7-C3-PREQ). Chaque futur ticket producteur ajoute UNE entrée ici, sans
- * jamais toucher `simulationRuntimeIntegration.js` ni `resolution.js`.
+ * Registry de production — table vide en A7-C3-PREQ, PREMIÈRE entrée réelle
+ * ajoutée par A7-C3 (SOIL_MOISTURE_SENSOR). Chaque futur ticket producteur
+ * ajoute UNE entrée ici, sans jamais toucher `simulationRuntimeIntegration.js`
+ * ni `resolution.js`.
  */
-const defaultRegistry = createDigitalContributionRegistry({ contributions: new Map() })
+const defaultRegistry = createDigitalContributionRegistry({
+  contributions: new Map([["SOIL_MOISTURE_SENSOR", soilMoistureSensorDigital]]),
+})
 
 export const getDigitalContribution = defaultRegistry.getDigitalContribution
 export const hasDigitalContribution = defaultRegistry.hasDigitalContribution

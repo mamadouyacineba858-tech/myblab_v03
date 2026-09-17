@@ -17,11 +17,11 @@ import {
  * `environmentalStimulus.js` (T29/T30). A7-C2 ajoute FORCE et FLEX sur le
  * même principe (deux kinds séparés — grandeurs physiques incompatibles,
  * cf. environmentalStimulusRegistry.js) — les assertions ci-dessous sont
- * mises à jour en conséquence ; MOISTURE/MOTION/DISTANCE/IR/GAS (A7-C3+)
- * restent les exemples de kinds encore non enregistrés.
+ * mises à jour en conséquence. A7-C3 ajoute MOISTURE sur le même principe ;
+ * MOTION/DISTANCE/IR/GAS restent les exemples de kinds encore non enregistrés.
  */
 
-describe("A7-C0/A7-C1/A7-C2 — getSupportedStimulusKinds / isKnownStimulusKind", () => {
+describe("A7-C0/A7-C1/A7-C2/A7-C3 — getSupportedStimulusKinds / isKnownStimulusKind", () => {
   it("LIGHT est enregistré (T1)", () => {
     expect(getSupportedStimulusKinds()).toContain("LIGHT")
     expect(isKnownStimulusKind("LIGHT")).toBe(true)
@@ -42,9 +42,14 @@ describe("A7-C0/A7-C1/A7-C2 — getSupportedStimulusKinds / isKnownStimulusKind"
     expect(isKnownStimulusKind("FLEX")).toBe(true)
   })
 
-  it("un kind inconnu (par ex. futur MOISTURE, A7-C3+) n'est pas encore enregistré (T11)", () => {
-    expect(isKnownStimulusKind("MOISTURE")).toBe(false)
-    expect(getSupportedStimulusKinds()).not.toContain("MOISTURE")
+  it("MOISTURE est enregistré (A7-C3 — troisième preuve réelle d'extensibilité de A7-C0)", () => {
+    expect(getSupportedStimulusKinds()).toContain("MOISTURE")
+    expect(isKnownStimulusKind("MOISTURE")).toBe(true)
+  })
+
+  it("un kind inconnu (par ex. futur MOTION, A7-C4+) n'est pas encore enregistré (T11)", () => {
+    expect(isKnownStimulusKind("MOTION")).toBe(false)
+    expect(getSupportedStimulusKinds()).not.toContain("MOTION")
   })
 })
 
@@ -62,7 +67,7 @@ describe("A7-C0 — isValidStimulusValue : validation générique par clé", () 
   })
 
   it("rejette défensivement tout kind non enregistré, quelle que soit la valeur (T11)", () => {
-    expect(isValidStimulusValue("MOISTURE", 0.5)).toBe(false)
+    expect(isValidStimulusValue("MOTION", 0.5)).toBe(false)
     expect(isValidStimulusValue("UNKNOWN_KIND", 0)).toBe(false)
     expect(isValidStimulusValue("__proto__", 0)).toBe(false)
   })
@@ -72,19 +77,20 @@ describe("A7-C0 — isValidStimulusValue : validation générique par clé", () 
   })
 })
 
-describe("A7-C0/A7-C1/A7-C2 — preuve d'extensibilité architecturale (T30)", () => {
+describe("A7-C0/A7-C1/A7-C2/A7-C3 — preuve d'extensibilité architecturale (T30)", () => {
   it("isValidStimulusValue et getSupportedStimulusKinds n'énumèrent jamais les kinds via un if/switch : la table est la seule source", () => {
     // A7-C1 : TEMPERATURE a rejoint LIGHT dans la table déclarative sans
     // qu'aucune ligne de isValidStimulusValue/getSupportedStimulusKinds
     // n'ait été modifiée (voir environmentalStimulusRegistry.js) — preuve
     // réelle, pas seulement architecturale, que A7-C0 tient sa promesse.
-    // A7-C2 ajoute FORCE et FLEX sur le même principe, toujours sans
-    // modifier ce fichier ni environmentalStimulus.js. Le comportement pour
-    // toute clé encore absente de la table (A7-C3+) reste uniformément
-    // "rejeté", jamais un cas spécial.
+    // A7-C2 ajoute FORCE et FLEX, A7-C3 ajoute MOISTURE sur le même
+    // principe, toujours sans modifier ce fichier ni
+    // environmentalStimulus.js. Le comportement pour toute clé encore
+    // absente de la table (A7-C4+) reste uniformément "rejeté", jamais un
+    // cas spécial.
     const knownKinds = getSupportedStimulusKinds()
-    expect(knownKinds).toEqual(["LIGHT", "TEMPERATURE", "FORCE", "FLEX"])
-    for (const candidateKind of ["MOISTURE", "MOTION", "DISTANCE", "IR", "GAS"]) {
+    expect(knownKinds).toEqual(["LIGHT", "TEMPERATURE", "FORCE", "FLEX", "MOISTURE"])
+    for (const candidateKind of ["MOTION", "DISTANCE", "IR", "GAS"]) {
       expect(isKnownStimulusKind(candidateKind)).toBe(false)
       expect(isValidStimulusValue(candidateKind, 0.5)).toBe(false)
     }

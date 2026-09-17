@@ -1,0 +1,62 @@
+{
+  "component": "SOIL_MOISTURE_SENSOR",
+  "displayName": "Soil Moisture Sensor",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "complexity": "complex",
+  "canonical": {
+    "width": 144,
+    "height": 144,
+    "orientation": "assembly",
+    "visualModel": "YL-69 probe + YL-38 interface module"
+  },
+  "interface": {
+    "visibleHeaderLabels": [
+      "VCC",
+      "AO",
+      "DO",
+      "GND"
+    ],
+    "functionalContract": "LOCKED (A7-C3): exposes the YL-38 interface module's 4 output pins directly, never the raw resistive probe. VCC/GND power the module; AO is the analog output voltage (supplyVoltage x analogRatio, analogRatio = 1 - MOISTURE); DO is a computed digital output (HIGH when MOISTURE < instance threshold, else LOW), both requiring correct VCC=HIGH/GND=LOW polarity."
+  },
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      29,
+      2,
+      114,
+      141
+    ],
+    "note": "Founder-approved probe+module master preserved; resize/background transparency only. No probe, module, wire, pin or label redraw. Electrical semantics and PhysicalContacts must be locked during A7-C3 implementation audit."
+  },
+  "assets": [
+    {
+      "file": "soil-moisture-sensor.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 144,
+      "height": 144
+    },
+    {
+      "file": "soil-moisture-sensor.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 144,
+      "height": 144
+    },
+    {
+      "file": "soil-moisture-sensor.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 432,
+      "height": 432
+    },
+    {
+      "file": "soil-moisture-sensor.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 432,
+      "height": 432
+    }
+  ]
+}

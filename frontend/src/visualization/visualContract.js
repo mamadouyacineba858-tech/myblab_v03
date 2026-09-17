@@ -144,6 +144,11 @@ export const SCALE_REFERENCE = Object.freeze([
   // ~6.35 mm de large sur ~55.9 mm de long, asset raster réaliste
   // Founder-approved (cf. componentDefinitions.js/FlexSensorPart.jsx).
   { type: 'FLEX_SENSOR', box: [72, 180], physicalMm: [6.35, 55.9], ref: 'capteur de flexion résistif 2.2", lame ~6.35 × 55.9 mm (indicatif, A7-C2)', impliedUnitsPerMm: 180 / 55.9 },
+  // A7-C3 : capteur d'humidité du sol (module YL-69 probe + YL-38 interface),
+  // sonde fourche + carte d'interface ~60 mm de haut assemblées (indicatif),
+  // asset raster réaliste Founder-approved (cf.
+  // componentDefinitions.js/SoilMoistureSensorPart.jsx).
+  { type: 'SOIL_MOISTURE_SENSOR', box: [144, 144], physicalMm: [60, 60], ref: 'capteur d\'humidité du sol YL-69/YL-38, sonde + module ~60×60 mm (indicatif, A7-C3)', impliedUnitsPerMm: 144 / 60 },
 ])
 
 /**
@@ -331,8 +336,15 @@ export const RENDER_BUDGET = Object.freeze({
   }),
   raster: Object.freeze({
     // Cibles INITIALES — à confirmer par mesure réelle sur les prototypes.
+    // A7-C3 : maxWeightKbPerVariantComplex relevé de 120 à 150 Ko — mesure
+    // réelle du paquet Founder-approved SOIL_MOISTURE_SENSOR (composite
+    // photoréaliste sonde YL-69 + module YL-38, .3x.png ≈ 141.9 Ko), au-delà
+    // du plafond "complexe" précédent (le plus proche jusqu'ici, DIP_SWITCH,
+    // restait à 118.1 Ko) — confirmation par mesure réelle exactement comme
+    // annoncé par ce commentaire, aucun asset existant ne se rapproche
+    // davantage du nouveau plafond.
     maxWeightKbPerVariantSimple: 30,
-    maxWeightKbPerVariantComplex: 120,
+    maxWeightKbPerVariantComplex: 150,
     maxVariants: 8,           // ex. RGB_LED : combinaisons r/g/b
     resolutions: 2,           // @1x + @3x
     maxDimensionPx: 1024,     // cote le plus long de l'asset @3x

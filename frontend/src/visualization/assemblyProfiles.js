@@ -252,6 +252,29 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 18 },
   },
+  // A7-C3 — Soil Moisture Sensor (YL-69 probe + YL-38 interface module).
+  // Pixel-probe réel (alpha>=32, méthode frontend/scripts/lead-anchor-probe.md,
+  // System.Drawing sur le paquet copié dans ce worktree) : bounding box
+  // opaque globale (1x) x∈[30,114] y∈[2,140] — cohérent avec l'audit Founder
+  // (§2 du ticket : opaqueBounds1x ≈ [29,2,114,141]). Racines VERROUILLÉES
+  // par le ticket §12 : VCC(91,116)/AO(96,116)/DO(101,116)/GND(107,116) —
+  // toutes les quatre mesurées OPAQUES (alpha 163-255) sur le raster réel.
+  // Sous chaque racine, l'alpha chute à 0 entre y=126 et y=140 (vérifié par
+  // sondage colonne par colonne) : le corps opaque du module s'arrête donc
+  // NATURELLEMENT avant les PhysicalContacts (y=140), exactement comme
+  // TMP36/VIBRATION_MOTOR — AUCUN bodyClip requis, décision d'audit déjà
+  // verrouillée par le ticket (§12 : "le YL-69 probe descend jusqu'à
+  // environ y=141" au global, mais la zone SOUS le header, aux colonnes des
+  // 4 leads, est naturellement transparente jusqu'aux contacts).
+  SOIL_MOISTURE_SENSOR: {
+    kind: "through-hole",
+    leads: {
+      VCC: { root: { dx: 91, dy: 116 }, style: "metallic-wire" },
+      AO: { root: { dx: 96, dy: 116 }, style: "metallic-wire" },
+      DO: { root: { dx: 101, dy: 116 }, style: "metallic-wire" },
+      GND: { root: { dx: 107, dy: 116 }, style: "metallic-wire" },
+    },
+  },
   // A7-C2-R2 — Force Sensor (FSR) (correctif CSA, Founder Canvas Gate FAIL
   // sur le physical fit breadboard). Racines mécaniques reconfirmées par
   // pixel-probe réel sur le raster Founder livré (méthode

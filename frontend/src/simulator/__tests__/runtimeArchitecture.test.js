@@ -158,12 +158,19 @@ describe("A7-C3-PREQ — Generic Computed Digital Output Registry : mécanisme g
     }
   })
 
-  it("aucun littéral SOIL_MOISTURE_SENSOR/MOISTURE/PIR/TILT/IR_RECEIVER dans le Registry générique ni dans le compositeur (table de production vide dans ce ticket, §16 du blueprint)", () => {
+  it("aucun littéral PIR/TILT/IR_RECEIVER dans le Registry générique ni dans le compositeur (SOIL_MOISTURE_SENSOR/MOISTURE sont la seule entrée réelle de production, A7-C3)", () => {
     for (const sourcePath of [digitalContributionRegistryPath, integrationPath]) {
       const source = readSourceWithoutComments(sourcePath)
-      for (const forbidden of ["SOIL_MOISTURE_SENSOR", "MOISTURE", "PIR", "TILT", "IR_RECEIVER"]) {
+      for (const forbidden of ["PIR", "TILT", "IR_RECEIVER"]) {
         expect(source, `${path.basename(sourcePath)} : ${forbidden}`).not.toMatch(new RegExp(forbidden))
       }
+    }
+  })
+
+  it("aucun littéral SOIL_MOISTURE_SENSOR/MOISTURE dans le compositeur générique (simulationRuntimeIntegration.js) — cette connaissance vit exclusivement dans les Registries déclaratifs", () => {
+    const source = readSourceWithoutComments(integrationPath)
+    for (const forbidden of ["SOIL_MOISTURE_SENSOR", "MOISTURE"]) {
+      expect(source, forbidden).not.toMatch(new RegExp(forbidden))
     }
   })
 

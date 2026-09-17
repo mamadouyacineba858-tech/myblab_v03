@@ -185,6 +185,23 @@ function tmp36Dc({ pins, params }) {
   return { voltage: params.outputVoltage, current: 0 }
 }
 
+function soilMoistureSensorDc({ pins, params, supplyVoltage }) {
+  // A7-C3 — VCC/GND sont DIRECTIONNELS (mêmes rôles power/ground que TMP36) :
+  // seule la bonne polarité (VCC=HIGH, GND=LOW) produit une sortie AO valide,
+  // exactement le même principe que tmp36Dc ci-dessus (§7 du ticket, réutilise
+  // l'infrastructure PREQ2 en amont — resolveSignals() reste l'unique
+  // fournisseur de pins.VCC/pins.GND, aucune branche SOIL dans resolution.js).
+  //
+  // AO voltage = supplyVoltage × analogRatio (§9 du ticket) : `analogRatio`
+  // est déjà la valeur EFFECTIVE (fallback canonique, ou produite par
+  // environmentalResponseRegistry.js sous MOISTURE actif) — aucun calcul de
+  // MOISTURE ici, cette fonction ne fait qu'appliquer la formule de tension.
+  // `current: 0` : AO est un point de mesure haute impédance, même convention
+  // que Vout de TMP36 (aucun modèle de charge à ce niveau de simulation).
+  if (pins.VCC !== Signal.HIGH || pins.GND !== Signal.LOW) return null
+  return { voltage: supplyVoltage * params.analogRatio, current: 0 }
+}
+
 const DC_CONTRIBUTIONS = new Map([
   ["RESISTOR", resistorDc],
   ["LDR", ldrDc],
@@ -230,6 +247,7 @@ const DC_CONTRIBUTIONS = new Map([
   // générique (aucune branche if(type==='FORCE_SENSOR') introduite ici).
   ["FORCE_SENSOR", resistorDc],
   ["FLEX_SENSOR", resistorDc],
+  ["SOIL_MOISTURE_SENSOR", soilMoistureSensorDc],
 ])
 
 /**
