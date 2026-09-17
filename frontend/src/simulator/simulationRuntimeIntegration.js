@@ -5,6 +5,17 @@ import { FirmwareRuntimeController } from "../arduino/firmware/firmwareRuntimeCo
 // Presentation frames advance this fixed simulated duration, never wall time.
 export const SIMULATION_STEP_MS = 16
 
+// A4-D-PREQ2 (I-A4-17) : GATE 0 n'appelle plus runSimulation() directement
+// (elle recalculerait un second resolveSignals() interne rien que pour
+// pinSignals, alors que ce fichier a besoin de dcAnalysis dans la MÊME
+// résolution — voir computeElectricalStep() plus bas) — mais cet import
+// reste requis tel quel : runtimeArchitecture.test.js (« GATE 1 »,
+// MB-SIM-011) verrouille le fait que simulationRuntimeIntegration.js est le
+// seul fichier du dépôt à importer à la fois engine.js et
+// runtimeOrchestrator.js (frontière de composition SIM3). runSimulation()
+// (engine.js) elle-même reste totalement inchangée et appelable directement
+// par tout autre appelant (I-A4-19).
+// eslint-disable-next-line no-unused-vars
 import { runSimulation } from "./engine.js"
 import { prepareCircuit } from "./preparation.js"
 import { resolveSignals, resolveSourceDrivenPinSignals } from "./resolution.js"
@@ -14,6 +25,7 @@ import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
 import { getDigitalContribution as defaultGetDigitalContribution, hasDigitalContribution as defaultHasDigitalContribution } from "./digitalContributionRegistry.js"
 import { getTimedDigitalContribution as defaultGetTimedDigitalContribution, hasTimedDigitalContribution as defaultHasTimedDigitalContribution } from "./timedDigitalContributionRegistry.js"
 import { getTransientContribution as defaultGetTransientContribution, hasTransientContribution as defaultHasTransientContribution } from "./transientContributionRegistry.js"
+import { composeElectricalAnalysis } from "./electricalAnalysis.js"
 import { resolveComponentParameters } from "./resolveComponentParameters.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
 import { getDcSource } from "./dcSourceRegistry.js"
@@ -408,12 +420,41 @@ export function mergeExternalSignals(signalMaps) {
  *   (Map<uid, state>) est le store d'état électrique runtime volatile,
  *   fourni par l'appelant pour persister entre appels successifs — une
  *   nouvelle Map par défaut si omise.
- * @returns {Map<string, string>} pinSignals — même format que
- *   runSimulation() (clé "uid:pinId" → Signal), désormais calculé avec les
- *   signaux Runtime ET/OU les sorties numériques calculées comme entrées de
- *   la résolution le cas échéant.
+ * @returns {{ pinSignals: Map<string, string>, electricalAnalysis: Map<string, {voltage:number, current:number}> }}
+ *   `pinSignals` — même format que runSimulation() (clé "uid:pinId" →
+ *   Signal), désormais calculé avec les signaux Runtime ET/OU les sorties
+ *   numériques calculées comme entrées de la résolution le cas échéant.
+ *   `electricalAnalysis` [A4-D-PREQ2] : `composeElectricalAnalysis(dcAnalysis,
+ *   transientContributions)` (electricalAnalysis.js) — l'analyse DC
+ *   steady-state historique (`computeDcAnalysis`, resolution.js), avec
+ *   remplacement par la contribution électrique transitoire du step
+ *   courant pour tout `uid` qui en possède une valide (I-A4-13/I-A4-14).
+ *   Cette fonction interne n'est jamais exportée directement : voir
+ *   `runSimulationWithRuntime()` (ne garde que `pinSignals`, contrat
+ *   historique strictement inchangé — I-A4-19) et `runSimulationStep()`
+ *   (nouvelle surface publique minimale qui expose aussi
+ *   `electricalAnalysis`) ci-dessous, toutes deux de simples projections de
+ *   ce même résultat calculé UNE SEULE FOIS (I-A4-17).
  */
-export function runSimulationWithRuntime(components, wires, options = {}) {
+
+/**
+ * A4-D-PREQ2 (I-A4-17, "ONE RESOLUTION") : point d'appel textuel UNIQUE à
+ * `resolveSignals()` dans ce fichier. GATE 0 (circuit sans ARDUINO/timed/
+ * transient) et le chemin composé (Runtime/timed/transient) ci-dessous
+ * appellent tous deux CETTE fonction plutôt que `resolveSignals()`
+ * directement — les deux sites d'appel sont mutuellement exclusifs (GATE 0
+ * retourne avant d'atteindre l'autre), donc l'invariant runtime réel
+ * ("exactement une résolution exécutée par step") reste vrai ; centraliser
+ * le SITE d'appel préserve en plus, telle quelle, la preuve structurelle
+ * déjà verrouillée par `poweredDigitalContext.test.js` (P20) et
+ * `timedDigitalRuntimeIntegration.test.js` (TD-37) : "simulationRuntimeIntegration.js
+ * appelle resolveSignals(...) exactement une fois (hors commentaires/JSDoc)".
+ */
+function resolveElectricalSignals(effectiveComponents, prepared, externalSignals = null) {
+  return resolveSignals(effectiveComponents, prepared, externalSignals)
+}
+
+function computeElectricalStep(components, wires, options = {}) {
   // MB-L1-ENV-001 (§9 du ticket) : les composants EFFECTIFS (paramètres
   // électriques soumis à l'environnement, ex. résistance LDR sous LIGHT)
   // sont calculés AVANT prepareCircuit()/resolveSignals() et avant
@@ -495,15 +536,30 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // dans le Registry de sorties numériques calculées, sans aucun composant
   // enregistré dans le Registry temporel, ET sans aucun composant enregistré
   // dans le Registry transitoire électrique, le comportement historique est
-  // préservé À L'IDENTIQUE — même référence de Map que `runSimulation()`,
-  // aucun Scheduler ni Runtime instancié.
+  // préservé À L'IDENTIQUE — aucun Scheduler ni Runtime instancié.
+  //
+  // A4-D-PREQ2 (§4.1/I-A4-17 du ticket) : `pinSignals` n'est PLUS obtenu par
+  // délégation littérale à `runSimulation(effectiveComponents, wires)`
+  // (qui calcule un `dcAnalysis` interne mais ne l'expose jamais — voir
+  // engine.js, MB-SIM-007) : cette branche appelle directement
+  // `resolveSignals(effectiveComponents, prepared)` — EXACTEMENT la même
+  // composition que `runSimulation()` utilise en interne (`prepared` déjà
+  // construit ci-dessus, aucun second `prepareCircuit()`, aucun
+  // `externalSignals` — comportement historique de resolveSignals()
+  // strictement inchangé), donc une valeur de `pinSignals` identique
+  // (§8 A7-C3-PREQ2 : "prove no semantic change"), tout en récupérant
+  // `dcAnalysis` dans la MÊME et UNIQUE résolution du step (I-A4-17 : jamais
+  // une deuxième `resolveSignals()` pour produire `electricalAnalysis`).
+  // `runSimulation()` (engine.js) elle-même reste totalement inchangée et
+  // continue d'être appelable directement (I-A4-19).
   if (
     runtimeComponents.length === 0
     && computedDigitalSignals.size === 0
     && timedDigitalComponents.length === 0
     && transientComponents.length === 0
   ) {
-    return runSimulation(effectiveComponents, wires)
+    const { pinSignals, dcAnalysis } = resolveElectricalSignals(effectiveComponents, prepared)
+    return { pinSignals, electricalAnalysis: composeElectricalAnalysis(dcAnalysis) }
   }
 
   // A7-C3-PREQ (§12 du ticket) / A7-C5-PREQ (§14 du ticket) / A4-D-PREQ1 (§6
@@ -519,6 +575,12 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // requis dans ce cas.
   let runtimeSignals = new Map()
   let timedDigitalSignals = new Map()
+  // A4-D-PREQ2 : store le résultat de `computeTransientElectricalContributions`
+  // (jusqu'ici calculé pour son seul effet de bord sur `electricalTransientStates`,
+  // A4-D-PREQ1 — sa valeur de retour était silencieusement ignorée) afin de
+  // le composer avec `dcAnalysis` ci-dessous (§3 du ticket : "la
+  // contribution est donc calculée mais non observable").
+  let transientContributions = new Map()
   if (runtimeComponents.length > 0 || timedDigitalComponents.length > 0 || transientComponents.length > 0) {
     const dt = options.dt ?? 0
     const orchestrators = options.orchestrators instanceof Map ? options.orchestrators : new Map()
@@ -622,7 +684,7 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
       const supplyVoltage = dcSources.length === 1 ? dcSources[0].voltage : null
 
       const electricalTransientStates = options.electricalTransientStates instanceof Map ? options.electricalTransientStates : new Map()
-      computeTransientElectricalContributions(
+      transientContributions = computeTransientElectricalContributions(
         transientComponents,
         transientRegistry,
         sourceDrivenSignals,
@@ -644,8 +706,63 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // collision explicite (`mergeExternalSignals`, aucun last-write-wins
   // silencieux).
   const externalSignals = mergeExternalSignals([runtimeSignals, computedDigitalSignals, timedDigitalSignals])
-  const { pinSignals } = resolveSignals(effectiveComponents, prepared, externalSignals)
-  return pinSignals
+  const { pinSignals, dcAnalysis } = resolveElectricalSignals(effectiveComponents, prepared, externalSignals)
+  // A4-D-PREQ2 (§4 du ticket) : `electricalAnalysis` compose `dcAnalysis`
+  // (steady-state, cette MÊME résolution — I-A4-17) avec
+  // `transientContributions` (step courant, I-A4-13 : transient > DC pour un
+  // même uid) — jamais une branche par type de composant ici (I-A4-15,
+  // même interdiction que pour CAPACITOR/POLARIZED_CAPACITOR ailleurs dans
+  // ce fichier) : `composeElectricalAnalysis` ne connaît que deux
+  // Map<uid, {voltage, current}>, jamais un type de composant.
+  return { pinSignals, electricalAnalysis: composeElectricalAnalysis(dcAnalysis, transientContributions) }
+}
+
+/**
+ * API historique (I-A4-19, GATE 0) : ne retourne QUE `pinSignals`, même
+ * contrat exact que le PREQ1/A7-C5-PREQ/A7-C3-PREQ/MB-SIM-011 (clé
+ * "uid:pinId" → Signal) — aucun appelant existant (`useCircuitState.js`,
+ * tests) n'est affecté par A4-D-PREQ2 : cette fonction est désormais une
+ * simple projection `.pinSignals` de `computeElectricalStep()` ci-dessus,
+ * calculée par la même et unique résolution (I-A4-17), jamais un second
+ * appel indépendant.
+ *
+ * @param {Array<{ uid, type, x, y, pins? }>} components
+ * @param {Array<{ fromUid, fromPin, toUid, toPin }>} wires
+ * @param {object} [options] Voir `computeElectricalStep()` ci-dessus pour le
+ *   détail complet des options acceptées (dt, orchestrators,
+ *   environmentalStimuli, *ContributionRegistry, *States, scheduler,
+ *   firmwareSessions/firmwareComponents).
+ * @returns {Map<string, string>} pinSignals.
+ */
+export function runSimulationWithRuntime(components, wires, options = {}) {
+  return computeElectricalStep(components, wires, options).pinSignals
+}
+
+/**
+ * A4-D-PREQ2 — nouvelle surface publique MINIMALE (§5/§11 du ticket :
+ * "ne créer cette nouvelle surface publique que si l'audit des appelants
+ * confirme qu'elle est nécessaire"). Audit : le seul appelant de production
+ * de `runSimulationWithRuntime()` est `useCircuitState.js`, qui ne consomme
+ * que `pinSignals` (jamais `dcAnalysis`/`electricalAnalysis`) — modifier son
+ * contrat de retour aurait cassé cet appelant silencieusement (§5 du
+ * ticket). Aucune primitive existante n'expose déjà `electricalAnalysis`
+ * pour le chemin RUNTIME composé (Scheduler/Runtime/timed/transient) :
+ * `resolveSignals()` seule l'expose, mais l'appeler une seconde fois
+ * ici violerait I-A4-17. `runSimulationStep()` est donc la plus petite
+ * extension additive possible : même composition, même résolution unique
+ * que `runSimulationWithRuntime()`, mais expose en plus `electricalAnalysis`
+ * pour tout futur consommateur (Inspector, Measurement) qui voudrait
+ * observer la contribution électrique transitoire du step courant — aucun
+ * tel câblage n'est fait par ce ticket (§12 du ticket : scope le plus petit
+ * possible).
+ *
+ * @param {Array<{ uid, type, x, y, pins? }>} components
+ * @param {Array<{ fromUid, fromPin, toUid, toPin }>} wires
+ * @param {object} [options] Voir `computeElectricalStep()` ci-dessus.
+ * @returns {{ pinSignals: Map<string, string>, electricalAnalysis: Map<string, {voltage:number, current:number}> }}
+ */
+export function runSimulationStep(components, wires, options = {}) {
+  return computeElectricalStep(components, wires, options)
 }
 
 export function stopFirmwareSimulation(orchestrators, sessions) {
