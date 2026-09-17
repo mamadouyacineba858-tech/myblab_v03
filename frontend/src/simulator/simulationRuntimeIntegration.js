@@ -9,8 +9,10 @@ import { runSimulation } from "./engine.js"
 import { prepareCircuit } from "./preparation.js"
 import { resolveSignals, resolveSourceDrivenPinSignals } from "./resolution.js"
 import { createRuntimeOrchestrator } from "./runtimeOrchestrator.js"
+import { createScheduler } from "./scheduler.js"
 import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
 import { getDigitalContribution as defaultGetDigitalContribution, hasDigitalContribution as defaultHasDigitalContribution } from "./digitalContributionRegistry.js"
+import { getTimedDigitalContribution as defaultGetTimedDigitalContribution, hasTimedDigitalContribution as defaultHasTimedDigitalContribution } from "./timedDigitalContributionRegistry.js"
 import { resolveComponentParameters } from "./resolveComponentParameters.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
 import { Signal } from "./signals.js"
@@ -137,6 +139,76 @@ export function computeComponentDigitalSignals(effectiveComponents, digitalRegis
       if (produced.has(key)) {
         throw new Error(
           `computeComponentDigitalSignals: component "${comp.uid}" (type "${comp.type}") produced the pin key "${key}" more than once — a single contribution must be internally consistent (one value per pin)`
+        )
+      }
+      produced.set(key, signal)
+    }
+  }
+
+  return produced
+}
+
+/**
+ * A7-C5-PREQ — Generic Timed Digital Output composition (§6/§7/§22 du
+ * ticket).
+ *
+ * Sibling de `computeComponentDigitalSignals` ci-dessus, même patron
+ * Open/Closed (Registry consulté uniquement via `hasTimedDigitalContribution`/
+ * `getTimedDigitalContribution`, jamais un `if (component.type === "...")`),
+ * mais pour des producteurs STATEFUL et DÉPENDANTS DU TEMPS SIMULÉ : chaque
+ * appel reçoit `currentTimeMs` (unique source de temps — le Scheduler partagé
+ * de `runSimulationWithRuntime` ci-dessous, jamais une horloge propre au
+ * producteur) et l'état privé RUNTIME du step précédent pour ce composant
+ * (`timedDigitalStates`, Map<uid, state> — volatile, hors Document, fournie
+ * par l'appelant pour persister entre plusieurs appels successifs, §22 du
+ * ticket).
+ *
+ * Réutilise `buildComponentSourceDrivenPinSignals` (même primitive que
+ * `computeComponentDigitalSignals`, §10/§11 du ticket : aucune seconde
+ * résolution, le producteur observe uniquement les pins déjà déterminables
+ * avant résolution via `resolveSourceDrivenPinSignals`).
+ *
+ * Pure hormis la mutation de `timedDigitalStates` (le store d'état runtime
+ * fourni par l'appelant — jamais `effectiveComponents`, jamais le Document) :
+ * ne lit ni Scheduler ni Runtime directement, ne lit jamais wires/DOM/Canvas.
+ *
+ * @param {Array<{ uid, type, parameters? }>} timedDigitalComponents composants
+ *   EFFECTIFS déjà filtrés par le Registry temporel (voir
+ *   `runSimulationWithRuntime`).
+ * @param {{ hasTimedDigitalContribution: (type: string) => boolean, getTimedDigitalContribution: (type: string) => import('./timedDigitalContributionRegistry.js').TimedDigitalContributionFn | null }} timedDigitalRegistry
+ * @param {Map<string, string>} sourceDrivenSignals `resolveSourceDrivenPinSignals()`
+ *   (resolution.js), clé "uid:pinId" — même Map que celle transmise à
+ *   `computeComponentDigitalSignals` (une seule résolution pré-électrique
+ *   par step).
+ * @param {number} currentTimeMs Temps simulé courant, issu du Scheduler
+ *   partagé (§4/§13 du ticket).
+ * @param {Map<string, object>} timedDigitalStates Store d'état runtime
+ *   (uid -> state), muté en place par cette fonction (nouvel état écrit
+ *   après chaque contribution) — jamais lu/écrit ailleurs que par cette
+ *   fonction et son appelant.
+ * @returns {Map<string, string>} clé "uid:pinId" -> Signal, même format que
+ *   `computeComponentDigitalSignals`.
+ */
+export function computeTimedDigitalSignals(timedDigitalComponents, timedDigitalRegistry, sourceDrivenSignals, currentTimeMs, timedDigitalStates) {
+  const produced = new Map()
+  if (!Array.isArray(timedDigitalComponents)) return produced
+
+  for (const comp of timedDigitalComponents) {
+    if (!comp || !timedDigitalRegistry.hasTimedDigitalContribution(comp.type)) continue
+
+    const contribute = timedDigitalRegistry.getTimedDigitalContribution(comp.type)
+    const params = resolveComponentParameters(comp.type, comp.parameters)
+    const pinSignals = buildComponentSourceDrivenPinSignals(comp, sourceDrivenSignals)
+    const previousState = timedDigitalStates.get(comp.uid)
+    const { state, outputs } = contribute({ component: comp, pins: comp.pins, params, pinSignals, currentTimeMs, previousState })
+    timedDigitalStates.set(comp.uid, state)
+    if (!outputs) continue
+
+    for (const [pinId, signal] of outputs) {
+      const key = `${comp.uid}:${pinId}`
+      if (produced.has(key)) {
+        throw new Error(
+          `computeTimedDigitalSignals: component "${comp.uid}" (type "${comp.type}") produced the pin key "${key}" more than once — a single contribution must be internally consistent (one value per pin)`
         )
       }
       produced.set(key, signal)
@@ -302,23 +374,46 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // produire (ou refuser de produire) sa sortie.
   const computedDigitalSignals = computeComponentDigitalSignals(effectiveComponents, options.digitalContributionRegistry, sourceDrivenSignals)
 
-  // GATE 0 (§7 du ticket, non-régression stricte) : pour un circuit sans
-  // ARDUINO ET sans aucun composant enregistré dans le Registry de sorties
-  // numériques calculées (table de production vide dans ce ticket — donc
+  // A7-C5-PREQ (§6/§14 du ticket) : le Registry générique de sorties
+  // numériques TEMPORELLES (stateful, dépendantes du temps simulé) est
+  // consulté pour TOUS les composants, exactement comme
+  // `computeComponentDigitalSignals` ci-dessus — jamais un
+  // `if (component.type === "...")`. Sa taille conditionne, au même titre
+  // que `runtimeComponents`/`computedDigitalSignals`, si le chemin
+  // historique `runSimulation()` peut encore être emprunté (GATE 0) et si
+  // une source de temps simulé doit exister pour ce step (§14 : un timed
+  // producer doit fonctionner SANS aucun ARDUINO dans le circuit).
+  const timedDigitalRegistry = options.timedDigitalContributionRegistry ?? {
+    hasTimedDigitalContribution: defaultHasTimedDigitalContribution,
+    getTimedDigitalContribution: defaultGetTimedDigitalContribution,
+  }
+  const timedDigitalComponents = (effectiveComponents || []).filter(
+    (c) => c && timedDigitalRegistry.hasTimedDigitalContribution(c.type)
+  )
+
+  // GATE 0 (§7/§15 du ticket, non-régression stricte) : pour un circuit sans
+  // ARDUINO, sans aucun composant enregistré dans le Registry de sorties
+  // numériques calculées, ET sans aucun composant enregistré dans le
+  // Registry temporel (tables de production vides dans ce ticket — donc
   // TOUJOURS vrai aujourd'hui pour tout circuit réel), le comportement
   // historique est préservé À L'IDENTIQUE — même référence de Map que
   // `runSimulation()`, aucun Scheduler ni Runtime instancié.
-  if (runtimeComponents.length === 0 && computedDigitalSignals.size === 0) {
+  if (runtimeComponents.length === 0 && computedDigitalSignals.size === 0 && timedDigitalComponents.length === 0) {
     return runSimulation(effectiveComponents, wires)
   }
 
-  // A7-C3-PREQ (§12 du ticket) : la construction des signaux Runtime
-  // (Scheduler/ArduinoSimulator/firmware) reste ENTIÈREMENT conditionnée à
-  // la présence d'au moins un ARDUINO — un circuit qui n'a QUE des sorties
-  // numériques calculées (aucun ARDUINO) n'instancie ni Scheduler ni
-  // Runtime, exactement comme avant ce ticket pour un tel circuit.
+  // A7-C3-PREQ (§12 du ticket) / A7-C5-PREQ (§14 du ticket) : la construction
+  // d'une source de temps simulé (Scheduler) est conditionnée à la présence
+  // d'au moins un ARDUINO OU d'au moins un timed digital producer — un
+  // circuit qui n'a QUE des sorties numériques calculées (stateless, sans
+  // ARDUINO ni timed producer) n'instancie ni Scheduler ni Runtime, exactement
+  // comme avant ce ticket pour un tel circuit. Un ArduinoSimulator, lui,
+  // n'est JAMAIS créé uniquement à cause d'un timed producer (§14, §32 du
+  // ticket) : seul un Scheduler générique (scheduler.js, inchangé) est requis
+  // dans ce cas.
   let runtimeSignals = new Map()
-  if (runtimeComponents.length > 0) {
+  let timedDigitalSignals = new Map()
+  if (runtimeComponents.length > 0 || timedDigitalComponents.length > 0) {
     const dt = options.dt ?? 0
     const orchestrators = options.orchestrators instanceof Map ? options.orchestrators : new Map()
 
@@ -326,6 +421,19 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
     for (const existing of orchestrators.values()) {
       sharedScheduler = existing.getScheduler()
       break
+    }
+    // A7-C5-PREQ (§13/§14 du ticket) : aucun orchestrateur Arduino existant
+    // (persisté) ne fournit encore de Scheduler pour cet appel — soit parce
+    // qu'aucun ARDUINO n'est présent, soit parce que ses orchestrateurs
+    // seront créés plus bas dans ce même appel. Un Scheduler explicitement
+    // fourni par l'appelant (`options.scheduler`, persistance inter-appels
+    // pour un circuit SANS ARDUINO, §14/§22 du ticket) est réutilisé en
+    // priorité ; à défaut, un Scheduler générique est créé (comportement
+    // historique inchangé pour le chemin Arduino : un nouvel orchestrateur
+    // sans Scheduler injecté créait déjà, en interne, exactement le même
+    // Scheduler par défaut).
+    if (!sharedScheduler) {
+      sharedScheduler = options.scheduler ?? createScheduler()
     }
 
     // Une seule source de temps (GATE 1) : lorsque plusieurs composants
@@ -339,37 +447,55 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
     //
     // MB-SIM-014 §4/§6 : le Scheduler reste l'unique source de temps — tous
     // les Runtime d'un même appel doivent recevoir EXACTEMENT le même
-    // currentTimeMs (jamais dt, une simple durée). Le currentTimeMs retourné
-    // par le premier orchestrator.advance(dt) est donc mémorisé et réutilisé
-    // tel quel pour tous les Runtime suivants de cet appel
-    // (orchestrator.getRuntime().tick(sharedCurrentTimeMs)), sans réappeler
-    // Scheduler.advance().
-    // Resolve every runtime before advancing the one shared clock.
-    for (const comp of runtimeComponents) {
-      if (!orchestrators.has(comp.uid)) {
-        const orchestrator = sharedScheduler
-          ? createRuntimeOrchestrator({ scheduler: sharedScheduler })
-          : createRuntimeOrchestrator()
-        sharedScheduler = orchestrator.getScheduler()
-        orchestrators.set(comp.uid, orchestrator)
+    // currentTimeMs (jamais dt, une simple durée). A7-C5-PREQ (§13 du
+    // ticket) étend cet invariant aux timed digital producers : ils
+    // observent exactement le même `currentTimeMs`, calculé UNE SEULE fois
+    // ci-dessous par `sharedScheduler.advance(dt)`, jamais une seconde
+    // avance ni une horloge indépendante.
+    if (runtimeComponents.length > 0) {
+      // Resolve every runtime before advancing the one shared clock.
+      for (const comp of runtimeComponents) {
+        if (!orchestrators.has(comp.uid)) {
+          orchestrators.set(comp.uid, createRuntimeOrchestrator({ scheduler: sharedScheduler }))
+        }
+      }
+      for (const comp of runtimeComponents) {
+        if (orchestrators.get(comp.uid).getScheduler() !== sharedScheduler) {
+          throw new Error("Live Arduino runtimes must share one Scheduler")
+        }
+      }
+      if (options.firmwareSessions) {
+        synchronizeFirmware(options.firmwareComponents ?? components, orchestrators, options.firmwareSessions)
       }
     }
-    for (const comp of runtimeComponents) {
-      if (orchestrators.get(comp.uid).getScheduler() !== sharedScheduler) {
-        throw new Error("Live Arduino runtimes must share one Scheduler")
-      }
-    }
-    if (options.firmwareSessions) {
-      synchronizeFirmware(options.firmwareComponents ?? components, orchestrators, options.firmwareSessions)
-    }
+
     sharedScheduler.advance(dt)
     const currentTimeMs = sharedScheduler.getCurrentTime()
-    for (const comp of runtimeComponents) {
-      options.firmwareSessions?.get(comp.uid)?.controller?.resumeAtCurrentTime()
+
+    if (runtimeComponents.length > 0) {
+      for (const comp of runtimeComponents) {
+        options.firmwareSessions?.get(comp.uid)?.controller?.resumeAtCurrentTime()
+      }
+      for (const comp of runtimeComponents) {
+        const signalMap = orchestrators.get(comp.uid).getRuntime().tick(currentTimeMs)
+        for (const [pinId, signal] of signalMap) runtimeSignals.set(`${comp.uid}:${pinId}`, signal)
+      }
     }
-    for (const comp of runtimeComponents) {
-      const signalMap = orchestrators.get(comp.uid).getRuntime().tick(currentTimeMs)
-      for (const [pinId, signal] of signalMap) runtimeSignals.set(`${comp.uid}:${pinId}`, signal)
+
+    if (timedDigitalComponents.length > 0) {
+      // A7-C5-PREQ (§22 du ticket) : store d'état runtime volatile, fourni
+      // par l'appelant pour persister entre plusieurs appels successifs
+      // (même convention que `options.orchestrators` pour l'Embedded
+      // Runtime) — une nouvelle Map par défaut si omis (comportement
+      // déterministe, sans persistance, §22).
+      const timedDigitalStates = options.timedDigitalStates instanceof Map ? options.timedDigitalStates : new Map()
+      timedDigitalSignals = computeTimedDigitalSignals(
+        timedDigitalComponents,
+        timedDigitalRegistry,
+        sourceDrivenSignals,
+        currentTimeMs,
+        timedDigitalStates
+      )
     }
   }
 
@@ -378,7 +504,11 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // A7-C3-PREQ2 (§7 du ticket) : réutilise le `prepared` déjà construit
   // ci-dessus (pour sourceDrivenSignals) — jamais un second prepareCircuit()
   // sur ce chemin, la topologie physique ne change pas entre-temps.
-  const externalSignals = mergeExternalSignals([runtimeSignals, computedDigitalSignals])
+  // A7-C5-PREQ (§30 du ticket) : `timedDigitalSignals` compose au même titre
+  // que `runtimeSignals`/`computedDigitalSignals`, avec la même politique de
+  // collision explicite (`mergeExternalSignals`, aucun last-write-wins
+  // silencieux).
+  const externalSignals = mergeExternalSignals([runtimeSignals, computedDigitalSignals, timedDigitalSignals])
   const { pinSignals } = resolveSignals(effectiveComponents, prepared, externalSignals)
   return pinSignals
 }
