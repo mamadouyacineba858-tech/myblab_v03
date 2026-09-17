@@ -402,6 +402,33 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 68 },
   },
+  // A7-C5 — HC-SR04 (asset raster Founder PASS 144×96). Pixel-probe réel
+  // (alpha>=32, System.Drawing, méthode identique à PIR_MOTION_SENSOR/
+  // TILT_SENSOR/IR_RECEIVER) : les 4 pattes de l'en-tête se scindent pour la
+  // première fois à y=68 (dernière ligne pleine du corps y=67), restent des
+  // segments verticaux stables et pleinement opaques de y=68 à y=87 (bord
+  // net, alpha=0 sans résidu de y=88 à y=95). Centroïdes alpha-pondérés sur
+  // ce segment stable (y∈[68,87]), recoupés sur le 3x (÷3 cohérent à <0.4 px) :
+  // VCC (60.077,77.232)->racine (60,77) ; TRIG (67.194,77.331)->(67,77) ;
+  // ECHO (74.288,77.253)->(74,77) ; GND (81.402,77.187)->(81,77) — toutes les
+  // quatre STRICTEMENT AU-DESSUS de leur PhysicalContact (dy=92,
+  // componentDefinitions.js), sens racine→trou correct (leçon
+  // A7-C4-TILT-R1, jamais inversé). AUCUN bodyClip : le raster s'arrête
+  // naturellement à y=87, avant les PhysicalContacts (dy=92) — même
+  // situation que PIR_MOTION_SENSOR/TMP36/VIBRATION_MOTOR (racine mesurée
+  // dans la zone opaque du raster, patte fonctionnelle visible uniquement
+  // dans la portion transparente sous y=87, jusqu'au trou). Style
+  // metallic-wire, même rendu que les autres capteurs à en-tête (PIR_MOTION_
+  // SENSOR/TILT_SENSOR/IR_RECEIVER/SOIL_MOISTURE_SENSOR).
+  HC_SR04: {
+    kind: "through-hole",
+    leads: {
+      VCC: { root: { dx: 60, dy: 77 }, style: "metallic-wire" },
+      TRIG: { root: { dx: 67, dy: 77 }, style: "metallic-wire" },
+      ECHO: { root: { dx: 74, dy: 77 }, style: "metallic-wire" },
+      GND: { root: { dx: 81, dy: 77 }, style: "metallic-wire" },
+    },
+  },
 }
 
 export function getAssemblyProfile(type) {

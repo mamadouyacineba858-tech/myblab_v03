@@ -202,6 +202,26 @@ function irReceiverInfraredResponse(stimuli) {
 }
 
 /**
+ * A7-C5 — HC_SR04 : produit UNIQUEMENT le paramètre EFFECTIF `distanceCm`
+ * (§9/§10 du ticket) — passage direct (identité), aucun calcul, aucune durée
+ * ECHO ici (ça reste timedDigitalContributionRegistry.js, seule responsable
+ * de la conséquence temporelle ECHO — §16/§20 du ticket, HC_SR04 n'a
+ * d'ailleurs aucune contribution DC). Même patron que
+ * `pirMotionSensorMotionResponse`/`tiltSensorTiltResponse` ci-dessus, mais
+ * sur un domaine CONTINU [2,400] (DISTANCE) plutôt que binaire {0,1}.
+ *
+ *   distanceCm = DISTANCE
+ *
+ * DISTANCE ∈ [2,400] déjà (contrat verrouillé par
+ * environmentalStimulusRegistry.js), donc `distanceCm` hérite du même
+ * domaine sans transformation.
+ */
+function hcSr04DistanceResponse(stimuli) {
+  const { DISTANCE: distance } = stimuli
+  return { distanceCm: distance }
+}
+
+/**
  * Table déclarative type -> { stimulus, respond }. `respond(stimuli)` reçoit
  * le stimulus environnemental déjà validé (voir `environmentalStimulus.js`)
  * et retourne un objet d'overrides de paramètres, ou `null` si aucun effet
@@ -221,6 +241,7 @@ const ENVIRONMENTAL_RESPONSES = Object.freeze({
   PIR_MOTION_SENSOR: Object.freeze({ stimulus: "MOTION", respond: pirMotionSensorMotionResponse }),
   TILT_SENSOR: Object.freeze({ stimulus: "TILT", respond: tiltSensorTiltResponse }),
   IR_RECEIVER: Object.freeze({ stimulus: "INFRARED", respond: irReceiverInfraredResponse }),
+  HC_SR04: Object.freeze({ stimulus: "DISTANCE", respond: hcSr04DistanceResponse }),
 })
 
 /**

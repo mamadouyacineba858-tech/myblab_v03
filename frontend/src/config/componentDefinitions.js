@@ -323,6 +323,34 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "GND", label: "GND", dx: 36, dy: 108, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 36, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
     { id: "VCC", label: "VCC", dx: 48, dy: 108, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 48, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A7-C5 — HC-SR04 Ultrasonic Distance Sensor (asset raster Founder PASS
+  // 144×96 @1x). Pixel-probe réel (alpha>=32, System.Drawing, sur le paquet
+  // copié dans ce worktree) : bounding box opaque globale (1x) [2,8,141,87]
+  // — cohérent EXACTEMENT avec le pack Founder (manifest.json
+  // pixelProbe.opaqueBounds1x [2,8,141,87]). Les 4 pattes de l'en-tête (VCC/
+  // TRIG/ECHO/GND) se scindent pour la première fois à y=68 (dernière ligne
+  // pleine y=67), restent des segments verticaux stables et pleinement
+  // opaques (alpha jusqu'à 255) de y=68 à y=87 — bord net, alpha=0 sans
+  // résidu de y=88 à y=95 (dernière ligne du canvas). Centroïdes
+  // alpha-pondérés sur ce segment stable (y∈[68,87]) : VCC (60.077,77.232),
+  // TRIG (67.194,77.331), ECHO (74.288,77.253), GND (81.402,77.187) —
+  // recoupés sur le 3x (÷3 cohérent à <0.4 px). Entraxe réel mesuré ≈7.1 px
+  // (7.117/7.094/7.114), PAS 12 px (§3 du ticket : le header 2.54mm réel du
+  // module est nettement plus étroit que BREADBOARD_PITCH). Les
+  // PhysicalContacts fonctionnels ci-dessous sont donc RECALÉS au pas
+  // breadboard, comme PIR_MOTION_SENSOR/SOIL_MOISTURE_SENSOR : VCC(54,92)/
+  // TRIG(66,92)/ECHO(78,92)/GND(90,92), entraxe 12 = 1×BREADBOARD_PITCH
+  // exact entre CHAQUE paire adjacente, centrage choisi au plus proche du
+  // centre des racines mesurées (centre racines ≈70.7, centre contacts=72).
+  // AUCUN bodyClip requis : le raster s'arrête naturellement à y=87, avant
+  // les PhysicalContacts (dy=92) — même situation que PIR_MOTION_SENSOR/
+  // TMP36/VIBRATION_MOTOR (racines mesurées, cf. assemblyProfiles.js).
+  HC_SR04: [
+    { id: "VCC", label: "VCC", dx: 54, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 54, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "TRIG", label: "TRIG", dx: 66, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "TRIG", dx: 66, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "ECHO", label: "ECHO", dx: 78, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "ECHO", dx: 78, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 90, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 90, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
+  ],
 }
 
 function buildPins(type) {
@@ -449,6 +477,14 @@ export const COMPONENT_TYPES = {
   // chaque paire adjacente). SIGNAL est active-low (§12 du ticket) ; aucune
   // sortie analogique (§15 du ticket).
   IR_RECEIVER: { id: "IR_RECEIVER", label: "Récepteur IR", icon: "📡", width: 72, height: 120, pins: buildPins("IR_RECEIVER") },
+  // A7-C5 — HC-SR04 : capteur environnemental TEMPOREL (contrat générique
+  // A7-C0 pour le stimulus DISTANCE + Generic Timed Digital Output Runtime,
+  // A7-C5-PREQ, pour la sortie ECHO). Renderer raster (HcSr04Part.jsx,
+  // paquet Founder-approved), boîte canonique 144×96 (dimensions natives @1x
+  // du paquet) — enfichable breadboard (PhysicalContacts fonctionnels
+  // VCC(54,92)/TRIG(66,92)/ECHO(78,92)/GND(90,92), entraxe 1×BREADBOARD_PITCH
+  // entre chaque paire adjacente). Aucune sortie analogique (§13 du ticket).
+  HC_SR04: { id: "HC_SR04", label: "Capteur de distance à ultrasons", icon: "📏", width: 144, height: 96, pins: buildPins("HC_SR04") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -475,7 +511,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

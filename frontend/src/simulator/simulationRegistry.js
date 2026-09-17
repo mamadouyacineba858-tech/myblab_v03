@@ -20,6 +20,7 @@ import { SoilMoistureSensorModel } from './models/SoilMoistureSensorModel.js'
 import { PirMotionSensorModel } from './models/PirMotionSensorModel.js'
 import { TiltSensorModel } from './models/TiltSensorModel.js'
 import { IrReceiverModel } from './models/IrReceiverModel.js'
+import { HcSr04Model } from './models/HcSr04Model.js'
 import {
   UnknownComponentTypeError,
   SimulationModelUnavailableError,
@@ -122,6 +123,7 @@ const defaultRegistry = createSimulationRegistry({
     PirMotionSensorModel,
     TiltSensorModel,
     IrReceiverModel,
+    HcSr04Model,
   ],
 })
 

@@ -103,9 +103,21 @@ const DECLARED_TYPES_PINS = {
   // sortie fonctionnelle (numérique calculée, active-low, §12 du ticket) —
   // aucune sortie analogique/DC pour ce composant (§15 du ticket).
   IR_RECEIVER:[{id:'SIGNAL',role:'output'},{id:'GND',role:'ground'},{id:'VCC',role:'power'}],
+  // A7-C5 — HC-SR04 Ultrasonic Distance Sensor : 4 broches DIRECTIONNELLES,
+  // ordre verrouillé VCC/TRIG/ECHO/GND (§8 du ticket), même vocabulaire de
+  // rôles que TMP36/SOIL_MOISTURE_SENSOR/PIR_MOTION_SENSOR/IR_RECEIVER
+  // (power/output/ground) plus un rôle `input` déjà utilisé ailleurs (LED,
+  // DIODE, NPN_TRANSISTOR) — aucun nouveau rôle introduit. TRIG est une
+  // ENTRÉE numérique observée par le producteur temporel dédié (§14/§15 du
+  // ticket, Generic Timed Digital Output Runtime) ; ECHO est la SEULE sortie
+  // fonctionnelle, TEMPORELLE (durée HIGH encodant la distance, §16/§17/§19
+  // du ticket) — premier composant réel de A7-C5-PREQ. Aucune sortie
+  // analogique/DC (§13 du ticket : garde d'alimentation VCC/GND réelle
+  // uniquement, même patron que PIR_MOTION_SENSOR/IR_RECEIVER).
+  HC_SR04:[{id:'VCC',role:'power'},{id:'TRIG',role:'input'},{id:'ECHO',role:'output'},{id:'GND',role:'ground'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -224,6 +236,19 @@ const DECLARED_PARAMETER_SCHEMA = {
   IR_RECEIVER:[
     {key:'infraredDetected',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0,description:'État de détection EFFECTIF (0 = aucun signal IR 38 kHz détecté, 1 = signal IR 38 kHz détecté), fallback canonique 0 tant qu\'aucun stimulus environnemental INFRARED actif n\'est fourni. Sous INFRARED actif (A7-C4-IR), la valeur EFFECTIVE est calculée par le Registry environnemental dédié (passage direct, identité), sans jamais modifier ce paramètre persistant.'},
   ],
+  // A7-C5 — HC-SR04 : paramètre effectif UNIQUE `distanceCm` (§9/§10 du
+  // ticket), domaine [2,400] cm (portée réelle du capteur, datasheet),
+  // fallback canonique 100 cm tant qu'aucun stimulus environnemental
+  // DISTANCE actif n'est fourni. Sous DISTANCE actif, la valeur EFFECTIVE
+  // est le passage direct DISTANCE -> distanceCm (identité, même patron que
+  // PIR_MOTION_SENSOR.motionDetected/TILT_SENSOR.tiltDetected, mais sur un
+  // domaine CONTINU [2,400] plutôt que binaire {0,1} — cf.
+  // environmentalResponseRegistry.js) — jamais recalculée ailleurs
+  // (le Generic Timed Digital Output Runtime la consomme telle quelle pour
+  // calculer la durée ECHO, §16 du ticket).
+  HC_SR04:[
+    {key:'distanceCm',parameterType:'distance',unit:'cm',minimum:2,maximum:400,defaultValue:100,description:'Distance mesurée EFFECTIVE (portée réelle du capteur [2,400] cm, datasheet HC-SR04), fallback canonique 100 cm tant qu\'aucun stimulus environnemental DISTANCE actif n\'est fourni. Sous DISTANCE actif (A7-C5), la valeur EFFECTIVE est calculée par le Registry environnemental dédié (passage direct, identité), sans jamais modifier ce paramètre persistant.'},
+  ],
 }
 
 const DECLARED_DEFAULT_PARAMETERS = {
@@ -250,6 +275,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   PIR_MOTION_SENSOR:{motionDetected:0},
   TILT_SENSOR:{tiltDetected:0},
   IR_RECEIVER:{infraredDetected:0},
+  HC_SR04:{distanceCm:100},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -287,6 +313,11 @@ const DECLARED_CAPABILITIES = {
   // interne) ; aucune entrée dcContributionRegistry n'est donc requise ni
   // attendue pour ce type (TEST G4, componentLibraryRolloutGate).
   IR_RECEIVER:['digital'],
+  // A7-C5 : capability 'digital' UNIQUEMENT (§13 du ticket) — aucune sortie
+  // analogique/DC (ECHO est une sortie TEMPORELLE, Generic Timed Digital Output Runtime,
+  // pas une sortie DC) ; aucune entrée dcContributionRegistry n'est donc
+  // requise ni attendue pour ce type (TEST G4, componentLibraryRolloutGate).
+  HC_SR04:['digital'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -313,6 +344,7 @@ const DECLARED_MODEL_AVAILABLE = {
   PIR_MOTION_SENSOR:true,
   TILT_SENSOR:true,
   IR_RECEIVER:true,
+  HC_SR04:true,
 }
 
 /**

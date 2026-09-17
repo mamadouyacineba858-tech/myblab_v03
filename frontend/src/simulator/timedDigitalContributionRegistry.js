@@ -12,10 +12,10 @@
  * a generic engine file (composition in `simulationRuntimeIntegration.js`,
  * resolution in `resolution.js` — both unmodified by this file).
  *
- * A7-C5-PREQ builds ONLY the generic mechanism (production table
- * intentionally empty — no real component type is registered here). The
- * first real producer is registered by a future component ticket (A7-C5),
- * out of scope here.
+ * A7-C5-PREQ built ONLY the generic mechanism (production table
+ * intentionally empty). A7-C5 (this ticket) registers the FIRST real
+ * producer : HC_SR04 (ultrasonic distance sensor, TRIG -> ECHO timed
+ * behaviour, see `hcSr04TimedDigital` below).
  *
  * Contrat d'une fonction de contribution temporelle :
  *
@@ -70,6 +70,83 @@
  * }) => { state: object | undefined, outputs: Map<string, string> | null }} TimedDigitalContributionFn
  */
 
+import { Signal } from "./signals.js"
+
+/**
+ * A7-C5 — HC_SR04 : durée ECHO par centimètre de distance (§16 du ticket),
+ * approximation standard aller-retour du son :
+ *
+ *   echoDurationMs ≈ distanceCm × 0.058
+ *
+ * (2 cm -> ~0.116 ms ; 100 cm -> ~5.8 ms ; 400 cm -> ~23.2 ms). Cette
+ * constante ne vit QUE dans le modèle HC_SR04 — jamais dans Scheduler,
+ * jamais dans un fichier générique.
+ */
+const HC_SR04_ECHO_MS_PER_CM = 0.058
+
+/**
+ * État runtime initial déterministe (§17/§27 du ticket) : IDLE, aucun front
+ * TRIG observé, aucune deadline ECHO en cours.
+ */
+function initialHcSr04State() {
+  return { phase: "IDLE", previousTrig: Signal.UNKNOWN, echoEndMs: null }
+}
+
+/**
+ * A7-C5 — HC_SR04 : sortie temporelle ECHO (§14 à §20 du ticket).
+ *
+ * Garde d'alimentation obligatoire (même patron exact que
+ * `pirMotionSensorDigital`/`irReceiverDigital`, digitalContributionRegistry.js
+ * — aucune seconde résolution, aucune branche HC_SR04 dans
+ * resolution.js/simulationRuntimeIntegration.js) : un module non alimenté,
+ * en polarité inversée, ou dont la source est en conflit ne produit jamais
+ * de ECHO (pinSignals.VCC/GND ne sont jamais HIGH/LOW simultanément dans ces
+ * trois cas). L'état privé est alors simplement PRÉSERVÉ tel quel (aucune
+ * observation possible tant que le module n'est pas alimenté) — §19 du
+ * ticket : absence de contribution, jamais un LOW inventé.
+ *
+ * Machine d'état à 2 phases (§17 du ticket) :
+ *
+ *   IDLE --front TRIG LOW->HIGH--> MEASURING --currentTimeMs>=echoEndMs--> IDLE
+ *
+ * Un front n'est détecté QUE depuis IDLE (`previousState.previousTrig !==
+ * HIGH && pinSignals.TRIG === HIGH`) : TRIG maintenu HIGH ne redéclenche
+ * jamais tant que la mesure en cours n'est pas terminée (§15 du ticket,
+ * TD-26-style non-régression), et un retour LOW réarme naturellement le
+ * front suivant (§15 : "retour LOW réarme correctement") — aucun compteur
+ * de frame, uniquement `previousTrig` + `phase`, tous deux dans l'état
+ * volatile retourné, jamais reconstruits par une horloge propre.
+ *
+ * echoEndMs est calculé UNE SEULE FOIS par front, à partir du
+ * `params.distanceCm` EFFECTIF observé à cet instant (§38 : une nouvelle
+ * mesure utilise la nouvelle DISTANCE effective) et de `currentTimeMs`
+ * (jamais un accumulateur local) — préserve les fractions de milliseconde
+ * (§18 du ticket, aucune quantification à SIMULATION_STEP_MS).
+ */
+function hcSr04TimedDigital({ params, pinSignals, currentTimeMs, previousState }) {
+  if (pinSignals.VCC !== Signal.HIGH || pinSignals.GND !== Signal.LOW) {
+    return { state: previousState, outputs: null }
+  }
+
+  const previous = previousState ?? initialHcSr04State()
+  const trig = pinSignals.TRIG
+  let { phase, echoEndMs } = previous
+
+  if (phase === "IDLE" && previous.previousTrig !== Signal.HIGH && trig === Signal.HIGH) {
+    phase = "MEASURING"
+    echoEndMs = currentTimeMs + params.distanceCm * HC_SR04_ECHO_MS_PER_CM
+  } else if (phase === "MEASURING" && currentTimeMs >= echoEndMs) {
+    phase = "IDLE"
+  }
+
+  const echo = phase === "MEASURING" && currentTimeMs < echoEndMs ? Signal.HIGH : Signal.LOW
+
+  return {
+    state: { phase, previousTrig: trig, echoEndMs },
+    outputs: new Map([["ECHO", echo]]),
+  }
+}
+
 /**
  * Fabrique un Registry isolé — même patron que
  * `createDigitalContributionRegistry` (`digitalContributionRegistry.js`) :
@@ -101,13 +178,16 @@ export function createTimedDigitalContributionRegistry({ contributions = new Map
 }
 
 /**
- * Registry de production — table vide en A7-C5-PREQ (§16/§24 du ticket :
- * cette infrastructure n'enregistre aucun composant réel). Le premier
- * composant producteur temporel réel sera ajouté par un futur ticket
- * (A7-C5), sans jamais toucher `simulationRuntimeIntegration.js` ni
- * `resolution.js`.
+ * Registry de production — vide en A7-C5-PREQ (§16/§24 du ticket PREQ).
+ * A7-C5 (ce ticket) ajoute la PREMIÈRE entrée réelle : HC_SR04, sans jamais
+ * toucher `simulationRuntimeIntegration.js` (PROTECTED pour A7-C5, §33 du
+ * ticket) ni `resolution.js`.
  */
-const defaultRegistry = createTimedDigitalContributionRegistry()
+const defaultRegistry = createTimedDigitalContributionRegistry({
+  contributions: new Map([
+    ["HC_SR04", hcSr04TimedDigital],
+  ]),
+})
 
 export const getTimedDigitalContribution = defaultRegistry.getTimedDigitalContribution
 export const hasTimedDigitalContribution = defaultRegistry.hasTimedDigitalContribution

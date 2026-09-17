@@ -195,11 +195,12 @@ describe("A7-C0 — le moteur générique environmentalStimulus.js ne connaît a
     // A7-C4-PIR ajoute PIR_MOTION_SENSOR (quatrième preuve réelle, stimulus
     // MOTION). A7-C4-TILT ajoute TILT_SENSOR (cinquième preuve réelle,
     // stimulus TILT). A7-C4-IR ajoute IR_RECEIVER (sixième preuve réelle,
-    // stimulus INFRARED) — cette assertion verrouille désormais qu'AUCUN
-    // AUTRE type de production (A7-C5+) n'a été ajouté en même temps, jamais
-    // que ces huit types soient absents.
+    // stimulus INFRARED) — septième preuve réelle. A7-C5 ajoute HC_SR04
+    // (huitième preuve réelle, stimulus DISTANCE) — cette assertion verrouille
+    // désormais qu'AUCUN AUTRE type de production (A7-C6+) n'a été ajouté en
+    // même temps, jamais que ces neuf types soient absents.
     const source = readSourceWithoutComments(envRegistryPath)
     const registeredTypes = [...source.matchAll(/^\s*([A-Z][A-Z0-9_]*):\s*Object\.freeze\(\{\s*stimulus:/gm)].map((m) => m[1])
-    expect(registeredTypes.sort()).toEqual(["FLEX_SENSOR", "FORCE_SENSOR", "IR_RECEIVER", "LDR", "PIR_MOTION_SENSOR", "SOIL_MOISTURE_SENSOR", "TILT_SENSOR", "TMP36"])
+    expect(registeredTypes.sort()).toEqual(["FLEX_SENSOR", "FORCE_SENSOR", "HC_SR04", "IR_RECEIVER", "LDR", "PIR_MOTION_SENSOR", "SOIL_MOISTURE_SENSOR", "TILT_SENSOR", "TMP36"])
   })
 })

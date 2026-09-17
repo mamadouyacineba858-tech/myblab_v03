@@ -12,14 +12,15 @@ import { Signal } from "../signals.js"
  *
  * Registre déclaratif générique, même patron Open/Closed que
  * `digitalContributionRegistry.js`, mais pour des producteurs STATEFUL et
- * DÉPENDANTS DU TEMPS SIMULÉ. Ce PREQ construit UNIQUEMENT le mécanisme
- * (table de production intentionnellement vide, §16/§24 du ticket) — aucun
- * type de production réel n'est enregistré ici.
+ * DÉPENDANTS DU TEMPS SIMULÉ. Le PREQ a construit UNIQUEMENT le mécanisme
+ * (table de production intentionnellement vide, §16/§24 du ticket PREQ).
+ * A7-C5 enregistre la PREMIÈRE entrée réelle : HC_SR04 (voir
+ * hcSr04A7C5.test.js pour la preuve ECHO/TRIG complète).
  */
 
-describe("A7-C5-PREQ — TD-01/TD-02/TD-03 : Registry de production vide par défaut", () => {
-  it("TD-01 — aucun type réel enregistré (table de production vide)", () => {
-    expect(getAllTimedDigitalContributionTypes()).toEqual([])
+describe("A7-C5-PREQ/A7-C5 — TD-01/TD-02/TD-03 : Registry de production", () => {
+  it("TD-01 — HC_SR04 (A7-C5) est le seul type réel enregistré à ce jour", () => {
+    expect(getAllTimedDigitalContributionTypes()).toEqual(["HC_SR04"])
   })
   it("TD-02 — hasTimedDigitalContribution(type inconnu) retourne false", () => {
     expect(hasTimedDigitalContribution("UNKNOWN_TYPE")).toBe(false)
@@ -43,10 +44,10 @@ describe("A7-C5-PREQ — TD-04/TD-06 : createTimedDigitalContributionRegistry, R
     })
     expect(fixture.hasTimedDigitalContribution("TIMED_TEST_COMPONENT")).toBe(true)
     expect(hasTimedDigitalContribution("TIMED_TEST_COMPONENT")).toBe(false)
-    expect(getAllTimedDigitalContributionTypes()).toEqual([])
+    expect(getAllTimedDigitalContributionTypes()).toEqual(["HC_SR04"])
   })
 
-  it("un Registry fixture sans contributions déclarées se comporte comme le Registry de production (vide)", () => {
+  it("un Registry fixture sans contributions déclarées reste vide, indépendant du Registry de production (HC_SR04)", () => {
     const fixture = createTimedDigitalContributionRegistry()
     expect(fixture.getAllTimedDigitalContributionTypes()).toEqual([])
     expect(fixture.hasTimedDigitalContribution("ANYTHING")).toBe(false)

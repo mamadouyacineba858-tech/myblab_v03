@@ -294,7 +294,9 @@ describe('G — Backend Contract', () => {
     // d'assets réaliste Founder-approved, SW-520D-style).
     // A7-C4-IR : IR_RECEIVER rejoint également rasterTypes (paquet
     // d'assets réaliste Founder-approved, TSOP4838-style).
-    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'FLEX_SENSOR', 'FORCE_SENSOR', 'HOBBY_GEARMOTOR', 'IR_RECEIVER', 'LDR', 'LED', 'LIGHT_BULB', 'NPN_TRANSISTOR', 'PIR_MOTION_SENSOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH', 'SOIL_MOISTURE_SENSOR', 'TILT_SENSOR', 'TMP36', 'VIBRATION_MOTOR'])
+    // A7-C5 : HC_SR04 rejoint également rasterTypes (paquet d'assets
+    // réaliste Founder-approved, capteur ultrasonique).
+    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'FLEX_SENSOR', 'FORCE_SENSOR', 'HC_SR04', 'HOBBY_GEARMOTOR', 'IR_RECEIVER', 'LDR', 'LED', 'LIGHT_BULB', 'NPN_TRANSISTOR', 'PIR_MOTION_SENSOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH', 'SOIL_MOISTURE_SENSOR', 'TILT_SENSOR', 'TMP36', 'VIBRATION_MOTOR'])
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')

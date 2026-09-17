@@ -1,0 +1,62 @@
+{
+  "component": "HC_SR04",
+  "displayName": "Ultrasonic Distance Sensor HC-SR04",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "complexity": "complex",
+  "visualModel": "HC-SR04 ultrasonic distance sensor",
+  "canonical": {
+    "width": 144,
+    "height": 96,
+    "orientation": "horizontal",
+    "connections": 4,
+    "wireConnectable": true
+  },
+  "visiblePinOrder": [
+    "VCC",
+    "TRIG",
+    "ECHO",
+    "GND"
+  ],
+  "functionalContract": "DEFERRED_TO_A7_C5_DISTANCE_TIME_CONTRACT",
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      2,
+      8,
+      141,
+      87
+    ],
+    "note": "Founder-approved master preserved; resize/background transparency only. No PCB, transducer, header, lead or marking redraw. PhysicalContacts and final electrical geometry must be locked from packaged raster during implementation audit."
+  },
+  "assets": [
+    {
+      "file": "hc-sr04.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 144,
+      "height": 96
+    },
+    {
+      "file": "hc-sr04.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 144,
+      "height": 96
+    },
+    {
+      "file": "hc-sr04.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 432,
+      "height": 288
+    },
+    {
+      "file": "hc-sr04.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 432,
+      "height": 288
+    }
+  ]
+}

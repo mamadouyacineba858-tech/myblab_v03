@@ -1,0 +1,23 @@
+{
+  "component": "HC_SR04",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "hc-sr04.default.1x.png": {
+      "sha256": "6fcd75b6643dcbf6dbb9467e3b63e01d53afd4f096e620f58408206f58c05571",
+      "bytes": 27373
+    },
+    "hc-sr04.default.1x.webp": {
+      "sha256": "3dbba5f71ae77c177281d1e912cdefe8c5f8a7abddc68421dc5a61b384fce1b7",
+      "bytes": 19624
+    },
+    "hc-sr04.default.3x.png": {
+      "sha256": "157fec8f36cb1fa9b281057e60d17a3defe1d904b5ae9f7fa33124a1327e8180",
+      "bytes": 171236
+    },
+    "hc-sr04.default.3x.webp": {
+      "sha256": "a8e3888575fba619383093a69e7eaa1a97c878bbf9af0099316b395040e0e5d7",
+      "bytes": 117122
+    }
+  }
+}

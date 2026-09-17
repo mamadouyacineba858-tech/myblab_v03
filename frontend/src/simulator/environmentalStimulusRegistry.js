@@ -153,6 +153,21 @@ export function isValidInfraredStimulus(value) {
 }
 
 /**
+ * A7-C5 — DISTANCE est une valeur en centimètres, bornée à la plage
+ * opérationnelle réelle du HC-SR04 (datasheet, 2 cm à 400 cm — pas une plage
+ * arbitraire, même convention que TEMPERATURE/TMP36 ci-dessus : un CONTINUUM
+ * borné par la fiche technique du composant, à la différence des kinds
+ * binaires MOTION/TILT/INFRARED). NaN/Infinity/-Infinity/hors-borne/
+ * non-numérique sont rejetés, exactement comme les autres kinds continus.
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isValidDistanceStimulus(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 2 && value <= 400
+}
+
+/**
  * Table déclarative kind -> définition. Chaque définition porte au minimum
  * `validate(value)`. Aucun moteur générique ne doit connaître cette table
  * par son contenu — seulement par ses clés (`getSupportedStimulusKinds`) et
@@ -163,7 +178,8 @@ export function isValidInfraredStimulus(value) {
  * A7-C4-PIR ajoute MOTION (contrat binaire {0,1}, seul kind non-continu).
  * A7-C4-TILT ajoute TILT (contrat binaire {0,1}, second kind non-continu,
  * distinct de MOTION). A7-C4-IR ajoute INFRARED (contrat binaire {0,1},
- * troisième kind non-continu, distinct de LIGHT/MOTION/TILT).
+ * troisième kind non-continu, distinct de LIGHT/MOTION/TILT). A7-C5 ajoute
+ * DISTANCE (continuum borné [2,400] cm, même famille que TEMPERATURE).
  */
 const STIMULUS_DEFINITIONS = Object.freeze({
   LIGHT: Object.freeze({ validate: isValidLightStimulus }),
@@ -174,6 +190,7 @@ const STIMULUS_DEFINITIONS = Object.freeze({
   MOTION: Object.freeze({ validate: isValidMotionStimulus }),
   TILT: Object.freeze({ validate: isValidTiltStimulus }),
   INFRARED: Object.freeze({ validate: isValidInfraredStimulus }),
+  DISTANCE: Object.freeze({ validate: isValidDistanceStimulus }),
 })
 
 /**

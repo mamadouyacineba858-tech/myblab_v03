@@ -49,6 +49,7 @@ import { SoilMoistureSensorPart } from '../components/parts/SoilMoistureSensorPa
 import { PirMotionSensorPart } from '../components/parts/PirMotionSensorPart.jsx';
 import { TiltSensorPart } from '../components/parts/TiltSensorPart.jsx';
 import { IrReceiverPart } from '../components/parts/IrReceiverPart.jsx';
+import { HcSr04Part } from '../components/parts/HcSr04Part.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -293,6 +294,16 @@ export const DEFAULT_REGISTRATIONS = [
   // environmentalResponseRegistry.js) et de l'alimentation VCC/GND réelle
   // (PREQ2). Aucune contribution DC (§15 du ticket).
   { type: 'IR_RECEIVER', component: IrReceiverPart, visual: { backend: 'raster' } },
+  // HC_SR04 : A7-C5 — paquet d'assets raster réaliste Founder-approved
+  // (144×96, état unique `default`). raster => bareBody + markerless
+  // dérivés, même mécanisme déclaratif que TILT_SENSOR/PIR_MOTION_SENSOR/
+  // IR_RECEIVER — aucun code central spécifique, aucune condition
+  // `type === "HC_SR04"`. Modèle temporel dédié : ECHO (hcSr04TimedDigital,
+  // timedDigitalContributionRegistry.js, premier producteur réel de
+  // A7-C5-PREQ) dépend du stimulus environnemental DISTANCE (contrat
+  // générique A7-C0, environmentalResponseRegistry.js) et de l'alimentation
+  // VCC/GND réelle. Aucune contribution DC (§13 du ticket).
+  { type: 'HC_SR04', component: HcSr04Part, visual: { backend: 'raster' } },
 ];
 
 /**

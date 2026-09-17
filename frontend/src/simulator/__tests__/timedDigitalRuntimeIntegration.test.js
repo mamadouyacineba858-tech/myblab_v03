@@ -471,13 +471,25 @@ describe("A7-C5-PREQ — TD-52 à TD-56 : GATE 0, non-régression stricte", () =
   })
 })
 
-describe("A7-C5-PREQ — aucun littéral HC_SR04/DISTANCE/TRIG/ECHO/ultrasonic dans le code de production ajouté", () => {
-  it("timedDigitalContributionRegistry.js et le code ajouté de simulationRuntimeIntegration.js n'en contiennent aucun", () => {
-    for (const rel of ["../timedDigitalContributionRegistry.js", "../simulationRuntimeIntegration.js"]) {
-      const src = readFileSync(resolve(__dirname, rel), "utf-8")
-      for (const forbidden of ["HC_SR04", "HC-SR04", "DISTANCE", "TRIG", "ECHO", "ultrasonic", "speed of sound"]) {
-        expect(src, `${rel} : ${forbidden}`).not.toMatch(new RegExp(forbidden, "i"))
-      }
+describe("A7-C5-PREQ — aucun littéral HC_SR04/DISTANCE/TRIG/ECHO/ultrasonic dans le compositeur générique", () => {
+  // A7-C5-PREQ (base f725710b) interdisait ces littéraux dans les DEUX
+  // fichiers ci-dessous, car timedDigitalContributionRegistry.js n'avait
+  // alors AUCUNE entrée de production (table intentionnellement vide, §16 du
+  // ticket PREQ). A7-C5 (commit 56feb9b) a depuis ajouté la PREMIÈRE entrée
+  // réelle — HC_SR04 — exactement dans ce Registry, qui EST le point
+  // d'extension déclaratif prévu pour cette connaissance (même rôle que
+  // `digitalContributionRegistry.js` pour SOIL/PIR/TILT/IR). Seul
+  // `simulationRuntimeIntegration.js` (compositeur générique, PROTECTED pour
+  // A7-C5, §33 du ticket A7-C5) doit donc rester exempt de tout littéral
+  // spécifique à un composant — voir hcSr04A7C5.test.js pour la preuve
+  // équivalente sur timedDigitalContributionRegistry.js (contient HC_SR04
+  // par construction, jamais SOIL/PIR/TILT/IR/HC_SR04 dans les fichiers
+  // génériques).
+  it("simulationRuntimeIntegration.js n'en contient aucun", () => {
+    const rel = "../simulationRuntimeIntegration.js"
+    const src = readFileSync(resolve(__dirname, rel), "utf-8")
+    for (const forbidden of ["HC_SR04", "HC-SR04", "DISTANCE", "TRIG", "ECHO", "ultrasonic", "speed of sound"]) {
+      expect(src, `${rel} : ${forbidden}`).not.toMatch(new RegExp(forbidden, "i"))
     }
   })
 })

@@ -63,9 +63,14 @@ describe("A7-C0/A7-C1/A7-C2/A7-C3/A7-C4-PIR — getSupportedStimulusKinds / isKn
     expect(isKnownStimulusKind("INFRARED")).toBe(true)
   })
 
-  it("un kind inconnu (par ex. futur DISTANCE, A7-C5+) n'est pas encore enregistré (T11)", () => {
-    expect(isKnownStimulusKind("DISTANCE")).toBe(false)
-    expect(getSupportedStimulusKinds()).not.toContain("DISTANCE")
+  it("DISTANCE est enregistré (A7-C5 — septième preuve réelle d'extensibilité de A7-C0, continuum borné [2,400])", () => {
+    expect(getSupportedStimulusKinds()).toContain("DISTANCE")
+    expect(isKnownStimulusKind("DISTANCE")).toBe(true)
+  })
+
+  it("un kind inconnu (par ex. futur PRESSURE, A7-C6+) n'est pas encore enregistré (T11)", () => {
+    expect(isKnownStimulusKind("PRESSURE")).toBe(false)
+    expect(getSupportedStimulusKinds()).not.toContain("PRESSURE")
   })
 })
 
@@ -100,13 +105,14 @@ describe("A7-C0/A7-C1/A7-C2/A7-C3/A7-C4-PIR — preuve d'extensibilité architec
     // n'ait été modifiée (voir environmentalStimulusRegistry.js) — preuve
     // réelle, pas seulement architecturale, que A7-C0 tient sa promesse.
     // A7-C2 ajoute FORCE et FLEX, A7-C3 ajoute MOISTURE, A7-C4-PIR ajoute
-    // MOTION, A7-C4-TILT ajoute TILT, A7-C4-IR ajoute INFRARED sur le même
-    // principe, toujours sans modifier ce fichier ni environmentalStimulus.js.
-    // Le comportement pour toute clé encore absente de la table (A7-C5+)
-    // reste uniformément "rejeté", jamais un cas spécial.
+    // MOTION, A7-C4-TILT ajoute TILT, A7-C4-IR ajoute INFRARED, A7-C5 ajoute
+    // DISTANCE sur le même principe, toujours sans modifier ce fichier ni
+    // environmentalStimulus.js. Le comportement pour toute clé encore
+    // absente de la table (A7-C6+) reste uniformément "rejeté", jamais un
+    // cas spécial.
     const knownKinds = getSupportedStimulusKinds()
-    expect(knownKinds).toEqual(["LIGHT", "TEMPERATURE", "FORCE", "FLEX", "MOISTURE", "MOTION", "TILT", "INFRARED"])
-    for (const candidateKind of ["DISTANCE", "IR", "GAS"]) {
+    expect(knownKinds).toEqual(["LIGHT", "TEMPERATURE", "FORCE", "FLEX", "MOISTURE", "MOTION", "TILT", "INFRARED", "DISTANCE"])
+    for (const candidateKind of ["PRESSURE", "IR", "GAS"]) {
       expect(isKnownStimulusKind(candidateKind)).toBe(false)
       expect(isValidStimulusValue(candidateKind, 0.5)).toBe(false)
     }

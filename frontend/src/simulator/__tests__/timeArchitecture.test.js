@@ -139,7 +139,6 @@ describe("MB-SIM-009 — canonicalRegistry.js reste purement déclaratif (INV-SI
  * ne contient aucun littéral de composant réel interdit par ce PREQ.
  */
 
-const timedDigitalContributionRegistrySourcePath = path.join(dir, "..", "timedDigitalContributionRegistry.js")
 const simulationRuntimeIntegrationSourcePath = path.join(dir, "..", "simulationRuntimeIntegration.js")
 
 describe("A7-C5-PREQ — scheduler.js reste générique, ignorant de tout composant (TD-57/TD-58)", () => {
@@ -212,15 +211,19 @@ describe("A7-C5-PREQ — canonicalRegistry.js reste sans connaissance du Schedul
   })
 })
 
-describe("A7-C5-PREQ — aucun littéral interdit dans le code de production du PREQ (TD-65)", () => {
-  it("TD-65 — timedDigitalContributionRegistry.js et simulationRuntimeIntegration.js ne contiennent aucun littéral HC_SR04/DISTANCE/TRIG/ECHO/ultrasonic/vitesse du son", () => {
-    for (const sourcePath of [timedDigitalContributionRegistrySourcePath, simulationRuntimeIntegrationSourcePath]) {
-      const source = fs.readFileSync(sourcePath, "utf-8")
-      for (const forbidden of ["HC_SR04", "HC-SR04", "DISTANCE", "TRIG", "ECHO", "ultrasonic"]) {
-        expect(source, `${sourcePath} : ${forbidden}`).not.toMatch(new RegExp(forbidden, "i"))
-      }
-      expect(source, `${sourcePath} : speed of sound`).not.toMatch(/speed of sound/i)
+describe("A7-C5-PREQ — aucun littéral interdit dans le compositeur générique (TD-65)", () => {
+  // Base f725710b (PREQ) : timedDigitalContributionRegistry.js avait une
+  // table de production intentionnellement vide, donc AUCUN littéral de
+  // composant n'y était attendu. A7-C5 (commit 56feb9b) y a depuis enregistré
+  // HC_SR04 — le point d'extension déclaratif prévu pour cette connaissance
+  // (voir hcSr04A7C5.test.js). Seul simulationRuntimeIntegration.js
+  // (compositeur générique, PROTECTED pour A7-C5) doit rester exempt.
+  it("TD-65 — simulationRuntimeIntegration.js ne contient aucun littéral HC_SR04/DISTANCE/TRIG/ECHO/ultrasonic/vitesse du son", () => {
+    const source = fs.readFileSync(simulationRuntimeIntegrationSourcePath, "utf-8")
+    for (const forbidden of ["HC_SR04", "HC-SR04", "DISTANCE", "TRIG", "ECHO", "ultrasonic"]) {
+      expect(source, `${simulationRuntimeIntegrationSourcePath} : ${forbidden}`).not.toMatch(new RegExp(forbidden, "i"))
     }
+    expect(source, `${simulationRuntimeIntegrationSourcePath} : speed of sound`).not.toMatch(/speed of sound/i)
   })
 })
 

@@ -156,6 +156,7 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'PIR_MOTION_SENSOR', box: [120, 96], physicalMm: [32, 24], ref: 'capteur de mouvement PIR HC-SR501-style, carte + dôme Fresnel ~32×24 mm (indicatif, A7-C4-PIR)', impliedUnitsPerMm: 120 / 32 },
   { type: 'TILT_SENSOR', box: [72, 120], physicalMm: [14, 32.5], ref: 'capteur d\'inclinaison SW-520D-style, module 2 broches DO/GND, carte ~14×32.5 mm (indicatif, A7-C4-TILT)', impliedUnitsPerMm: 120 / 32.5 },
   { type: 'IR_RECEIVER', box: [72, 120], physicalMm: [10, 24], ref: 'récepteur infrarouge TSOP4838-style 38 kHz, dôme + 3 pattes SIGNAL/GND/VCC, boîtier + pattes ~10×24 mm (indicatif, A7-C4-IR)', impliedUnitsPerMm: 120 / 24 },
+  { type: 'HC_SR04', box: [144, 96], physicalMm: [45, 31], ref: 'capteur ultrasonique HC-SR04, carte + 2 transducteurs + broches VCC/TRIG/ECHO/GND, carte ~45×20 mm + pattes ~11 mm (dimensions datasheet standard, indicatif, A7-C5)', impliedUnitsPerMm: 144 / 45 },
 ])
 
 /**
@@ -350,8 +351,15 @@ export const RENDER_BUDGET = Object.freeze({
     // restait à 118.1 Ko) — confirmation par mesure réelle exactement comme
     // annoncé par ce commentaire, aucun asset existant ne se rapproche
     // davantage du nouveau plafond.
+    // A7-C5 : maxWeightKbPerVariantComplex relevé de 150 à 175 Ko — mesure
+    // réelle du paquet Founder-approved HC_SR04 (photoréaliste, PCB + 2
+    // transducteurs, .3x.png = 171236 octets ≈ 167.2 Ko), au-delà du plafond
+    // "complexe" précédent (le plus proche jusqu'ici, SOIL_MOISTURE_SENSOR,
+    // restait à 141.9 Ko) — même méthode exacte que A7-C3 (mesure réelle du
+    // plus lourd asset Founder-approved livré à ce jour, marge ~4.6 Ko
+    // cohérente avec la marge ~8.1 Ko laissée par A7-C3).
     maxWeightKbPerVariantSimple: 30,
-    maxWeightKbPerVariantComplex: 150,
+    maxWeightKbPerVariantComplex: 175,
     maxVariants: 8,           // ex. RGB_LED : combinaisons r/g/b
     resolutions: 2,           // @1x + @3x
     maxDimensionPx: 1024,     // cote le plus long de l'asset @3x
