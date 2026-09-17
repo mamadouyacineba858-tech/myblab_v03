@@ -161,15 +161,65 @@ export function createTransientContributionRegistry({ contributions = new Map() 
 }
 
 /**
- * Registry de production — CAPACITOR et POLARIZED_CAPACITOR, premiers (et
- * seuls, §2/§8 du ticket : aucun INDUCTOR/ZENER/nouveau type) consommateurs
- * réels du contrat transitoire générique (§5 du ticket : "utiliser CAPACITOR
- * comme premier consommateur réel du contrat").
+ * A4-INDUCTOR — Modèle Level-1 d'une inductance idéale sous tension continue
+ * (loi fondamentale V = L × di/dt), volontairement simplifié : ce n'est PAS
+ * un solveur SPICE. Aucune résistance série, aucune résistance parasite
+ * n'est inventée (§8/§11 du ticket) — seule l'évolution du courant est
+ * modélisée, pas à pas :
+ *
+ *   dtSeconds = dt / 1000                    (le Scheduler avance en ms,
+ *                                              la formule physique utilise
+ *                                              des secondes — jamais dt en
+ *                                              ms directement dans V=L×di/dt)
+ *   i(t+dt) = i(t) + (V / L) × dtSeconds
+ *
+ * Convention de signe (§12 du ticket, documentée explicitement — jamais
+ * Math.abs() pour masquer le sens physique) : le courant est signé selon
+ * l'orientation A→B choisie par ce modèle. `termA === Signal.HIGH` (boucle
+ * A→B alimentée dans le sens direct) => tension effective +supplyVoltage,
+ * le courant croît vers +∞. `termA === Signal.LOW` (polarité inversée,
+ * B→A) => tension effective -supplyVoltage, le courant décroît (ou croît
+ * vers -∞ si déjà négatif) — un changement de polarité inverse donc
+ * correctement le sens de di/dt.
+ *
+ * Composant non alimenté (boucle non simple HIGH/LOW, ou `supplyVoltage`
+ * absent — plusieurs sources DC dans le circuit) : l'état privé est
+ * simplement PRÉSERVÉ tel quel, et `contribution` vaut `null` — même
+ * patron exact que `capacitorChargeStep` ci-dessus.
+ */
+function initialInductorState() {
+  return { current: 0 }
+}
+
+function inductorCurrentStep(termA, termB, inductance, supplyVoltage, dt, previousState) {
+  if (!isSimplePoweredLoop(termA, termB) || typeof supplyVoltage !== "number" || !Number.isFinite(supplyVoltage)) {
+    return { state: previousState, contribution: null }
+  }
+
+  const { current: previousCurrent } = previousState ?? initialInductorState()
+  const signedVoltage = termA === Signal.HIGH ? supplyVoltage : -supplyVoltage
+  const dtSeconds = dt / 1000
+  const current = previousCurrent + (signedVoltage / inductance) * dtSeconds
+
+  return { state: { current }, contribution: { voltage: signedVoltage, current } }
+}
+
+function inductorTransient({ pins, params, supplyVoltage, dt, previousState }) {
+  return inductorCurrentStep(pins.A, pins.B, params.inductance, supplyVoltage, dt, previousState)
+}
+
+/**
+ * Registry de production — CAPACITOR, POLARIZED_CAPACITOR (A4-D-PREQ1) et
+ * INDUCTOR (A4-INDUCTOR, §2 du ticket : "AUCUN A4-D-PREQ3, INDUCTOR doit
+ * être le prochain consommateur réel du contrat transitoire générique
+ * existant") — consommateurs réels du contrat transitoire générique.
+ * Aucun ZENER, aucun nouveau type au-delà de ces trois (§21 du ticket).
  */
 const defaultRegistry = createTransientContributionRegistry({
   contributions: new Map([
     ["CAPACITOR", capacitorTransient],
     ["POLARIZED_CAPACITOR", polarizedCapacitorTransient],
+    ["INDUCTOR", inductorTransient],
   ]),
 })
 

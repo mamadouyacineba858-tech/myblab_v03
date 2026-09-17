@@ -21,6 +21,7 @@ import { PirMotionSensorModel } from './models/PirMotionSensorModel.js'
 import { TiltSensorModel } from './models/TiltSensorModel.js'
 import { IrReceiverModel } from './models/IrReceiverModel.js'
 import { HcSr04Model } from './models/HcSr04Model.js'
+import { InductorModel } from './models/InductorModel.js'
 import {
   UnknownComponentTypeError,
   SimulationModelUnavailableError,
@@ -124,6 +125,7 @@ const defaultRegistry = createSimulationRegistry({
     TiltSensorModel,
     IrReceiverModel,
     HcSr04Model,
+    InductorModel,
   ],
 })
 

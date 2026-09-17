@@ -157,6 +157,11 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'TILT_SENSOR', box: [72, 120], physicalMm: [14, 32.5], ref: 'capteur d\'inclinaison SW-520D-style, module 2 broches DO/GND, carte ~14×32.5 mm (indicatif, A7-C4-TILT)', impliedUnitsPerMm: 120 / 32.5 },
   { type: 'IR_RECEIVER', box: [72, 120], physicalMm: [10, 24], ref: 'récepteur infrarouge TSOP4838-style 38 kHz, dôme + 3 pattes SIGNAL/GND/VCC, boîtier + pattes ~10×24 mm (indicatif, A7-C4-IR)', impliedUnitsPerMm: 120 / 24 },
   { type: 'HC_SR04', box: [144, 96], physicalMm: [45, 31], ref: 'capteur ultrasonique HC-SR04, carte + 2 transducteurs + broches VCC/TRIG/ECHO/GND, carte ~45×20 mm + pattes ~11 mm (dimensions datasheet standard, indicatif, A7-C5)', impliedUnitsPerMm: 144 / 45 },
+  // A4-INDUCTOR : inductance axiale moulée bobinée (style RL/choke axial
+  // courant, corps ~13×8 mm hors pattes — dimensions typiques catalogue,
+  // indicatif), asset raster réaliste Founder PASS FROZEN (cf.
+  // componentDefinitions.js/InductorPart.jsx).
+  { type: 'INDUCTOR', box: [144, 108], physicalMm: [13, 8], ref: 'inductance axiale moulée, corps bobiné ~13×8 mm hors pattes (indicatif, A4-INDUCTOR)', impliedUnitsPerMm: 144 / 13 },
 ])
 
 /**

@@ -50,6 +50,7 @@ import { PirMotionSensorPart } from '../components/parts/PirMotionSensorPart.jsx
 import { TiltSensorPart } from '../components/parts/TiltSensorPart.jsx';
 import { IrReceiverPart } from '../components/parts/IrReceiverPart.jsx';
 import { HcSr04Part } from '../components/parts/HcSr04Part.jsx';
+import { InductorPart } from '../components/parts/InductorPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -304,6 +305,13 @@ export const DEFAULT_REGISTRATIONS = [
   // générique A7-C0, environmentalResponseRegistry.js) et de l'alimentation
   // VCC/GND réelle. Aucune contribution DC (§13 du ticket).
   { type: 'HC_SR04', component: HcSr04Part, visual: { backend: 'raster' } },
+  // A4-INDUCTOR : inductance axiale (asset Founder PASS FROZEN, état unique
+  // `default`). raster => bareBody + markerless dérivés, même mécanisme
+  // déclaratif que RESISTOR / CAPACITOR / THERMISTOR / FORCE_SENSOR — aucun
+  // code central spécifique, aucune condition `type === "INDUCTOR"`. Modèle
+  // électrique : transientContributionRegistry.js uniquement (§11 du
+  // ticket, aucune contribution DC steady-state).
+  { type: 'INDUCTOR', component: InductorPart, visual: { backend: 'raster', bareBody: true, markerless: true } },
 ];
 
 /**

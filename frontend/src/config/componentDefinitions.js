@@ -351,6 +351,28 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "ECHO", label: "ECHO", dx: 78, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "ECHO", dx: 78, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
     { id: "GND", label: "GND", dx: 90, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 90, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A4-INDUCTOR — inductance axiale (asset Founder PASS 144×108, pixel-probe
+  // réel via System.Drawing sur le paquet livré : bounding box opaque
+  // globale (1x) x∈[1,142] y∈[4,67], conforme au manifest.json
+  // opaqueBounds1x [1,4,142,67]). Colonnes des capuchons métalliques
+  // stables (alpha≥32) x∈[5,10] (gauche) et x∈[133,137] (droite),
+  // y∈[14,53] — racines mécaniques mesurées au premier pixel
+  // substantiellement opaque scanné depuis chaque bord : A(4,52)/B(139,52)
+  // (bas du capuchon, cf. assemblyProfiles.js — les pattes synthétiques
+  // pointent vers le bas, même convention que CAPACITOR/THERMISTOR/LDR pour
+  // un passif à 2 bornes enfichable, malgré un corps visuellement
+  // horizontal). PhysicalContacts fonctionnels recalés au pas breadboard :
+  // A(12,92)/B(132,92), entraxe 132-12 = 120 px = 10 × BREADBOARD_PITCH
+  // exact — dérive racine→contact modeste (8px/7px), même stratégie que
+  // FORCE_SENSOR/FLEX_SENSOR (racine mesurée ≠ contact fonctionnel recalé au
+  // pas breadboard, pont assuré par AssemblyLeadsLayer). Aucun bodyClip
+  // requis : le raster s'arrête naturellement à y≈52-54 sur ces colonnes,
+  // largement avant les PhysicalContacts (y=92) — même situation que
+  // TMP36/VIBRATION_MOTOR/HC_SR04.
+  INDUCTOR: [
+    { id: "A", label: "A", dx: 0, dy: 52, contacts: [{ id: "A", dx: 12, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "B", label: "B", dx: 144, dy: 52, contacts: [{ id: "B", dx: 132, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
+  ],
 }
 
 function buildPins(type) {
@@ -485,6 +507,14 @@ export const COMPONENT_TYPES = {
   // VCC(54,92)/TRIG(66,92)/ECHO(78,92)/GND(90,92), entraxe 1×BREADBOARD_PITCH
   // entre chaque paire adjacente). Aucune sortie analogique (§13 du ticket).
   HC_SR04: { id: "HC_SR04", label: "Capteur de distance à ultrasons", icon: "📏", width: 144, height: 96, pins: buildPins("HC_SR04") },
+  // A4-INDUCTOR — inductance axiale (contrat transitoire générique A4-D-PREQ1/2,
+  // stimulus AUCUN — composant purement électrique, pas de capteur
+  // environnemental). Renderer raster (InductorPart.jsx, paquet Founder-approved
+  // FROZEN), boîte canonique 144×108 (dimensions natives @1x du paquet) —
+  // enfichable breadboard (PhysicalContacts fonctionnels A(12,92)/B(132,92),
+  // entraxe 10×BREADBOARD_PITCH). Aucune contribution DC steady-state (§11
+  // du ticket, voir dcContributionRegistry.js/transientContributionRegistry.js).
+  INDUCTOR: { id: "INDUCTOR", label: "Inductance", icon: "🧲", width: 144, height: 108, pins: buildPins("INDUCTOR") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -511,7 +541,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

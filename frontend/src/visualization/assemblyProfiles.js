@@ -435,6 +435,30 @@ const ASSEMBLY_PROFILES = {
       GND: { root: { dx: 81, dy: 77 }, style: "dark-wire" },
     },
   },
+  // A4-INDUCTOR — inductance axiale (asset raster Founder PASS 144×108).
+  // Pixel-probe réel (alpha>=32, System.Drawing sur le paquet copié dans ce
+  // worktree, méthodologie identique à HC_SR04/PIR_MOTION_SENSOR/TILT_SENSOR/
+  // IR_RECEIVER — racine choisie AU-DESSUS/AU BORD du PhysicalContact,
+  // jamais en dessous, leçon A7-C4-TILT-R1) : les deux capuchons métalliques
+  // de l'inductance forment des colonnes stables (y∈[14,53]) dès x=5..10
+  // (gauche) et x=133..137 (droite) ; le premier pixel substantiellement
+  // opaque scanné depuis chaque bord canonique (x=0/144) tombe à x=4/x=139,
+  // avec un bord bas mesuré à y=52 sur ces deux colonnes (alpha chute sous
+  // le seuil dès y=53-54, bord net). Racines : A(4,52)/B(139,52) —
+  // STRICTEMENT AU-DESSUS des PhysicalContacts fonctionnels (dy=92,
+  // componentDefinitions.js). AUCUN bodyClip : le raster s'arrête
+  // naturellement à y≈52-54 sur ces colonnes, avant les PhysicalContacts —
+  // même situation que TMP36/VIBRATION_MOTOR/HC_SR04/PIR_MOTION_SENSOR.
+  // Style metallic-wire (pattes nickelées brillantes, même rendu que
+  // CAPACITOR/DIODE/THERMISTOR/FORCE_SENSOR/FLEX_SENSOR — cohérent avec le
+  // fini métallique visible des capuchons du raster).
+  INDUCTOR: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 4, dy: 52 }, style: "metallic-wire" },
+      B: { root: { dx: 139, dy: 52 }, style: "metallic-wire" },
+    },
+  },
 }
 
 export function getAssemblyProfile(type) {

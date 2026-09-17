@@ -1,0 +1,60 @@
+{
+  "component": "INDUCTOR",
+  "displayName": "Inductor",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "complexity": "simple",
+  "visualModel": "Axial copper-wound inductor with dark core and two metallic leads",
+  "canonical": {
+    "width": 144,
+    "height": 108,
+    "orientation": "horizontal",
+    "connections": 2,
+    "wireConnectable": true
+  },
+  "visiblePinOrder": [
+    "A",
+    "B"
+  ],
+  "functionalContract": "DEFERRED_TO_A4_INDUCTOR_IMPLEMENTATION",
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      1,
+      4,
+      142,
+      67
+    ],
+    "note": "Founder-approved visual preserved from the validated reference sheet. Only crop, background transparency and proportional resize were applied. PhysicalContacts and final breadboard geometry must be locked from this packaged raster during the implementation audit; do not redraw, stretch or regenerate the frozen raster."
+  },
+  "assets": [
+    {
+      "file": "inductor.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 144,
+      "height": 108
+    },
+    {
+      "file": "inductor.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 144,
+      "height": 108
+    },
+    {
+      "file": "inductor.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 432,
+      "height": 324
+    },
+    {
+      "file": "inductor.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 432,
+      "height": 324
+    }
+  ]
+}

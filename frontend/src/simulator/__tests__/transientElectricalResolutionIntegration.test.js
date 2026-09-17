@@ -261,7 +261,14 @@ describe("T19 — coexistence Arduino + Timed Digital + Transient Electrical, sa
   })
 })
 
-describe("T20 — aucun INDUCTOR/ZENER/nouveau type", () => {
+describe("T20 — aucun ZENER/nouveau type au-delà de CAPACITOR/POLARIZED_CAPACITOR/INDUCTOR", () => {
+  // A4-INDUCTOR (CSA GO explicite, "AUCUN A4-D-PREQ3, INDUCTOR doit être le
+  // prochain consommateur réel du contrat transitoire générique existant")
+  // a depuis ajouté INDUCTOR au Registry transitoire de production — cette
+  // garde PREQ2 est mise à jour pour refléter cet ajout légitime, tout en
+  // continuant à verrouiller l'absence de toute branche INDUCTOR dans les
+  // fichiers génériques (simulationRuntimeIntegration.js/electricalAnalysis.js,
+  // I-A4-15) et l'absence de ZENER (§21 A4-INDUCTOR).
   it("simulationRuntimeIntegration.js et electricalAnalysis.js ne contiennent aucun littéral INDUCTOR/ZENER (code exécutable, hors commentaires)", () => {
     for (const rel of ["../simulationRuntimeIntegration.js", "../electricalAnalysis.js"]) {
       const src = readFileSync(resolve(__dirname, rel), "utf-8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")
@@ -270,10 +277,9 @@ describe("T20 — aucun INDUCTOR/ZENER/nouveau type", () => {
     }
   })
 
-  it("le Registry transitoire de production n'enregistre que CAPACITOR/POLARIZED_CAPACITOR — aucun INDUCTOR/ZENER", () => {
+  it("le Registry transitoire de production n'enregistre que CAPACITOR/POLARIZED_CAPACITOR/INDUCTOR — aucun ZENER", () => {
     const types = getAllTransientContributionTypes()
-    expect(types).toEqual(["CAPACITOR", "POLARIZED_CAPACITOR"])
-    expect(types).not.toContain("INDUCTOR")
+    expect(types).toEqual(["CAPACITOR", "POLARIZED_CAPACITOR", "INDUCTOR"])
     expect(types).not.toContain("ZENER")
   })
 })

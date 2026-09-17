@@ -16,15 +16,16 @@ import { Signal } from "../signals.js"
  * Registre déclaratif générique, même patron Open/Closed que
  * `dcContributionRegistry.js`/`timedDigitalContributionRegistry.js`, pour
  * des contributeurs ÉLECTRIQUES dépendants du temps simulé et de leur propre
- * état précédent. Qualifié avec CAPACITOR/POLARIZED_CAPACITOR (§5 du
- * ticket) : aucun autre type de production.
+ * état précédent. Qualifié avec CAPACITOR/POLARIZED_CAPACITOR (A4-D-PREQ1,
+ * §5 du ticket), puis INDUCTOR (A4-INDUCTOR, §2 du ticket) : aucun autre
+ * type de production (aucun ZENER).
  */
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 describe("T1 — Registry transitoire Open/Closed", () => {
   it("expose getTransientContribution/hasTransientContribution/getAllTransientContributionTypes, table de production non vide", () => {
-    expect(getAllTransientContributionTypes()).toEqual(["CAPACITOR", "POLARIZED_CAPACITOR"])
+    expect(getAllTransientContributionTypes()).toEqual(["CAPACITOR", "POLARIZED_CAPACITOR", "INDUCTOR"])
   })
 
   it("createTransientContributionRegistry produit un Registry isolé injectable pour test, sans muter la production", () => {
@@ -33,7 +34,7 @@ describe("T1 — Registry transitoire Open/Closed", () => {
     expect(fixture.hasTransientContribution("TRANSIENT_TEST_COMPONENT")).toBe(true)
     expect(fixture.getTransientContribution("TRANSIENT_TEST_COMPONENT")).toBe(contributeFn)
     expect(hasTransientContribution("TRANSIENT_TEST_COMPONENT")).toBe(false)
-    expect(getAllTransientContributionTypes()).toEqual(["CAPACITOR", "POLARIZED_CAPACITOR"])
+    expect(getAllTransientContributionTypes()).toEqual(["CAPACITOR", "POLARIZED_CAPACITOR", "INDUCTOR"])
   })
 })
 

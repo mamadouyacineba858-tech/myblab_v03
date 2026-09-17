@@ -1,0 +1,23 @@
+{
+  "component": "INDUCTOR",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "inductor.default.1x.png": {
+      "sha256": "a98ec66b88938fb52e3c9142fe1e3bf7de165d93b3204626f4b6fda113a9830c",
+      "bytes": 19987
+    },
+    "inductor.default.1x.webp": {
+      "sha256": "ebb34378135dc71148b35c88f61e92cd6eb61464f747263398f1fc9612801015",
+      "bytes": 14758
+    },
+    "inductor.default.3x.png": {
+      "sha256": "2f28c5958d7cb7c5636b616b5ffd71b771c8d294326e13bc559c39a34543e53c",
+      "bytes": 126399
+    },
+    "inductor.default.3x.webp": {
+      "sha256": "74962a10485952a3b7724a4062776297883e4aedc52597dda6768483ae48a46e",
+      "bytes": 88936
+    }
+  }
+}
