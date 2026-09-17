@@ -189,25 +189,31 @@ describe('A7-C4-TILT — TILT29-TILT34 : Breadboard Physical Fit Gate — chaîn
     expect(result.valid).toBe(true)
   })
 
-  it('TILT35/TILT36 (via profil) — AssemblyProfile : through-hole, 2 leads, racines mesurées par pixel-probe réel, aucun bodyClip', () => {
+  it('TILT35/TILT36 (via profil) — AssemblyProfile : through-hole, 2 leads, racines mesurées par pixel-probe réel, bodyClip masque la patte cuite au-delà de la racine (A7-C4-TILT-R1 — correctif Canvas FAIL, cf. tiltSensorA7C4R1.test.js)', () => {
     const profile = getAssemblyProfile('TILT_SENSOR')
     expect(profile).toBeTruthy()
     expect(profile.kind).toBe('through-hole')
     expect(Object.keys(profile.leads).sort()).toEqual(['DO', 'GND'])
-    // Racines mesurées : centroïdes alpha-pondérés (System.Drawing, seuil
-    // alpha>0) sur le segment vertical stable de chaque patte (y∈[104,116]) :
-    // DO (30.7,109.93)->(31,110), GND (39.2,109.98)->(39,110).
-    expect(profile.leads.DO.root).toEqual({ dx: 31, dy: 110 })
-    expect(profile.leads.GND.root).toEqual({ dx: 39, dy: 110 })
+    // A7-C4-TILT-R1 : racines ramenées à la transition corps/patte réelle
+    // mesurée (y=101, où le rectangle PCB plein-largeur cède la place aux
+    // deux pattes individualisées) — au-dessus du PhysicalContact (y=108),
+    // sens racine→trou correct (voir tiltSensorA7C4R1.test.js pour la preuve
+    // complète et le rapport pixel-probe).
+    expect(profile.leads.DO.root).toEqual({ dx: 31, dy: 101 })
+    expect(profile.leads.GND.root).toEqual({ dx: 39, dy: 101 })
     for (const id of ['DO', 'GND']) {
       expect(profile.leads[id].style).toBe('metallic-wire')
       const contact = resolveContacts(byPinOf(def, id))[0]
-      // roots ≠ PhysicalContacts (§4 du ticket) : recalage minimal, pas de
-      // relation d'ordre imposée entre root.dy et contact.dy ici (contact
-      // tombe À L'INTÉRIEUR du segment de patte visible, pas à sa pointe).
-      expect(typeof contact.dy).toBe('number')
+      // A7-C4-TILT-R1 : root DOIT désormais être strictement au-dessus du
+      // PhysicalContact (sens correct, cf. tous les autres traversants du
+      // catalogue) — c'est l'inversion root.dy > contact.dy qui causait le
+      // Canvas FAIL.
+      expect(profile.leads[id].root.dy).toBeLessThan(contact.dy)
     }
-    expect(profile.bodyClip).toBeUndefined()
+    // A7-C4-TILT-R1 : bodyClip désormais requis (masque la patte cuite qui
+    // continue jusqu'à sa pointe réelle y=117, bien au-delà du
+    // PhysicalContact y=108).
+    expect(profile.bodyClip).toEqual({ bottom: 19 })
   })
 
   it('TILT32/TILT33/TILT34 — resolveAssemblyGeometry (pipeline visuel réel) confirme "inserted" à une origine valide, avec 2 pattes (target = PhysicalContact exact)', () => {

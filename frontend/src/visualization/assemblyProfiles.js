@@ -328,30 +328,41 @@ const ASSEMBLY_PROFILES = {
       GND: { root: { dx: 68, dy: 80 }, style: "metallic-wire" },
     },
   },
-  // A7-C4-TILT — Tilt Sensor (SW-520D-style module). Pixel-probe réel (System.Drawing,
-  // même méthode que PIR_MOTION_SENSOR — centroïde alpha-pondéré sur le
-  // segment vertical stable de chaque patte) : bounding box opaque globale
-  // (1x) [18,2,52,117] (cohérent avec l'audit Founder opaqueBounds1x
-  // [18,2,52,117]). Les 2 pattes traversantes sont des segments verticaux
-  // stables entre y=104 et y=116 (corps/PCB se termine à y≈99-101, pattes
-  // visibles jusqu'à leur pointe y=117) : DO centroïde (30.7,109.93) -> racine
-  // (31,110) ; GND centroïde (39.2,109.98) -> racine (39,110) — toutes deux
-  // pleinement opaques (alpha=255 sur le cœur du segment). Les PhysicalContacts
-  // fonctionnels (componentDefinitions.js) sont DO(29,108)/GND(41,108), à
-  // quelques px des racines mesurées (recalage minimal pour retomber sur un
-  // entraxe exact de 12 px, §4 du ticket) : AssemblyLeadsLayer relie chaque
-  // racine à son PhysicalContact via une patte fonctionnelle courte (style
-  // metallic-wire, même rendu que PIR_MOTION_SENSOR/FORCE_SENSOR). AUCUN
-  // bodyClip : le raster continue naturellement sous les PhysicalContacts
-  // (pattes visibles jusqu'à y=117, §5 du ticket : "si le corps/raster
-  // continue dans la zone concernée et qu'un clip l'amputerait : aucun
-  // bodyClip").
+  // A7-C4-TILT-R1 — Tilt Sensor : correctif Canvas FAIL Founder (pattes
+  // débordant visuellement sous le point d'insertion). Cause réelle
+  // identifiée par audit (voir RAPPORT FINAL R1) : le profil A7-C4-TILT
+  // original plaçait la racine (dy=110) SOUS le PhysicalContact (dy=108) —
+  // sens INVERSÉ par rapport à toute autre patte du catalogue (racine
+  // toujours au-dessus, near du corps ; PhysicalContact/target en dessous,
+  // au niveau du trou) — et ne déclarait AUCUN bodyClip. Le raster cuit ses
+  // deux pattes en continu jusqu'à leur pointe réelle y=117, largement
+  // au-delà du PhysicalContact y=108 : sans clip, cette pointe cuite reste
+  // seule visible (le segment AssemblyLeadsLayer root→target, peint SOUS le
+  // corps, est entièrement recouvert par le raster opaque non clippé) et
+  // dépasse le point d'insertion de 9 px — exactement le défaut Founder.
+  //
+  // Fix (aucun changement de PhysicalContacts, aucun raster retouché, même
+  // stratégie EXACTE que FORCE_SENSOR A7-C2-R2 / FLEX_SENSOR A7-C2-R1) :
+  // la racine est ramenée AU-DESSUS du PhysicalContact, au pixel réel où le
+  // corps/PCB (rectangle plein largeur, mesuré solide jusqu'à y=100) cède la
+  // place aux deux pattes cuites individualisées (transition mesurée à
+  // y=101 : bounding box de chaque patte se resserre de [18,52] à
+  // [29,41]/[37,43] sur cette ligne) : DO/GND racine (·,101), x inchangés
+  // (31/39, mesurés réels, stables sur toute la longueur de la patte
+  // y∈[102,116]). `bodyClip.bottom = 120 - 101 = 19` clippe tout sous
+  // y=101 — masque la totalité de la patte cuite (y=102..117, y compris sa
+  // pointe qui dépassait) tout en conservant le corps/PCB intact au-dessus.
+  // AssemblyLeadsLayer dessine désormais le segment complet racine(101) →
+  // PhysicalContact(108) dans la zone désormais transparente : la patte
+  // fonctionnelle apparaît naître du corps et se terminer PILE au trou,
+  // sans jamais dépasser.
   TILT_SENSOR: {
     kind: "through-hole",
     leads: {
-      DO: { root: { dx: 31, dy: 110 }, style: "metallic-wire" },
-      GND: { root: { dx: 39, dy: 110 }, style: "metallic-wire" },
+      DO: { root: { dx: 31, dy: 101 }, style: "metallic-wire" },
+      GND: { root: { dx: 39, dy: 101 }, style: "metallic-wire" },
     },
+    bodyClip: { bottom: 19 },
   },
 }
 
