@@ -26,6 +26,7 @@ const orchestratorPath = path.join(dir, "..", "runtimeOrchestrator.js")
 const arduinoSimulatorPath = path.join(dir, "..", "arduino", "ArduinoSimulator.js")
 const canonicalRegistryPath = path.join(dir, "..", "canonicalRegistry.js")
 const integrationPath = path.join(dir, "..", "simulationRuntimeIntegration.js")
+const digitalContributionRegistryPath = path.join(dir, "..", "digitalContributionRegistry.js")
 
 function readSourceWithoutComments(sourcePath) {
   const raw = fs.readFileSync(sourcePath, "utf-8")
@@ -138,5 +139,36 @@ describe("MB-SIM-011 — GATE 1 : simulationRuntimeIntegration.js est l'unique p
       const source = readSourceWithoutComments(sourcePath)
       expect(source).not.toMatch(/simulationRuntimeIntegration/)
     }
+  })
+})
+
+describe("A7-C3-PREQ — Generic Computed Digital Output Registry : mécanisme générique, aucun type de production connu", () => {
+  it("digitalContributionRegistry.js n'importe ni resolution.js, ni engine.js, ni Canvas/Document/History (Registry pur, déclaratif)", () => {
+    const source = readSourceWithoutComments(digitalContributionRegistryPath)
+    expect(source).not.toMatch(/from\s+["']\.\/resolution\.js["']/)
+    expect(source).not.toMatch(/from\s+["']\.\/engine\.js["']/)
+    expect(source).not.toMatch(/react/i)
+    expect(source).not.toMatch(/canvas\//i)
+  })
+
+  it("resolution.js et engine.js n'importent pas digitalContributionRegistry.js (composition confinée à simulationRuntimeIntegration.js)", () => {
+    for (const sourcePath of [resolutionPath, enginePath]) {
+      const source = readSourceWithoutComments(sourcePath)
+      expect(source).not.toMatch(/digitalContributionRegistry/)
+    }
+  })
+
+  it("aucun littéral SOIL_MOISTURE_SENSOR/MOISTURE/PIR/TILT/IR_RECEIVER dans le Registry générique ni dans le compositeur (table de production vide dans ce ticket, §16 du blueprint)", () => {
+    for (const sourcePath of [digitalContributionRegistryPath, integrationPath]) {
+      const source = readSourceWithoutComments(sourcePath)
+      for (const forbidden of ["SOIL_MOISTURE_SENSOR", "MOISTURE", "PIR", "TILT", "IR_RECEIVER"]) {
+        expect(source, `${path.basename(sourcePath)} : ${forbidden}`).not.toMatch(new RegExp(forbidden))
+      }
+    }
+  })
+
+  it("simulationRuntimeIntegration.js importe digitalContributionRegistry.js (composition, pas duplication de son contrat)", () => {
+    const source = readSourceWithoutComments(integrationPath)
+    expect(source).toMatch(/from\s+["']\.\/digitalContributionRegistry\.js["']/)
   })
 })

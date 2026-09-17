@@ -10,6 +10,8 @@ import { prepareCircuit } from "./preparation.js"
 import { resolveSignals } from "./resolution.js"
 import { createRuntimeOrchestrator } from "./runtimeOrchestrator.js"
 import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
+import { getDigitalContribution as defaultGetDigitalContribution, hasDigitalContribution as defaultHasDigitalContribution } from "./digitalContributionRegistry.js"
+import { resolveComponentParameters } from "./resolveComponentParameters.js"
 
 /**
  * MB-SIM-011 — Intégration Simulation ↔ Scheduler/Runtime (SIM3).
@@ -70,6 +72,94 @@ export function circuitRequiresRuntime(components) {
 }
 
 /**
+ * A7-C3-PREQ — Generic Computed Digital Output composition (§2/§5 du
+ * ticket).
+ *
+ * Consulte, pour CHAQUE composant du circuit EFFECTIF, le Registry générique
+ * `digitalContributionRegistry.js` (Open/Closed, ADR-006-like) — jamais un
+ * `if (component.type === "...")` : la seule connaissance type -> production
+ * vit dans le Registry, consultée ici uniquement par son API
+ * `hasDigitalContribution`/`getDigitalContribution`.
+ *
+ * Produit une `Map<"uid:pinId", Signal>` destinée à être fusionnée dans
+ * `externalSignals` (voir `mergeExternalSignals` ci-dessous), exactement le
+ * même format de clé que les signaux Runtime (MB-SIM-012) — aucune seconde
+ * convention introduite.
+ *
+ * Pure, synchrone : ne lit ni Scheduler ni Runtime, ne mute jamais
+ * `effectiveComponents`.
+ *
+ * @param {Array<{ uid, type, parameters? }>} effectiveComponents composants
+ *   déjà soumis à `applyEnvironmentalStimuli()` (§8 du ticket : ce Registry
+ *   ne reçoit donc jamais les paramètres persistants bruts).
+ * @param {{ hasDigitalContribution: (type: string) => boolean, getDigitalContribution: (type: string) => import('./digitalContributionRegistry.js').DigitalContributionFn | null }} digitalRegistry
+ *   Par défaut le Registry de production (table vide dans ce ticket) ;
+ *   injectable pour test (§13 du ticket), sans jamais passer par
+ *   `canonicalRegistry.js` ni polluer la table de production.
+ * @returns {Map<string, string>}
+ */
+export function computeComponentDigitalSignals(effectiveComponents, digitalRegistry = {
+  hasDigitalContribution: defaultHasDigitalContribution,
+  getDigitalContribution: defaultGetDigitalContribution,
+}) {
+  const produced = new Map()
+  if (!Array.isArray(effectiveComponents)) return produced
+
+  for (const comp of effectiveComponents) {
+    if (!comp || !digitalRegistry.hasDigitalContribution(comp.type)) continue
+
+    const contribute = digitalRegistry.getDigitalContribution(comp.type)
+    const params = resolveComponentParameters(comp.type, comp.parameters)
+    const outputs = contribute({ component: comp, pins: comp.pins, params })
+    if (!outputs) continue
+
+    for (const [pinId, signal] of outputs) {
+      const key = `${comp.uid}:${pinId}`
+      if (produced.has(key)) {
+        throw new Error(
+          `computeComponentDigitalSignals: component "${comp.uid}" (type "${comp.type}") produced the pin key "${key}" more than once — a single contribution must be internally consistent (one value per pin)`
+        )
+      }
+      produced.set(key, signal)
+    }
+  }
+
+  return produced
+}
+
+/**
+ * A7-C3-PREQ — Fusion déterministe de plusieurs producteurs de signaux
+ * externes (§5/§9 du ticket) : Runtime (Arduino) + Computed Digital Outputs
+ * aujourd'hui, tout futur producteur demain, TOUJOURS composés en un SEUL
+ * `externalSignals` avant un UNIQUE appel à `resolveSignals()` — jamais une
+ * seconde résolution, jamais une fusion après propagation.
+ *
+ * Politique de collision explicite (§9 du ticket, ruling CSA) : une même
+ * pin ("uid:pinId") ne doit jamais avoir deux producteurs indépendants.
+ * Contrairement à un "last write wins" silencieux, toute clé déjà présente
+ * dans une Map précédente fait échouer la composition immédiatement et
+ * explicitement — aucune valeur n'est jamais écrasée silencieusement.
+ *
+ * @param {Array<Map<string, string>>} signalMaps
+ * @returns {Map<string, string>}
+ */
+export function mergeExternalSignals(signalMaps) {
+  const merged = new Map()
+  for (const signalMap of signalMaps) {
+    if (!signalMap) continue
+    for (const [key, signal] of signalMap) {
+      if (merged.has(key)) {
+        throw new Error(
+          `mergeExternalSignals: pin key "${key}" was produced by more than one independent signal source — a pin must have exactly one producer (CSA ruling, A7-C3-PREQ §9)`
+        )
+      }
+      merged.set(key, signal)
+    }
+  }
+  return merged
+}
+
+/**
  * Point d'entrée SIM3 : pour un circuit sans composant Runtime (ARDUINO),
  * délègue intégralement à runSimulation() (chemin historique, inchangé —
  * GATE 0). Dès qu'au moins un composant Runtime est présent, obtient
@@ -97,7 +187,7 @@ export function circuitRequiresRuntime(components) {
  *
  * @param {Array<{ uid, type, x, y, pins? }>} components
  * @param {Array<{ fromUid, fromPin, toUid, toPin }>} wires
- * @param {{ dt?: number, orchestrators?: Map<string, import('./runtimeOrchestrator.js').RuntimeOrchestrator>, environmentalStimuli?: {LIGHT?: number}|null }} [options]
+ * @param {{ dt?: number, orchestrators?: Map<string, import('./runtimeOrchestrator.js').RuntimeOrchestrator>, environmentalStimuli?: {LIGHT?: number}|null, digitalContributionRegistry?: { hasDigitalContribution: Function, getDigitalContribution: Function } }} [options]
  *   `dt` : délégué tel quel à RuntimeOrchestrator.advance() pour chaque
  *   composant Runtime (0 par défaut — aucune progression temporelle si
  *   omis). `orchestrators` : Map optionnelle uid → RuntimeOrchestrator,
@@ -113,9 +203,14 @@ export function circuitRequiresRuntime(components) {
  *   `null`/omis -> comportement historique strictement inchangé (ENV-18) :
  *   `applyEnvironmentalStimuli` retourne alors la MÊME référence
  *   `components`, donc GATE 0 ci-dessous reste vrai à l'identique.
+ *   `digitalContributionRegistry` [A7-C3-PREQ] : Registry optionnel injecté
+ *   pour test (§13 du ticket) — défaut : Registry de production
+ *   (`digitalContributionRegistry.js`, table vide dans ce ticket). Jamais
+ *   utilisé pour enregistrer un faux type de production.
  * @returns {Map<string, string>} pinSignals — même format que
- *   runSimulation() (clé "uid:pinId" → Signal), désormais calculé avec
- *   les signaux Runtime comme entrées de la résolution le cas échéant.
+ *   runSimulation() (clé "uid:pinId" → Signal), désormais calculé avec les
+ *   signaux Runtime ET/OU les sorties numériques calculées comme entrées de
+ *   la résolution le cas échéant.
  */
 export function runSimulationWithRuntime(components, wires, options = {}) {
   // MB-L1-ENV-001 (§9 du ticket) : les composants EFFECTIFS (paramètres
@@ -126,63 +221,92 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // (non-régression, ci-dessous) reste donc exactement vraie.
   const effectiveComponents = applyEnvironmentalStimuli(components, options.environmentalStimuli)
   const runtimeComponents = (effectiveComponents || []).filter((c) => c && c.type === RUNTIME_COMPONENT_TYPE)
-  if (runtimeComponents.length === 0) {
+
+  // A7-C3-PREQ (§2/§6/§7 du ticket) : le Registry générique de sorties
+  // numériques calculées est consulté pour TOUS les composants, Runtime ou
+  // non — un futur capteur environnemental producteur de logique calculée
+  // (humidité du sol, mouvement, inclinaison, récepteur infrarouge, ...)
+  // produit un signal externe même en
+  // l'ABSENCE de tout ARDUINO dans le circuit (contrairement au mécanisme
+  // Runtime, câblé en dur sur ARDUINO ci-dessus). Calculé AVANT le GATE 0 :
+  // sa taille conditionne, au même titre que runtimeComponents, si le
+  // chemin historique `runSimulation()` peut encore être emprunté tel quel.
+  const computedDigitalSignals = computeComponentDigitalSignals(effectiveComponents, options.digitalContributionRegistry)
+
+  // GATE 0 (§7 du ticket, non-régression stricte) : pour un circuit sans
+  // ARDUINO ET sans aucun composant enregistré dans le Registry de sorties
+  // numériques calculées (table de production vide dans ce ticket — donc
+  // TOUJOURS vrai aujourd'hui pour tout circuit réel), le comportement
+  // historique est préservé À L'IDENTIQUE — même référence de Map que
+  // `runSimulation()`, aucun Scheduler ni Runtime instancié.
+  if (runtimeComponents.length === 0 && computedDigitalSignals.size === 0) {
     return runSimulation(effectiveComponents, wires)
   }
 
-  const dt = options.dt ?? 0
-  const orchestrators = options.orchestrators instanceof Map ? options.orchestrators : new Map()
+  // A7-C3-PREQ (§12 du ticket) : la construction des signaux Runtime
+  // (Scheduler/ArduinoSimulator/firmware) reste ENTIÈREMENT conditionnée à
+  // la présence d'au moins un ARDUINO — un circuit qui n'a QUE des sorties
+  // numériques calculées (aucun ARDUINO) n'instancie ni Scheduler ni
+  // Runtime, exactement comme avant ce ticket pour un tel circuit.
+  let runtimeSignals = new Map()
+  if (runtimeComponents.length > 0) {
+    const dt = options.dt ?? 0
+    const orchestrators = options.orchestrators instanceof Map ? options.orchestrators : new Map()
 
-  let sharedScheduler = null
-  for (const existing of orchestrators.values()) {
-    sharedScheduler = existing.getScheduler()
-    break
-  }
+    let sharedScheduler = null
+    for (const existing of orchestrators.values()) {
+      sharedScheduler = existing.getScheduler()
+      break
+    }
 
-  // Une seule source de temps (GATE 1) : lorsque plusieurs composants
-  // Runtime partagent un même Scheduler (créés automatiquement au sein
-  // d'un même appel), ce Scheduler ne doit être avancé qu'UNE SEULE fois
-  // par appel — pas une fois par composant, ce qui le ferait dériver
-  // (dt * nombre de composants). Le premier composant traité avance le
-  // Scheduler (via RuntimeOrchestrator.advance(), qui préserve l'ordre
-  // Scheduler -> Runtime) ; les suivants, partageant déjà ce Scheduler
-  // désormais à jour, ne font progresser que leur propre Runtime.
-  //
-  // MB-SIM-014 §4/§6 : le Scheduler reste l'unique source de temps — tous
-  // les Runtime d'un même appel doivent recevoir EXACTEMENT le même
-  // currentTimeMs (jamais dt, une simple durée). Le currentTimeMs retourné
-  // par le premier orchestrator.advance(dt) est donc mémorisé et réutilisé
-  // tel quel pour tous les Runtime suivants de cet appel
-  // (orchestrator.getRuntime().tick(sharedCurrentTimeMs)), sans réappeler
-  // Scheduler.advance().
-  // Resolve every runtime before advancing the one shared clock.
-  for (const comp of runtimeComponents) {
-    if (!orchestrators.has(comp.uid)) {
-      const orchestrator = sharedScheduler
-        ? createRuntimeOrchestrator({ scheduler: sharedScheduler })
-        : createRuntimeOrchestrator()
-      sharedScheduler = orchestrator.getScheduler()
-      orchestrators.set(comp.uid, orchestrator)
+    // Une seule source de temps (GATE 1) : lorsque plusieurs composants
+    // Runtime partagent un même Scheduler (créés automatiquement au sein
+    // d'un même appel), ce Scheduler ne doit être avancé qu'UNE SEULE fois
+    // par appel — pas une fois par composant, ce qui le ferait dériver
+    // (dt * nombre de composants). Le premier composant traité avance le
+    // Scheduler (via RuntimeOrchestrator.advance(), qui préserve l'ordre
+    // Scheduler -> Runtime) ; les suivants, partageant déjà ce Scheduler
+    // désormais à jour, ne font progresser que leur propre Runtime.
+    //
+    // MB-SIM-014 §4/§6 : le Scheduler reste l'unique source de temps — tous
+    // les Runtime d'un même appel doivent recevoir EXACTEMENT le même
+    // currentTimeMs (jamais dt, une simple durée). Le currentTimeMs retourné
+    // par le premier orchestrator.advance(dt) est donc mémorisé et réutilisé
+    // tel quel pour tous les Runtime suivants de cet appel
+    // (orchestrator.getRuntime().tick(sharedCurrentTimeMs)), sans réappeler
+    // Scheduler.advance().
+    // Resolve every runtime before advancing the one shared clock.
+    for (const comp of runtimeComponents) {
+      if (!orchestrators.has(comp.uid)) {
+        const orchestrator = sharedScheduler
+          ? createRuntimeOrchestrator({ scheduler: sharedScheduler })
+          : createRuntimeOrchestrator()
+        sharedScheduler = orchestrator.getScheduler()
+        orchestrators.set(comp.uid, orchestrator)
+      }
+    }
+    for (const comp of runtimeComponents) {
+      if (orchestrators.get(comp.uid).getScheduler() !== sharedScheduler) {
+        throw new Error("Live Arduino runtimes must share one Scheduler")
+      }
+    }
+    if (options.firmwareSessions) {
+      synchronizeFirmware(options.firmwareComponents ?? components, orchestrators, options.firmwareSessions)
+    }
+    sharedScheduler.advance(dt)
+    const currentTimeMs = sharedScheduler.getCurrentTime()
+    for (const comp of runtimeComponents) {
+      options.firmwareSessions?.get(comp.uid)?.controller?.resumeAtCurrentTime()
+    }
+    for (const comp of runtimeComponents) {
+      const signalMap = orchestrators.get(comp.uid).getRuntime().tick(currentTimeMs)
+      for (const [pinId, signal] of signalMap) runtimeSignals.set(`${comp.uid}:${pinId}`, signal)
     }
   }
-  for (const comp of runtimeComponents) {
-    if (orchestrators.get(comp.uid).getScheduler() !== sharedScheduler) {
-      throw new Error("Live Arduino runtimes must share one Scheduler")
-    }
-  }
-  if (options.firmwareSessions) {
-    synchronizeFirmware(options.firmwareComponents ?? components, orchestrators, options.firmwareSessions)
-  }
-  sharedScheduler.advance(dt)
-  const currentTimeMs = sharedScheduler.getCurrentTime()
-  for (const comp of runtimeComponents) {
-    options.firmwareSessions?.get(comp.uid)?.controller?.resumeAtCurrentTime()
-  }
-  const externalSignals = new Map()
-  for (const comp of runtimeComponents) {
-    const signalMap = orchestrators.get(comp.uid).getRuntime().tick(currentTimeMs)
-    for (const [pinId, signal] of signalMap) externalSignals.set(`${comp.uid}:${pinId}`, signal)
-  }
+
+  // A7-C3-PREQ (§5 du ticket) : UNE SEULE composition, UNE SEULE résolution
+  // — jamais une seconde résolution, jamais une fusion après propagation.
+  const externalSignals = mergeExternalSignals([runtimeSignals, computedDigitalSignals])
   const prepared = prepareCircuit(effectiveComponents, wires)
   const { pinSignals } = resolveSignals(effectiveComponents, prepared, externalSignals)
   return pinSignals
