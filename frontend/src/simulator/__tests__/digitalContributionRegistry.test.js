@@ -13,9 +13,11 @@ import { Signal } from "../signals.js"
  * Registre déclaratif générique, même patron Open/Closed que
  * dcContributionRegistry.js, mais pour des sorties HIGH/LOW calculées
  * plutôt qu'analogiques. A7-C3-PREQ a construit UNIQUEMENT le mécanisme
- * (table de production vide). A7-C3 enregistre SOIL_MOISTURE_SENSOR, la
- * PREMIÈRE entrée réelle de production (voir soilMoistureSensorA7C3.test.js
- * pour la preuve DO complète) — PIR/TILT/IR_RECEIVER restent absents.
+ * (table de production vide). A7-C3 a enregistré SOIL_MOISTURE_SENSOR (la
+ * première entrée réelle de production, voir soilMoistureSensorA7C3.test.js
+ * pour la preuve DO complète), A7-C4-PIR ajoute PIR_MOTION_SENSOR (voir
+ * pirMotionSensorA7C4.test.js pour la preuve OUT complète) — TILT/IR_RECEIVER
+ * restent absents.
  */
 
 describe("A7-C3-PREQ — T01 : Registry inconnu -> null/absent", () => {
@@ -25,8 +27,8 @@ describe("A7-C3-PREQ — T01 : Registry inconnu -> null/absent", () => {
   it("hasDigitalContribution(type inconnu) retourne false", () => {
     expect(hasDigitalContribution("UNKNOWN_TYPE")).toBe(false)
   })
-  it("registre de production : SOIL_MOISTURE_SENSOR (A7-C3), aucun autre type", () => {
-    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR"])
+  it("registre de production : SOIL_MOISTURE_SENSOR (A7-C3) + PIR_MOTION_SENSOR (A7-C4-PIR), aucun autre type", () => {
+    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR", "PIR_MOTION_SENSOR"])
   })
 })
 
@@ -37,7 +39,7 @@ describe("A7-C3-PREQ — createDigitalContributionRegistry : Registry isolé, in
     })
     expect(fixture.hasDigitalContribution("LDR")).toBe(true)
     expect(hasDigitalContribution("LDR")).toBe(false)
-    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR"])
+    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR", "PIR_MOTION_SENSOR"])
   })
 
   it("getDigitalContribution du Registry fixture retourne la fonction enregistrée, exécutable", () => {
@@ -77,14 +79,14 @@ describe("A7-C3-PREQ — createDigitalContributionRegistry : Registry isolé, in
   })
 })
 
-describe("A7-C3 — aucune connaissance de type spécifique NON ENCORE PRODUIT dans le Registry", () => {
-  it("digitalContributionRegistry.js ne contient aucun littéral PIR/TILT/IR_RECEIVER (SOIL_MOISTURE_SENSOR est la seule entrée réelle, A7-C3)", async () => {
+describe("A7-C3/A7-C4-PIR — aucune connaissance de type spécifique NON ENCORE PRODUIT dans le Registry", () => {
+  it("digitalContributionRegistry.js ne contient aucun littéral TILT/IR_RECEIVER (SOIL_MOISTURE_SENSOR et PIR_MOTION_SENSOR sont les seules entrées réelles)", async () => {
     const { readFileSync } = await import("node:fs")
     const { fileURLToPath } = await import("node:url")
     const { dirname, resolve } = await import("node:path")
     const __dirname = dirname(fileURLToPath(import.meta.url))
     const src = readFileSync(resolve(__dirname, "../digitalContributionRegistry.js"), "utf-8")
-    for (const forbidden of ["PIR", "TILT", "IR_RECEIVER"]) {
+    for (const forbidden of ["TILT", "IR_RECEIVER"]) {
       expect(src, forbidden).not.toMatch(new RegExp(forbidden))
     }
   })

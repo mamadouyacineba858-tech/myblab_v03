@@ -301,6 +301,33 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 33 },
   },
+  // A7-C4-PIR — PIR Motion Sensor (HC-SR501-style module). Pixel-probe réel
+  // (alpha>=32, méthode frontend/scripts/lead-anchor-probe.md, System.Drawing
+  // sur le paquet copié dans ce worktree) : bounding box opaque globale (1x)
+  // [11,4,109,92] — cohérent avec l'audit Founder (opaqueBounds1x [10,2,109,93]).
+  // Les 3 pattes de l'en-tête (header 2.54mm, PAS 12 px) sont des segments
+  // verticaux stables entre y=74 et y=88, centroïdes alpha-pondérés mesurés
+  // sur toute la hauteur du segment (y∈[74,88]) : VCC (50.81,80.21) ->
+  // (51,80) ; OUT (59.33,80.12) -> (59,80) ; GND (67.99,80.17) -> (68,80) —
+  // toutes les trois pleinement opaques (alpha=255). Sous y=88, un vide total
+  // (y=89) précède un halo diffus faible (alpha 51-90, y∈[90,92], quasi
+  // certainement une ombre portée décorative, PAS une patte fonctionnelle :
+  // aucun pixel opaque au-delà de y=92, RIEN à y=93/94/95). Les
+  // PhysicalContacts fonctionnels (componentDefinitions.js) sont désormais
+  // VCC(48,92)/OUT(60,92)/GND(72,92), sous les racines mesurées : AssemblyLeadsLayer
+  // relie chaque racine à son PhysicalContact via une patte fonctionnelle
+  // courte (style metallic-wire, même rendu que FORCE_SENSOR/SOIL_MOISTURE_SENSOR).
+  // AUCUN bodyClip : le raster s'arrête naturellement à y=92, exactement au
+  // niveau des PhysicalContacts (même situation que TMP36/VIBRATION_MOTOR,
+  // §5 du ticket : "ne pas ajouter de bodyClip automatiquement").
+  PIR_MOTION_SENSOR: {
+    kind: "through-hole",
+    leads: {
+      VCC: { root: { dx: 51, dy: 80 }, style: "metallic-wire" },
+      OUT: { root: { dx: 59, dy: 80 }, style: "metallic-wire" },
+      GND: { root: { dx: 68, dy: 80 }, style: "metallic-wire" },
+    },
+  },
 }
 
 export function getAssemblyProfile(type) {

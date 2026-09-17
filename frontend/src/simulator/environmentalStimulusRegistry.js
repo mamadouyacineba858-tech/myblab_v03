@@ -100,6 +100,25 @@ export function isValidMoistureStimulus(value) {
 }
 
 /**
+ * A7-C4-PIR — MOTION est un contrat Level-1 STRICTEMENT BINAIRE (0 ou 1
+ * numériques uniquement, §8 du ticket) — à la différence de LIGHT/FORCE/
+ * FLEX/MOISTURE qui acceptent tout le continuum [0,1]. Aucune valeur
+ * intermédiaire (0.5), hors-borne (-1, 2), booléenne, string, NaN ou
+ * Infinity n'est acceptée : `typeof value === "number"` exclut déjà
+ * booléens/strings ; l'égalité stricte à 0 ou 1 exclut le reste (une
+ * comparaison `value === 0 || value === 1` est déjà `false` pour NaN/
+ * Infinity, aucune garde Number.isFinite supplémentaire n'est donc
+ * nécessaire, mais conservée pour rester lisible et symétrique aux autres
+ * validateurs de ce fichier).
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isValidMotionStimulus(value) {
+  return typeof value === "number" && Number.isFinite(value) && (value === 0 || value === 1)
+}
+
+/**
  * Table déclarative kind -> définition. Chaque définition porte au minimum
  * `validate(value)`. Aucun moteur générique ne doit connaître cette table
  * par son contenu — seulement par ses clés (`getSupportedStimulusKinds`) et
@@ -107,6 +126,7 @@ export function isValidMoistureStimulus(value) {
  * exactement comme prévu par A7-C0 : aucune autre modification n'est requise
  * dans `environmentalStimulus.js` pour que ce nouveau kind soit reconnu.
  * A7-C2 ajoute FORCE et FLEX sur le même principe. A7-C3 ajoute MOISTURE.
+ * A7-C4-PIR ajoute MOTION (contrat binaire {0,1}, seul kind non-continu).
  */
 const STIMULUS_DEFINITIONS = Object.freeze({
   LIGHT: Object.freeze({ validate: isValidLightStimulus }),
@@ -114,6 +134,7 @@ const STIMULUS_DEFINITIONS = Object.freeze({
   FORCE: Object.freeze({ validate: isValidForceStimulus }),
   FLEX: Object.freeze({ validate: isValidFlexStimulus }),
   MOISTURE: Object.freeze({ validate: isValidMoistureStimulus }),
+  MOTION: Object.freeze({ validate: isValidMotionStimulus }),
 })
 
 /**

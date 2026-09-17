@@ -76,9 +76,16 @@ const DECLARED_TYPES_PINS = {
   // et DO (numérique calculée, digitalContributionRegistry.js) sont deux
   // sorties DISTINCTES, jamais fusionnées en un seul pin.
   SOIL_MOISTURE_SENSOR:[{id:'VCC',role:'power'},{id:'AO',role:'output'},{id:'DO',role:'output'},{id:'GND',role:'ground'}],
+  // A7-C4-PIR — PIR Motion Sensor (HC-SR501-style module) : 3 broches
+  // DIRECTIONNELLES, ordre verrouillé VCC/OUT/GND (§7 du ticket), même
+  // vocabulaire de rôles que TMP36/SOIL_MOISTURE_SENSOR (power/output/
+  // ground) — aucun nouveau rôle introduit. OUT est la SEULE sortie
+  // fonctionnelle (numérique calculée, digitalContributionRegistry.js) —
+  // aucune sortie analogique/DC pour ce composant (§12 du ticket).
+  PIR_MOTION_SENSOR:[{id:'VCC',role:'power'},{id:'OUT',role:'output'},{id:'GND',role:'ground'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -163,6 +170,16 @@ const DECLARED_PARAMETER_SCHEMA = {
     {key:'analogRatio',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:1,description:'Niveau analogique normalisé EFFECTIF (1 = sol sec, 0 = sol saturé), fallback historique tant qu\'aucun stimulus environnemental MOISTURE actif n\'est fourni. Sous MOISTURE actif (A7-C3), la valeur EFFECTIVE est calculée par le Registry environnemental dédié (analogRatio = 1 - MOISTURE), sans jamais modifier ce paramètre persistant.'},
     {key:'threshold',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0.5,description:'Seuil d\'humidité (échelle MOISTURE [0,1]) sous lequel la sortie numérique DO commute HIGH (sol jugé "sec") — paramètre d\'instance persistant, jamais dérivé d\'un stimulus environnemental.'},
   ],
+  // A7-C4-PIR — PIR Motion Sensor : paramètre effectif UNIQUE `motionDetected`
+  // ∈ {0,1} (jamais une plage continue — contrat Level-1 binaire, §8/§9 du
+  // ticket), fallback canonique 0 (aucun mouvement) tant qu'aucun stimulus
+  // environnemental MOTION actif n'est fourni. Sous MOTION actif, la valeur
+  // EFFECTIVE est le passage direct MOTION -> motionDetected (identité,
+  // aucune formule, cf. environmentalResponseRegistry.js) — jamais recalculée
+  // ailleurs (digitalContributionRegistry.js la consomme telle quelle).
+  PIR_MOTION_SENSOR:[
+    {key:'motionDetected',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0,description:'État de détection EFFECTIF (0 = aucun mouvement, 1 = mouvement détecté), fallback canonique 0 tant qu\'aucun stimulus environnemental MOTION actif n\'est fourni. Sous MOTION actif (A7-C4-PIR), la valeur EFFECTIVE est calculée par le Registry environnemental dédié (passage direct, identité), sans jamais modifier ce paramètre persistant.'},
+  ],
 }
 
 const DECLARED_DEFAULT_PARAMETERS = {
@@ -186,6 +203,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   FORCE_SENSOR:{resistance:1000000},
   FLEX_SENSOR:{resistance:10000},
   SOIL_MOISTURE_SENSOR:{analogRatio:1,threshold:0.5},
+  PIR_MOTION_SENSOR:{motionDetected:0},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -209,6 +227,10 @@ const DECLARED_CAPABILITIES = {
   FORCE_SENSOR:['digital','dc'],
   FLEX_SENSOR:['digital','dc'],
   SOIL_MOISTURE_SENSOR:['digital','dc'],
+  // A7-C4-PIR : capability 'digital' UNIQUEMENT (§12 du ticket) — PIR ne
+  // fournit aucune sortie analogique/DC ; aucune entrée dcContributionRegistry
+  // n'est donc requise ni attendue pour ce type (TEST G4, componentLibraryRolloutGate).
+  PIR_MOTION_SENSOR:['digital'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -232,6 +254,7 @@ const DECLARED_MODEL_AVAILABLE = {
   FORCE_SENSOR:true,
   FLEX_SENSOR:true,
   SOIL_MOISTURE_SENSOR:true,
+  PIR_MOTION_SENSOR:true,
 }
 
 /**

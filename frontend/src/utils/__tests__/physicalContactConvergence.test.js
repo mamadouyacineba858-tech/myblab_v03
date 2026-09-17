@@ -263,14 +263,16 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR',
     'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH', 'VIBRATION_MOTOR',
     'LIGHT_BULB', 'HOBBY_GEARMOTOR', 'TMP36', 'FORCE_SENSOR', 'FLEX_SENSOR', 'SOIL_MOISTURE_SENSOR',
+    'PIR_MOTION_SENSOR',
   ]
 
-  it('le catalogue compte exactement 29 types', () => {
+  it('le catalogue compte exactement 30 types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
     // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
     // A7-C1 : 25 -> 26 (TMP36 ajouté). A7-C2 : 26 -> 28 (FORCE_SENSOR + FLEX_SENSOR ajoutés).
-    // A7-C3 : 28 -> 29 (SOIL_MOISTURE_SENSOR ajouté).
-    expect(new Set(CATALOGUE).size).toBe(29)
+    // A7-C3 : 28 -> 29 (SOIL_MOISTURE_SENSOR ajouté). A7-C4-PIR : 29 -> 30
+    // (PIR_MOTION_SENSOR ajouté).
+    expect(new Set(CATALOGUE).size).toBe(30)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -318,7 +320,7 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     }
   })
 
-  it('classification breadboardInsertable finale S5 : 21 enfichables / 8 non-directs', () => {
+  it('classification breadboardInsertable finale S5 : 22 enfichables / 8 non-directs', () => {
     const INSERTABLE = ['RESISTOR', 'LED', 'DIODE', 'CAPACITOR', 'LDR', 'THERMISTOR',
       'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER',
       'POLARIZED_CAPACITOR',
@@ -344,7 +346,11 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
       // A7-C3 : 4 PhysicalContacts entraxe 12 = 1×BREADBOARD_PITCH exact
       // entre chaque paire adjacente (cf. soilMoistureSensorA7C3.test.js) ->
       // breadboardInsertable:true.
-      'SOIL_MOISTURE_SENSOR']
+      'SOIL_MOISTURE_SENSOR',
+      // A7-C4-PIR : 3 PhysicalContacts entraxe 12 = 1×BREADBOARD_PITCH exact
+      // entre chaque paire adjacente (cf. pirMotionSensorA7C4.test.js) ->
+      // breadboardInsertable:true.
+      'PIR_MOTION_SENSOR']
     // A6-OUT1-R1 : VIBRATION_MOTOR quitte NON_DIRECT (rejoint INSERTABLE ci-dessus).
     // A6-OUT3 : HOBBY_GEARMOTOR ajouté à NON_DIRECT — wire-only par contrat
     // produit (jamais de géométrie breadboard recherchée, cf.

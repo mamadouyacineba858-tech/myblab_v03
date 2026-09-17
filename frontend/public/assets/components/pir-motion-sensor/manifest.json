@@ -1,0 +1,60 @@
+{
+  "component": "PIR_MOTION_SENSOR",
+  "displayName": "PIR Motion Sensor",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "complexity": "complex",
+  "canonical": {
+    "width": 120,
+    "height": 96,
+    "orientation": "front",
+    "connections": 3,
+    "visiblePinOrder": [
+      "VCC",
+      "OUT",
+      "GND"
+    ],
+    "wireConnectable": true
+  },
+  "visualModel": "HC-SR501-style PIR module",
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      10,
+      2,
+      109,
+      93
+    ],
+    "note": "Founder-approved master preserved; resize/background transparency only. No PCB, Fresnel lens, label, header or pin redraw. PhysicalContacts/Assembly geometry must be locked from packaged raster during A7-C4 implementation audit."
+  },
+  "assets": [
+    {
+      "file": "pir-motion-sensor.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 120,
+      "height": 96
+    },
+    {
+      "file": "pir-motion-sensor.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 120,
+      "height": 96
+    },
+    {
+      "file": "pir-motion-sensor.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 360,
+      "height": 288
+    },
+    {
+      "file": "pir-motion-sensor.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 360,
+      "height": 288
+    }
+  ]
+}

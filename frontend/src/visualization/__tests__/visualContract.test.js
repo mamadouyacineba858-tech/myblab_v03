@@ -288,7 +288,9 @@ describe('G — Backend Contract', () => {
     // (paquets d'assets réalistes Founder-approved).
     // A7-C3 : SOIL_MOISTURE_SENSOR rejoint également rasterTypes (paquet
     // d'assets réaliste Founder-approved, YL-69/YL-38).
-    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'FLEX_SENSOR', 'FORCE_SENSOR', 'HOBBY_GEARMOTOR', 'LDR', 'LED', 'LIGHT_BULB', 'NPN_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH', 'SOIL_MOISTURE_SENSOR', 'TMP36', 'VIBRATION_MOTOR'])
+    // A7-C4-PIR : PIR_MOTION_SENSOR rejoint également rasterTypes (paquet
+    // d'assets réaliste Founder-approved, HC-SR501-style).
+    expect(rasterTypes.slice().sort()).toEqual(['ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'FLEX_SENSOR', 'FORCE_SENSOR', 'HOBBY_GEARMOTOR', 'LDR', 'LED', 'LIGHT_BULB', 'NPN_TRANSISTOR', 'PIR_MOTION_SENSOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH', 'SOIL_MOISTURE_SENSOR', 'TMP36', 'VIBRATION_MOTOR'])
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')

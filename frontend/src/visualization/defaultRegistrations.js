@@ -46,6 +46,7 @@ import { Tmp36Part } from '../components/parts/Tmp36Part.jsx';
 import { ForceSensorPart } from '../components/parts/ForceSensorPart.jsx';
 import { FlexSensorPart } from '../components/parts/FlexSensorPart.jsx';
 import { SoilMoistureSensorPart } from '../components/parts/SoilMoistureSensorPart.jsx';
+import { PirMotionSensorPart } from '../components/parts/PirMotionSensorPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -259,6 +260,16 @@ export const DEFAULT_REGISTRATIONS = [
   // du stimulus environnemental MOISTURE (contrat générique A7-C0,
   // environmentalResponseRegistry.js) et de l'alimentation VCC/GND (PREQ2).
   { type: 'SOIL_MOISTURE_SENSOR', component: SoilMoistureSensorPart, visual: { backend: 'raster' } },
+  // PIR_MOTION_SENSOR : A7-C4-PIR — paquet d'assets raster réaliste
+  // Founder-approved (HC-SR501-style, 120×96, état unique `default`). raster
+  // => bareBody + markerless dérivés, même mécanisme déclaratif que TMP36 /
+  // SOIL_MOISTURE_SENSOR — aucun code central spécifique, aucune condition
+  // `type === "PIR_MOTION_SENSOR"`. Modèle numérique dédié : OUT
+  // (pirMotionSensorDigital, digitalContributionRegistry.js) dépend du
+  // stimulus environnemental MOTION (contrat générique A7-C0,
+  // environmentalResponseRegistry.js) et de l'alimentation VCC/GND (PREQ2).
+  // Aucune contribution DC (§12 du ticket).
+  { type: 'PIR_MOTION_SENSOR', component: PirMotionSensorPart, visual: { backend: 'raster' } },
 ];
 
 /**

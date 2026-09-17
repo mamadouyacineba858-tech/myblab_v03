@@ -1,0 +1,23 @@
+{
+  "component": "PIR_MOTION_SENSOR",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "pir-motion-sensor.default.1x.png": {
+      "sha256": "f2290d1cfd2f932791e17cd02ab73f392ea7629bed1552ee8fa7ed9f932505f4",
+      "bytes": 16063
+    },
+    "pir-motion-sensor.default.1x.webp": {
+      "sha256": "55409c88a1287a0df2b7baeda62dad40025dccf19918296582e39161673c0da3",
+      "bytes": 12364
+    },
+    "pir-motion-sensor.default.3x.png": {
+      "sha256": "512c85ffc2dbd4e93309808d9147cdec336eb2fdb48c81c0913c79d85025e4a8",
+      "bytes": 90927
+    },
+    "pir-motion-sensor.default.3x.webp": {
+      "sha256": "8b923ffbf403eadf1a99e832282dbb0b308289ddc838a3d649c0b1266208a5b2",
+      "bytes": 64446
+    }
+  }
+}

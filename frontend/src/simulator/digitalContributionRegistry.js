@@ -77,6 +77,26 @@ function soilMoistureSensorDigital({ params, pinSignals }) {
 }
 
 /**
+ * A7-C4-PIR — PIR_MOTION_SENSOR : sortie numérique OUT (§10/§11 du ticket).
+ *
+ * Garde d'alimentation obligatoire (réutilise PREQ2, aucune seconde
+ * résolution, aucune branche PIR dans resolution.js/simulationRuntimeIntegration.js) :
+ * un module non alimenté, en polarité inversée, ou dont la source est en
+ * conflit ne produit jamais de OUT (pinSignals.VCC/GND ne sont jamais HIGH/LOW
+ * simultanément dans ces trois cas — voir resolveSourceDrivenPinSignals).
+ *
+ * Contrat verrouillé : motionDetected===1 -> OUT HIGH ; motionDetected===0 ->
+ * OUT LOW. Cette fonction ne relit JAMAIS environmentalStimuli (interdit par
+ * §10 du ticket) et ne recalcule jamais MOTION : elle consomme uniquement le
+ * paramètre EFFECTIF `motionDetected` déjà produit en amont (fallback
+ * canonique 0, ou réponse MOTION via environmentalResponseRegistry.js).
+ */
+function pirMotionSensorDigital({ params, pinSignals }) {
+  if (pinSignals.VCC !== Signal.HIGH || pinSignals.GND !== Signal.LOW) return null
+  return new Map([["OUT", params.motionDetected === 1 ? Signal.HIGH : Signal.LOW]])
+}
+
+/**
  * Fabrique un Registry isolé — même patron que `createSimulationRegistry`
  * (`simulationRegistry.js`) : permet à un test d'injecter une table de
  * contributions FIXTURE, sans jamais enregistrer de faux type de production
@@ -106,13 +126,16 @@ export function createDigitalContributionRegistry({ contributions = new Map() } 
 }
 
 /**
- * Registry de production — table vide en A7-C3-PREQ, PREMIÈRE entrée réelle
- * ajoutée par A7-C3 (SOIL_MOISTURE_SENSOR). Chaque futur ticket producteur
- * ajoute UNE entrée ici, sans jamais toucher `simulationRuntimeIntegration.js`
- * ni `resolution.js`.
+ * Registry de production — table vide en A7-C3-PREQ, première entrée réelle
+ * ajoutée par A7-C3 (SOIL_MOISTURE_SENSOR), deuxième par A7-C4-PIR
+ * (PIR_MOTION_SENSOR). Chaque futur ticket producteur ajoute UNE entrée ici,
+ * sans jamais toucher `simulationRuntimeIntegration.js` ni `resolution.js`.
  */
 const defaultRegistry = createDigitalContributionRegistry({
-  contributions: new Map([["SOIL_MOISTURE_SENSOR", soilMoistureSensorDigital]]),
+  contributions: new Map([
+    ["SOIL_MOISTURE_SENSOR", soilMoistureSensorDigital],
+    ["PIR_MOTION_SENSOR", pirMotionSensorDigital],
+  ]),
 })
 
 export const getDigitalContribution = defaultRegistry.getDigitalContribution

@@ -149,6 +149,11 @@ export const SCALE_REFERENCE = Object.freeze([
   // asset raster réaliste Founder-approved (cf.
   // componentDefinitions.js/SoilMoistureSensorPart.jsx).
   { type: 'SOIL_MOISTURE_SENSOR', box: [144, 144], physicalMm: [60, 60], ref: 'capteur d\'humidité du sol YL-69/YL-38, sonde + module ~60×60 mm (indicatif, A7-C3)', impliedUnitsPerMm: 144 / 60 },
+  // A7-C4-PIR : capteur de mouvement PIR (type HC-SR501), carte PCB avec
+  // dôme Fresnel ~32 × 24 mm (indicatif, dimensions typiques du module réel),
+  // asset raster réaliste Founder-approved (cf.
+  // componentDefinitions.js/PirMotionSensorPart.jsx).
+  { type: 'PIR_MOTION_SENSOR', box: [120, 96], physicalMm: [32, 24], ref: 'capteur de mouvement PIR HC-SR501-style, carte + dôme Fresnel ~32×24 mm (indicatif, A7-C4-PIR)', impliedUnitsPerMm: 120 / 32 },
 ])
 
 /**

@@ -143,6 +143,24 @@ function soilMoistureSensorMoistureResponse(stimuli) {
 }
 
 /**
+ * A7-C4-PIR — PIR_MOTION_SENSOR : produit UNIQUEMENT le paramètre EFFECTIF
+ * `motionDetected` (§9 du ticket) — passage direct (identité), aucun calcul,
+ * aucune sortie HIGH/LOW ici (ça reste digitalContributionRegistry.js, seule
+ * responsable de la conséquence électrique OUT — §10/§12 du ticket, PIR n'a
+ * d'ailleurs aucune contribution DC).
+ *
+ *   motionDetected = MOTION
+ *
+ * MOTION ∈ {0,1} déjà (contrat binaire verrouillé par
+ * environmentalStimulusRegistry.js), donc `motionDetected` hérite du même
+ * domaine sans transformation.
+ */
+function pirMotionSensorMotionResponse(stimuli) {
+  const { MOTION: motion } = stimuli
+  return { motionDetected: motion }
+}
+
+/**
  * Table déclarative type -> { stimulus, respond }. `respond(stimuli)` reçoit
  * le stimulus environnemental déjà validé (voir `environmentalStimulus.js`)
  * et retourne un objet d'overrides de paramètres, ou `null` si aucun effet
@@ -159,6 +177,7 @@ const ENVIRONMENTAL_RESPONSES = Object.freeze({
   FORCE_SENSOR: Object.freeze({ stimulus: "FORCE", respond: forceSensorForceResponse }),
   FLEX_SENSOR: Object.freeze({ stimulus: "FLEX", respond: flexSensorFlexResponse }),
   SOIL_MOISTURE_SENSOR: Object.freeze({ stimulus: "MOISTURE", respond: soilMoistureSensorMoistureResponse }),
+  PIR_MOTION_SENSOR: Object.freeze({ stimulus: "MOTION", respond: pirMotionSensorMotionResponse }),
 })
 
 /**

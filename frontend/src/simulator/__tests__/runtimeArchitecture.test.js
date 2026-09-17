@@ -158,18 +158,18 @@ describe("A7-C3-PREQ — Generic Computed Digital Output Registry : mécanisme g
     }
   })
 
-  it("aucun littéral PIR/TILT/IR_RECEIVER dans le Registry générique ni dans le compositeur (SOIL_MOISTURE_SENSOR/MOISTURE sont la seule entrée réelle de production, A7-C3)", () => {
+  it("aucun littéral TILT/IR_RECEIVER dans le Registry générique ni dans le compositeur (SOIL_MOISTURE_SENSOR/MOISTURE et PIR_MOTION_SENSOR/MOTION sont les seules entrées réelles de production, A7-C3/A7-C4-PIR)", () => {
     for (const sourcePath of [digitalContributionRegistryPath, integrationPath]) {
       const source = readSourceWithoutComments(sourcePath)
-      for (const forbidden of ["PIR", "TILT", "IR_RECEIVER"]) {
+      for (const forbidden of ["TILT", "IR_RECEIVER"]) {
         expect(source, `${path.basename(sourcePath)} : ${forbidden}`).not.toMatch(new RegExp(forbidden))
       }
     }
   })
 
-  it("aucun littéral SOIL_MOISTURE_SENSOR/MOISTURE dans le compositeur générique (simulationRuntimeIntegration.js) — cette connaissance vit exclusivement dans les Registries déclaratifs", () => {
+  it("aucun littéral SOIL_MOISTURE_SENSOR/MOISTURE/PIR_MOTION_SENSOR/PIR/MOTION dans le compositeur générique (simulationRuntimeIntegration.js) — cette connaissance vit exclusivement dans les Registries déclaratifs", () => {
     const source = readSourceWithoutComments(integrationPath)
-    for (const forbidden of ["SOIL_MOISTURE_SENSOR", "MOISTURE"]) {
+    for (const forbidden of ["SOIL_MOISTURE_SENSOR", "MOISTURE", "PIR_MOTION_SENSOR", "PIR", "MOTION"]) {
       expect(source, forbidden).not.toMatch(new RegExp(forbidden))
     }
   })

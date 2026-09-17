@@ -17,6 +17,7 @@ import { Tmp36Model } from './models/Tmp36Model.js'
 import { ForceSensorModel } from './models/ForceSensorModel.js'
 import { FlexSensorModel } from './models/FlexSensorModel.js'
 import { SoilMoistureSensorModel } from './models/SoilMoistureSensorModel.js'
+import { PirMotionSensorModel } from './models/PirMotionSensorModel.js'
 import {
   UnknownComponentTypeError,
   SimulationModelUnavailableError,
@@ -116,6 +117,7 @@ const defaultRegistry = createSimulationRegistry({
     ForceSensorModel,
     FlexSensorModel,
     SoilMoistureSensorModel,
+    PirMotionSensorModel,
   ],
 })
 
