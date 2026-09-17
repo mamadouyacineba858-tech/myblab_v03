@@ -549,7 +549,12 @@ describe('A7-C5 — HC-54/HC-55 : AssemblyProfile, racines mesurées par pixel-p
     expect(profile.leads.GND.root).toEqual({ dx: 81, dy: 77 })
     const def = getComponentDef('HC_SR04')
     for (const id of ['VCC', 'TRIG', 'ECHO', 'GND']) {
-      expect(profile.leads[id].style).toBe('metallic-wire')
+      // A7-C5-R2 — correction Founder (post-A7-C5-R1 STOP S3) : metallic-wire
+      // (nickelé/brillant) remplacé par dark-wire (trait unique sombre,
+      // AssemblyLeadsLayer.css) ; racines/PhysicalContacts/pitch/bodyClip
+      // strictement inchangés, voir assemblyLeadsDarkWireR2.test.js pour la
+      // preuve dédiée de la primitive.
+      expect(profile.leads[id].style).toBe('dark-wire')
       const contact = resolveContacts(byPinOf(def, id))[0]
       expect(profile.leads[id].root.dy).toBeLessThan(contact.dy) // racine AU-DESSUS du contact (leçon A7-C4-TILT-R1)
     }

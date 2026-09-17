@@ -55,8 +55,15 @@ function contactKey(pinId, contactId) {
  * Styles de présentation autorisés par l'Assembly Layer. Le choix du style
  * reste entièrement déclaratif dans assemblyProfiles.js ; aucune branche par
  * type de composant n'est ajoutée ici.
+ *
+ * A7-C5-R2 — `dark-wire` : trait unique sombre (pas de core/highlight, à la
+ * différence de `metallic-wire`), pour un profil qui a besoin d'une patte
+ * sombre plutôt que nickelée. Rendu générique inchangé : AssemblyLeadsLayer.jsx
+ * route déjà tout style ≠ `metallic-wire` vers la branche `<line
+ * className={`assembly-leads__lead--${style}`}>` générique — aucune nouvelle
+ * branche de rendu n'a été nécessaire pour cette primitive.
  */
-const LEAD_STYLES = new Set(["wire", "metallic-wire", "lug"])
+const LEAD_STYLES = new Set(["wire", "metallic-wire", "lug", "dark-wire"])
 
 /**
  * @typedef {Object} AssemblyContact
@@ -66,7 +73,7 @@ const LEAD_STYLES = new Set(["wire", "metallic-wire", "lug"])
  * @property {{x:number,y:number}} target  PhysicalContact naturel = hit target = endpoint fil
  * @property {{column:number,row:number}|null} hole   trou breadboard résolu, ou null
  * @property {{x:number,y:number}|null} holePosition  centre exact du trou résolu, ou null
- * @property {'wire'|'metallic-wire'|'lug'} style
+ * @property {'wire'|'metallic-wire'|'lug'|'dark-wire'} style
  */
 
 /**

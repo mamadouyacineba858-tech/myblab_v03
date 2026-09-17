@@ -55,3 +55,15 @@
   stroke: #b6bcc4;
   stroke-width: 3.6;
 }
+
+/*
+ * A7-C5-R2 — patte sombre à trait unique (HC-SR04, correction Founder
+ * post-A7-C5-R1 STOP S3 : ni `wire` #9aa1a9 ni `metallic-wire` — dominée par
+ * son core clair + highlight blanc — ne rendaient une apparence sombre/noire).
+ * Volontairement SANS core ni highlight : un seul trait, contrairement à
+ * `--metallic-wire`.
+ */
+.assembly-leads__lead--dark-wire {
+  stroke: #25282c;
+  stroke-width: 2.4;
+}

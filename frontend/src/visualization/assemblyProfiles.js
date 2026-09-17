@@ -420,13 +420,19 @@ const ASSEMBLY_PROFILES = {
   // dans la portion transparente sous y=87, jusqu'au trou). Style
   // metallic-wire, même rendu que les autres capteurs à en-tête (PIR_MOTION_
   // SENSOR/TILT_SENSOR/IR_RECEIVER/SOIL_MOISTURE_SENSOR).
+  // A7-C5-R2 — correction Founder (post-A7-C5-R1 STOP S3) : `metallic-wire`
+  // (dominée par son core clair #b9c0c6 + highlight blanc) rendait un aspect
+  // nickelé/brillant trop clair pour ce module, et `wire` seul (#9aa1a9)
+  // restait également trop clair — cf. primitive dédiée `dark-wire`
+  // (AssemblyLeadsLayer.css). Racines/PhysicalContacts/pitch/bodyClip
+  // STRICTEMENT INCHANGÉS — seul le style de présentation change.
   HC_SR04: {
     kind: "through-hole",
     leads: {
-      VCC: { root: { dx: 60, dy: 77 }, style: "metallic-wire" },
-      TRIG: { root: { dx: 67, dy: 77 }, style: "metallic-wire" },
-      ECHO: { root: { dx: 74, dy: 77 }, style: "metallic-wire" },
-      GND: { root: { dx: 81, dy: 77 }, style: "metallic-wire" },
+      VCC: { root: { dx: 60, dy: 77 }, style: "dark-wire" },
+      TRIG: { root: { dx: 67, dy: 77 }, style: "dark-wire" },
+      ECHO: { root: { dx: 74, dy: 77 }, style: "dark-wire" },
+      GND: { root: { dx: 81, dy: 77 }, style: "dark-wire" },
     },
   },
 }
