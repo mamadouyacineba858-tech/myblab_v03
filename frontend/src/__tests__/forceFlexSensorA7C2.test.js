@@ -1,30 +1,31 @@
 /**
  * forceFlexSensorA7C2.test.js — Ticket A7-C2 (Force Sensor FSR + Flex Sensor)
- * + A7-C2-R1 (correctif CSA : Flex Sensor breadboard physical fit).
+ * + A7-C2-R1 (correctif CSA : Flex Sensor breadboard physical fit)
+ * + A7-C2-R2 (correctif CSA : Force Sensor breadboard physical fit).
  *
  * FORCE_SENSOR et FLEX_SENSOR sont deux NOUVEAUX types canoniques : capteurs
  * résistifs deux bornes NON polarisées (A/B, même vocabulaire que LDR/
  * THERMISTOR/LIGHT_BULB) — même contribution DC que RESISTOR (réutilisation
  * directe de resistorDc, aucune fonction dédiée).
  *
- * A7-C2-R1 (Founder Canvas Gate FAIL sur le physical fit du Flex Sensor) :
- * FORCE_SENSOR reste WIRE-ONLY (wireConnectable:true /
- * breadboardInsertable:false, précédent DC_MOTOR/HOBBY_GEARMOTOR — sa queue
- * de connexion reste trop étroite pour le pas breadboard). FLEX_SENSOR
- * devient ENFICHABLE breadboard : PhysicalContacts fonctionnels recalés à
- * A(30,180)/B(42,180) (entraxe 1×BREADBOARD_PITCH), tandis que les racines
- * mécaniques MESURÉES sur le raster (A(33,162)/B(41,163), pixel-probe réel,
- * INCHANGÉES) restent portées par un AssemblyProfile dédié — le raster n'est
- * ni retouché ni redessiné (même stratégie que POLARIZED_CAPACITOR/BUZZER/
- * POTENTIOMETER : racine visuelle mesurée ≠ PhysicalContact fonctionnel).
+ * A7-C2-R1/A7-C2-R2 (Founder Canvas Gate FAIL sur le physical fit des deux
+ * capteurs, tour à tour) : les DEUX sont désormais ENFICHABLES breadboard.
+ * PhysicalContacts fonctionnels recalés au pas breadboard — FORCE_SENSOR
+ * A(30,132)/B(42,132), FLEX_SENSOR A(30,180)/B(42,180) (entraxe
+ * 1×BREADBOARD_PITCH chacun) — tandis que les racines mécaniques MESURÉES
+ * sur le raster (FORCE_SENSOR A(36,111)/B(41,111), FLEX_SENSOR
+ * A(33,162)/B(41,163), pixel-probe réel, INCHANGÉES) restent portées par un
+ * AssemblyProfile dédié — le raster n'est ni retouché ni redessiné (même
+ * stratégie que POLARIZED_CAPACITOR/BUZZER/POTENTIOMETER : racine visuelle
+ * mesurée ≠ PhysicalContact fonctionnel).
  *
  * Deux kinds de stimulus environnemental SÉPARÉS (contrat générique A7-C0) :
  * FORCE (force croissante -> résistance décroissante, interpolation
  * logarithmique, même patron que LIGHT/LDR) et FLEX (flexion croissante ->
  * résistance croissante, interpolation linéaire) — grandeurs physiques
  * incompatibles, cf. environmentalStimulusRegistry.js. Ce contrat
- * environnemental/électrique est INCHANGÉ par A7-C2-R1 (correctif purement
- * géométrique/mécanique).
+ * environnemental/électrique est INCHANGÉ par A7-C2-R1/A7-C2-R2 (correctifs
+ * purement géométriques/mécaniques).
  *
  * Fichier .js (PAS .jsx), même convention que hobbyGearmotorA6Out3.test.js /
  * tmp36A7C1.test.js : les assertions DOM (rendu réel de <ForceSensorPart />
@@ -95,10 +96,15 @@ const CASES = [
     defaultResistance: 1000000,
     stimulusKind: 'FORCE',
     model: ForceSensorModel,
-    contactA: { dx: 36, dy: 111 },
-    contactB: { dx: 41, dy: 111 },
+    // A7-C2-R2 : PhysicalContacts fonctionnels recalés (breadboard fit),
+    // distincts des racines mécaniques mesurées A(36,111)/B(41,111)
+    // (cf. describe "AssemblyProfile" dédié plus bas).
+    contactA: { dx: 30, dy: 132 },
+    contactB: { dx: 42, dy: 132 },
+    rootA: { dx: 36, dy: 111 },
+    rootB: { dx: 41, dy: 111 },
     physicalMm: [18.3, 44.4],
-    breadboardInsertable: false,
+    breadboardInsertable: true,
   },
   {
     type: 'FLEX_SENSOR',
@@ -197,44 +203,28 @@ describe.each(CASES)('A7-C2/A7-C2-R1 — $type — PhysicalContacts A/B, câblab
   })
 })
 
-describe('A7-C2 — FORCE_SENSOR — T47/T48/T51 : wire-only, aucune contrainte breadboard (INCHANGÉ par A7-C2-R1)', () => {
-  const def = getComponentDef('FORCE_SENSOR')
-
-  it('computeBreadboardPlacement (adapter réel) : composant déclaré INCOMPATIBLE breadboard (0 trou enfichable, aucun mock)', () => {
-    const breadboard = { id: 'bb1', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' }
-    const result = computeBreadboardPlacement(breadboard, 'FORCE_SENSOR', { x: 0, y: 0 }, [])
-    const insertableCount = def.pins.reduce((n, pin) => n + resolveBreadboardInsertableContacts(pin).length, 0)
-    expect(insertableCount).toBe(0)
-    expect(result.compatible).toBe(false)
-    expect(result.breadboardActive).toBe(false)
-    expect(result.valid).toBe(false)
-    expect(result.holes).toHaveLength(0)
-  })
-
-  it('T51 — Aucun AssemblyProfile (wire-only, précédent DC_MOTOR/HOBBY_GEARMOTOR)', () => {
-    expect(getAssemblyProfile('FORCE_SENSOR')).toBeNull()
-  })
-})
-
-describe('A7-C2-R1 — FLEX_SENSOR — breadboard physical fit (correctif CSA, Founder Canvas Gate FAIL)', () => {
-  const def = getComponentDef('FLEX_SENSOR')
+describe.each(CASES)('A7-C2-R1/A7-C2-R2 — $type — breadboard physical fit (correctif CSA, Founder Canvas Gate FAIL)', (c) => {
+  const def = getComponentDef(c.type)
   const byPin = Object.fromEntries(def.pins.map((p) => [p.id, p]))
 
-  it('entraxe X entre A(30,180) et B(42,180) === 12 px === 1 × BREADBOARD_PITCH exact', () => {
+  it(`entraxe X entre A(${c.contactA.dx},${c.contactA.dy}) et B(${c.contactB.dx},${c.contactB.dy}) === 12 px === 1 × BREADBOARD_PITCH exact, même rangée (Δy=0)`, () => {
     const a = resolveContacts(byPin.A)[0]
     const b = resolveContacts(byPin.B)[0]
-    expect(a.dx).toBe(30)
-    expect(b.dx).toBe(42)
-    expect(a.dy).toBe(180)
-    expect(b.dy).toBe(180)
+    expect(a.dx).toBe(c.contactA.dx)
+    expect(b.dx).toBe(c.contactB.dx)
+    expect(a.dy).toBe(c.contactA.dy)
+    expect(b.dy).toBe(c.contactB.dy)
     expect(b.dx - a.dx).toBe(12)
     expect(b.dx - a.dx).toBe(BREADBOARD_PITCH)
+    expect(b.dy - a.dy).toBe(0)
   })
 
-  it('à une origine alignée sur la grille, A/B résolvent DEUX trous DISTINCTS simultanément (chaîne réelle, aucun mock)', () => {
+  it('à une origine alignée sur la grille, A/B résolvent DEUX trous DISTINCTS simultanément, même rangée, colonnes adjacentes (chaîne réelle, aucun mock)', () => {
     const breadboard = { id: 'bb1', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' }
-    // origin (6,0) aligne les deux contacts exactement sur la grille :
-    // 30+6=36=3×12, 42+6=48=4×12, 180+0=180=15×12.
+    // origin (6,0) aligne les deux contacts exactement sur la grille pour
+    // LES DEUX types (contactA.dx=30/contactB.dx=42 identiques pour
+    // FORCE_SENSOR et FLEX_SENSOR : 30+6=36=3×12, 42+6=48=4×12 ; dy=132/180
+    // sont déjà multiples de 12 (11×12, 15×12), donc +0 sur l'axe Y).
     const origin = { x: 6, y: 0 }
     const { results, allResolved } = resolveComponentContactHoles(breadboard, def.pins, origin)
     expect(results).toHaveLength(2)
@@ -243,6 +233,8 @@ describe('A7-C2-R1 — FLEX_SENSOR — breadboard physical fit (correctif CSA, F
     expect(aR.hole).not.toBeNull()
     expect(bR.hole).not.toBeNull()
     expect(aR.hole).not.toEqual(bR.hole)
+    expect(aR.hole.row).toBe(bR.hole.row)
+    expect(bR.hole.column).toBe(aR.hole.column + 1)
     const columns = new Set([aR.hole.column, bR.hole.column])
     expect(columns.size).toBe(2)
   })
@@ -250,7 +242,7 @@ describe('A7-C2-R1 — FLEX_SENSOR — breadboard physical fit (correctif CSA, F
   it('computeBreadboardPlacement (adapter réel) : composant COMPATIBLE breadboard sur une pose valide, 2 trous distincts', () => {
     const breadboard = { id: 'bb1', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' }
     const origin = { x: 6, y: 0 }
-    const result = computeBreadboardPlacement(breadboard, 'FLEX_SENSOR', origin, [])
+    const result = computeBreadboardPlacement(breadboard, c.type, origin, [])
     expect(result.compatible).toBe(true)
     expect(result.breadboardActive).toBe(true)
     expect(result.holes).toHaveLength(2)
@@ -258,32 +250,42 @@ describe('A7-C2-R1 — FLEX_SENSOR — breadboard physical fit (correctif CSA, F
     expect(result.valid).toBe(true)
   })
 
-  it('getAssemblyProfile("FLEX_SENSOR") non null : through-hole, racines mesurées INCHANGÉES A(33,162)/B(41,163)', () => {
-    const profile = getAssemblyProfile('FLEX_SENSOR')
+  it('countInsertableContacts (via resolveBreadboardInsertableContacts) === 2, wireConnectable également true sur les deux', () => {
+    const insertableCount = def.pins.reduce((n, pin) => n + resolveBreadboardInsertableContacts(pin).length, 0)
+    expect(insertableCount).toBe(2)
+    const wireConnectableCount = def.pins.reduce((n, pin) => n + resolveWireConnectableContacts(pin).length, 0)
+    expect(wireConnectableCount).toBe(2)
+  })
+
+  it(`getAssemblyProfile("${c.type}") non null : through-hole, racines mesurées INCHANGÉES A(${c.rootA.dx},${c.rootA.dy})/B(${c.rootB.dx},${c.rootB.dy})`, () => {
+    const profile = getAssemblyProfile(c.type)
     expect(profile).toBeTruthy()
     expect(profile.kind).toBe('through-hole')
     expect(Object.keys(profile.leads).sort()).toEqual(['A', 'B'])
-    expect(profile.leads.A.root).toEqual({ dx: 33, dy: 162 })
-    expect(profile.leads.B.root).toEqual({ dx: 41, dy: 163 })
+    expect(profile.leads.A.root).toEqual({ dx: c.rootA.dx, dy: c.rootA.dy })
+    expect(profile.leads.B.root).toEqual({ dx: c.rootB.dx, dy: c.rootB.dy })
     expect(profile.leads.A.style).toBe('metallic-wire')
     expect(profile.leads.B.style).toBe('metallic-wire')
   })
 
   it('racines mesurées restent AU-DESSUS des PhysicalContacts fonctionnels (root.dy < contact.dy)', () => {
-    const profile = getAssemblyProfile('FLEX_SENSOR')
+    const profile = getAssemblyProfile(c.type)
     for (const id of ['A', 'B']) {
       const contact = resolveContacts(byPin[id])[0]
       expect(profile.leads[id].root.dy).toBeLessThan(contact.dy)
     }
   })
 
-  it('resolveAssemblyGeometry (pipeline visuel réel) confirme "inserted" à une origine valide, avec 2 pattes', () => {
+  it('resolveAssemblyGeometry (pipeline visuel réel) confirme "inserted" à une origine valide, avec 2 pattes (target = PhysicalContact exact)', () => {
     const breadboard = { id: 'bb1', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' }
     const origin = { x: 6, y: 0 }
-    const g = resolveAssemblyGeometry({ uid: 'x1', type: 'FLEX_SENSOR', x: origin.x, y: origin.y }, breadboard)
+    const g = resolveAssemblyGeometry({ uid: 'x1', type: c.type, x: origin.x, y: origin.y }, breadboard)
     expect(g.inserted).toBe(true)
     expect(g.contacts).toHaveLength(2)
-    expect(new Set(g.contacts.map((c) => c.pinId))).toEqual(new Set(['A', 'B']))
+    expect(new Set(g.contacts.map((cc) => cc.pinId))).toEqual(new Set(['A', 'B']))
+    const byPinId = Object.fromEntries(g.contacts.map((cc) => [cc.pinId, cc]))
+    expect(byPinId.A.target).toEqual({ x: origin.x + c.contactA.dx, y: origin.y + c.contactA.dy })
+    expect(byPinId.B.target).toEqual({ x: origin.x + c.contactB.dx, y: origin.y + c.contactB.dy })
   })
 })
 

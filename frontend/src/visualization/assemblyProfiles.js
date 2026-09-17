@@ -252,6 +252,32 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 18 },
   },
+  // A7-C2-R2 — Force Sensor (FSR) (correctif CSA, Founder Canvas Gate FAIL
+  // sur le physical fit breadboard). Racines mécaniques reconfirmées par
+  // pixel-probe réel sur le raster Founder livré (méthode
+  // frontend/scripts/lead-anchor-probe.md, seuil alpha>=200, région stable
+  // y∈[107,115]) : A(36,111)/B(41,111) — INCHANGÉES par rapport à A7-C2, le
+  // raster n'est ni retouché ni redessiné. Les PhysicalContacts fonctionnels
+  // (componentDefinitions.js) sont désormais A(30,132)/B(42,132), sous les
+  // racines mesurées : AssemblyLeadsLayer relie chaque racine à son
+  // PhysicalContact via une patte fonctionnelle (style metallic-wire, même
+  // rendu que FLEX_SENSOR/CAPACITOR/DIODE/THERMISTOR). `bodyClip.bottom = 33`
+  // (hauteur canonique 144 - 33 = clip à y=111, PILE au niveau des racines
+  // mesurées) masque la queue de connexion cuite dans le raster sous les
+  // racines (le contenu opaque de la queue continue jusqu'à y=115, donc
+  // AU-DELÀ de la racine y=111 — un bodyClip est donc requis ici, à la
+  // différence de VIBRATION_MOTOR/TMP36 dont le raster s'arrête déjà avant
+  // la racine), pour laisser AssemblyLeadsLayer dessiner seule la portion
+  // terminale entre la racine et le PhysicalContact — même stratégie que
+  // FLEX_SENSOR/BUZZER/POLARIZED_CAPACITOR/POTENTIOMETER.
+  FORCE_SENSOR: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 36, dy: 111 }, style: "metallic-wire" },
+      B: { root: { dx: 41, dy: 111 }, style: "metallic-wire" },
+    },
+    bodyClip: { bottom: 33 },
+  },
 }
 
 export function getAssemblyProfile(type) {

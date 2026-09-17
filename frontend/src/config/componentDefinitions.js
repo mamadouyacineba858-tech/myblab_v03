@@ -212,29 +212,26 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "vout", label: "Vout", dx: 30, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "vout", dx: 30, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
     { id: "gnd", label: "GND", dx: 42, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "gnd", dx: 42, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
   ],
-  // A7-C2 — Force Sensor (FSR). Boîte canonique VERTICALE 72×144 = pixels
-  // natifs @1x de l'asset raster Founder-approved (manifest.json canonical).
-  // Composant WIRE-ONLY (wireConnectable:true / breadboardInsertable:false
-  // sur les DEUX broches, même précédent que DC_MOTOR/HOBBY_GEARMOTOR) :
-  // contrairement à LDR/THERMISTOR/TMP36, le raster ne montre PAS deux
-  // pattes fines individuellement écartées au pas breadboard — les deux
-  // bornes émergent d'une même queue plate étroite (~6 px d'écart @1x),
-  // conforme à la forme réelle d'un FSR (pastille de détection + queue
-  // plate à pastilles de connexion, jamais des pattes traversantes) ;
-  // forcer breadboardInsertable:true déformerait artificiellement la
-  // géométrie électrique par rapport au raster (interdit, cf. ticket §9).
-  // Coordonnées dérivées d'un pixel-probe RÉEL du raster livré
-  // (force-sensor.default.1x.png, 72×144), méthode
-  // frontend/scripts/lead-anchor-probe.md (seuil alpha>=200, deux régions
-  // opaques solides distinctes dans la queue) : borne A (gauche) x∈[32,38]
-  // y∈[107,115], centroïde (36.00, 110.5) -> arrondi (36, 111) ; borne B
-  // (droite) x∈[39,45] y∈[107,115], centroïde (41.00, 110.5) -> arrondi
-  // (41, 111) — les deux bornes sont géométriquement séparées (écart 5 px)
-  // et distinctes de la pastille de détection au-dessus ; aucune coordonnée
-  // inventée.
+  // A7-C2-R2 — Force Sensor (FSR). Boîte canonique VERTICALE 72×144 = pixels
+  // natifs @1x de l'asset raster Founder-approved (manifest.json canonical,
+  // INCHANGÉ). Founder Canvas Gate a signalé un FAIL physical fit
+  // breadboard (les deux connexions ne rentraient pas dans deux trous
+  // distincts). Correctif CSA A7-C2-R2, même stratégie qu'A7-C2-R1
+  // (FLEX_SENSOR) : les racines mécaniques MESURÉES sur le raster (pixel-probe
+  // réel reconfirmé, seuil alpha>=200, méthode
+  // frontend/scripts/lead-anchor-probe.md) restent A(36,111)/B(41,111) —
+  // INCHANGÉES, cf. assemblyProfiles.js — mais les PhysicalContacts
+  // électriques/enfichables sont désormais des points FONCTIONNELS distincts
+  // A(30,132)/B(42,132), entraxe 42-30 = 12 px = 1 × BREADBOARD_PITCH exact,
+  // alignés sur la grille breadboard (même rangée, dy identique 132). Même
+  // stratégie déjà appliquée par POLARIZED_CAPACITOR/BUZZER/POTENTIOMETER/
+  // FLEX_SENSOR (racine visuelle mesurée ≠ PhysicalContact fonctionnel
+  // recalé au pas breadboard, pont assuré par AssemblyLeadsLayer via
+  // assemblyProfiles.js) — aucune coordonnée de racine inventée, seul le
+  // point d'insertion fonctionnel est recalé.
   FORCE_SENSOR: [
-    { id: "A", label: "A", dx: 36, dy: 111, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "A", dx: 36, dy: 111, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "B", label: "B", dx: 41, dy: 111, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "B", dx: 41, dy: 111, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A", label: "A", dx: 30, dy: 132, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "A", dx: 30, dy: 132, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "B", label: "B", dx: 42, dy: 132, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "B", dx: 42, dy: 132, wireConnectable: true, breadboardInsertable: true }] },
   ],
   // A7-C2-R1 — Flex Sensor. Boîte canonique VERTICALE 72×180 = pixels
   // natifs @1x de l'asset raster Founder-approved (manifest.json canonical,
@@ -251,8 +248,8 @@ const PIN_PRESENTATION_BY_TYPE = {
   // (racine visuelle mesurée ≠ PhysicalContact fonctionnel recalé au pas
   // breadboard, pont assuré par AssemblyLeadsLayer via assemblyProfiles.js) —
   // aucune coordonnée inventée pour la racine, la seule chose recalée est le
-  // point d'insertion fonctionnel. FORCE_SENSOR n'est PAS concerné par ce
-  // correctif (raster/geometrie inchangés, cf. bloc FORCE_SENSOR ci-dessus).
+  // point d'insertion fonctionnel. FORCE_SENSOR a reçu le même traitement
+  // en A7-C2-R2 (cf. bloc FORCE_SENSOR ci-dessus).
   FLEX_SENSOR: [
     { id: "A", label: "A", dx: 30, dy: 180, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "A", dx: 30, dy: 180, wireConnectable: true, breadboardInsertable: true }] },
     { id: "B", label: "B", dx: 42, dy: 180, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "B", dx: 42, dy: 180, wireConnectable: true, breadboardInsertable: true }] },
@@ -339,10 +336,12 @@ export const COMPONENT_TYPES = {
   // Founder-approved R3), boîte canonique 60×72 (dimensions natives @1x du
   // paquet).
   TMP36: { id: "TMP36", label: "Capteur de température (TMP36)", icon: "🌡️", width: 60, height: 72, pins: buildPins("TMP36") },
-  // A7-C2 — Force Sensor (FSR) : capteur résistif environnemental (contrat
+  // A7-C2-R2 — Force Sensor (FSR) : capteur résistif environnemental (contrat
   // générique A7-C0, stimulus FORCE). Renderer raster (ForceSensorPart.jsx,
   // paquet Founder-approved), boîte canonique VERTICALE 72×144 (dimensions
-  // natives @1x du paquet) — wire-only, jamais enfichable breadboard.
+  // natives @1x du paquet) — enfichable breadboard (PhysicalContacts
+  // fonctionnels A(30,132)/B(42,132), entraxe 1×BREADBOARD_PITCH, correctif
+  // Founder Canvas Gate A7-C2-R2).
   FORCE_SENSOR: { id: "FORCE_SENSOR", label: "Capteur de force (FSR)", icon: "👆", width: 72, height: 144, pins: buildPins("FORCE_SENSOR") },
   // A7-C2-R1 — Flex Sensor : capteur résistif environnemental (contrat
   // générique A7-C0, stimulus FLEX). Renderer raster (FlexSensorPart.jsx,
