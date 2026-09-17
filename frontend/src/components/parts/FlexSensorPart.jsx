@@ -18,9 +18,11 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  * `simulator/dcContributionRegistry.js` ; la résistance EFFECTIVE dépend du
  * stimulus environnemental FLEX via
  * `simulator/environmentalResponseRegistry.js`, contrat générique A7-C0)
- * N'EST PAS modifié par ce renderer. PhysicalContacts A(33,162) / B(41,163)
- * déclarés dans `componentDefinitions.js`, wire-only (jamais enfichable
- * breadboard, même précédent que DC_MOTOR/HOBBY_GEARMOTOR), produits par
+ * N'EST PAS modifié par ce renderer. PhysicalContacts A(30,180) / B(42,180)
+ * déclarés dans `componentDefinitions.js` (correctif A7-C2-R1, entraxe
+ * 1×BREADBOARD_PITCH, enfichable breadboard — racines mécaniques mesurées
+ * du raster A(33,162)/B(41,163) reliées à ces contacts par
+ * AssemblyLeadsLayer via `assemblyProfiles.js`), produits par
  * CircuitComponent/Pin, jamais dessinés ici.
  *
  * L'<img> ne porte aucun gestionnaire, `draggable={false}`,

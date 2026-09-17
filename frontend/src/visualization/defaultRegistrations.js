@@ -240,9 +240,12 @@ export const DEFAULT_REGISTRATIONS = [
   // réutilisant directement resistorDc via dcContributionRegistry.js
   // (aucune duplication) ; résistance EFFECTIVE dépendante des stimuli
   // environnementaux FORCE / FLEX (contrat générique A7-C0,
-  // environmentalResponseRegistry.js). Wire-only : jamais
-  // breadboardInsertable (même précédent que DC_MOTOR/HOBBY_GEARMOTOR, cf.
-  // componentDefinitions.js).
+  // environmentalResponseRegistry.js). FORCE_SENSOR reste wire-only, jamais
+  // breadboardInsertable (même précédent que DC_MOTOR/HOBBY_GEARMOTOR).
+  // FLEX_SENSOR est devenu enfichable breadboard par le correctif CSA
+  // A7-C2-R1 (Founder Canvas Gate FAIL sur le physical fit) : ses
+  // PhysicalContacts fonctionnels sont recalés au pas breadboard, cf.
+  // componentDefinitions.js / assemblyProfiles.js.
   { type: 'FORCE_SENSOR', component: ForceSensorPart, visual: { backend: 'raster' } },
   { type: 'FLEX_SENSOR', component: FlexSensorPart, visual: { backend: 'raster' } },
 ];

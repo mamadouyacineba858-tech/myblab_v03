@@ -74,10 +74,16 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
     // A6-OUT3 : HOBBY_GEARMOTOR est wire-only (breadboardInsertable:false sur
     // les deux broches, comme DC_MOTOR — jamais de géométrie BREADBOARD_PITCH
     // démontrée ni recherchée, cf. componentDefinitions.js) -> NON_INSERTABLE.
-    // A7-C2 : FORCE_SENSOR / FLEX_SENSOR sont wire-only (queue plate à deux
-    // pastilles rapprochées, pas deux pattes traversantes au pas breadboard,
-    // même précédent que HOBBY_GEARMOTOR) -> NON_INSERTABLE.
-    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR', 'FORCE_SENSOR', 'FLEX_SENSOR'])
+    // A7-C2 : FORCE_SENSOR est wire-only (queue plate à deux pastilles
+    // rapprochées, pas deux pattes traversantes au pas breadboard, même
+    // précédent que HOBBY_GEARMOTOR) -> NON_INSERTABLE. FLEX_SENSOR l'était
+    // aussi initialement, mais A7-C2-R1 (correctif CSA, Founder Canvas Gate
+    // FAIL sur le physical fit) l'a fait rejoindre les enfichables : ses
+    // PhysicalContacts fonctionnels sont désormais recalés au pas breadboard
+    // (A(30,180)/B(42,180), entraxe 12 = 1×BREADBOARD_PITCH), distincts des
+    // racines mécaniques mesurées du raster (INCHANGÉES, cf.
+    // assemblyProfiles.js) -> retiré de NON_INSERTABLE.
+    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR', 'FORCE_SENSOR'])
     for (const type of ALL_TYPES) {
       for (const pin of getComponentDef(type).pins) {
         for (const c of resolveContacts(pin)) {
@@ -310,7 +316,7 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     }
   })
 
-  it('classification breadboardInsertable finale S5 : 16 enfichables / 10 non-directs', () => {
+  it('classification breadboardInsertable finale S5 : 17 enfichables / 9 non-directs', () => {
     const INSERTABLE = ['RESISTOR', 'LED', 'DIODE', 'CAPACITOR', 'LDR', 'THERMISTOR',
       'POTENTIOMETER', 'BUTTON', 'BUTTON_LATCHING', 'NPN_TRANSISTOR', 'RGB_LED', 'BUZZER',
       'POLARIZED_CAPACITOR',
@@ -325,14 +331,23 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
       'LIGHT_BULB',
       // A7-C1 : 3 PhysicalContacts entraxe 12 = 1×BREADBOARD_PITCH exact
       // entre contacts adjacents (cf. tmp36A7C1.test.js) -> breadboardInsertable:true.
-      'TMP36']
+      'TMP36',
+      // A7-C2-R1 : correctif CSA (Founder Canvas Gate FAIL sur le physical
+      // fit) — PhysicalContacts fonctionnels recalés A(30,180)/B(42,180),
+      // entraxe 12 = 1×BREADBOARD_PITCH exact (cf. forceFlexSensorA7C2.test.js)
+      // -> breadboardInsertable:true. Racines mécaniques mesurées du raster
+      // INCHANGÉES (cf. assemblyProfiles.js).
+      'FLEX_SENSOR']
     // A6-OUT1-R1 : VIBRATION_MOTOR quitte NON_DIRECT (rejoint INSERTABLE ci-dessus).
     // A6-OUT3 : HOBBY_GEARMOTOR ajouté à NON_DIRECT — wire-only par contrat
     // produit (jamais de géométrie breadboard recherchée, cf.
     // componentDefinitions.js), comme DC_MOTOR.
-    // A7-C2 : FORCE_SENSOR / FLEX_SENSOR ajoutés à NON_DIRECT — wire-only,
-    // même précédent que HOBBY_GEARMOTOR.
-    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR', 'FORCE_SENSOR', 'FLEX_SENSOR']
+    // A7-C2 : FORCE_SENSOR ajouté à NON_DIRECT — wire-only, même précédent
+    // que HOBBY_GEARMOTOR (queue de connexion trop étroite pour le pas
+    // breadboard, jamais retouchée). FLEX_SENSOR y avait initialement
+    // rejoint FORCE_SENSOR, mais A7-C2-R1 l'en a retiré (rejoint INSERTABLE
+    // ci-dessus).
+    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR', 'FORCE_SENSOR']
     expect([...INSERTABLE, ...NON_DIRECT].sort()).toEqual([...CATALOGUE].sort())
 
     const insertableContactCount = (type) =>

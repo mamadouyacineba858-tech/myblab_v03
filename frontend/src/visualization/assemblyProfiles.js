@@ -228,6 +228,30 @@ const ASSEMBLY_PROFILES = {
       gnd: { root: { dx: 40, dy: 66 }, style: "wire" },
     },
   },
+  // A7-C2-R1 — Flex Sensor (correctif CSA, Founder Canvas Gate FAIL sur le
+  // physical fit breadboard). Racines mécaniques INCHANGÉES par rapport à
+  // A7-C2 (pixel-probe réel du raster livré, méthode
+  // frontend/scripts/lead-anchor-probe.md, seuil alpha>=200) :
+  // A(33,162)/B(41,163) — le raster n'est ni retouché ni redessiné. Les
+  // PhysicalContacts fonctionnels (componentDefinitions.js) sont désormais
+  // A(30,180)/B(42,180), sous les racines mesurées : AssemblyLeadsLayer relie
+  // chaque racine à son PhysicalContact via une patte fonctionnelle courte
+  // (style metallic-wire, même rendu que CAPACITOR/DIODE/THERMISTOR).
+  // `bodyClip.bottom = 18` (hauteur canonique 180 - 18 = clip à y=162, PILE
+  // au niveau des racines mesurées) masque la queue de connexion cuite dans
+  // le raster sous les racines, pour laisser AssemblyLeadsLayer dessiner
+  // seule la portion terminale entre la racine et le PhysicalContact —
+  // même stratégie déjà appliquée par BUZZER/POLARIZED_CAPACITOR/
+  // POTENTIOMETER (racine mesurée ≠ PhysicalContact fonctionnel recalé,
+  // pont assuré par bodyClip + AssemblyLeadsLayer).
+  FLEX_SENSOR: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 33, dy: 162 }, style: "metallic-wire" },
+      B: { root: { dx: 41, dy: 163 }, style: "metallic-wire" },
+    },
+    bodyClip: { bottom: 18 },
+  },
 }
 
 export function getAssemblyProfile(type) {
