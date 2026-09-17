@@ -48,6 +48,87 @@ import { resolveComponentParameters } from "./resolveComponentParameters.js"
  *   dans pinSignals.
  */
 export function resolveSignals(components, prepared, externalSignals = null) {
+  const { uf, nets } = prepared
+  const { pinSignals, sources, conflictingNet } = seedSourceDrivenPinSignals(components, prepared)
+
+  if (conflictingNet) {
+    return { pinSignals, dcAnalysis: new Map() }
+  }
+
+  if (externalSignals) {
+    for (const [key, signal] of externalSignals) {
+      if (pinSignals.has(key) && pinSignals.get(key) === Signal.UNKNOWN) {
+        pinSignals.set(key, signal)
+      }
+    }
+  }
+
+  propagateNetSignal(nets, pinSignals, Signal.HIGH)
+  propagateNetSignal(nets, pinSignals, Signal.LOW)
+
+  for (const comp of components) {
+    if (comp.type !== "ARDUINO") continue
+    for (const pinId of ["D2", "D3"]) {
+      const k = uf.key(comp.uid, pinId)
+      if (pinSignals.get(k) === Signal.UNKNOWN) pinSignals.set(k, Signal.FLOATING)
+    }
+  }
+
+  propagatePassiveConduction(components, prepared, pinSignals)
+
+  const dcAnalysis = sources.length === 1
+    ? computeDcAnalysis(components, prepared, pinSignals, sources[0].source.voltage)
+    : new Map()
+  return { pinSignals, dcAnalysis }
+}
+
+/**
+ * A7-C3-PREQ2 (§4/§5/§7 du ticket) — Contexte générique PRÉ-résolution,
+ * alimenté par la MÊME primitive de seeding/propagation par sources DC que
+ * resolveSignals() ci-dessus (seedSourceDrivenPinSignals/propagateNetSignal,
+ * extraites de la logique historique de resolveSignals — aucun second
+ * algorithme, aucune dérive sémantique, §5 du ticket : source unique de
+ * vérité, deux consommateurs).
+ *
+ * Exécute UNIQUEMENT : découverte des sources DC (getDcSource), seeding
+ * HIGH/LOW de leurs bornes, détection de conflit HIGH+LOW sur un même net
+ * (jamais "powered" dans ce cas), puis propagation par nets — rien d'autre :
+ * ni externalSignals, ni fallback ARDUINO→FLOATING, ni propagation passive
+ * dérivée (RESISTOR...), ni dcAnalysis, ni resolveSignals() elle-même (§4 :
+ * "ne PAS exécuter conduction passive / sorties numériques calculées /
+ * Runtime / Scheduler / dcAnalysis / resolveSignals complet").
+ *
+ * PURE, synchrone : ne mute jamais `components`/`prepared`. Un contributeur
+ * digital générique (§6 du ticket) consulte cette Map — via son propre
+ * sous-ensemble de pins, jamais l'inverse — pour savoir si SON composant est
+ * correctement alimenté AVANT que sa propre sortie ne soit injectée dans
+ * l'unique passe resolveSignals().
+ *
+ * @param {Array<{ uid, type, x, y, pins? }>} components
+ * @param {{ uf, nets, allKeys }} prepared
+ * @returns {Map<string, string>} pinSignals — Signal.HIGH/Signal.LOW
+ *   uniquement pour les pins déterministement établies par une source DC et
+ *   la topologie physique des nets ; Signal.UNKNOWN pour toute autre pin, et
+ *   pour TOUTES les pins si un conflit HIGH/LOW est détecté sur un même net
+ *   (jamais un état "powered" en cas de conflit, §4 du ticket).
+ */
+export function resolveSourceDrivenPinSignals(components, prepared) {
+  const { pinSignals, conflictingNet } = seedSourceDrivenPinSignals(components, prepared)
+  if (conflictingNet) return pinSignals
+
+  propagateNetSignal(prepared.nets, pinSignals, Signal.HIGH)
+  propagateNetSignal(prepared.nets, pinSignals, Signal.LOW)
+  return pinSignals
+}
+
+/**
+ * Primitive interne partagée (§5 du ticket) : découverte des sources DC +
+ * seeding HIGH/LOW de leurs bornes + détection de conflit — extraite à
+ * l'identique du corps historique de resolveSignals(), jamais réimplémentée
+ * séparément. Consommée par resolveSignals() ET resolveSourceDrivenPinSignals()
+ * ci-dessus, seuls les deux consommateurs autorisés (aucune troisième copie).
+ */
+function seedSourceDrivenPinSignals(components, prepared) {
   const { uf, nets, allKeys } = prepared
   const pinSignals = new Map()
   for (const k of allKeys) pinSignals.set(k, Signal.UNKNOWN)
@@ -67,47 +148,23 @@ export function resolveSignals(components, prepared, externalSignals = null) {
     && keys.some((k) => pinSignals.get(k) === Signal.LOW))
   if (conflictingNet) {
     for (const key of allKeys) pinSignals.set(key, Signal.UNKNOWN)
-    return { pinSignals, dcAnalysis: new Map() }
   }
 
-  if (externalSignals) {
-    for (const [key, signal] of externalSignals) {
-      if (pinSignals.has(key) && pinSignals.get(key) === Signal.UNKNOWN) {
-        pinSignals.set(key, signal)
-      }
+  return { pinSignals, sources, conflictingNet }
+}
+
+/** Propagate `signal` to every UNKNOWN pin sharing a net with a pin already carrying it. */
+function propagateNetSignal(nets, pinSignals, signal) {
+  for (const [, keys] of nets) {
+    let found = false
+    for (const k of keys) {
+      if (pinSignals.get(k) === signal) { found = true; break }
+    }
+    if (!found) continue
+    for (const k of keys) {
+      if (pinSignals.get(k) === Signal.UNKNOWN) pinSignals.set(k, signal)
     }
   }
-
-  const propagate = (signal) => {
-    for (const [, keys] of nets) {
-      let found = false
-      for (const k of keys) {
-        if (pinSignals.get(k) === signal) { found = true; break }
-      }
-      if (!found) continue
-      for (const k of keys) {
-        if (pinSignals.get(k) === Signal.UNKNOWN) pinSignals.set(k, signal)
-      }
-    }
-  }
-
-  propagate(Signal.HIGH)
-  propagate(Signal.LOW)
-
-  for (const comp of components) {
-    if (comp.type !== "ARDUINO") continue
-    for (const pinId of ["D2", "D3"]) {
-      const k = uf.key(comp.uid, pinId)
-      if (pinSignals.get(k) === Signal.UNKNOWN) pinSignals.set(k, Signal.FLOATING)
-    }
-  }
-
-  propagatePassiveConduction(components, prepared, pinSignals)
-
-  const dcAnalysis = sources.length === 1
-    ? computeDcAnalysis(components, prepared, pinSignals, sources[0].source.voltage)
-    : new Map()
-  return { pinSignals, dcAnalysis }
 }
 
 /**

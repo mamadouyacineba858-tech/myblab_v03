@@ -7,11 +7,13 @@ export const SIMULATION_STEP_MS = 16
 
 import { runSimulation } from "./engine.js"
 import { prepareCircuit } from "./preparation.js"
-import { resolveSignals } from "./resolution.js"
+import { resolveSignals, resolveSourceDrivenPinSignals } from "./resolution.js"
 import { createRuntimeOrchestrator } from "./runtimeOrchestrator.js"
 import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
 import { getDigitalContribution as defaultGetDigitalContribution, hasDigitalContribution as defaultHasDigitalContribution } from "./digitalContributionRegistry.js"
 import { resolveComponentParameters } from "./resolveComponentParameters.js"
+import { getCanonicalEntry } from "./canonicalRegistry.js"
+import { Signal } from "./signals.js"
 
 /**
  * MB-SIM-011 — Intégration Simulation ↔ Scheduler/Runtime (SIM3).
@@ -89,6 +91,19 @@ export function circuitRequiresRuntime(components) {
  * Pure, synchrone : ne lit ni Scheduler ni Runtime, ne mute jamais
  * `effectiveComponents`.
  *
+ * A7-C3-PREQ2 (§6/§7 du ticket) : le contexte de contribution est étendu
+ * d'un champ `pinSignals` — les propres pins du composant, PRÉ-résolues
+ * uniquement depuis les sources DC et la topologie physique
+ * (`resolveSourceDrivenPinSignals`, resolution.js — même primitive que
+ * resolveSignals(), §5), AVANT toute conduction passive, sortie numérique
+ * calculée, Runtime ou résolution complète. Un contributeur peut ainsi
+ * refuser de produire (retourner `null`) si son composant n'est pas
+ * correctement alimenté (ex. `pinSignals.VCC !== Signal.HIGH`).
+ * `sourceDrivenSignals` reste un 3e paramètre optionnel (défaut : Map vide,
+ * donc `pinSignals` entièrement UNKNOWN) pour que tout appel historique de
+ * cette fonction (§21 : PREQ tests existants) continue de fonctionner à
+ * l'identique.
+ *
  * @param {Array<{ uid, type, parameters? }>} effectiveComponents composants
  *   déjà soumis à `applyEnvironmentalStimuli()` (§8 du ticket : ce Registry
  *   ne reçoit donc jamais les paramètres persistants bruts).
@@ -96,12 +111,15 @@ export function circuitRequiresRuntime(components) {
  *   Par défaut le Registry de production (table vide dans ce ticket) ;
  *   injectable pour test (§13 du ticket), sans jamais passer par
  *   `canonicalRegistry.js` ni polluer la table de production.
+ * @param {Map<string, string>} [sourceDrivenSignals] `resolveSourceDrivenPinSignals()`
+ *   (résolution.js), clé "uid:pinId" — défaut Map vide (aucune pin connue
+ *   comme alimentée, comportement historique PREQ1 inchangé).
  * @returns {Map<string, string>}
  */
 export function computeComponentDigitalSignals(effectiveComponents, digitalRegistry = {
   hasDigitalContribution: defaultHasDigitalContribution,
   getDigitalContribution: defaultGetDigitalContribution,
-}) {
+}, sourceDrivenSignals = new Map()) {
   const produced = new Map()
   if (!Array.isArray(effectiveComponents)) return produced
 
@@ -110,7 +128,8 @@ export function computeComponentDigitalSignals(effectiveComponents, digitalRegis
 
     const contribute = digitalRegistry.getDigitalContribution(comp.type)
     const params = resolveComponentParameters(comp.type, comp.parameters)
-    const outputs = contribute({ component: comp, pins: comp.pins, params })
+    const pinSignals = buildComponentSourceDrivenPinSignals(comp, sourceDrivenSignals)
+    const outputs = contribute({ component: comp, pins: comp.pins, params, pinSignals })
     if (!outputs) continue
 
     for (const [pinId, signal] of outputs) {
@@ -125,6 +144,34 @@ export function computeComponentDigitalSignals(effectiveComponents, digitalRegis
   }
 
   return produced
+}
+
+/**
+ * A7-C3-PREQ2 (§6 du ticket) : projection `{ pinId -> Signal }` des SEULES
+ * pins canoniques du composant, lues depuis `sourceDrivenSignals` (Map
+ * "uid:pinId" -> Signal produite par `resolveSourceDrivenPinSignals`,
+ * resolution.js). Consulte `canonicalRegistry.js` pour la liste des pins
+ * déclarées du type — jamais un nom de type précis — exactement le même
+ * principe générique que `buildPinSignalMap` (resolution.js, non exportée,
+ * non dupliquée ici : le format de clé "uid:pinId" est déjà la convention
+ * utilisée sans détour par cette fonction, cf. la clé construite plus haut
+ * dans `computeComponentDigitalSignals`). Toute pin absente de
+ * `sourceDrivenSignals` (composant non alimenté par une source DC connue,
+ * ou `sourceDrivenSignals` vide — appel historique sans 3e argument) vaut
+ * Signal.UNKNOWN, jamais une exception.
+ *
+ * @param {{ uid: string, type: string }} comp
+ * @param {Map<string, string>} sourceDrivenSignals
+ * @returns {Record<string, string>}
+ */
+function buildComponentSourceDrivenPinSignals(comp, sourceDrivenSignals) {
+  const entry = getCanonicalEntry(comp.type)
+  if (!entry) return {}
+  const pinSignals = {}
+  for (const pin of entry.pins) {
+    pinSignals[pin.id] = sourceDrivenSignals.get(`${comp.uid}:${pin.id}`) ?? Signal.UNKNOWN
+  }
+  return pinSignals
 }
 
 /**
@@ -222,6 +269,25 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   const effectiveComponents = applyEnvironmentalStimuli(components, options.environmentalStimuli)
   const runtimeComponents = (effectiveComponents || []).filter((c) => c && c.type === RUNTIME_COMPONENT_TYPE)
 
+  // A7-C3-PREQ2 (§7 du ticket) : `prepared` est désormais construit ICI,
+  // avant le GATE 0 — un peu plus tôt que MB-SIM-011/A7-C3-PREQ, uniquement
+  // pour pouvoir dériver `sourceDrivenSignals` (contexte alimenté
+  // pré-résolution) ci-dessous. prepareCircuit() est une fonction PURE de
+  // (effectiveComponents, wires) : l'appeler une fois de plus tôt ne change
+  // aucune valeur observable — GATE 0 (non-régression, plus bas) continue de
+  // retourner exactement runSimulation(effectiveComponents, wires), qui
+  // reconstruit son propre `prepared` en interne, identique par construction
+  // (§8 du ticket : "prove no semantic change").
+  const prepared = prepareCircuit(effectiveComponents, wires)
+
+  // A7-C3-PREQ2 (§4/§5/§7 du ticket) : contexte générique pré-résolution —
+  // seules les pins déterministement établies par une source DC et la
+  // topologie physique (POWER/BATTERY.../GND propagés par net), AVANT toute
+  // conduction passive, sortie numérique calculée, Runtime ou résolution
+  // complète. Consulte resolution.js — resolveSourceDrivenPinSignals — SEULE
+  // primitive partagée avec resolveSignals() (§5 : source unique de vérité).
+  const sourceDrivenSignals = resolveSourceDrivenPinSignals(effectiveComponents, prepared)
+
   // A7-C3-PREQ (§2/§6/§7 du ticket) : le Registry générique de sorties
   // numériques calculées est consulté pour TOUS les composants, Runtime ou
   // non — un futur capteur environnemental producteur de logique calculée
@@ -231,7 +297,10 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
   // Runtime, câblé en dur sur ARDUINO ci-dessus). Calculé AVANT le GATE 0 :
   // sa taille conditionne, au même titre que runtimeComponents, si le
   // chemin historique `runSimulation()` peut encore être emprunté tel quel.
-  const computedDigitalSignals = computeComponentDigitalSignals(effectiveComponents, options.digitalContributionRegistry)
+  // A7-C3-PREQ2 : reçoit désormais `sourceDrivenSignals` (§6/§7 du ticket) —
+  // chaque contributeur peut consulter son propre état alimenté AVANT de
+  // produire (ou refuser de produire) sa sortie.
+  const computedDigitalSignals = computeComponentDigitalSignals(effectiveComponents, options.digitalContributionRegistry, sourceDrivenSignals)
 
   // GATE 0 (§7 du ticket, non-régression stricte) : pour un circuit sans
   // ARDUINO ET sans aucun composant enregistré dans le Registry de sorties
@@ -306,8 +375,10 @@ export function runSimulationWithRuntime(components, wires, options = {}) {
 
   // A7-C3-PREQ (§5 du ticket) : UNE SEULE composition, UNE SEULE résolution
   // — jamais une seconde résolution, jamais une fusion après propagation.
+  // A7-C3-PREQ2 (§7 du ticket) : réutilise le `prepared` déjà construit
+  // ci-dessus (pour sourceDrivenSignals) — jamais un second prepareCircuit()
+  // sur ce chemin, la topologie physique ne change pas entre-temps.
   const externalSignals = mergeExternalSignals([runtimeSignals, computedDigitalSignals])
-  const prepared = prepareCircuit(effectiveComponents, wires)
   const { pinSignals } = resolveSignals(effectiveComponents, prepared, externalSignals)
   return pinSignals
 }
