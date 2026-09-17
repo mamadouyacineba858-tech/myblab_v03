@@ -119,6 +119,23 @@ export function isValidMotionStimulus(value) {
 }
 
 /**
+ * A7-C4-TILT — TILT est, comme MOTION, un contrat Level-1 STRICTEMENT
+ * BINAIRE (0 ou 1 numériques uniquement, §8 du ticket) : 0 = position
+ * normale (aucune inclinaison détectée), 1 = inclinaison détectée. Aucune
+ * valeur intermédiaire (0.5), hors-borne (-1, 2), booléenne, string, NaN ou
+ * Infinity n'est acceptée — même garde que `isValidMotionStimulus`. TILT et
+ * MOTION restent deux phénomènes pédagogiques DISTINCTS (§8 du ticket) :
+ * kinds séparés, jamais réutilisés l'un pour l'autre, même si leur contrat
+ * de validation est structurellement identique.
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isValidTiltStimulus(value) {
+  return typeof value === "number" && Number.isFinite(value) && (value === 0 || value === 1)
+}
+
+/**
  * Table déclarative kind -> définition. Chaque définition porte au minimum
  * `validate(value)`. Aucun moteur générique ne doit connaître cette table
  * par son contenu — seulement par ses clés (`getSupportedStimulusKinds`) et
@@ -127,6 +144,8 @@ export function isValidMotionStimulus(value) {
  * dans `environmentalStimulus.js` pour que ce nouveau kind soit reconnu.
  * A7-C2 ajoute FORCE et FLEX sur le même principe. A7-C3 ajoute MOISTURE.
  * A7-C4-PIR ajoute MOTION (contrat binaire {0,1}, seul kind non-continu).
+ * A7-C4-TILT ajoute TILT (contrat binaire {0,1}, second kind non-continu,
+ * distinct de MOTION).
  */
 const STIMULUS_DEFINITIONS = Object.freeze({
   LIGHT: Object.freeze({ validate: isValidLightStimulus }),
@@ -135,6 +154,7 @@ const STIMULUS_DEFINITIONS = Object.freeze({
   FLEX: Object.freeze({ validate: isValidFlexStimulus }),
   MOISTURE: Object.freeze({ validate: isValidMoistureStimulus }),
   MOTION: Object.freeze({ validate: isValidMotionStimulus }),
+  TILT: Object.freeze({ validate: isValidTiltStimulus }),
 })
 
 /**

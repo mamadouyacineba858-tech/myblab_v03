@@ -328,6 +328,31 @@ const ASSEMBLY_PROFILES = {
       GND: { root: { dx: 68, dy: 80 }, style: "metallic-wire" },
     },
   },
+  // A7-C4-TILT — Tilt Sensor (SW-520D-style module). Pixel-probe réel (System.Drawing,
+  // même méthode que PIR_MOTION_SENSOR — centroïde alpha-pondéré sur le
+  // segment vertical stable de chaque patte) : bounding box opaque globale
+  // (1x) [18,2,52,117] (cohérent avec l'audit Founder opaqueBounds1x
+  // [18,2,52,117]). Les 2 pattes traversantes sont des segments verticaux
+  // stables entre y=104 et y=116 (corps/PCB se termine à y≈99-101, pattes
+  // visibles jusqu'à leur pointe y=117) : DO centroïde (30.7,109.93) -> racine
+  // (31,110) ; GND centroïde (39.2,109.98) -> racine (39,110) — toutes deux
+  // pleinement opaques (alpha=255 sur le cœur du segment). Les PhysicalContacts
+  // fonctionnels (componentDefinitions.js) sont DO(29,108)/GND(41,108), à
+  // quelques px des racines mesurées (recalage minimal pour retomber sur un
+  // entraxe exact de 12 px, §4 du ticket) : AssemblyLeadsLayer relie chaque
+  // racine à son PhysicalContact via une patte fonctionnelle courte (style
+  // metallic-wire, même rendu que PIR_MOTION_SENSOR/FORCE_SENSOR). AUCUN
+  // bodyClip : le raster continue naturellement sous les PhysicalContacts
+  // (pattes visibles jusqu'à y=117, §5 du ticket : "si le corps/raster
+  // continue dans la zone concernée et qu'un clip l'amputerait : aucun
+  // bodyClip").
+  TILT_SENSOR: {
+    kind: "through-hole",
+    leads: {
+      DO: { root: { dx: 31, dy: 110 }, style: "metallic-wire" },
+      GND: { root: { dx: 39, dy: 110 }, style: "metallic-wire" },
+    },
+  },
 }
 
 export function getAssemblyProfile(type) {

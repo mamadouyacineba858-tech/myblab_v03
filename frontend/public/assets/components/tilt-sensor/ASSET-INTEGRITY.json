@@ -1,0 +1,23 @@
+{
+  "component": "TILT_SENSOR",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "tilt-sensor.default.1x.png": {
+      "sha256": "fe5b890ef704e743ab61569ecbdf9445575ceb66f190c84b8a45c66c842f41aa",
+      "bytes": 8981
+    },
+    "tilt-sensor.default.1x.webp": {
+      "sha256": "65fb8997f003000fff15a7ff5f61ceb598b24c68a6a24f76130451d22e33cbdf",
+      "bytes": 7246
+    },
+    "tilt-sensor.default.3x.png": {
+      "sha256": "6453ca63da6c71088af108a6edc8fe2f6e3052e592b5dd19c5f77fc4cbcb9742",
+      "bytes": 57466
+    },
+    "tilt-sensor.default.3x.webp": {
+      "sha256": "85a7ab2f9afffd966ebc714d7aa16928c855d9cab958ddb68e1a6434b9216104",
+      "bytes": 39378
+    }
+  }
+}

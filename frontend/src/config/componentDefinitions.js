@@ -282,6 +282,23 @@ const PIN_PRESENTATION_BY_TYPE = {
   // FLEX_SENSOR/SOIL_MOISTURE_SENSOR (racines visuelles mesurées ≠
   // PhysicalContacts fonctionnels alignés grille — cf. assemblyProfiles.js
   // pour les racines).
+  // A7-C4-TILT — Tilt Sensor (SW-520D-style module, pack Founder PASS 72×120).
+  // Pixel-probe réel (centroïdes alpha-pondérés, méthode identique à
+  // PIR_MOTION_SENSOR) sur le segment vertical stable de chaque patte
+  // (y∈[104,116]) : DO (30.76,109.93)->racine (31,110) ; GND (39.2,109.98)
+  // ->racine (39,110) — entraxe réel Δx≈8.4 px, NON multiple de 12 (raster
+  // roots ≠ PhysicalContacts, §4 du ticket, parfaitement autorisé). Les
+  // PhysicalContacts fonctionnels ci-dessous sont recalés à dx 29/41 (entraxe
+  // 12 = 1×BREADBOARD_PITCH exact, DEUX TROUS ADJACENTS — préférence §4 du
+  // ticket, la plus proche géométriquement des racines réelles) et dy 108
+  // (multiple exact de 12, même convention que BUZZER/POTENTIOMETER pour un
+  // composant traversant de hauteur canonique 120). AssemblyLeadsLayer relie
+  // chaque racine mesurée (assemblyProfiles.js) à son PhysicalContact via une
+  // courte patte fonctionnelle (style metallic-wire).
+  TILT_SENSOR: [
+    { id: "DO", label: "DO", dx: 29, dy: 108, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DO", dx: 29, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 41, dy: 108, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 41, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   PIR_MOTION_SENSOR: [
     { id: "VCC", label: "VCC", dx: 48, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 48, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
     { id: "OUT", label: "OUT", dx: 60, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "OUT", dx: 60, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
@@ -397,6 +414,14 @@ export const COMPONENT_TYPES = {
   // VCC(48,92)/OUT(60,92)/GND(72,92), entraxe 1×BREADBOARD_PITCH entre chaque
   // paire adjacente). Aucune sortie analogique (§12 du ticket).
   PIR_MOTION_SENSOR: { id: "PIR_MOTION_SENSOR", label: "Capteur de mouvement PIR", icon: "🕵️", width: 120, height: 96, pins: buildPins("PIR_MOTION_SENSOR") },
+  // A7-C4-TILT — Tilt Sensor : capteur environnemental numérique (contrat
+  // générique A7-C0, stimulus TILT). Renderer raster (TiltSensorPart.jsx,
+  // paquet Founder-approved), boîte canonique 72×120 (dimensions natives @1x
+  // du paquet) — enfichable breadboard (PhysicalContacts fonctionnels
+  // DO(29,108)/GND(41,108), entraxe 1×BREADBOARD_PITCH). Aucune broche VCC
+  // (le pack Founder PASS n'en expose aucune, §0/§7/§11 du ticket) ; aucune
+  // sortie analogique (§12 du ticket).
+  TILT_SENSOR: { id: "TILT_SENSOR", label: "Capteur d'inclinaison", icon: "🧭", width: 72, height: 120, pins: buildPins("TILT_SENSOR") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -423,7 +448,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

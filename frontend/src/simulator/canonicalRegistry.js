@@ -83,9 +83,20 @@ const DECLARED_TYPES_PINS = {
   // fonctionnelle (numérique calculée, digitalContributionRegistry.js) —
   // aucune sortie analogique/DC pour ce composant (§12 du ticket).
   PIR_MOTION_SENSOR:[{id:'VCC',role:'power'},{id:'OUT',role:'output'},{id:'GND',role:'ground'}],
+  // A7-C4-TILT — Tilt Sensor (SW-520D-style module) : le pack Founder PASS
+  // approuvé expose UNIQUEMENT 2 broches visibles DO/GND (§0/§7 du ticket) —
+  // à la différence de TMP36/SOIL_MOISTURE_SENSOR/PIR_MOTION_SENSOR (3
+  // broches directionnelles avec `power`), ce module N'A PAS de broche VCC :
+  // aucune broche `power` n'est donc introduite ici (§11 du ticket, audit
+  // électrique DO/GND deux bornes — voir digitalContributionRegistry.js pour
+  // la garde d'alimentation qui en découle, basée uniquement sur GND réel).
+  // Même vocabulaire de rôles que les autres capteurs numériques (output/
+  // ground), aucun nouveau rôle introduit. DO est la SEULE sortie
+  // fonctionnelle (numérique calculée, digitalContributionRegistry.js).
+  TILT_SENSOR:[{id:'DO',role:'output'},{id:'GND',role:'ground'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -180,6 +191,17 @@ const DECLARED_PARAMETER_SCHEMA = {
   PIR_MOTION_SENSOR:[
     {key:'motionDetected',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0,description:'État de détection EFFECTIF (0 = aucun mouvement, 1 = mouvement détecté), fallback canonique 0 tant qu\'aucun stimulus environnemental MOTION actif n\'est fourni. Sous MOTION actif (A7-C4-PIR), la valeur EFFECTIVE est calculée par le Registry environnemental dédié (passage direct, identité), sans jamais modifier ce paramètre persistant.'},
   ],
+  // A7-C4-TILT — Tilt Sensor : paramètre effectif UNIQUE `tiltDetected` ∈
+  // {0,1} (jamais une plage continue — contrat Level-1 binaire, §8/§9 du
+  // ticket, même patron que PIR_MOTION_SENSOR.motionDetected), fallback
+  // canonique 0 (position normale / aucune inclinaison) tant qu'aucun
+  // stimulus environnemental TILT actif n'est fourni. Sous TILT actif, la
+  // valeur EFFECTIVE est le passage direct TILT -> tiltDetected (identité,
+  // cf. environmentalResponseRegistry.js) — jamais recalculée ailleurs
+  // (digitalContributionRegistry.js la consomme telle quelle).
+  TILT_SENSOR:[
+    {key:'tiltDetected',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0,description:'État de détection EFFECTIF (0 = position normale, aucune inclinaison détectée, 1 = inclinaison détectée), fallback canonique 0 tant qu\'aucun stimulus environnemental TILT actif n\'est fourni. Sous TILT actif (A7-C4-TILT), la valeur EFFECTIVE est calculée par le Registry environnemental dédié (passage direct, identité), sans jamais modifier ce paramètre persistant.'},
+  ],
 }
 
 const DECLARED_DEFAULT_PARAMETERS = {
@@ -204,6 +226,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   FLEX_SENSOR:{resistance:10000},
   SOIL_MOISTURE_SENSOR:{analogRatio:1,threshold:0.5},
   PIR_MOTION_SENSOR:{motionDetected:0},
+  TILT_SENSOR:{tiltDetected:0},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -231,6 +254,11 @@ const DECLARED_CAPABILITIES = {
   // fournit aucune sortie analogique/DC ; aucune entrée dcContributionRegistry
   // n'est donc requise ni attendue pour ce type (TEST G4, componentLibraryRolloutGate).
   PIR_MOTION_SENSOR:['digital'],
+  // A7-C4-TILT : capability 'digital' UNIQUEMENT (§12 du ticket) — module
+  // DO/GND deux bornes, aucune sortie analogique/DC ; aucune entrée
+  // dcContributionRegistry n'est donc requise ni attendue pour ce type
+  // (TEST G4, componentLibraryRolloutGate).
+  TILT_SENSOR:['digital'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -255,6 +283,7 @@ const DECLARED_MODEL_AVAILABLE = {
   FLEX_SENSOR:true,
   SOIL_MOISTURE_SENSOR:true,
   PIR_MOTION_SENSOR:true,
+  TILT_SENSOR:true,
 }
 
 /**

@@ -145,8 +145,8 @@ describe('FT-C-COMP-002 — non-régression', () => {
     }
   })
 
-  it('POLARIZED_CAPACITOR est bien un AJOUT (30 types, A3-SW2 : DIP_SWITCH ajouté depuis, A6-OUT1 : VIBRATION_MOTOR ajouté depuis, A6-OUT2 : LIGHT_BULB ajouté depuis, A6-OUT3 : HOBBY_GEARMOTOR ajouté depuis, A7-C1 : TMP36 ajouté depuis, A7-C2 : FORCE_SENSOR + FLEX_SENSOR ajoutés depuis, A7-C3 : SOIL_MOISTURE_SENSOR ajouté depuis, A7-C4-PIR : PIR_MOTION_SENSOR ajouté depuis) sans retrait', () => {
-    expect(getAllCanonicalTypes()).toHaveLength(30)
+  it('POLARIZED_CAPACITOR est bien un AJOUT (31 types, A3-SW2 : DIP_SWITCH ajouté depuis, A6-OUT1 : VIBRATION_MOTOR ajouté depuis, A6-OUT2 : LIGHT_BULB ajouté depuis, A6-OUT3 : HOBBY_GEARMOTOR ajouté depuis, A7-C1 : TMP36 ajouté depuis, A7-C2 : FORCE_SENSOR + FLEX_SENSOR ajoutés depuis, A7-C3 : SOIL_MOISTURE_SENSOR ajouté depuis, A7-C4-PIR : PIR_MOTION_SENSOR ajouté depuis, A7-C4-TILT : TILT_SENSOR ajouté depuis) sans retrait', () => {
+    expect(getAllCanonicalTypes()).toHaveLength(31)
     for (const t of ['LED', 'RESISTOR', 'CAPACITOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR', 'POWER', 'BATTERY_9V']) {
       expect(hasCanonicalType(t), t).toBe(true)
     }

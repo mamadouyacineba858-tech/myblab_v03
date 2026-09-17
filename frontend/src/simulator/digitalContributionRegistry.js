@@ -97,6 +97,41 @@ function pirMotionSensorDigital({ params, pinSignals }) {
 }
 
 /**
+ * A7-C4-TILT — TILT_SENSOR : sortie numérique DO (§10/§11/§12 du ticket).
+ *
+ * Audit électrique §11 du ticket : le pack Founder PASS approuvé pour ce
+ * module n'expose QUE deux broches visibles, DO/GND (aucune VCC — voir
+ * canonicalRegistry.js). La garde d'alimentation de SOIL_MOISTURE_SENSOR/
+ * PIR_MOTION_SENSOR ci-dessus exige VCC=HIGH ET GND=LOW ; ce contrat à trois
+ * broches ne s'applique PAS ici tel quel, et l'inventer reviendrait à ajouter
+ * une broche VCC fictive — interdit explicitement par le ticket. L'architecture
+ * générique existante (pinSignals résolus par resolveSourceDrivenPinSignals,
+ * resolution.js — protégé, non modifié) permet néanmoins une garde propre à
+ * deux bornes SANS aucune broche fictive : GND est une broche RÉELLE de ce
+ * composant (role 'ground', canonicalRegistry.js), et pinSignals.GND n'est
+ * jamais LOW tant que cette broche n'est pas effectivement raccordée, par la
+ * topologie physique du circuit (fil/breadboard), à la référence de masse
+ * d'une source DC réelle (POWER/BATTERY GND) — exactement le même mécanisme
+ * de seeding/propagation par nets que la garde VCC/GND ci-dessus, restreint à
+ * la SEULE broche que ce module possède réellement. Un module non raccordé
+ * (GND flottant, UNKNOWN) ou dont GND serait accidentellement relié à une
+ * borne HIGH ne produit donc jamais de DO (résolution RÉELLE, aucune seconde
+ * résolution, aucune branche TILT_SENSOR dans resolution.js/
+ * simulationRuntimeIntegration.js).
+ *
+ * Contrat pédagogique verrouillé : tiltDetected===1 -> DO HIGH ;
+ * tiltDetected===0 -> DO LOW. Cette fonction ne relit JAMAIS
+ * environmentalStimuli (interdit par §10 du ticket) et ne recalcule jamais
+ * TILT : elle consomme uniquement le paramètre EFFECTIF `tiltDetected` déjà
+ * produit en amont (fallback canonique 0, ou réponse TILT via
+ * environmentalResponseRegistry.js).
+ */
+function tiltSensorDigital({ params, pinSignals }) {
+  if (pinSignals.GND !== Signal.LOW) return null
+  return new Map([["DO", params.tiltDetected === 1 ? Signal.HIGH : Signal.LOW]])
+}
+
+/**
  * Fabrique un Registry isolé — même patron que `createSimulationRegistry`
  * (`simulationRegistry.js`) : permet à un test d'injecter une table de
  * contributions FIXTURE, sans jamais enregistrer de faux type de production
@@ -135,6 +170,7 @@ const defaultRegistry = createDigitalContributionRegistry({
   contributions: new Map([
     ["SOIL_MOISTURE_SENSOR", soilMoistureSensorDigital],
     ["PIR_MOTION_SENSOR", pirMotionSensorDigital],
+    ["TILT_SENSOR", tiltSensorDigital],
   ]),
 })
 

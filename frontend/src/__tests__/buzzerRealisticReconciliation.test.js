@@ -344,9 +344,9 @@ describe('FT-C-COMP-004 — non-régression du modèle électrique et des autres
     expect([COMPONENT_TYPES.RGB_LED.width, COMPONENT_TYPES.RGB_LED.height]).toEqual([90, 56])
   })
 
-  it('T28 (catalogue) — toujours 30 types canoniques (A3-SW2 : DIP_SWITCH ajouté ; A6-OUT1 : VIBRATION_MOTOR ajouté ; A6-OUT2 : LIGHT_BULB ajouté ; A6-OUT3 : HOBBY_GEARMOTOR ajouté ; A7-C1 : TMP36 ajouté ; A7-C2 : FORCE_SENSOR + FLEX_SENSOR ajoutés ; A7-C3 : SOIL_MOISTURE_SENSOR ajouté ; A7-C4-PIR : PIR_MOTION_SENSOR ajouté), BUZZER inclus une seule fois', () => {
+  it('T28 (catalogue) — toujours 31 types canoniques (A3-SW2 : DIP_SWITCH ajouté ; A6-OUT1 : VIBRATION_MOTOR ajouté ; A6-OUT2 : LIGHT_BULB ajouté ; A6-OUT3 : HOBBY_GEARMOTOR ajouté ; A7-C1 : TMP36 ajouté ; A7-C2 : FORCE_SENSOR + FLEX_SENSOR ajoutés ; A7-C3 : SOIL_MOISTURE_SENSOR ajouté ; A7-C4-PIR : PIR_MOTION_SENSOR ajouté ; A7-C4-TILT : TILT_SENSOR ajouté), BUZZER inclus une seule fois', () => {
     const types = getAllCanonicalTypes()
-    expect(types.length).toBe(30)
+    expect(types.length).toBe(31)
     expect(types.filter((t) => t === 'BUZZER')).toHaveLength(1)
   })
 })

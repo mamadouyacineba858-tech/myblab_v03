@@ -47,6 +47,7 @@ import { ForceSensorPart } from '../components/parts/ForceSensorPart.jsx';
 import { FlexSensorPart } from '../components/parts/FlexSensorPart.jsx';
 import { SoilMoistureSensorPart } from '../components/parts/SoilMoistureSensorPart.jsx';
 import { PirMotionSensorPart } from '../components/parts/PirMotionSensorPart.jsx';
+import { TiltSensorPart } from '../components/parts/TiltSensorPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -270,6 +271,17 @@ export const DEFAULT_REGISTRATIONS = [
   // environmentalResponseRegistry.js) et de l'alimentation VCC/GND (PREQ2).
   // Aucune contribution DC (§12 du ticket).
   { type: 'PIR_MOTION_SENSOR', component: PirMotionSensorPart, visual: { backend: 'raster' } },
+  // TILT_SENSOR : A7-C4-TILT — paquet d'assets raster réaliste
+  // Founder-approved (SW-520D-style, 72×120, état unique `default`). raster
+  // => bareBody + markerless dérivés, même mécanisme déclaratif que
+  // PIR_MOTION_SENSOR — aucun code central spécifique, aucune condition
+  // `type === "TILT_SENSOR"`. Modèle numérique dédié : DO
+  // (tiltSensorDigital, digitalContributionRegistry.js) dépend du stimulus
+  // environnemental TILT (contrat générique A7-C0,
+  // environmentalResponseRegistry.js) et d'une garde GND réelle uniquement
+  // (aucune broche VCC dans ce module, §11 du ticket). Aucune contribution
+  // DC (§12 du ticket).
+  { type: 'TILT_SENSOR', component: TiltSensorPart, visual: { backend: 'raster' } },
 ];
 
 /**

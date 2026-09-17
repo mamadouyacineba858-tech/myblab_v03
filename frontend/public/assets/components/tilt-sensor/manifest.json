@@ -1,0 +1,58 @@
+{
+  "component": "TILT_SENSOR",
+  "displayName": "Tilt Sensor",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "canonical": {
+    "width": 72,
+    "height": 120,
+    "orientation": "vertical",
+    "connections": 2,
+    "wireConnectable": true
+  },
+  "visualModel": "SW-520D-style tilt sensor module",
+  "visiblePinLabels": [
+    "DO",
+    "GND"
+  ],
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      18,
+      2,
+      52,
+      117
+    ],
+    "note": "Founder-approved master preserved; resize/background transparency only. No switch, PCB, header, pin or label redraw. Electrical abstraction and PhysicalContacts must be locked during A7-C4 implementation audit."
+  },
+  "assets": [
+    {
+      "file": "tilt-sensor.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 72,
+      "height": 120
+    },
+    {
+      "file": "tilt-sensor.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 72,
+      "height": 120
+    },
+    {
+      "file": "tilt-sensor.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 216,
+      "height": 360
+    },
+    {
+      "file": "tilt-sensor.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 216,
+      "height": 360
+    }
+  ]
+}
