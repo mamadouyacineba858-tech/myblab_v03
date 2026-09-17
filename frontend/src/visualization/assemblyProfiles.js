@@ -364,6 +364,44 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 19 },
   },
+  // A7-C4-IR — IR Receiver (TSOP4838-style 38 kHz module). Pixel-probe réel
+  // (System.Drawing, seuil alpha>0, méthode identique à TILT_SENSOR/PIR_MOTION_SENSOR —
+  // méthodologie CORRIGÉE post A7-C4-TILT-R1 : root choisi AU-DESSUS du
+  // PhysicalContact, jamais en dessous). Bounding box opaque globale (1x)
+  // x∈[17,54] y∈[2,117] (corps/dôme texturé, cohérent avec l'audit Founder
+  // opaqueBounds1x [17,2,54,117]). Le corps (dôme + texture de lentille) est
+  // un bloc plein x∈[17,54] de y=2 à y=51 ; à y=52 le bloc se scinde pour la
+  // PREMIÈRE fois en 3 groupes distincts (20-27/32-38/44-51 — flasque/pastille
+  // de sortie des 3 pattes), qui se stabilisent en 3 pattes fines individuelles
+  // (largeur ~3-5 px chacune) de y=58 à y=111, pleinement opaques (alpha=255)
+  // jusqu'à y=112 inclus, puis s'estompent à y=113 (alpha≈78-81) et
+  // disparaissent totalement à y=114 (alpha=0) — un halo diffus décoratif
+  // (ombre portée, alpha partiel/asymétrique) réapparaît ensuite y=115-117,
+  // confirmé NON fonctionnel (même diagnostic que PIR_MOTION_SENSOR). Racines
+  // mesurées : centroïdes alpha-pondérés sur le segment stable y∈[58,111]
+  // (recoupés sur le 3x, ×3 cohérent) : SIGNAL (23.68,82.83)->x≈24 ; GND
+  // (35.07,82.65)->x≈35 ; VCC (47.03,82.89)->x≈47 — le y de racine est fixé à
+  // la ligne de transition corps→pattes réellement mesurée (y=52, PREMIÈRE
+  // ligne où le bloc plein se scinde), STRICTEMENT AU-DESSUS des
+  // PhysicalContacts (y=108, componentDefinitions.js) : sens racine→trou
+  // correct (leçon A7-C4-TILT-R1, jamais inversé). `bodyClip.bottom =
+  // 120 - 52 = 68` masque toute la portion sous y=52 (flasque + 3 pattes
+  // cuites + halo décoratif, soit toute la zone qui dépasserait sinon les
+  // PhysicalContacts) tout en conservant le corps/dôme du TSOP4838 intact
+  // au-dessus (§8 du ticket : "le corps ne doit PAS être tronqué").
+  // AssemblyLeadsLayer dessine désormais le segment complet racine(52) →
+  // PhysicalContact(108) dans la zone désormais transparente pour les 3
+  // pattes : chacune apparaît naître du corps et se terminer PILE au trou,
+  // sans jamais dépasser (§7 du ticket, gate anti-débordement).
+  IR_RECEIVER: {
+    kind: "through-hole",
+    leads: {
+      SIGNAL: { root: { dx: 24, dy: 52 }, style: "metallic-wire" },
+      GND: { root: { dx: 35, dy: 52 }, style: "metallic-wire" },
+      VCC: { root: { dx: 47, dy: 52 }, style: "metallic-wire" },
+    },
+    bodyClip: { bottom: 68 },
+  },
 }
 
 export function getAssemblyProfile(type) {

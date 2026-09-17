@@ -132,6 +132,31 @@ function tiltSensorDigital({ params, pinSignals }) {
 }
 
 /**
+ * A7-C4-IR — IR_RECEIVER : sortie numérique SIGNAL, logique ACTIVE-LOW
+ * (§12/§13/§14 du ticket).
+ *
+ * Garde d'alimentation obligatoire (réutilise PREQ2, même patron exact que
+ * soilMoistureSensorDigital/pirMotionSensorDigital ci-dessus — aucune
+ * seconde résolution, aucune branche IR_RECEIVER dans resolution.js/
+ * simulationRuntimeIntegration.js) : un module non alimenté, en polarité
+ * inversée, ou dont la source est en conflit ne produit jamais de SIGNAL
+ * (pinSignals.VCC/GND ne sont jamais HIGH/LOW simultanément dans ces trois
+ * cas — voir resolveSourceDrivenPinSignals).
+ *
+ * Contrat pédagogique verrouillé, ACTIVE-LOW (le TSOP4838-style réel inverse
+ * sa sortie, §12 du ticket) : infraredDetected===1 -> SIGNAL LOW (signal IR
+ * détecté) ; infraredDetected===0 -> SIGNAL HIGH (aucun signal IR détecté).
+ * Cette fonction ne relit JAMAIS environmentalStimuli (interdit par §12 du
+ * ticket) et ne recalcule jamais INFRARED : elle consomme uniquement le
+ * paramètre EFFECTIF `infraredDetected` déjà produit en amont (fallback
+ * canonique 0, ou réponse INFRARED via environmentalResponseRegistry.js).
+ */
+function irReceiverDigital({ params, pinSignals }) {
+  if (pinSignals.VCC !== Signal.HIGH || pinSignals.GND !== Signal.LOW) return null
+  return new Map([["SIGNAL", params.infraredDetected === 1 ? Signal.LOW : Signal.HIGH]])
+}
+
+/**
  * Fabrique un Registry isolé — même patron que `createSimulationRegistry`
  * (`simulationRegistry.js`) : permet à un test d'injecter une table de
  * contributions FIXTURE, sans jamais enregistrer de faux type de production
@@ -171,6 +196,7 @@ const defaultRegistry = createDigitalContributionRegistry({
     ["SOIL_MOISTURE_SENSOR", soilMoistureSensorDigital],
     ["PIR_MOTION_SENSOR", pirMotionSensorDigital],
     ["TILT_SENSOR", tiltSensorDigital],
+    ["IR_RECEIVER", irReceiverDigital],
   ]),
 })
 

@@ -19,6 +19,7 @@ import { FlexSensorModel } from './models/FlexSensorModel.js'
 import { SoilMoistureSensorModel } from './models/SoilMoistureSensorModel.js'
 import { PirMotionSensorModel } from './models/PirMotionSensorModel.js'
 import { TiltSensorModel } from './models/TiltSensorModel.js'
+import { IrReceiverModel } from './models/IrReceiverModel.js'
 import {
   UnknownComponentTypeError,
   SimulationModelUnavailableError,
@@ -120,6 +121,7 @@ const defaultRegistry = createSimulationRegistry({
     SoilMoistureSensorModel,
     PirMotionSensorModel,
     TiltSensorModel,
+    IrReceiverModel,
   ],
 })
 

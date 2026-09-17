@@ -304,6 +304,25 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "OUT", label: "OUT", dx: 60, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "OUT", dx: 60, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
     { id: "GND", label: "GND", dx: 72, dy: 92, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 72, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A7-C4-IR — IR Receiver (TSOP4838-style 38 kHz module, pack Founder PASS
+  // 72×120). Pixel-probe réel (System.Drawing, alpha-weighted centroid sur
+  // le segment vertical stable de chaque patte, y∈[58,111], confirmé par
+  // recoupement sur le 3x) : SIGNAL (23.68,82.83)->x≈24 ; GND (35.07,82.65)
+  // ->x≈35 ; VCC (47.03,82.89)->x≈47 — entraxes réels ≈11.4/11.96 px, TRÈS
+  // proches de 12 px mais pas exacts (raster roots ≠ PhysicalContacts, §4/§6
+  // du ticket, autorisé). Les PhysicalContacts fonctionnels ci-dessous sont
+  // verrouillés à la cible CSA dx 24/36/48 (entraxe 12 = 1×BREADBOARD_PITCH
+  // exact entre chaque paire adjacente — écart ≤1 px des racines réelles,
+  // dans la tolérance ±2 px du ticket §6) et dy 108 (multiple exact de 12,
+  // même convention que TILT_SENSOR/BUZZER/POTENTIOMETER pour un composant
+  // traversant de hauteur canonique 120). AssemblyLeadsLayer relie chaque
+  // racine mesurée (assemblyProfiles.js) à son PhysicalContact via une
+  // courte patte fonctionnelle (style metallic-wire).
+  IR_RECEIVER: [
+    { id: "SIGNAL", label: "SIGNAL", dx: 24, dy: 108, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "SIGNAL", dx: 24, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 36, dy: 108, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 36, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC", label: "VCC", dx: 48, dy: 108, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 48, dy: 108, wireConnectable: true, breadboardInsertable: true }] },
+  ],
 }
 
 function buildPins(type) {
@@ -422,6 +441,14 @@ export const COMPONENT_TYPES = {
   // (le pack Founder PASS n'en expose aucune, §0/§7/§11 du ticket) ; aucune
   // sortie analogique (§12 du ticket).
   TILT_SENSOR: { id: "TILT_SENSOR", label: "Capteur d'inclinaison", icon: "🧭", width: 72, height: 120, pins: buildPins("TILT_SENSOR") },
+  // A7-C4-IR — IR Receiver : capteur environnemental numérique (contrat
+  // générique A7-C0, stimulus INFRARED). Renderer raster (IrReceiverPart.jsx,
+  // paquet Founder-approved), boîte canonique 72×120 (dimensions natives @1x
+  // du paquet) — enfichable breadboard (PhysicalContacts fonctionnels
+  // SIGNAL(24,108)/GND(36,108)/VCC(48,108), entraxe 1×BREADBOARD_PITCH entre
+  // chaque paire adjacente). SIGNAL est active-low (§12 du ticket) ; aucune
+  // sortie analogique (§15 du ticket).
+  IR_RECEIVER: { id: "IR_RECEIVER", label: "Récepteur IR", icon: "📡", width: 72, height: 120, pins: buildPins("IR_RECEIVER") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -448,7 +475,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

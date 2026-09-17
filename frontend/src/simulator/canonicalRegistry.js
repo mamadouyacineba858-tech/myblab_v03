@@ -94,9 +94,18 @@ const DECLARED_TYPES_PINS = {
   // ground), aucun nouveau rôle introduit. DO est la SEULE sortie
   // fonctionnelle (numérique calculée, digitalContributionRegistry.js).
   TILT_SENSOR:[{id:'DO',role:'output'},{id:'GND',role:'ground'}],
+  // A7-C4-IR — IR Receiver (TSOP4838-style 38 kHz module) : 3 broches
+  // DIRECTIONNELLES, ordre verrouillé SIGNAL/GND/VCC (§5 du ticket — ordre
+  // DIFFÉRENT de PIR_MOTION_SENSOR/SOIL_MOISTURE_SENSOR qui placent VCC en
+  // tête ; ici le pack Founder PASS expose visuellement SIGNAL en premier).
+  // Même vocabulaire de rôles que TMP36/SOIL_MOISTURE_SENSOR/PIR_MOTION_SENSOR
+  // (power/output/ground), aucun nouveau rôle introduit. SIGNAL est la SEULE
+  // sortie fonctionnelle (numérique calculée, active-low, §12 du ticket) —
+  // aucune sortie analogique/DC pour ce composant (§15 du ticket).
+  IR_RECEIVER:[{id:'SIGNAL',role:'output'},{id:'GND',role:'ground'},{id:'VCC',role:'power'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -202,6 +211,19 @@ const DECLARED_PARAMETER_SCHEMA = {
   TILT_SENSOR:[
     {key:'tiltDetected',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0,description:'État de détection EFFECTIF (0 = position normale, aucune inclinaison détectée, 1 = inclinaison détectée), fallback canonique 0 tant qu\'aucun stimulus environnemental TILT actif n\'est fourni. Sous TILT actif (A7-C4-TILT), la valeur EFFECTIVE est calculée par le Registry environnemental dédié (passage direct, identité), sans jamais modifier ce paramètre persistant.'},
   ],
+  // A7-C4-IR — IR Receiver : paramètre effectif UNIQUE `infraredDetected` ∈
+  // {0,1} (jamais une plage continue — contrat Level-1 binaire, §10/§11 du
+  // ticket, même patron que TILT_SENSOR.tiltDetected/PIR_MOTION_SENSOR.
+  // motionDetected), fallback canonique 0 (aucun signal IR 38 kHz détecté)
+  // tant qu'aucun stimulus environnemental INFRARED actif n'est fourni. Sous
+  // INFRARED actif, la valeur EFFECTIVE est le passage direct INFRARED ->
+  // infraredDetected (identité, aucune formule, cf.
+  // environmentalResponseRegistry.js) — jamais recalculée ailleurs
+  // (digitalContributionRegistry.js la consomme telle quelle pour produire
+  // SIGNAL en logique active-low, §12 du ticket).
+  IR_RECEIVER:[
+    {key:'infraredDetected',parameterType:'ratio',unit:'',minimum:0,maximum:1,defaultValue:0,description:'État de détection EFFECTIF (0 = aucun signal IR 38 kHz détecté, 1 = signal IR 38 kHz détecté), fallback canonique 0 tant qu\'aucun stimulus environnemental INFRARED actif n\'est fourni. Sous INFRARED actif (A7-C4-IR), la valeur EFFECTIVE est calculée par le Registry environnemental dédié (passage direct, identité), sans jamais modifier ce paramètre persistant.'},
+  ],
 }
 
 const DECLARED_DEFAULT_PARAMETERS = {
@@ -227,6 +249,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   SOIL_MOISTURE_SENSOR:{analogRatio:1,threshold:0.5},
   PIR_MOTION_SENSOR:{motionDetected:0},
   TILT_SENSOR:{tiltDetected:0},
+  IR_RECEIVER:{infraredDetected:0},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -259,6 +282,11 @@ const DECLARED_CAPABILITIES = {
   // dcContributionRegistry n'est donc requise ni attendue pour ce type
   // (TEST G4, componentLibraryRolloutGate).
   TILT_SENSOR:['digital'],
+  // A7-C4-IR : capability 'digital' UNIQUEMENT (§15 du ticket) — aucune
+  // sortie analogique/DC (pas de modélisation de la photodiode/AGC/filtre
+  // interne) ; aucune entrée dcContributionRegistry n'est donc requise ni
+  // attendue pour ce type (TEST G4, componentLibraryRolloutGate).
+  IR_RECEIVER:['digital'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -284,6 +312,7 @@ const DECLARED_MODEL_AVAILABLE = {
   SOIL_MOISTURE_SENSOR:true,
   PIR_MOTION_SENSOR:true,
   TILT_SENSOR:true,
+  IR_RECEIVER:true,
 }
 
 /**

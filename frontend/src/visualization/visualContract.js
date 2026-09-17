@@ -155,6 +155,7 @@ export const SCALE_REFERENCE = Object.freeze([
   // componentDefinitions.js/PirMotionSensorPart.jsx).
   { type: 'PIR_MOTION_SENSOR', box: [120, 96], physicalMm: [32, 24], ref: 'capteur de mouvement PIR HC-SR501-style, carte + dôme Fresnel ~32×24 mm (indicatif, A7-C4-PIR)', impliedUnitsPerMm: 120 / 32 },
   { type: 'TILT_SENSOR', box: [72, 120], physicalMm: [14, 32.5], ref: 'capteur d\'inclinaison SW-520D-style, module 2 broches DO/GND, carte ~14×32.5 mm (indicatif, A7-C4-TILT)', impliedUnitsPerMm: 120 / 32.5 },
+  { type: 'IR_RECEIVER', box: [72, 120], physicalMm: [10, 24], ref: 'récepteur infrarouge TSOP4838-style 38 kHz, dôme + 3 pattes SIGNAL/GND/VCC, boîtier + pattes ~10×24 mm (indicatif, A7-C4-IR)', impliedUnitsPerMm: 120 / 24 },
 ])
 
 /**

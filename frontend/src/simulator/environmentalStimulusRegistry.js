@@ -136,6 +136,23 @@ export function isValidTiltStimulus(value) {
 }
 
 /**
+ * A7-C4-IR — INFRARED est, comme MOTION/TILT, un contrat Level-1
+ * STRICTEMENT BINAIRE (0 ou 1 numériques uniquement, §10 du ticket) : 0 =
+ * aucun signal IR 38 kHz détecté, 1 = signal IR 38 kHz détecté. Aucune
+ * valeur intermédiaire (0.5), hors-borne (-1, 2), booléenne, string, NaN ou
+ * Infinity n'est acceptée — même garde que `isValidMotionStimulus`/
+ * `isValidTiltStimulus`. INFRARED reste un phénomène pédagogique DISTINCT de
+ * LIGHT (éclairage ambiant normalisé continu) et de MOTION/TILT (§10 du
+ * ticket) : jamais réutilisé pour un autre kind.
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+export function isValidInfraredStimulus(value) {
+  return typeof value === "number" && Number.isFinite(value) && (value === 0 || value === 1)
+}
+
+/**
  * Table déclarative kind -> définition. Chaque définition porte au minimum
  * `validate(value)`. Aucun moteur générique ne doit connaître cette table
  * par son contenu — seulement par ses clés (`getSupportedStimulusKinds`) et
@@ -145,7 +162,8 @@ export function isValidTiltStimulus(value) {
  * A7-C2 ajoute FORCE et FLEX sur le même principe. A7-C3 ajoute MOISTURE.
  * A7-C4-PIR ajoute MOTION (contrat binaire {0,1}, seul kind non-continu).
  * A7-C4-TILT ajoute TILT (contrat binaire {0,1}, second kind non-continu,
- * distinct de MOTION).
+ * distinct de MOTION). A7-C4-IR ajoute INFRARED (contrat binaire {0,1},
+ * troisième kind non-continu, distinct de LIGHT/MOTION/TILT).
  */
 const STIMULUS_DEFINITIONS = Object.freeze({
   LIGHT: Object.freeze({ validate: isValidLightStimulus }),
@@ -155,6 +173,7 @@ const STIMULUS_DEFINITIONS = Object.freeze({
   MOISTURE: Object.freeze({ validate: isValidMoistureStimulus }),
   MOTION: Object.freeze({ validate: isValidMotionStimulus }),
   TILT: Object.freeze({ validate: isValidTiltStimulus }),
+  INFRARED: Object.freeze({ validate: isValidInfraredStimulus }),
 })
 
 /**

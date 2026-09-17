@@ -48,6 +48,7 @@ import { FlexSensorPart } from '../components/parts/FlexSensorPart.jsx';
 import { SoilMoistureSensorPart } from '../components/parts/SoilMoistureSensorPart.jsx';
 import { PirMotionSensorPart } from '../components/parts/PirMotionSensorPart.jsx';
 import { TiltSensorPart } from '../components/parts/TiltSensorPart.jsx';
+import { IrReceiverPart } from '../components/parts/IrReceiverPart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -282,6 +283,16 @@ export const DEFAULT_REGISTRATIONS = [
   // (aucune broche VCC dans ce module, §11 du ticket). Aucune contribution
   // DC (§12 du ticket).
   { type: 'TILT_SENSOR', component: TiltSensorPart, visual: { backend: 'raster' } },
+  // IR_RECEIVER : A7-C4-IR — paquet d'assets raster réaliste
+  // Founder-approved (TSOP4838-style, 72×120, état unique `default`). raster
+  // => bareBody + markerless dérivés, même mécanisme déclaratif que
+  // TILT_SENSOR/PIR_MOTION_SENSOR — aucun code central spécifique, aucune
+  // condition `type === "IR_RECEIVER"`. Modèle numérique dédié : SIGNAL
+  // (irReceiverDigital, digitalContributionRegistry.js, logique active-low)
+  // dépend du stimulus environnemental INFRARED (contrat générique A7-C0,
+  // environmentalResponseRegistry.js) et de l'alimentation VCC/GND réelle
+  // (PREQ2). Aucune contribution DC (§15 du ticket).
+  { type: 'IR_RECEIVER', component: IrReceiverPart, visual: { backend: 'raster' } },
 ];
 
 /**

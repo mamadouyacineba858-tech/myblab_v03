@@ -1,0 +1,23 @@
+{
+  "component": "IR_RECEIVER",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "ir-receiver.default.1x.png": {
+      "sha256": "c91835376821ff1688eab4a212513df07662e5729d041476e351776e4ddfc80b",
+      "bytes": 9001
+    },
+    "ir-receiver.default.1x.webp": {
+      "sha256": "529cdcfb9d891f791875cc034f94055e3d5827051acc69ca8be726633ce7530f",
+      "bytes": 6886
+    },
+    "ir-receiver.default.3x.png": {
+      "sha256": "04154c7734d722dbbfe87576f5b83b4741334e85d8a37472c672ef20da86cc89",
+      "bytes": 56324
+    },
+    "ir-receiver.default.3x.webp": {
+      "sha256": "80a40ab4427d82e3a5261c4d34809a874d04349b053d97ce69b9128166d5859f",
+      "bytes": 42036
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "component": "IR_RECEIVER",
+  "displayName": "IR Receiver",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "visualModel": "TSOP4838-style 38 kHz infrared receiver",
+  "canonical": {
+    "width": 72,
+    "height": 120,
+    "orientation": "vertical",
+    "connections": 3,
+    "wireConnectable": true
+  },
+  "visiblePinOrder": [
+    "SIGNAL",
+    "GND",
+    "VCC"
+  ],
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      17,
+      2,
+      54,
+      117
+    ],
+    "note": "Founder-approved master preserved; resize/background transparency only. No package, lens, marking, lead or pin-label redraw. Canonical electrical IDs and PhysicalContacts must be audited against repository conventions during A7-C4 implementation."
+  },
+  "assets": [
+    {
+      "file": "ir-receiver.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 72,
+      "height": 120
+    },
+    {
+      "file": "ir-receiver.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 72,
+      "height": 120
+    },
+    {
+      "file": "ir-receiver.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 216,
+      "height": 360
+    },
+    {
+      "file": "ir-receiver.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 216,
+      "height": 360
+    }
+  ]
+}
