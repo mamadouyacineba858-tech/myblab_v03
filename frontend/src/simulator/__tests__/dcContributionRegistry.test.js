@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { getDcContribution, hasDcContribution, getAllDcContributionTypes, createDiodeDcContribution } from "../dcContributionRegistry.js"
+import { getDcContribution, hasDcContribution, getAllDcContributionTypes, createDiodeDcContribution, createControlledDcSwitchContribution } from "../dcContributionRegistry.js"
 import { Signal } from "../signals.js"
 
 /**
@@ -265,7 +265,7 @@ describe("createDiodeDcContribution — factory générique (A5-D-PREQ)", () => 
 
   it("T5 — aucun second Registry de breakdown n'est exporté par ce module (surface d'export inchangée + factory)", async () => {
     expect(Object.keys(await import("../dcContributionRegistry.js")).sort()).toEqual(
-      ["createDiodeDcContribution", "getAllDcContributionTypes", "getDcContribution", "getUnconditionalConductionPinPair", "hasDcContribution"].sort()
+      ["createControlledDcSwitchContribution", "createDiodeDcContribution", "getAllDcContributionTypes", "getDcContribution", "getUnconditionalConductionPinPair", "hasDcContribution"].sort()
     )
   })
 
@@ -495,5 +495,99 @@ describe("dcContributionRegistry — ZENER_DIODE (A5-ZENER_DIODE, production)", 
     const diode = getDcContribution("DIODE")
     const result = diode({ pins: { anode: Signal.LOW, cathode: Signal.HIGH }, params: { forwardVoltage: 0.7, onResistance: 10 }, supplyVoltage: 6.1 })
     expect(result).toEqual({ voltage: 6.1, current: 0 })
+  })
+})
+
+describe("createControlledDcSwitchContribution — A8-PREQ", () => {
+  const config = { terminalAPinId: "X", terminalBPinId: "Y", controlPinId: "CTRL", activeControlSignal: Signal.HIGH }
+
+  it("exports a factory returning a contribution without registering a component", () => {
+    const before = getAllDcContributionTypes()
+    expect(typeof createControlledDcSwitchContribution).toBe("function")
+    expect(typeof createControlledDcSwitchContribution(config)).toBe("function")
+    expect(getAllDcContributionTypes()).toEqual(before)
+  })
+
+  for (const activeControlSignal of [Signal.HIGH, Signal.LOW]) {
+    describe(`active control ${activeControlSignal}`, () => {
+      const contribute = createControlledDcSwitchContribution({ ...config, activeControlSignal })
+      it.each([Signal.HIGH, Signal.LOW, Signal.UNKNOWN, Signal.FLOATING])("control %s uses arbitrary pin IDs", (control) => {
+        expect(contribute({ pins: { X: Signal.HIGH, Y: Signal.LOW, CTRL: control }, params: { onResistance: 20 }, supplyVoltage: 12 }))
+          .toEqual({ voltage: 12, current: control === activeControlSignal ? 12 / 20 : 0 })
+      })
+      it.each([
+        [Signal.HIGH, Signal.HIGH], [Signal.LOW, Signal.LOW],
+        [Signal.UNKNOWN, Signal.LOW], [Signal.HIGH, Signal.FLOATING],
+        [undefined, Signal.LOW],
+      ])("unpowered terminals %s/%s return null even with active control", (X, Y) => {
+        expect(contribute({ pins: { X, Y, CTRL: activeControlSignal }, params: { onResistance: 20 }, supplyVoltage: 12 })).toBeNull()
+      })
+      it("accepts the historical reverse terminal orientation", () => {
+        expect(contribute({ pins: { X: Signal.LOW, Y: Signal.HIGH, CTRL: activeControlSignal }, params: { onResistance: 4 }, supplyVoltage: 8 }))
+          .toEqual({ voltage: 8, current: 2 })
+      })
+      it("preserves frozen config, pins and params for active and blocked controls", () => {
+        const frozenConfig = Object.freeze({ ...config, activeControlSignal })
+        const frozenContribution = createControlledDcSwitchContribution(frozenConfig)
+        const params = Object.freeze({ onResistance: 10 })
+        for (const control of [Signal.HIGH, Signal.LOW, Signal.UNKNOWN, Signal.FLOATING]) {
+          const pins = Object.freeze({ X: Signal.HIGH, Y: Signal.LOW, CTRL: control })
+          expect(frozenContribution({ pins, params, supplyVoltage: 5 }))
+            .toEqual({ voltage: 5, current: control === activeControlSignal ? 0.5 : 0 })
+          expect(pins).toEqual({ X: Signal.HIGH, Y: Signal.LOW, CTRL: control })
+        }
+        expect(params).toEqual({ onResistance: 10 })
+        expect(frozenConfig).toEqual({ ...config, activeControlSignal })
+      })
+    })
+  }
+
+  it("captures configuration without retaining mutable role assignments", () => {
+    const mutableConfig = { ...config }
+    const contribute = createControlledDcSwitchContribution(mutableConfig)
+    mutableConfig.controlPinId = "OTHER"
+    mutableConfig.activeControlSignal = Signal.LOW
+    expect(contribute({ pins: { X: Signal.HIGH, Y: Signal.LOW, CTRL: Signal.HIGH }, params: { onResistance: 2 }, supplyVoltage: 6 }))
+      .toEqual({ voltage: 6, current: 3 })
+  })
+
+  it.each([undefined, null, false, "config", {}])("rejects structurally invalid config %s", (invalid) => {
+    expect(() => createControlledDcSwitchContribution(invalid)).toThrow(TypeError)
+  })
+  for (const key of ["terminalAPinId", "terminalBPinId", "controlPinId"]) {
+    it.each([undefined, "", "   ", null, 1])(`rejects invalid ${key}: %s deterministically`, (value) => {
+      expect(() => createControlledDcSwitchContribution({ ...config, [key]: value }))
+        .toThrow(new TypeError("Controlled DC switch pin IDs must be non-empty strings"))
+    })
+  }
+  it.each([
+    { terminalBPinId: "X" }, { controlPinId: "X" }, { controlPinId: "Y" },
+  ])("rejects duplicate roles %s", (override) => {
+    expect(() => createControlledDcSwitchContribution({ ...config, ...override }))
+      .toThrow(new TypeError("Controlled DC switch pin IDs must be distinct"))
+  })
+  it.each([undefined, null, Signal.UNKNOWN, Signal.FLOATING, "invalid", 1])("rejects active signal %s", (activeControlSignal) => {
+    expect(() => createControlledDcSwitchContribution({ ...config, activeControlSignal }))
+      .toThrow(new TypeError("Controlled DC switch active signal must be HIGH or LOW"))
+  })
+
+  it("keeps generic engines independent of future A8 component types", async () => {
+    const fs = await import("node:fs")
+    for (const file of ["resolution.js", "engine.js", "electricalAnalysis.js"]) {
+      const source = fs.readFileSync(new URL(`../${file}`, import.meta.url), "utf-8")
+      expect(source, file).not.toMatch(/PNP_TRANSISTOR|NMOS|PMOS|MOSFET/)
+    }
+  })
+})
+
+describe("NPN_TRANSISTOR — A8-PREQ historical compatibility", () => {
+  const contribute = getDcContribution("NPN_TRANSISTOR")
+  it("BASE FLOATING remains blocked", () => {
+    expect(contribute({ pins: { collector: Signal.HIGH, emitter: Signal.LOW, base: Signal.FLOATING }, params: { onResistance: 10 }, supplyVoltage: 5 }))
+      .toEqual({ voltage: 5, current: 0 })
+  })
+  it.each([Signal.HIGH, Signal.LOW, Signal.UNKNOWN, Signal.FLOATING])("reverse C/E keeps historical control %s behavior", (base) => {
+    expect(contribute({ pins: { collector: Signal.LOW, emitter: Signal.HIGH, base }, params: { onResistance: 10 }, supplyVoltage: 5 }))
+      .toEqual({ voltage: 5, current: base === Signal.HIGH ? 0.5 : 0 })
   })
 })

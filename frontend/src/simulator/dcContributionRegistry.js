@@ -222,19 +222,46 @@ function potentiometerDc({ pins, params, supplyVoltage }) {
   return null
 }
 
-function npnTransistorDc({ pins, params, supplyVoltage }) {
-  // MB-SIM-008 v2 : interrupteur commandé. Le couple collecteur/émetteur
-  // doit former une boucle alimentée pour qu'un contexte électrique existe
-  // ; BASE détermine ensuite conduction (HIGH) ou blocage (LOW/UNKNOWN/
-  // FLOATING, courant nul mais entrée reportée pour rendre le blocage
-  // observable).
-  const { collector, base, emitter } = pins
-  if (!isSimplePoweredLoop(collector, emitter)) return null
-  if (base === Signal.HIGH) {
-    return { voltage: supplyVoltage, current: supplyVoltage / params.onResistance }
+/**
+ * A8-PREQ : interrupteur DC commandé Level-1, sans physique de
+ * semi-conducteur. Les rôles de pins et le signal actif sont explicites.
+ * La boucle conserve ses deux orientations historiques ; UNKNOWN et
+ * FLOATING bloquent la conduction. Les entrées ne sont jamais mutées.
+ */
+export function createControlledDcSwitchContribution(config) {
+  if (config === null || typeof config !== "object") {
+    throw new TypeError("Controlled DC switch configuration must be an object")
   }
-  return { voltage: supplyVoltage, current: 0 }
+  const { terminalAPinId, terminalBPinId, controlPinId, activeControlSignal } = config
+  const pinIds = [terminalAPinId, terminalBPinId, controlPinId]
+  if (pinIds.some((id) => typeof id !== "string" || id.trim() === "")) {
+    throw new TypeError("Controlled DC switch pin IDs must be non-empty strings")
+  }
+  if (new Set(pinIds).size !== pinIds.length) {
+    throw new TypeError("Controlled DC switch pin IDs must be distinct")
+  }
+  if (activeControlSignal !== Signal.HIGH && activeControlSignal !== Signal.LOW) {
+    throw new TypeError("Controlled DC switch active signal must be HIGH or LOW")
+  }
+  return function controlledDcSwitchDc({ pins, params, supplyVoltage }) {
+    const terminalA = pins[terminalAPinId]
+    const terminalB = pins[terminalBPinId]
+    const control = pins[controlPinId]
+    if (!isSimplePoweredLoop(terminalA, terminalB)) return null
+    return {
+      voltage: supplyVoltage,
+      current: control === activeControlSignal ? supplyVoltage / params.onResistance : 0,
+    }
+  }
 }
+
+// Modèle NPN pédagogique historique : aucune physique transistor ajoutée.
+const npnTransistorDc = createControlledDcSwitchContribution({
+  terminalAPinId: "collector",
+  terminalBPinId: "emitter",
+  controlPinId: "base",
+  activeControlSignal: Signal.HIGH,
+})
 
 function tmp36Dc({ pins, params }) {
   // A7-C1 : +Vs/GND sont DIRECTIONNELS (rôles power/ground, comme
