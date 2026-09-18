@@ -84,19 +84,74 @@ function dcMotorDc({ pins, params, supplyVoltage }) {
   return resistiveTwoTerminalDc(pins.plus, pins.minus, params.resistance, supplyVoltage)
 }
 
-function diodeDc({ pins, params, supplyVoltage }) {
-  // MB-SIM-008 v2 : diode idéale à seuil. Conduit uniquement si polarisée
-  // en direct (anode HIGH, cathode LOW) ; bloquée en polarisation inverse
-  // (courant nul, mais entrée reportée pour rendre le blocage observable) ;
-  // absente de dcAnalysis si le composant n'est simplement pas alimenté.
-  const { anode, cathode } = pins
-  const forward = anode === Signal.HIGH && cathode === Signal.LOW
-  const reverse = anode === Signal.LOW && cathode === Signal.HIGH
-  if (!forward && !reverse) return null
-  if (reverse) return { voltage: supplyVoltage, current: 0 }
-  const effectiveVoltage = Math.max(0, supplyVoltage - params.forwardVoltage)
-  return { voltage: supplyVoltage, current: effectiveVoltage / params.onResistance }
+function isFiniteNumber(value) {
+  return typeof value === "number" && Number.isFinite(value)
 }
+
+/**
+ * A5-D-PREQ : une configuration de reverse breakdown n'est exploitable que
+ * si breakdownVoltage est fini et >= 0 ET breakdownResistance est fini et
+ * > 0 (jamais de division par 0/négatif/NaN/Infinity/undefined). Toute
+ * configuration invalide est traitée comme absente : la branche inverse
+ * reste bloquée (current: 0), aucune valeur de secours n'est inventée.
+ */
+function isValidBreakdownParams(params) {
+  return (
+    isFiniteNumber(params?.breakdownVoltage) &&
+    params.breakdownVoltage >= 0 &&
+    isFiniteNumber(params?.breakdownResistance) &&
+    params.breakdownResistance > 0
+  )
+}
+
+/**
+ * A5-D-PREQ — Factory générique pour la famille physique « diode ».
+ *
+ * Produit une fonction de contribution DC compatible avec le contrat du
+ * Registry (`({ pins, params, supplyVoltage }) => { voltage, current } |
+ * null`), partagée par DIODE et par le futur ZENER_DIODE (non implémenté
+ * ici) : même branche directe (anode HIGH / cathode LOW → forwardVoltage /
+ * onResistance), avec une branche inverse optionnellement configurable en
+ * reverse breakdown plutôt qu'un blocage strict.
+ *
+ * `reverseBreakdown: false` (défaut, utilisé par DIODE) : la branche
+ * inverse reste STRICTEMENT celle de la diode historique — courant nul, non
+ * régression. `reverseBreakdown: true` active la lecture, à chaque appel,
+ * de `params.breakdownVoltage`/`params.breakdownResistance` (jamais figés
+ * à la construction de la factory — chaque composant fournit ses propres
+ * valeurs effectives) : modèle Level-1 pédagogique DC, pas SPICE.
+ * `current` reste une magnitude non signée (aucun courant négatif
+ * introduit), conformément au contrat électrique existant.
+ */
+function createDiodeDcContribution({ reverseBreakdown = false } = {}) {
+  return function diodeFamilyDc({ pins, params, supplyVoltage }) {
+    const { anode, cathode } = pins
+    const forward = anode === Signal.HIGH && cathode === Signal.LOW
+    const reverse = anode === Signal.LOW && cathode === Signal.HIGH
+    if (!forward && !reverse) return null
+
+    if (forward) {
+      const effectiveVoltage = Math.max(0, supplyVoltage - params.forwardVoltage)
+      return { voltage: supplyVoltage, current: effectiveVoltage / params.onResistance }
+    }
+
+    if (reverseBreakdown && isValidBreakdownParams(params)) {
+      const reverseVoltage = supplyVoltage
+      if (reverseVoltage >= params.breakdownVoltage) {
+        const effectiveBreakdownVoltage = Math.max(0, reverseVoltage - params.breakdownVoltage)
+        return { voltage: supplyVoltage, current: effectiveBreakdownVoltage / params.breakdownResistance }
+      }
+    }
+    return { voltage: supplyVoltage, current: 0 }
+  }
+}
+
+/**
+ * MB-SIM-008 v2 : diode idéale à seuil, famille diode SANS reverse
+ * breakdown (A5-D-PREQ : migration vers createDiodeDcContribution sans
+ * changement observable — comportement historique STRICTEMENT préservé).
+ */
+const diodeDc = createDiodeDcContribution({ reverseBreakdown: false })
 
 /**
  * Contribution DC générique pour un composant « circuit ouvert en régime DC
@@ -257,6 +312,14 @@ const DC_CONTRIBUTIONS = new Map([
 export function getDcContribution(type) {
   return DC_CONTRIBUTIONS.get(type) ?? null
 }
+
+/**
+ * A5-D-PREQ : exportée pour permettre au futur ZENER_DIODE (ticket
+ * suivant, hors scope ici) de réutiliser cette même primitive, et pour
+ * qualifier le contrat reverse breakdown par fixture de test dans ce
+ * ticket sans enregistrer de composant de production.
+ */
+export { createDiodeDcContribution }
 
 export function hasDcContribution(type) {
   return DC_CONTRIBUTIONS.has(type)
