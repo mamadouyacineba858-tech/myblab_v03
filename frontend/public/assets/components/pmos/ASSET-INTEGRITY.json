@@ -1,0 +1,37 @@
+{
+  "component": "PMOS",
+  "files": {
+    "README.md": {
+      "sha256": "dffaf4cea26a8ab802d2591b43ca6e3c300844c9cea93105ded8cfc1f5dc210d",
+      "bytes": 1080
+    },
+    "REFERENCE.md": {
+      "sha256": "9531cdc4171a440c476d338af598d2ceb3f25064f535942a7aabdca7c26b905c",
+      "bytes": 1216
+    },
+    "REFERENCE.png": {
+      "sha256": "79805bcac6707365af0b8866e59877f18d853cc31ade79bc8e9086154542ef90",
+      "bytes": 1165657
+    },
+    "manifest.json": {
+      "sha256": "961f7c0b311d49246c88d4fff4686d77a7a9619a44f6c55fb916c60e8ad6ce57",
+      "bytes": 885
+    },
+    "pmos.default.1x.png": {
+      "sha256": "ffc0ecfb082b413a9d9c33a5fb4846c33a5057f6c9236986ba7733519214f5c4",
+      "bytes": 50102
+    },
+    "pmos.default.1x.webp": {
+      "sha256": "38214bd1b67ba40e477148e7cb164b3cddb56a65f5d9cab3ae2e7fb0d55c387d",
+      "bytes": 32476
+    },
+    "pmos.default.3x.png": {
+      "sha256": "048dc621c9850e1466e790156992bb4c767d6313dc77636111b0c0526ac22edd",
+      "bytes": 417709
+    },
+    "pmos.default.3x.webp": {
+      "sha256": "8c9aeb5ed098baf233555ae623d6b87c27bd3cad7ea5837296ed54837ac34522",
+      "bytes": 280780
+    }
+  }
+}

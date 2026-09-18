@@ -1,0 +1,30 @@
+{
+  "component": "PMOS",
+  "assetStatus": "FOUNDER_PASS_FROZEN",
+  "variant": "default",
+  "referenceDevice": "IRF9540N",
+  "package": "TO-220",
+  "runtimeView": "front",
+  "files": {
+    "1x": {
+      "png": "pmos.default.1x.png",
+      "webp": "pmos.default.1x.webp",
+      "width": 144,
+      "height": 288
+    },
+    "3x": {
+      "png": "pmos.default.3x.png",
+      "webp": "pmos.default.3x.webp",
+      "width": 432,
+      "height": 864
+    },
+    "reference": "REFERENCE.png"
+  },
+  "notes": [
+    "Founder-approved visual reference.",
+    "REFERENCE.png preserves the complete approved multi-view sheet.",
+    "Runtime files use only the front view extracted from that approved reference.",
+    "Electrical pin mapping and PhysicalContacts are not frozen by this asset-only pack.",
+    "Pixel-probe and breadboard-fit qualification are required before PMOS integration."
+  ]
+}
