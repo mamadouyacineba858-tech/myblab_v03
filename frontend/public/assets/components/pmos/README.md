@@ -1,32 +1,16 @@
-# PMOS — A8 Asset Pack
+# PMOS — A8 Level-1
 
-Status: **FOUNDER PASS / FROZEN**
+Founder PASS / FROZEN: REFERENCE.png remains bit-identical.
+Runtime: approved IRF9540N TO-220 front view, 144×288 at 1x and 432×864 at 3x.
+PNG 3x uses 256-color quantification without dithering; WebP 3x uses quality 100.
+Each runtime variant meets the existing complex budget of 175 KiB.
 
-Realistic TO-220 P-channel MOSFET asset for MYBlab A8 Semiconductor / Power Control.
+Front pinout: left Gate (1), center Drain (2), right Source (3).
+Gate LOW connects Drain/Source through onResistance; HIGH/UNKNOWN/FLOATING are OFF.
+This educational Level-1 model has no physical transistor dynamics or body diode.
 
-## Runtime files
-- `pmos.default.1x.png`
-- `pmos.default.1x.webp`
-- `pmos.default.3x.png`
-- `pmos.default.3x.webp`
+Assembly roots: G(40,171), D(71,171), S(103,171).
+Functional breadboard contacts: G(60,204), D(72,204), S(84,204); pitch 12/12.
+CSS bottom inset 117 clips baked leads; the existing assembly layer bridges roots to contacts.
 
-## Reference
-`REFERENCE.png` preserves the complete Founder-approved multi-view sheet.
-Runtime uses the approved front view only.
-
-## Integration target
-`frontend/public/assets/components/pmos/`
-
-## Frozen visual contract
-Do not regenerate, redraw, recolor, stretch, destructively recompress or otherwise alter the Founder-approved appearance.
-
-## Qualification still required
-Before runtime integration:
-1. verify asset integrity;
-2. pixel-probe the actual runtime raster;
-3. establish the three real lead roots;
-4. validate canonical G/D/S mapping from the A8 electrical contract;
-5. define breadboard-compatible PhysicalContacts;
-6. keep electrical geometry independent from raster geometry;
-7. use the existing assembly geometry mechanism where necessary;
-8. perform Founder Canvas Gate before component closure.
+Founder Canvas Gate and controlled integration remain required before closure.

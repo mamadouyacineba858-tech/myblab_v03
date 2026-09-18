@@ -111,6 +111,11 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "gate", label: "G", dx: 64, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "gate", dx: 64, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
     { id: "source", label: "S", dx: 88, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "source", dx: 88, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  PMOS: [
+    { id: "drain", label: "D", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "drain", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "gate", label: "G", dx: 60, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "gate", dx: 60, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "source", label: "S", dx: 84, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "source", dx: 84, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   // A8-PNP : runtime normalisé 132x66, dérivé isotropiquement de REFERENCE.png.
   // BC557 onsemi CASE 29 STYLE 17, face marquée : C/B/E gauche/milieu/droite.
   // Contacts fonctionnels au pas exact de 12 ; racines mesurées dans assemblyProfiles.
@@ -452,6 +457,7 @@ export const COMPONENT_TYPES = {
   NPN_TRANSISTOR: { id: "NPN_TRANSISTOR", label: "Transistor NPN", icon: "NPN", width: 90, height: 60, pins: buildPins("NPN_TRANSISTOR") },
   PNP_TRANSISTOR: { id: "PNP_TRANSISTOR", label: "Transistor PNP", icon: "PNP", width: 132, height: 66, pins: buildPins("PNP_TRANSISTOR") },
   NMOS: { id: "NMOS", label: "MOSFET canal N", icon: "NMOS", width: 144, height: 288, pins: buildPins("NMOS") },
+  PMOS: { id: "PMOS", label: "MOSFET canal P", icon: "PMOS", width: 144, height: 288, pins: buildPins("PMOS") },
   SERVO: { id: "SERVO", label: "Micro Servo", icon: "⚙️", width: 90, height: 70, pins: buildPins("SERVO") },
   DC_MOTOR: { id: "DC_MOTOR", label: "Moteur DC", icon: "🌀", width: 84, height: 50, pins: buildPins("DC_MOTOR") },
   POLARIZED_CAPACITOR: { id: "POLARIZED_CAPACITOR", label: "Condensateur polarisé", icon: "⊕║", width: 33, height: 120, pins: buildPins("POLARIZED_CAPACITOR") },
@@ -586,7 +592,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

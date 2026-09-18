@@ -36,6 +36,7 @@ import { DiodePart } from '../components/parts/DiodePart.jsx';
 import { RgbLedPart } from '../components/parts/RgbLedPart.jsx';
 import { PnpTransistorPart } from '../components/parts/PnpTransistorPart.jsx'
 import { NmosPart } from '../components/parts/NmosPart.jsx'
+import { PmosPart } from '../components/parts/PmosPart.jsx'
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
 import { DcMotorPart } from '../components/parts/DcMotorPart.jsx';
@@ -174,6 +175,7 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'NPN_TRANSISTOR', component: NpnTransistorPart, visual: { backend: 'raster' } },
   { type: 'PNP_TRANSISTOR', component: PnpTransistorPart, visual: { backend: 'raster' } },
   { type: 'NMOS', component: NmosPart, visual: { backend: 'raster' } },
+  { type: 'PMOS', component: PmosPart, visual: { backend: 'raster' } },
   // SERVO : porté au backend raster (asset réaliste validé MB-VIS-COMP-035,
   // Tower Pro SG90, état unique `default`, manifeste `complexity: "complex"`
   // — budget de poids RENDER_BUDGET.raster.maxWeightKbPerVariantComplex).

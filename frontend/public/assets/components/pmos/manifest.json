@@ -1,30 +1,61 @@
 {
   "component": "PMOS",
-  "assetStatus": "FOUNDER_PASS_FROZEN",
-  "variant": "default",
+  "backend": "raster",
+  "complexity": "complex",
+  "assetStatus": "FOUNDER_PASS_REFERENCE_FROZEN_RUNTIME_NORMALIZED",
   "referenceDevice": "IRF9540N",
   "package": "TO-220",
   "runtimeView": "front",
-  "files": {
-    "1x": {
-      "png": "pmos.default.1x.png",
-      "webp": "pmos.default.1x.webp",
-      "width": 144,
-      "height": 288
-    },
-    "3x": {
-      "png": "pmos.default.3x.png",
-      "webp": "pmos.default.3x.webp",
-      "width": 432,
-      "height": 864
-    },
-    "reference": "REFERENCE.png"
+  "states": [
+    "default"
+  ],
+  "canonical": {
+    "width": 144,
+    "height": 288
   },
+  "assets": [
+    {
+      "file": "pmos.default.1x.png",
+      "state": "default",
+      "scale": 1,
+      "width": 144,
+      "height": 288,
+      "bytes": 50102,
+      "sha256": "ffc0ecfb082b413a9d9c33a5fb4846c33a5057f6c9236986ba7733519214f5c4"
+    },
+    {
+      "file": "pmos.default.1x.webp",
+      "state": "default",
+      "scale": 1,
+      "width": 144,
+      "height": 288,
+      "bytes": 32476,
+      "sha256": "38214bd1b67ba40e477148e7cb164b3cddb56a65f5d9cab3ae2e7fb0d55c387d"
+    },
+    {
+      "file": "pmos.default.3x.png",
+      "state": "default",
+      "scale": 3,
+      "width": 432,
+      "height": 864,
+      "bytes": 75867,
+      "sha256": "fec1d689ea4611002f74ac1bbe3d1b6a73dc259255c7d591c08698b0447b8087"
+    },
+    {
+      "file": "pmos.default.3x.webp",
+      "state": "default",
+      "scale": 3,
+      "width": 432,
+      "height": 864,
+      "bytes": 133304,
+      "sha256": "ccae06eba457619b25f60627d38a44241bd6b1f828c3f79331d940f6127d1f0c"
+    }
+  ],
+  "reference": "REFERENCE.png",
   "notes": [
-    "Founder-approved visual reference.",
-    "REFERENCE.png preserves the complete approved multi-view sheet.",
-    "Runtime files use only the front view extracted from that approved reference.",
-    "Electrical pin mapping and PhysicalContacts are not frozen by this asset-only pack.",
-    "Pixel-probe and breadboard-fit qualification are required before PMOS integration."
+    "Founder-approved front-view derivatives preserved at their qualified dimensions; no geometric or artistic changes.",
+    "1x derivatives retained bit-identical. PNG 3x: 256-color FASTOCTREE without dithering. WebP 3x: quality 100, method 6, original alpha.",
+    "Level-1: Gate LOW active; front pinout 1 Gate, 2 Drain, 3 Source.",
+    "Functional breadboard contacts are independent from measured raster roots."
   ]
 }

@@ -125,6 +125,9 @@ export const SCALE_REFERENCE = Object.freeze([
   // A8-NMOS: Infineon IRFZ44NPbF datasheet p8, TO-220AB: E max10.67, D max16.51, L max14.73 mm.
   // Indicative body+leads envelope [E,D+L]; implied scale = max(box)/max(physicalMm).
   { type: 'NMOS', box: [144, 288], physicalMm: [10.67, 31.24], ref: 'IRFZ44N TO-220AB E/D/L maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 31.24 },
+  // Infineon IRF9540NPbF datasheet p8: TO-220AB width 10.54, body 15.24 + leads 14.09 mm.
+  // https://www.infineon.com/dgdl/Infineon-IRF9540N-DataSheet-v01_01-EN.pdf?fileId=5546d462533600a401535611cfa21dc8
+  { type: 'PMOS', box: [144, 288], physicalMm: [10.54, 29.33], ref: 'IRF9540N TO-220AB width/body/lead maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 29.33 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },
   { type: 'SERVO',          box: [90, 70],   physicalMm: [29, 12],    ref: 'micro servo SG90 23×12×29',                       impliedUnitsPerMm: 3.1 },

@@ -1,37 +1,50 @@
 {
   "component": "PMOS",
-  "files": {
-    "README.md": {
-      "sha256": "dffaf4cea26a8ab802d2591b43ca6e3c300844c9cea93105ded8cfc1f5dc210d",
-      "bytes": 1080
+  "files": [
+    {
+      "file": ".gitattributes",
+      "bytes": 29,
+      "sha256": "730a35ae3d558080083c3103d9ac8100c3f6561678092abe341701dfa331eb1d"
     },
-    "REFERENCE.md": {
-      "sha256": "9531cdc4171a440c476d338af598d2ceb3f25064f535942a7aabdca7c26b905c",
-      "bytes": 1216
+    {
+      "file": "README.md",
+      "bytes": 849,
+      "sha256": "864351649e37bc5a30956083f10e6c229cffc273bdce0fd81da0a45b963fc323"
     },
-    "REFERENCE.png": {
-      "sha256": "79805bcac6707365af0b8866e59877f18d853cc31ade79bc8e9086154542ef90",
-      "bytes": 1165657
+    {
+      "file": "REFERENCE.md",
+      "bytes": 1216,
+      "sha256": "9531cdc4171a440c476d338af598d2ceb3f25064f535942a7aabdca7c26b905c"
     },
-    "manifest.json": {
-      "sha256": "961f7c0b311d49246c88d4fff4686d77a7a9619a44f6c55fb916c60e8ad6ce57",
-      "bytes": 885
+    {
+      "file": "REFERENCE.png",
+      "bytes": 1165657,
+      "sha256": "79805bcac6707365af0b8866e59877f18d853cc31ade79bc8e9086154542ef90"
     },
-    "pmos.default.1x.png": {
-      "sha256": "ffc0ecfb082b413a9d9c33a5fb4846c33a5057f6c9236986ba7733519214f5c4",
-      "bytes": 50102
+    {
+      "file": "manifest.json",
+      "bytes": 1767,
+      "sha256": "25c06fe029b779497cbd3a4753238599e4eeb7fa2dc06af896d3bf1bca164741"
     },
-    "pmos.default.1x.webp": {
-      "sha256": "38214bd1b67ba40e477148e7cb164b3cddb56a65f5d9cab3ae2e7fb0d55c387d",
-      "bytes": 32476
+    {
+      "file": "pmos.default.1x.png",
+      "bytes": 50102,
+      "sha256": "ffc0ecfb082b413a9d9c33a5fb4846c33a5057f6c9236986ba7733519214f5c4"
     },
-    "pmos.default.3x.png": {
-      "sha256": "048dc621c9850e1466e790156992bb4c767d6313dc77636111b0c0526ac22edd",
-      "bytes": 417709
+    {
+      "file": "pmos.default.1x.webp",
+      "bytes": 32476,
+      "sha256": "38214bd1b67ba40e477148e7cb164b3cddb56a65f5d9cab3ae2e7fb0d55c387d"
     },
-    "pmos.default.3x.webp": {
-      "sha256": "8c9aeb5ed098baf233555ae623d6b87c27bd3cad7ea5837296ed54837ac34522",
-      "bytes": 280780
+    {
+      "file": "pmos.default.3x.png",
+      "bytes": 75867,
+      "sha256": "fec1d689ea4611002f74ac1bbe3d1b6a73dc259255c7d591c08698b0447b8087"
+    },
+    {
+      "file": "pmos.default.3x.webp",
+      "bytes": 133304,
+      "sha256": "ccae06eba457619b25f60627d38a44241bd6b1f828c3f79331d940f6127d1f0c"
     }
-  }
+  ]
 }

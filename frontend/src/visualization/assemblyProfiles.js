@@ -120,6 +120,15 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 118 },
   },
+  PMOS: {
+    kind: "through-hole",
+    leads: {
+      gate: { root: { dx: 40, dy: 171 }, style: "metallic-wire" },
+      drain: { root: { dx: 71, dy: 171 }, style: "metallic-wire" },
+      source: { root: { dx: 103, dy: 171 }, style: "metallic-wire" },
+    },
+    bodyClip: { bottom: 117 },
+  },
   // A8-PNP R2 : PNG runtime 132x66, alpha>=128 : première séparation à y=25.
   // Intervalles [58,60]/[65,67]/[72,73] : roots C(59,25)/B(66,25)/E(72.5,25).
   // Contacts (54,62)/(66,62)/(78,62) au pas exact de 12 ; raster non déformé.
