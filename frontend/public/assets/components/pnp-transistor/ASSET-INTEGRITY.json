@@ -1,0 +1,30 @@
+{
+  "component": "PNP_TRANSISTOR",
+  "files": [
+    {
+      "file": "pnp-transistor.default.1x.webp",
+      "bytes": 2684,
+      "sha256": "dff57afab4c7f792acf9ceb8a7ce1b6036f689ce2951bba7a0e43794a2f87c04"
+    },
+    {
+      "file": "pnp-transistor.default.1x.png",
+      "bytes": 3307,
+      "sha256": "8f5ebb4f48b9d3eb64f7cc3b3f4dbe182d428a784648667a87f7b2ec5e07dec9"
+    },
+    {
+      "file": "pnp-transistor.default.3x.webp",
+      "bytes": 16684,
+      "sha256": "cfb56ff04f82e961e3fc139fa630437fbf80de40dd1f356b6c0f9af372b6970c"
+    },
+    {
+      "file": "pnp-transistor.default.3x.png",
+      "bytes": 21255,
+      "sha256": "193d6e4dfa8c0e1544513d44eec031b0b9a12c5c3c08c648ae65074fd0a1142a"
+    },
+    {
+      "file": "REFERENCE.png",
+      "bytes": 382903,
+      "sha256": "1ff4e4fe2db68537ce6f526c5dd86646e353aa4dd0f88072dc38d790f784d1d7"
+    }
+  ]
+}

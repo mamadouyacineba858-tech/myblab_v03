@@ -1,0 +1,44 @@
+{
+  "component": "PNP_TRANSISTOR",
+  "backend": "raster",
+  "assetStatus": "FOUNDER_PASS_REFERENCE_FROZEN_RUNTIME_NORMALIZED",
+  "canonical": {
+    "width": 132,
+    "height": 66
+  },
+  "assets": [
+    {
+      "file": "pnp-transistor.default.1x.webp",
+      "scale": 1,
+      "width": 132,
+      "height": 66,
+      "bytes": 2684
+    },
+    {
+      "file": "pnp-transistor.default.1x.png",
+      "scale": 1,
+      "width": 132,
+      "height": 66,
+      "bytes": 3307
+    },
+    {
+      "file": "pnp-transistor.default.3x.webp",
+      "scale": 3,
+      "width": 396,
+      "height": 198,
+      "bytes": 16684
+    },
+    {
+      "file": "pnp-transistor.default.3x.png",
+      "scale": 3,
+      "width": 396,
+      "height": 198,
+      "bytes": 21255
+    }
+  ],
+  "reference": "REFERENCE.png",
+  "notes": [
+    "Runtime derivatives use isotropic Lanczos reduction from the bit-identical Founder reference.",
+    "Electrical mapping: BC557 onsemi TO-92 CASE 29 STYLE 17, marked front C/B/E left-to-right."
+  ]
+}

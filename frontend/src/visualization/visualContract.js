@@ -118,6 +118,10 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'POWER',          box: [70, 90],   physicalMm: [50, 70],    ref: 'bloc alim breadboard (indicatif)',                impliedUnitsPerMm: 1.3 },
   { type: 'BUZZER',         box: [120, 120], physicalMm: [12, 20],    ref: 'buzzer piézo Ø12, pattes comprises ~20 mm (FT-C-COMP-004)', impliedUnitsPerMm: 120 / 20 },
   { type: 'POTENTIOMETER',  box: [120, 120], physicalMm: [16, 26],    ref: 'potentiomètre rotatif Ø16, axe/bouton compris ~26 mm (FT-C-COMP-003)', impliedUnitsPerMm: 120 / 26 },
+  // A8-PNP R3 : boîtier TO-92 représenté, dimensions indicatives du corps seul.
+  // onsemi BC556B/BC557B/BC558B, CASE 29 STYLE 17 : A max=5.20 mm, B max=5.33 mm.
+  // Source mécanique : https://www.onsemi.com/pdf/datasheet/bc556b-d.pdf, page 7.
+  { type: 'PNP_TRANSISTOR', box: [132, 66], physicalMm: [5.20, 5.33], ref: 'BC557 TO-92 CASE 29 STYLE 17, corps A/B maximaux (indicatif)', impliedUnitsPerMm: 132 / 5.33 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },
   { type: 'SERVO',          box: [90, 70],   physicalMm: [29, 12],    ref: 'micro servo SG90 23×12×29',                       impliedUnitsPerMm: 3.1 },

@@ -263,6 +263,13 @@ const npnTransistorDc = createControlledDcSwitchContribution({
   activeControlSignal: Signal.HIGH,
 })
 
+const pnpTransistorDc = createControlledDcSwitchContribution({
+  terminalAPinId: "collector",
+  terminalBPinId: "emitter",
+  controlPinId: "base",
+  activeControlSignal: Signal.LOW,
+})
+
 function tmp36Dc({ pins, params }) {
   // A7-C1 : +Vs/GND sont DIRECTIONNELS (rôles power/ground, comme
   // SERVO/ARDUINO) — à la différence des paires non polarisées A/B
@@ -335,6 +342,7 @@ const DC_CONTRIBUTIONS = new Map([
   ["POLARIZED_CAPACITOR", polarizedCapacitorDc],
   ["POTENTIOMETER", potentiometerDc],
   ["NPN_TRANSISTOR", npnTransistorDc],
+  ["PNP_TRANSISTOR", pnpTransistorDc],
   ["TMP36", tmp36Dc],
   // A7-C2 : FORCE_SENSOR et FLEX_SENSOR sont des capteurs résistifs à deux
   // bornes NON polarisées, exactement le même contrat que RESISTOR/LIGHT_BULB
