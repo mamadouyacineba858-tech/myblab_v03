@@ -1,0 +1,62 @@
+{
+  "component": "NMOS",
+  "backend": "raster",
+  "complexity": "complex",
+  "assetStatus": "FOUNDER_PASS_REFERENCE_FROZEN_RUNTIME_NORMALIZED_R3",
+  "referenceDevice": "IRFZ44N",
+  "package": "TO-220",
+  "runtimeView": "front",
+  "states": [
+    "default"
+  ],
+  "canonical": {
+    "width": 144,
+    "height": 288
+  },
+  "assets": [
+    {
+      "file": "nmos.default.1x.png",
+      "state": "default",
+      "scale": 1,
+      "width": 144,
+      "height": 288,
+      "bytes": 47024,
+      "sha256": "bd9c758c1b7d62a76c516c2f8767a993733512cdc6f27a852f30b671c4f8e0fd"
+    },
+    {
+      "file": "nmos.default.1x.webp",
+      "state": "default",
+      "scale": 1,
+      "width": 144,
+      "height": 288,
+      "bytes": 30284,
+      "sha256": "79d4e1862005ee8a728b9328bdb466fd3de97024758cec465d0eb4436ecaee73"
+    },
+    {
+      "file": "nmos.default.3x.png",
+      "state": "default",
+      "scale": 3,
+      "width": 432,
+      "height": 864,
+      "bytes": 74932,
+      "sha256": "5f58f37a508aed82aa36d2abd2126fe795000caa94b5b30c75771308c169d01b"
+    },
+    {
+      "file": "nmos.default.3x.webp",
+      "state": "default",
+      "scale": 3,
+      "width": 432,
+      "height": 864,
+      "bytes": 133280,
+      "sha256": "67ac9b0f65d309a03385a93b9d72049e6d3c222a558860007c06a725b6e40681"
+    }
+  ],
+  "reference": "REFERENCE.png",
+  "notes": [
+    "Complex classification authorized by CSA A8-NMOS-R3 after measured R2 simple-budget failure.",
+    "Frozen reference front-view extraction: box [77,22,467,802], 390x780; isotropic Lanczos to 144x288 and 432x864. Whole body and all three leads retained.",
+    "PNG 1x and WebP 1x lossless; PNG 3x 256-color FASTOCTREE, no dithering; WebP 3x quality 100, method 6, original alpha.",
+    "Existing G/D/S captions and colored edge pixels belong to the frozen reference; no electrical mapping is qualified in R3.",
+    "Product registration, mechanical fit and electrical pinout are pending."
+  ]
+}

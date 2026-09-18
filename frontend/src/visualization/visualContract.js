@@ -122,6 +122,9 @@ export const SCALE_REFERENCE = Object.freeze([
   // onsemi BC556B/BC557B/BC558B, CASE 29 STYLE 17 : A max=5.20 mm, B max=5.33 mm.
   // Source mécanique : https://www.onsemi.com/pdf/datasheet/bc556b-d.pdf, page 7.
   { type: 'PNP_TRANSISTOR', box: [132, 66], physicalMm: [5.20, 5.33], ref: 'BC557 TO-92 CASE 29 STYLE 17, corps A/B maximaux (indicatif)', impliedUnitsPerMm: 132 / 5.33 },
+  // A8-NMOS: Infineon IRFZ44NPbF datasheet p8, TO-220AB: E max10.67, D max16.51, L max14.73 mm.
+  // Indicative body+leads envelope [E,D+L]; implied scale = max(box)/max(physicalMm).
+  { type: 'NMOS', box: [144, 288], physicalMm: [10.67, 31.24], ref: 'IRFZ44N TO-220AB E/D/L maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 31.24 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },
   { type: 'SERVO',          box: [90, 70],   physicalMm: [29, 12],    ref: 'micro servo SG90 23×12×29',                       impliedUnitsPerMm: 3.1 },

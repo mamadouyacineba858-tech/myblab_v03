@@ -1,0 +1,45 @@
+{
+  "component": "NMOS",
+  "files": [
+    {
+      "file": "README.md",
+      "bytes": 1472,
+      "sha256": "ef8840c03af6d474c3d45a11563046a5bb651ce07af678e1942914a35e27e709"
+    },
+    {
+      "file": "REFERENCE.md",
+      "bytes": 706,
+      "sha256": "1a1c13877335e369ce91ef2d653b443a03823affbad0b44f26cf2bf235e4b86d"
+    },
+    {
+      "file": "REFERENCE.png",
+      "bytes": 979601,
+      "sha256": "6d6311bcd8c1faa3c8c0f30239a1c79dd65b73b824b42c552503e4cba6b3dc04"
+    },
+    {
+      "file": "manifest.json",
+      "bytes": 2006,
+      "sha256": "21e045e3609eab25b12e3c1693e0096d5e5bcf6d2a2f1576a424727f9290b64c"
+    },
+    {
+      "file": "nmos.default.1x.png",
+      "bytes": 47024,
+      "sha256": "bd9c758c1b7d62a76c516c2f8767a993733512cdc6f27a852f30b671c4f8e0fd"
+    },
+    {
+      "file": "nmos.default.1x.webp",
+      "bytes": 30284,
+      "sha256": "79d4e1862005ee8a728b9328bdb466fd3de97024758cec465d0eb4436ecaee73"
+    },
+    {
+      "file": "nmos.default.3x.png",
+      "bytes": 74932,
+      "sha256": "5f58f37a508aed82aa36d2abd2126fe795000caa94b5b30c75771308c169d01b"
+    },
+    {
+      "file": "nmos.default.3x.webp",
+      "bytes": 133280,
+      "sha256": "67ac9b0f65d309a03385a93b9d72049e6d3c222a558860007c06a725b6e40681"
+    }
+  ]
+}

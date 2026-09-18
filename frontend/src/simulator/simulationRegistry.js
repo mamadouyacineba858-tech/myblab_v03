@@ -13,6 +13,7 @@ import { CapacitorModel } from './models/CapacitorModel.js'
 import { PolarizedCapacitorModel } from './models/PolarizedCapacitorModel.js'
 import { PotentiometerModel } from './models/PotentiometerModel.js'
 import { PnpTransistorModel } from './models/PnpTransistorModel.js'
+import { NmosModel } from './models/NmosModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
 import { Tmp36Model } from './models/Tmp36Model.js'
 import { ForceSensorModel } from './models/ForceSensorModel.js'
@@ -120,6 +121,7 @@ const defaultRegistry = createSimulationRegistry({
     PotentiometerModel,
     NpnTransistorModel,
     PnpTransistorModel,
+    NmosModel,
     Tmp36Model,
     ForceSensorModel,
     FlexSensorModel,

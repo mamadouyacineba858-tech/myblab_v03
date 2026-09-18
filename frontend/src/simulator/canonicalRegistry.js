@@ -18,6 +18,7 @@ const DECLARED_TYPES_PINS = {
   RGB_LED:[{id:'R',role:'input'},{id:'common',role:'ground'},{id:'G',role:'input'},{id:'B',role:'input'}],
   NPN_TRANSISTOR:[{id:'collector',role:'input'},{id:'base',role:'input'},{id:'emitter',role:'output'}],
   PNP_TRANSISTOR:[{id:'collector',role:'input'},{id:'base',role:'input'},{id:'emitter',role:'output'}],
+  NMOS:[{id:'drain',role:'input'},{id:'gate',role:'input'},{id:'source',role:'output'}],
   SERVO:[{id:'signal',role:'gpio'},{id:'vcc',role:'power'},{id:'gnd',role:'ground'}],
   DC_MOTOR:[{id:'plus',role:'input'},{id:'minus',role:'input'}],
   // A3-SW1 — Slide Switch (SPDT) : 3 pins, une seule connexion interne active
@@ -129,7 +130,7 @@ const DECLARED_TYPES_PINS = {
   ZENER_DIODE:[{id:'A',role:'input'},{id:'K',role:'output'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -172,6 +173,7 @@ const DECLARED_PARAMETER_SCHEMA = {
   ],
   NPN_TRANSISTOR:[{key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:1,description:'Résistance équivalente collecteur-émetteur à l\'état passant (modèle logique simplifié, MB-SIM-008 v2) : commande tout-ou-rien par BASE, sans β réel, sans courbes Ic/Vce, sans dynamique.'}],
   PNP_TRANSISTOR:[{key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:1,description:'Résistance équivalente collecteur-émetteur à l\'état passant (modèle logique simplifié, MB-SIM-008 v2) : PNP Level-1 commandé par BASE LOW, sans β réel, sans courbes Ic/Vce, sans dynamique.'}],
+  NMOS:[{key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:1,description:'Résistance équivalente DRAIN-SOURCE à l’état passant dans le modèle pédagogique Level-1 commandé par GATE HIGH.'}],
   // A7-C1 : sortie analogique TMP36 (datasheet Analog Devices) — Vout(T) =
   // 0.5 V + 0.01 V/°C × T. Bornes 0.1 V / 1.75 V = Vout(-40°C) / Vout(125°C),
   // exactement la plage opérationnelle du capteur (jamais une plage
@@ -314,6 +316,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   POTENTIOMETER:{resistance:10000,position:0.5},
   NPN_TRANSISTOR:{onResistance:1},
   PNP_TRANSISTOR:{onResistance:1},
+  NMOS:{onResistance:1},
   TMP36:{outputVoltage:0.75},
   FORCE_SENSOR:{resistance:1000000},
   FLEX_SENSOR:{resistance:10000},
@@ -344,6 +347,7 @@ const DECLARED_CAPABILITIES = {
   POTENTIOMETER:['digital','dc'],
   NPN_TRANSISTOR:['digital','dc'],
   PNP_TRANSISTOR:['digital','dc'],
+  NMOS:['digital','dc'],
   TMP36:['digital','dc'],
   FORCE_SENSOR:['digital','dc'],
   FLEX_SENSOR:['digital','dc'],
@@ -402,6 +406,7 @@ const DECLARED_MODEL_AVAILABLE = {
   POTENTIOMETER:true,
   NPN_TRANSISTOR:true,
   PNP_TRANSISTOR:true,
+  NMOS:true,
   TMP36:true,
   FORCE_SENSOR:true,
   FLEX_SENSOR:true,

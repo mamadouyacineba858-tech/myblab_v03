@@ -108,6 +108,18 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 26 },
   },
+  // A8-NMOS: Infineon IRFZ44N TO-220AB marked front, 1=G/2=D/3=S.
+  // Final R3 pixel-probe roots; fractional x is accepted by Number.isFinite.
+  // CircuitComponent applies CSS inset(0 0 bottom px 0): 288 - 118 = y170.
+  NMOS: {
+    kind: "through-hole",
+    leads: {
+      gate: { root: { dx: 45, dy: 170 }, style: "metallic-wire" },
+      drain: { root: { dx: 75.5, dy: 170 }, style: "metallic-wire" },
+      source: { root: { dx: 107, dy: 170 }, style: "metallic-wire" },
+    },
+    bodyClip: { bottom: 118 },
+  },
   // A8-PNP R2 : PNG runtime 132x66, alpha>=128 : première séparation à y=25.
   // Intervalles [58,60]/[65,67]/[72,73] : roots C(59,25)/B(66,25)/E(72.5,25).
   // Contacts (54,62)/(66,62)/(78,62) au pas exact de 12 ; raster non déformé.

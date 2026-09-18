@@ -263,6 +263,13 @@ const npnTransistorDc = createControlledDcSwitchContribution({
   activeControlSignal: Signal.HIGH,
 })
 
+const nmosDc = createControlledDcSwitchContribution({
+  terminalAPinId: "drain",
+  terminalBPinId: "source",
+  controlPinId: "gate",
+  activeControlSignal: Signal.HIGH,
+})
+
 const pnpTransistorDc = createControlledDcSwitchContribution({
   terminalAPinId: "collector",
   terminalBPinId: "emitter",
@@ -343,6 +350,7 @@ const DC_CONTRIBUTIONS = new Map([
   ["POTENTIOMETER", potentiometerDc],
   ["NPN_TRANSISTOR", npnTransistorDc],
   ["PNP_TRANSISTOR", pnpTransistorDc],
+  ["NMOS", nmosDc],
   ["TMP36", tmp36Dc],
   // A7-C2 : FORCE_SENSOR et FLEX_SENSOR sont des capteurs résistifs à deux
   // bornes NON polarisées, exactement le même contrat que RESISTOR/LIGHT_BULB
