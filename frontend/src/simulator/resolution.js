@@ -2,6 +2,7 @@ import { Signal } from "./signals.js"
 import { getDcSource } from "./dcSourceRegistry.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
 import { getDcContribution, getUnconditionalConductionPinPair } from "./dcContributionRegistry.js"
+import { getConditionalConduction } from "./conditionalConductionRegistry.js"
 import { resolveComponentParameters } from "./resolveComponentParameters.js"
 
 /**
@@ -204,28 +205,35 @@ function propagateNetSignal(nets, pinSignals, signal) {
  * Rounds à point fixe (nécessaire pour les chaînes de composants passifs
  * en série, ex. POWER → R1 → R2 → LED → GND — une résistance ne peut être
  * pontée qu'une fois la résistance en amont déjà résolue) : borné à
- * `components.length + 1` rounds (autorisé explicitement par le ruling
- * CSA), avec arrêt dès qu'un round complet ne produit plus aucun
- * changement.
+ * `allKeys.length + 1` rounds: every changing round resolves at least
+ * one previously UNKNOWN pin, including contributors with multiple pairs.
+ * Stop as soon as a complete round produces no change.
  */
-function propagatePassiveConduction(components, prepared, pinSignals) {
+export function propagatePassiveConduction(components, prepared, pinSignals, conditionalLookup = getConditionalConduction) {
   const { uf, nets } = prepared
-  const maxRounds = components.length + 1
+  // Read nets directly: even Union-Find.find() may perform path compression.
+  const netByKey = new Map([...nets.values()].flatMap((keys) => keys.map((key) => [key, keys])))
+  const orderedComponents = [...components].sort((a, b) => a.uid.localeCompare(b.uid))
+  const maxRounds = prepared.allKeys.length + 1
 
   for (let round = 0; round < maxRounds; round++) {
     let changed = false
 
-    for (const comp of components) {
-      const pinPair = getUnconditionalConductionPinPair(comp.type)
-      if (!pinPair) continue
+    for (const comp of orderedComponents) {
+      const passivePair = getUnconditionalConductionPinPair(comp.type)
+      const contribute = conditionalLookup(comp.type)
+      const pairs = [
+        ...(passivePair ? [passivePair] : []),
+        ...(contribute ? contribute(buildPinSignalMap(comp, uf, pinSignals)) : []),
+      ]
+      for (const [pinIdA, pinIdB] of pairs) {
+        const keyA = uf.key(comp.uid, pinIdA)
+        const keyB = uf.key(comp.uid, pinIdB)
+        if (!pinSignals.has(keyA) || !pinSignals.has(keyB)) continue
 
-      const [pinIdA, pinIdB] = pinPair
-      const keyA = uf.key(comp.uid, pinIdA)
-      const keyB = uf.key(comp.uid, pinIdB)
-      if (!pinSignals.has(keyA) || !pinSignals.has(keyB)) continue
-
-      if (bridgeIfEligible(keyA, keyB, uf, nets, pinSignals)) changed = true
-      if (bridgeIfEligible(keyB, keyA, uf, nets, pinSignals)) changed = true
+        if (bridgeIfEligible(keyA, keyB, netByKey, pinSignals)) changed = true
+        if (bridgeIfEligible(keyB, keyA, netByKey, pinSignals)) changed = true
+      }
     }
 
     if (!changed) break
@@ -239,13 +247,12 @@ function propagatePassiveConduction(components, prepared, pinSignals) {
  * sûreté, voir propagatePassiveConduction). Ne mute jamais `uf`/`nets`.
  * @returns {boolean} true si une propagation a effectivement eu lieu.
  */
-function bridgeIfEligible(sourceKey, targetKey, uf, nets, pinSignals) {
+function bridgeIfEligible(sourceKey, targetKey, netByKey, pinSignals) {
   const sourceValue = pinSignals.get(sourceKey)
   if (sourceValue !== Signal.HIGH && sourceValue !== Signal.LOW) return false
   if (pinSignals.get(targetKey) !== Signal.UNKNOWN) return false
 
-  const root = uf.find(targetKey)
-  const netKeys = nets.get(root) ?? [targetKey]
+  const netKeys = netByKey.get(targetKey) ?? [targetKey]
   const netEntirelyUnknown = netKeys.every((k) => pinSignals.get(k) === Signal.UNKNOWN)
   if (!netEntirelyUnknown) return false
 
