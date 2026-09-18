@@ -124,6 +124,7 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
         "ThermistorPart.jsx",
         "Tmp36Part.jsx",
         "VibrationMotorPart.jsx",
+        "ZenerDiodePart.jsx",
       ].sort()
     )
   })

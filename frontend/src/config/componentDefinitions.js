@@ -373,6 +373,22 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "A", label: "A", dx: 0, dy: 52, contacts: [{ id: "A", dx: 12, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
     { id: "B", label: "B", dx: 144, dy: 52, contacts: [{ id: "B", dx: 132, dy: 92, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A5-ZENER_DIODE — asset Founder PASS FROZEN 144×72, pixel-probe réel
+  // (alpha>=32, createImageBitmap/getImageData sur le fichier livré) :
+  // bounding box opaque globale (1x) x∈[0,143] y∈[7,63] (== manifest.json
+  // opaqueBounds1x [0,7,143,63]) ; centre vertical de la forme opaque
+  // dy=(7+63)/2=35. Boîte canonique 144 == 12×BREADBOARD_PITCH exact :
+  // comme DIODE (84==7×12), les pins aux bords du boîtier sont DÉJÀ
+  // alignées sur le pas breadboard sans avoir besoin d'un `contacts[]`
+  // explicite (le fallback contactModel.js utilise pin.dx/dy). Bande
+  // cathode (bande quasi-noire, r≈g≈b très bas, distincte du corps
+  // rouge/orange translucide) mesurée x∈[90,100] à dy=35 : nettement du
+  // côté K (droite) — confirme l'orientation A=gauche/K=droite déjà
+  // imposée par manifest.json (`visiblePinOrder`/`polarity`).
+  ZENER_DIODE: [
+    { id: "A", label: "A", dx: 0, dy: 35 },
+    { id: "K", label: "K", dx: 144, dy: 35 },
+  ],
 }
 
 function buildPins(type) {
@@ -515,6 +531,17 @@ export const COMPONENT_TYPES = {
   // entraxe 10×BREADBOARD_PITCH). Aucune contribution DC steady-state (§11
   // du ticket, voir dcContributionRegistry.js/transientContributionRegistry.js).
   INDUCTOR: { id: "INDUCTOR", label: "Inductance", icon: "🧲", width: 144, height: 108, pins: buildPins("INDUCTOR") },
+  // A5-ZENER_DIODE — diode Zener axiale, asset Founder PASS/FROZEN. Renderer
+  // raster (ZenerDiodePart.jsx, même patron que DiodePart.jsx : corps
+  // raster conservé via fenêtre de découpe, pattes physiques génériques via
+  // AssemblyLeadsLayer), boîte canonique 144×72 (dimensions natives @1x du
+  // paquet). Enfichable breadboard (pins A(0,35)/K(144,35), entraxe
+  // 12×BREADBOARD_PITCH exact — boîte déjà alignée sur le pas, cf.
+  // PIN_PRESENTATION_BY_TYPE.ZENER_DIODE ci-dessus). Contribution DC :
+  // createDiodeDcContribution({reverseBreakdown:true}) (A5-D-PREQ), mêmes
+  // ids canoniques A/K imposés par le pack Founder (voir
+  // dcContributionRegistry.js).
+  ZENER_DIODE: { id: "ZENER_DIODE", label: "Diode Zener", icon: "⊳|", width: 144, height: 72, pins: buildPins("ZENER_DIODE") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -541,7 +568,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

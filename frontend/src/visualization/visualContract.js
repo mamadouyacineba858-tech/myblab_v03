@@ -162,6 +162,10 @@ export const SCALE_REFERENCE = Object.freeze([
   // indicatif), asset raster réaliste Founder PASS FROZEN (cf.
   // componentDefinitions.js/InductorPart.jsx).
   { type: 'INDUCTOR', box: [144, 108], physicalMm: [13, 8], ref: 'inductance axiale moulée, corps bobiné ~13×8 mm hors pattes (indicatif, A4-INDUCTOR)', impliedUnitsPerMm: 144 / 13 },
+  // A5-ZENER_DIODE : diode Zener axiale, même forme de boîtier verre DO-35
+  // qu'une 1N4148 (corps ~4×2 mm), asset raster réaliste Founder PASS
+  // FROZEN (cf. componentDefinitions.js/ZenerDiodePart.jsx).
+  { type: 'ZENER_DIODE', box: [144, 72], physicalMm: [4, 2], ref: 'diode Zener DO-35 (ex. BZX55), corps verre ~4×2 mm hors pattes (indicatif, A5-ZENER_DIODE)', impliedUnitsPerMm: 144 / 4 },
 ])
 
 /**

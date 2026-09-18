@@ -122,10 +122,21 @@ function isValidBreakdownParams(params) {
  * valeurs effectives) : modèle Level-1 pédagogique DC, pas SPICE.
  * `current` reste une magnitude non signée (aucun courant négatif
  * introduit), conformément au contrat électrique existant.
+ *
+ * `anodePinId`/`cathodePinId` (A5-ZENER_DIODE) : identifiants de pins
+ * canoniques à lire dans `pins` pour les rôles anode/cathode. Défaut
+ * `'anode'`/`'cathode'` (identiques aux ids canoniques de DIODE, donc
+ * comportement DIODE strictement inchangé). ZENER_DIODE réutilise cette
+ * même famille physique mais son pack Founder PASS impose les ids
+ * canoniques `'A'`/`'K'` (manifest.json `visiblePinOrder`/`polarity`) —
+ * cette configuration évite toute duplication de `diodeFamilyDc` pour une
+ * simple différence de nommage de pins, sans jamais introduire de
+ * comparaison `type === "ZENER_DIODE"`.
  */
-function createDiodeDcContribution({ reverseBreakdown = false } = {}) {
+function createDiodeDcContribution({ reverseBreakdown = false, anodePinId = "anode", cathodePinId = "cathode" } = {}) {
   return function diodeFamilyDc({ pins, params, supplyVoltage }) {
-    const { anode, cathode } = pins
+    const anode = pins[anodePinId]
+    const cathode = pins[cathodePinId]
     const forward = anode === Signal.HIGH && cathode === Signal.LOW
     const reverse = anode === Signal.LOW && cathode === Signal.HIGH
     if (!forward && !reverse) return null
@@ -152,6 +163,14 @@ function createDiodeDcContribution({ reverseBreakdown = false } = {}) {
  * changement observable — comportement historique STRICTEMENT préservé).
  */
 const diodeDc = createDiodeDcContribution({ reverseBreakdown: false })
+
+/**
+ * A5-ZENER_DIODE : même famille physique diode que diodeDc ci-dessus, avec
+ * reverse breakdown activé (A5-D-PREQ) et les ids de pins canoniques du
+ * pack Founder PASS (A/K, pas anode/cathode). Aucune physique dupliquée,
+ * aucune connaissance de "ZENER_DIODE" dans resolution.js/engine.js/etc.
+ */
+const zenerDiodeDc = createDiodeDcContribution({ reverseBreakdown: true, anodePinId: "A", cathodePinId: "K" })
 
 /**
  * Contribution DC générique pour un composant « circuit ouvert en régime DC
@@ -284,6 +303,7 @@ const DC_CONTRIBUTIONS = new Map([
   // électrique à ce niveau de simulation (Level 1).
   ["HOBBY_GEARMOTOR", dcMotorDc],
   ["DIODE", diodeDc],
+  ["ZENER_DIODE", zenerDiodeDc],
   ["CAPACITOR", capacitorDc],
   ["POLARIZED_CAPACITOR", polarizedCapacitorDc],
   ["POTENTIOMETER", potentiometerDc],

@@ -459,6 +459,29 @@ const ASSEMBLY_PROFILES = {
       B: { root: { dx: 139, dy: 52 }, style: "metallic-wire" },
     },
   },
+  // A5-ZENER_DIODE — diode Zener axiale (asset raster Founder PASS/FROZEN
+  // 144×72). Même situation que DIODE ci-dessus (pas INDUCTOR) : le raster
+  // livré cuit ses pattes métalliques jusqu'aux bords du boîtier canonique
+  // (pixel-probe réel confirme alpha opaque continu de x=0 à x=143 sur la
+  // ligne médiane dy=35), donc ZenerDiodePart.jsx doit masquer ces pattes
+  // cuites (fenêtre de découpe BODY_WINDOW, même patron que DiodePart.jsx)
+  // et AssemblyLeadsLayer redessine les pattes fonctionnelles depuis les
+  // racines mesurées jusqu'aux pins canoniques A(0,35)/K(144,35).
+  //
+  // Racines mesurées par balayage de saturation couleur (metal gris neutre
+  // r≈g≈b vs corps rouge/orange translucide) sur deux lignes hors zone de
+  // marquage imprimé (dy=25 et dy=45, évite le texte "BZX55"/"5V1" centré
+  // sur dy=35) : transition nette gris→rouge à x=34 (gauche) et rouge→gris
+  // à x=108 (droite), cohérent aux deux lignes. dy=35 = centre vertical de
+  // la forme opaque globale ((7+63)/2, bornes opaques manifest.json
+  // opaqueBounds1x [0,7,143,63]).
+  ZENER_DIODE: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 34, dy: 35 }, style: "metallic-wire" },
+      K: { root: { dx: 108, dy: 35 }, style: "metallic-wire" },
+    },
+  },
 }
 
 export function getAssemblyProfile(type) {

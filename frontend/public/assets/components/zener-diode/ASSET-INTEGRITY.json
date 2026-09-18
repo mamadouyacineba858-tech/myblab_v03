@@ -1,0 +1,23 @@
+{
+  "component": "ZENER_DIODE",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "zener-diode.default.1x.png": {
+      "sha256": "231bbb4ab3e6e8c2991b4abfaf7089a5632f939055458f189e4e3e04a1a0e404",
+      "bytes": 14176
+    },
+    "zener-diode.default.1x.webp": {
+      "sha256": "c39a71ba3378e591beb264060d75db659bb3f82263bf335ccb5b03e599ab2089",
+      "bytes": 10144
+    },
+    "zener-diode.default.3x.png": {
+      "sha256": "5816c48428690a19c8b6b30b735c0f52da4387760f4f913d92d931f5b9bc401d",
+      "bytes": 92983
+    },
+    "zener-diode.default.3x.webp": {
+      "sha256": "65dfbff47605cabb12df14c51a6c9ef2a1db87f20ff0efeb50b84d27c285f2fe",
+      "bytes": 62116
+    }
+  }
+}

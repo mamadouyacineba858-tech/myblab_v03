@@ -120,9 +120,15 @@ const DECLARED_TYPES_PINS = {
   // source ni sortie logique). Aucun rôle plus/minus : une inductance
   // idéale n'a pas de polarité électrique (§6 du ticket).
   INDUCTOR:[{id:'A',role:'passive'},{id:'B',role:'passive'}],
+  // A5-ZENER_DIODE — Diode Zener axiale, asset Founder PASS/FROZEN. Pins
+  // canoniques verrouillés par le pack Founder (manifest.json
+  // `visiblePinOrder`/`polarity`) : A = anode (input), K = cathode (output)
+  // — PAS `anode`/`cathode` comme DIODE, dénomination imposée par l'asset.
+  // Même rôle input/output que DIODE (§6/§18 du ticket).
+  ZENER_DIODE:[{id:'A',role:'input'},{id:'K',role:'output'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -269,6 +275,23 @@ const DECLARED_PARAMETER_SCHEMA = {
   // résistance de boucle connue de ce moteur simplifié — aucune résistance
   // parasite arbitraire n'est inventée, §11 du ticket).
   INDUCTOR:[{key:'inductance',parameterType:'inductance',unit:'H',minimum:1e-6,maximum:10,defaultValue:0.001,description:'Valeur de l\'inductance en Henry. Modèle Level-1 explicitement non-SPICE : aucune contribution DC steady-state (voir transientContributionRegistry.js) — seule la réponse TRANSITOIRE (V = L × di/dt, temps simulé partagé) est modélisée.'}],
+  // A5-ZENER_DIODE — famille physique diode générique (A5-D-PREQ,
+  // createDiodeDcContribution({reverseBreakdown:true}), dcContributionRegistry.js).
+  // forwardVoltage/onResistance : même convention/bornes que DIODE (base
+  // réelle inchangée, §8 du ticket). breakdownVoltage default 5.1 V : le
+  // raster Founder est marqué "5V1", valeur pédagogique cohérente avec ce
+  // marquage. breakdownResistance default 10 Ω : AUCUNE fiche technique
+  // réelle de BZX55 ne justifie cette valeur — approximation pédagogique
+  // Level-1 explicite (résistance dynamique constante), PAS la résistance
+  // dynamique exacte mesurée d'un composant réel ; réutilise seulement la
+  // convention numérique déjà en place pour onResistance en l'absence de
+  // toute référence plus autoritative dans ce dépôt.
+  ZENER_DIODE:[
+    {key:'forwardVoltage',parameterType:'voltage',unit:'V',minimum:0,maximum:5,defaultValue:0.7,description:'Tension de seuil de conduction directe (modèle DC simplifié, même convention que DIODE) : diode idéale à seuil, sans modèle non linéaire complet ni dynamique de commutation.'},
+    {key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e9,defaultValue:10,description:'Résistance équivalente en conduction directe au-delà du seuil (modèle DC simplifié, même convention que DIODE).'},
+    {key:'breakdownVoltage',parameterType:'voltage',unit:'V',minimum:0,maximum:200,defaultValue:5.1,description:'Tension de claquage inverse (reverse breakdown), modèle DC Level-1 (A5-D-PREQ) : en dessous, blocage inverse strict (courant nul) ; au-dessus, conduction de breakdown. Default 5.1 V cohérent avec le marquage "5V1" du raster Founder PASS.'},
+    {key:'breakdownResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e9,defaultValue:10,description:'Résistance équivalente en conduction de breakdown au-delà du seuil inverse (modèle DC Level-1, A5-D-PREQ). APPROXIMATION PÉDAGOGIQUE : ne représente PAS la résistance dynamique réelle mesurée d\'un BZX55, seulement une pente de conduction constante simplifiée.'},
+  ],
 }
 
 const DECLARED_DEFAULT_PARAMETERS = {
@@ -297,6 +320,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   IR_RECEIVER:{infraredDetected:0},
   HC_SR04:{distanceCm:100},
   INDUCTOR:{inductance:0.001},
+  ZENER_DIODE:{forwardVoltage:0.7,onResistance:10,breakdownVoltage:5.1,breakdownResistance:10},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -348,6 +372,12 @@ const DECLARED_CAPABILITIES = {
   // (TEST G4, componentLibraryRolloutGate). La réponse électrique
   // TRANSITOIRE réelle est portée par transientContributionRegistry.js.
   INDUCTOR:['digital'],
+  // A5-ZENER_DIODE : capability 'dc' REQUISE (contrairement à INDUCTOR) —
+  // ce composant enregistre bien une contribution DC steady-state
+  // (dcContributionRegistry.js, réutilise createDiodeDcContribution comme
+  // DIODE), même patron exact que DIODE ci-dessus (TEST G4,
+  // componentLibraryRolloutGate).
+  ZENER_DIODE:['digital','dc'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -376,6 +406,7 @@ const DECLARED_MODEL_AVAILABLE = {
   IR_RECEIVER:true,
   HC_SR04:true,
   INDUCTOR:true,
+  ZENER_DIODE:true,
 }
 
 /**

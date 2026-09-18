@@ -51,6 +51,7 @@ import { TiltSensorPart } from '../components/parts/TiltSensorPart.jsx';
 import { IrReceiverPart } from '../components/parts/IrReceiverPart.jsx';
 import { HcSr04Part } from '../components/parts/HcSr04Part.jsx';
 import { InductorPart } from '../components/parts/InductorPart.jsx';
+import { ZenerDiodePart } from '../components/parts/ZenerDiodePart.jsx';
 import { resolvePresentation } from './visualContract.js';
 
 /**
@@ -312,6 +313,15 @@ export const DEFAULT_REGISTRATIONS = [
   // électrique : transientContributionRegistry.js uniquement (§11 du
   // ticket, aucune contribution DC steady-state).
   { type: 'INDUCTOR', component: InductorPart, visual: { backend: 'raster', bareBody: true, markerless: true } },
+  // A5-ZENER_DIODE : diode Zener axiale (asset Founder PASS/FROZEN). raster
+  // sans bareBody/markerless — même patron exact que DIODE ci-dessus (pas
+  // INDUCTOR) : le raster cuit ses propres pattes métalliques jusqu'aux
+  // bords du boîtier, masquées par la fenêtre de découpe de
+  // ZenerDiodePart.jsx (BODY_WINDOW), pattes fonctionnelles redessinées par
+  // AssemblyLeadsLayer. Aucun code central spécifique, aucune condition
+  // `type === "ZENER_DIODE"`. Modèle électrique : createDiodeDcContribution
+  // ({reverseBreakdown:true}) (A5-D-PREQ, dcContributionRegistry.js).
+  { type: 'ZENER_DIODE', component: ZenerDiodePart, visual: { backend: 'raster' } },
 ];
 
 /**

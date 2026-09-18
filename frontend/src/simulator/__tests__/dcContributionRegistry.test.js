@@ -13,14 +13,15 @@ import { Signal } from "../signals.js"
 const SUPPLY = 5
 
 describe("dcContributionRegistry — registre générique", () => {
-  it("expose une fonction de contribution pour les 16 types DC attendus", () => {
+  it("expose une fonction de contribution pour les 17 types DC attendus", () => {
     // A6-OUT1 : VIBRATION_MOTOR ajouté (réutilise dcMotorDc, cf. dcContributionRegistry.js).
     // A6-OUT2 : LIGHT_BULB ajouté (réutilise resistorDc, cf. dcContributionRegistry.js).
     // A6-OUT3 : HOBBY_GEARMOTOR ajouté (réutilise dcMotorDc, cf. dcContributionRegistry.js).
     // A7-C1 : TMP36 ajouté (contribution dédiée tmp36Dc, cf. dcContributionRegistry.js).
     // A7-C2 : FORCE_SENSOR + FLEX_SENSOR ajoutés (réutilisent resistorDc, cf. dcContributionRegistry.js).
     // A7-C3 : SOIL_MOISTURE_SENSOR ajouté (contribution dédiée soilMoistureSensorDc, cf. dcContributionRegistry.js).
-    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "LIGHT_BULB", "HOBBY_GEARMOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR", "TMP36", "FORCE_SENSOR", "FLEX_SENSOR", "SOIL_MOISTURE_SENSOR"]
+    // A5-ZENER_DIODE : ZENER_DIODE ajouté (réutilise createDiodeDcContribution avec reverseBreakdown, cf. dcContributionRegistry.js).
+    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "LIGHT_BULB", "HOBBY_GEARMOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR", "TMP36", "FORCE_SENSOR", "FLEX_SENSOR", "SOIL_MOISTURE_SENSOR", "ZENER_DIODE"]
     expect([...getAllDcContributionTypes()].sort()).toEqual([...expected].sort())
     for (const type of expected) {
       expect(hasDcContribution(type)).toBe(true)
@@ -247,9 +248,10 @@ describe("dcContributionRegistry — non-mutation des entrées", () => {
  * A5-D-PREQ — GENERIC REVERSE BREAKDOWN CONTRACT.
  *
  * Qualifie la factory createDiodeDcContribution() par une fixture de test
- * dédiée (§9 du ticket) : AUCUN composant ZENER_DIODE de production n'est
- * introduit ici — reverseBreakdown est activé uniquement sur une instance
- * de test locale à ce fichier.
+ * dédiée (§9 du ticket A5-D-PREQ) — reverseBreakdown activé uniquement sur
+ * une instance de test locale à ce fichier, indépendante de la
+ * registration ZENER_DIODE de production (ajoutée séparément par le
+ * ticket A5-ZENER_DIODE, voir describe dédié plus bas).
  */
 describe("createDiodeDcContribution — factory générique (A5-D-PREQ)", () => {
   it("T1/T2 — la factory existe et retourne une fonction compatible avec le contrat getDcContribution", () => {
@@ -267,9 +269,13 @@ describe("createDiodeDcContribution — factory générique (A5-D-PREQ)", () => 
     )
   })
 
-  it("T35 — getAllDcContributionTypes() de production ne gagne pas ZENER_DIODE", () => {
-    expect(getAllDcContributionTypes()).not.toContain("ZENER_DIODE")
-    expect(hasDcContribution("ZENER_DIODE")).toBe(false)
+  it("T35 (A5-D-PREQ, historique) — appeler la factory est sans effet de bord sur le Registry (seule la registration explicite dans DC_CONTRIBUTIONS ajoute un type)", () => {
+    const before = getAllDcContributionTypes()
+    createDiodeDcContribution({ reverseBreakdown: true, anodePinId: "X", cathodePinId: "Y" })
+    createDiodeDcContribution({ reverseBreakdown: true, anodePinId: "X", cathodePinId: "Y" })
+    expect(getAllDcContributionTypes()).toEqual(before)
+    expect(hasDcContribution("X")).toBe(false)
+    expect(hasDcContribution("Y")).toBe(false)
   })
 })
 
@@ -391,7 +397,11 @@ describe("A5-D-PREQ — non-mutation / architecture (T27-T34)", () => {
     expect(() => contribute({ pins, params, supplyVoltage: 6.1 })).not.toThrow()
   })
 
-  it("T3/T4/T32-T34 — aucune connaissance de ZENER_DIODE dans resolution.js ni les moteurs génériques, aucun asset/renderer Zener créé par ce ticket", async () => {
+  it("T3/T4/T32-T34 — aucune connaissance de ZENER_DIODE dans les moteurs génériques PROTECTED (resolution.js/engine.js/scheduler.js/simulationRuntimeIntegration.js/electricalAnalysis.js/transientContributionRegistry.js)", async () => {
+    // A5-ZENER_DIODE : canonicalRegistry.js n'est PAS dans cette liste — ce
+    // fichier déclare légitimement ZENER_DIODE (Registry déclaratif, §10 du
+    // ticket A5-ZENER_DIODE), à la différence des moteurs génériques
+    // ci-dessous qui ne doivent JAMAIS connaître un nom de composant précis.
     const fs = await import("node:fs")
     const path = await import("node:path")
     const { fileURLToPath } = await import("node:url")
@@ -403,11 +413,87 @@ describe("A5-D-PREQ — non-mutation / architecture (T27-T34)", () => {
       "../engine.js",
       "../scheduler.js",
       "../transientContributionRegistry.js",
-      "../canonicalRegistry.js",
     ]
     for (const rel of protectedFiles) {
       const source = fs.readFileSync(path.join(dir, rel), "utf-8")
       expect(source, `${rel} ne devrait pas mentionner ZENER_DIODE`).not.toMatch(/ZENER_DIODE/)
     }
+  })
+})
+
+/**
+ * A5-ZENER_DIODE — production registration (§19 du ticket, T24-T35).
+ *
+ * ZENER_DIODE réutilise EXACTEMENT createDiodeDcContribution (aucune
+ * physique dupliquée), avec reverseBreakdown activé et les ids de pins
+ * canoniques du pack Founder PASS (A/K, imposés par manifest.json).
+ */
+describe("dcContributionRegistry — ZENER_DIODE (A5-ZENER_DIODE, production)", () => {
+  const contribute = getDcContribution("ZENER_DIODE")
+  const params = { forwardVoltage: 0.7, onResistance: 10, breakdownVoltage: 5.1, breakdownResistance: 10 }
+
+  it("T24 — hasDcContribution('ZENER_DIODE') === true", () => {
+    expect(hasDcContribution("ZENER_DIODE")).toBe(true)
+    expect(getAllDcContributionTypes()).toContain("ZENER_DIODE")
+  })
+
+  it("T25 — le contributeur provient du Registry existant (même primitive que DIODE, pas une copie)", () => {
+    expect(typeof contribute).toBe("function")
+    expect(contribute).not.toBe(getDcContribution("DIODE"))
+  })
+
+  it("T26 — forward 5V, Vf=0.7/Ron=10 → 0.43 A (pins A/K)", () => {
+    const result = contribute({ pins: { A: Signal.HIGH, K: Signal.LOW }, params, supplyVoltage: 5 })
+    expect(result.current).toBeCloseTo(0.43, 10)
+  })
+
+  it("T27 — reverse 5.0V avec Vz=5.1 → 0 A", () => {
+    const result = contribute({ pins: { A: Signal.LOW, K: Signal.HIGH }, params, supplyVoltage: 5.0 })
+    expect(result).toEqual({ voltage: 5.0, current: 0 })
+  })
+
+  it("T28 — reverse 5.1V (au seuil) → 0 A", () => {
+    const result = contribute({ pins: { A: Signal.LOW, K: Signal.HIGH }, params, supplyVoltage: 5.1 })
+    expect(result).toEqual({ voltage: 5.1, current: 0 })
+  })
+
+  it("T29 — reverse 6.1V avec Rz=10 → 0.1 A", () => {
+    const result = contribute({ pins: { A: Signal.LOW, K: Signal.HIGH }, params, supplyVoltage: 6.1 })
+    expect(result.current).toBeCloseTo(0.1, 10)
+  })
+
+  it("T30 — tension reverse plus élevée → courant breakdown plus élevé", () => {
+    const lower = contribute({ pins: { A: Signal.LOW, K: Signal.HIGH }, params, supplyVoltage: 6.1 })
+    const higher = contribute({ pins: { A: Signal.LOW, K: Signal.HIGH }, params, supplyVoltage: 8.1 })
+    expect(higher.current).toBeGreaterThan(lower.current)
+  })
+
+  it("T31/T32 — courant toujours fini et >= 0", () => {
+    for (const v of [5.1, 6.1, 8.1, 50]) {
+      const result = contribute({ pins: { A: Signal.LOW, K: Signal.HIGH }, params, supplyVoltage: v })
+      expect(Number.isFinite(result.current)).toBe(true)
+      expect(result.current).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it("T33 — breakdownResistance invalide (0/négatif/undefined) ne produit jamais NaN/Infinity", () => {
+    for (const breakdownResistance of [0, -10, undefined]) {
+      const result = contribute({
+        pins: { A: Signal.LOW, K: Signal.HIGH },
+        params: { ...params, breakdownResistance },
+        supplyVoltage: 6.1,
+      })
+      expect(result).toEqual({ voltage: 6.1, current: 0 })
+    }
+  })
+
+  it("ne contribue rien si non alimenté (UNKNOWN/UNKNOWN)", () => {
+    expect(contribute({ pins: { A: Signal.UNKNOWN, K: Signal.UNKNOWN }, params, supplyVoltage: 5 })).toBeNull()
+  })
+
+  it("T34 — DIODE normale reste strictement bloquée en inverse (non-régression)", () => {
+    const diode = getDcContribution("DIODE")
+    const result = diode({ pins: { anode: Signal.LOW, cathode: Signal.HIGH }, params: { forwardVoltage: 0.7, onResistance: 10 }, supplyVoltage: 6.1 })
+    expect(result).toEqual({ voltage: 6.1, current: 0 })
   })
 })

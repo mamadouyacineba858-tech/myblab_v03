@@ -1,0 +1,65 @@
+{
+  "component": "ZENER_DIODE",
+  "displayName": "Zener Diode",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "complexity": "simple",
+  "visualModel": "Axial red/amber glass Zener diode with black cathode band",
+  "canonical": {
+    "width": 144,
+    "height": 72,
+    "orientation": "horizontal",
+    "connections": 2,
+    "wireConnectable": true
+  },
+  "visiblePinOrder": [
+    "A",
+    "K"
+  ],
+  "polarity": {
+    "A": "anode",
+    "K": "cathode",
+    "visualCathodeMark": "black band"
+  },
+  "functionalContract": "DEFERRED_TO_A5_REVERSE_BREAKDOWN_CONTRACT",
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      0,
+      7,
+      143,
+      63
+    ],
+    "note": "Founder-approved visual reference preserved. Runtime raster derived only by crop, background transparency and proportional resize. Final PhysicalContacts and exact 12 px breadboard geometry must be locked from this packaged raster during implementation. Do not redraw, stretch, regenerate or alter cathode polarity marking."
+  },
+  "assets": [
+    {
+      "file": "zener-diode.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 144,
+      "height": 72
+    },
+    {
+      "file": "zener-diode.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 144,
+      "height": 72
+    },
+    {
+      "file": "zener-diode.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 432,
+      "height": 216
+    },
+    {
+      "file": "zener-diode.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 432,
+      "height": 216
+    }
+  ]
+}
