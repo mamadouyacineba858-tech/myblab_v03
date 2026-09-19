@@ -7,7 +7,18 @@ export function createConditionalConduction({ controlPinId, activeControlSignal,
     : []
 }
 
+/** Generic pure condition on a component's resolved own-pin signals. */
+export function createPredicateConditionalConduction({ predicate, whenTrue, whenFalse = [] }) {
+  return (pins) => (predicate(pins) ? whenTrue : whenFalse).map((pair) => [...pair])
+}
+
 const contributions = new Map([
+  ["RELAY", createPredicateConditionalConduction({
+    predicate: (pins) => (pins.coilA === Signal.HIGH && pins.coilB === Signal.LOW)
+      || (pins.coilA === Signal.LOW && pins.coilB === Signal.HIGH),
+    whenTrue: [["common", "normallyOpen"]],
+    whenFalse: [["common", "normallyClosed"]],
+  })],
   ["NPN_TRANSISTOR", createConditionalConduction({ controlPinId: "base", activeControlSignal: Signal.HIGH, terminalAPinId: "collector", terminalBPinId: "emitter" })],
   ["PNP_TRANSISTOR", createConditionalConduction({ controlPinId: "base", activeControlSignal: Signal.LOW, terminalAPinId: "collector", terminalBPinId: "emitter" })],
   ["NMOS", createConditionalConduction({ controlPinId: "gate", activeControlSignal: Signal.HIGH, terminalAPinId: "drain", terminalBPinId: "source" })],

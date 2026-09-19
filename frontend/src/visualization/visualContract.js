@@ -127,6 +127,7 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'NMOS', box: [144, 288], physicalMm: [10.67, 31.24], ref: 'IRFZ44N TO-220AB E/D/L maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 31.24 },
   // Infineon IRF9540NPbF datasheet p8: TO-220AB width 10.54, body 15.24 + leads 14.09 mm.
   // https://www.infineon.com/dgdl/Infineon-IRF9540N-DataSheet-v01_01-EN.pdf?fileId=5546d462533600a401535611cfa21dc8
+  { type: 'RELAY', box: [288, 288], physicalMm: [19.1, 15.3], ref: 'SONGLE SRD body width/height maxima, excludes leads; indicative front-view scale. https://nafcom.es/fotos_pdt/108.RL001/Relay_datasheet.pdf p1', impliedUnitsPerMm: 288 / 19.1 },
   { type: 'PMOS', box: [144, 288], physicalMm: [10.54, 29.33], ref: 'IRF9540N TO-220AB width/body/lead maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 29.33 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },

@@ -19,6 +19,7 @@ const DECLARED_TYPES_PINS = {
   NPN_TRANSISTOR:[{id:'collector',role:'input'},{id:'base',role:'input'},{id:'emitter',role:'output'}],
   PNP_TRANSISTOR:[{id:'collector',role:'input'},{id:'base',role:'input'},{id:'emitter',role:'output'}],
   NMOS:[{id:'drain',role:'input'},{id:'gate',role:'input'},{id:'source',role:'output'}],
+  RELAY:[{id:'coilA',role:'passive'},{id:'coilB',role:'passive'},{id:'common',role:'switch'},{id:'normallyClosed',role:'switch'},{id:'normallyOpen',role:'switch'}],
   PMOS:[{id:'drain',role:'input'},{id:'gate',role:'input'},{id:'source',role:'output'}],
   SERVO:[{id:'signal',role:'gpio'},{id:'vcc',role:'power'},{id:'gnd',role:'ground'}],
   DC_MOTOR:[{id:'plus',role:'input'},{id:'minus',role:'input'}],
@@ -131,7 +132,7 @@ const DECLARED_TYPES_PINS = {
   ZENER_DIODE:[{id:'A',role:'input'},{id:'K',role:'output'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE']
 
 const DECLARED_PARAMETER_SCHEMA = {
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -175,6 +176,7 @@ const DECLARED_PARAMETER_SCHEMA = {
   NPN_TRANSISTOR:[{key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:1,description:'Résistance équivalente collecteur-émetteur à l\'état passant (modèle logique simplifié, MB-SIM-008 v2) : commande tout-ou-rien par BASE, sans β réel, sans courbes Ic/Vce, sans dynamique.'}],
   PNP_TRANSISTOR:[{key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:1,description:'Résistance équivalente collecteur-émetteur à l\'état passant (modèle logique simplifié, MB-SIM-008 v2) : PNP Level-1 commandé par BASE LOW, sans β réel, sans courbes Ic/Vce, sans dynamique.'}],
   NMOS:[{key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:1,description:'Résistance équivalente DRAIN-SOURCE à l’état passant dans le modèle pédagogique Level-1 commandé par GATE HIGH.'}],
+  RELAY:[{key:'coilResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:69.4,description:'Résistance de bobine non polarisée du relais SPDT, modèle DC Level-1.'}],
   PMOS:[{key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e6,defaultValue:1,description:'Résistance équivalente DRAIN-SOURCE à l’état passant dans le modèle pédagogique Level-1 commandé par GATE LOW.'}],
   // A7-C1 : sortie analogique TMP36 (datasheet Analog Devices) — Vout(T) =
   // 0.5 V + 0.01 V/°C × T. Bornes 0.1 V / 1.75 V = Vout(-40°C) / Vout(125°C),
@@ -320,6 +322,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   PNP_TRANSISTOR:{onResistance:1},
   NMOS:{onResistance:1},
   PMOS:{onResistance:1},
+  RELAY:{coilResistance:69.4},
   TMP36:{outputVoltage:0.75},
   FORCE_SENSOR:{resistance:1000000},
   FLEX_SENSOR:{resistance:10000},
@@ -352,6 +355,7 @@ const DECLARED_CAPABILITIES = {
   PNP_TRANSISTOR:['digital','dc'],
   NMOS:['digital','dc'],
   PMOS:['digital','dc'],
+  RELAY:['digital','dc'],
   TMP36:['digital','dc'],
   FORCE_SENSOR:['digital','dc'],
   FLEX_SENSOR:['digital','dc'],
@@ -412,6 +416,7 @@ const DECLARED_MODEL_AVAILABLE = {
   PNP_TRANSISTOR:true,
   NMOS:true,
   PMOS:true,
+  RELAY:true,
   TMP36:true,
   FORCE_SENSOR:true,
   FLEX_SENSOR:true,

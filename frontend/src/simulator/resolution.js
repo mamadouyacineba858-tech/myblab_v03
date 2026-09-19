@@ -210,22 +210,66 @@ function propagateNetSignal(nets, pinSignals, signal) {
  * Stop as soon as a complete round produces no change.
  */
 export function propagatePassiveConduction(components, prepared, pinSignals, conditionalLookup = getConditionalConduction) {
+  const baseline = new Map(pinSignals)
+  const resolved = recomputeDerivedConduction(components, prepared, baseline, conditionalLookup)
+  for (const key of pinSignals.keys()) pinSignals.set(key, resolved.get(key) ?? Signal.UNKNOWN)
+}
+
+/**
+ * Recompute all passive/conditional consequences from an immutable baseline.
+ * Conditional topology is selected from the previous complete candidate, then
+ * evaluated from scratch. A pair that disappears therefore cannot leave a
+ * signal behind. Repeated states (oscillation) and the deterministic bound
+ * both return the conservative baseline: base authorities survive, while no
+ * transient derived fact is promoted to truth.
+ */
+function recomputeDerivedConduction(components, prepared, baseline, conditionalLookup) {
+  let previous = new Map(baseline)
+  const seen = new Set([signalMapSignature(previous, prepared.allKeys)])
+  const maxIterations = prepared.allKeys.length + 1
+
+  for (let iteration = 0; iteration < maxIterations; iteration++) {
+    const candidate = new Map(baseline)
+    const selectedPairs = selectConductionPairs(components, prepared.uf, previous, conditionalLookup)
+    propagateSelectedPairs(selectedPairs, prepared, candidate)
+
+    if (signalMapsEqual(candidate, previous, prepared.allKeys)) return candidate
+
+    const signature = signalMapSignature(candidate, prepared.allKeys)
+    if (seen.has(signature)) return new Map(baseline)
+    seen.add(signature)
+    previous = candidate
+  }
+
+  return new Map(baseline)
+}
+
+function selectConductionPairs(components, uf, topologySignals, conditionalLookup) {
+  return [...components]
+    .sort((a, b) => a.uid.localeCompare(b.uid))
+    .map((comp) => {
+      const passivePair = getUnconditionalConductionPinPair(comp.type)
+      const contribute = conditionalLookup(comp.type)
+      return {
+        comp,
+        pairs: [
+          ...(passivePair ? [passivePair] : []),
+          ...(contribute ? contribute(buildPinSignalMap(comp, uf, topologySignals)) : []),
+        ],
+      }
+    })
+}
+
+function propagateSelectedPairs(selectedPairs, prepared, pinSignals) {
   const { uf, nets } = prepared
   // Read nets directly: even Union-Find.find() may perform path compression.
   const netByKey = new Map([...nets.values()].flatMap((keys) => keys.map((key) => [key, keys])))
-  const orderedComponents = [...components].sort((a, b) => a.uid.localeCompare(b.uid))
   const maxRounds = prepared.allKeys.length + 1
 
   for (let round = 0; round < maxRounds; round++) {
     let changed = false
 
-    for (const comp of orderedComponents) {
-      const passivePair = getUnconditionalConductionPinPair(comp.type)
-      const contribute = conditionalLookup(comp.type)
-      const pairs = [
-        ...(passivePair ? [passivePair] : []),
-        ...(contribute ? contribute(buildPinSignalMap(comp, uf, pinSignals)) : []),
-      ]
+    for (const { comp, pairs } of selectedPairs) {
       for (const [pinIdA, pinIdB] of pairs) {
         const keyA = uf.key(comp.uid, pinIdA)
         const keyB = uf.key(comp.uid, pinIdB)
@@ -238,6 +282,14 @@ export function propagatePassiveConduction(components, prepared, pinSignals, con
 
     if (!changed) break
   }
+}
+
+function signalMapsEqual(a, b, keys) {
+  return keys.every((key) => a.get(key) === b.get(key))
+}
+
+function signalMapSignature(signals, keys) {
+  return keys.map((key) => `${key.length}:${key}=${signals.get(key) ?? Signal.UNKNOWN}`).join('|')
 }
 
 /**

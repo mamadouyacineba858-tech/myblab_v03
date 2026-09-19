@@ -1,0 +1,23 @@
+{
+  "component": "RELAY",
+  "version": "1.0.0-founder-pass",
+  "algorithm": "SHA-256",
+  "files": {
+    "relay.default.1x.png": {
+      "sha256": "81ad8a6c94f2e58851e0928f53c34d8edf79560f08a2749ad235869a05323aa3",
+      "bytes": 119899
+    },
+    "relay.default.1x.webp": {
+      "sha256": "68c4f650308331c84c1fc48528443e5547cfd86b898a64d9afdb91248b4198ed",
+      "bytes": 86320
+    },
+    "relay.default.3x.png": {
+      "sha256": "1e6818b54ab8c086239b1464431b6463e6d19888d847c6e0864c0a811b361cd4",
+      "bytes": 133014
+    },
+    "relay.default.3x.webp": {
+      "sha256": "779c84b5339b073efde8fb2343dd663617668cea48533452a83fabcc437394df",
+      "bytes": 162768
+    }
+  }
+}

@@ -120,6 +120,22 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 118 },
   },
+  // RELAY: deterministic alpha>=128 scan at y240, intervals
+  // [53,68], [132,142], [179,189], [228,238]. Midpoints are measured
+  // mechanical roots only. Electrical assignment is a functional routing
+  // convention, never inferred from the front photo or decorative numbers.
+  // NC is the fifth footprint connection, hidden in this projection: no
+  // measured root is claimed. Generic root=target fallback draws no fifth lead.
+  // No clipping: all frozen raster pixels survive; contacts lie below its bbox.
+  RELAY: {
+    kind: "through-hole",
+    leads: {
+      coilA: { root: { dx: 60.5, dy: 240 }, style: "metallic-wire" },
+      coilB: { root: { dx: 137, dy: 240 }, style: "metallic-wire" },
+      common: { root: { dx: 184, dy: 240 }, style: "metallic-wire" },
+      normallyOpen: { root: { dx: 233, dy: 240 }, style: "metallic-wire" },
+    },
+  },
   PMOS: {
     kind: "through-hole",
     leads: {

@@ -59,6 +59,27 @@ it.each([Signal.HIGH, Signal.LOW])("synthetic selectable topology %s", (control)
   expect(signals.get(`t:${selected}`)).toBe(Signal.HIGH)
   expect(signals.get(`t:${other}`)).toBe(Signal.UNKNOWN)
 })
+it("retracts a transient selected path and terminates an oscillation conservatively", () => {
+  const components = [comp("t", "ARDUINO")]
+  const prepared = prepareCircuit(components, [])
+  const topology = JSON.stringify([[...prepared.uf.parent], [...prepared.nets], prepared.allKeys])
+  const signals = new Map(prepared.allKeys.map((key) => [key, Signal.UNKNOWN]))
+  signals.set("t:D2", Signal.HIGH) // non-derived baseline authority
+  let contributorCalls = 0
+
+  propagatePassiveConduction(components, prepared, signals, () => (pins) => {
+    contributorCalls += 1
+    // First candidate derives D3=HIGH. That signal removes its own path on
+    // the next candidate, producing a two-state cycle. Conservative fallback
+    // must retain D2 and retract only the stale derived D3 value.
+    return pins.D3 === Signal.HIGH ? [] : [["D2", "D3"]]
+  })
+
+  expect(signals.get("t:D2")).toBe(Signal.HIGH)
+  expect(signals.get("t:D3")).toBe(Signal.UNKNOWN)
+  expect(contributorCalls).toBeLessThanOrEqual(prepared.allKeys.length + 1)
+  expect(JSON.stringify([[...prepared.uf.parent], [...prepared.nets], prepared.allKeys])).toBe(topology)
+})
 it("no type-specific controlled branch", () => {
   expect(readFileSync(new URL("../resolution.js", import.meta.url), "utf8")).not.toMatch(/(?:===|!==|case)\s*["'](?:NMOS|PMOS|NPN_TRANSISTOR|PNP_TRANSISTOR|RELAY)["']/)
 })

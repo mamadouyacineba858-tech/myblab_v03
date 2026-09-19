@@ -1,0 +1,78 @@
+{
+  "component": "RELAY",
+  "displayName": "SPDT relay SONGLE-style SRD-5VDC-SL-C",
+  "backend": "raster",
+  "state": "default",
+  "version": "1.0.0-founder-pass",
+  "complexity": "complex",
+  "founderStatus": "FOUNDER PASS / FROZEN",
+  "canonical": {
+    "width": 288,
+    "height": 288,
+    "connections": 5,
+    "wireConnectable": true
+  },
+  "pixelProbe": {
+    "opaqueBounds1x": [
+      30,
+      8,
+      261,
+      277
+    ],
+    "threshold": 128,
+    "scanY": 240,
+    "segments": [
+      [
+        53,
+        68
+      ],
+      [
+        132,
+        142
+      ],
+      [
+        179,
+        189
+      ],
+      [
+        228,
+        238
+      ]
+    ],
+    "note": "Four mechanical roots only; functional pin assignment is not inferred from the photo. Fifth contact has no visible root."
+  },
+  "assets": [
+    {
+      "file": "relay.default.1x.png",
+      "scale": "1x",
+      "format": "png",
+      "width": 288,
+      "height": 288,
+      "bytes": 119899
+    },
+    {
+      "file": "relay.default.1x.webp",
+      "scale": "1x",
+      "format": "webp",
+      "width": 288,
+      "height": 288,
+      "bytes": 86320
+    },
+    {
+      "file": "relay.default.3x.png",
+      "scale": "3x",
+      "format": "png",
+      "width": 864,
+      "height": 864,
+      "bytes": 133014
+    },
+    {
+      "file": "relay.default.3x.webp",
+      "scale": "3x",
+      "format": "webp",
+      "width": 864,
+      "height": 864,
+      "bytes": 162768
+    }
+  ]
+}

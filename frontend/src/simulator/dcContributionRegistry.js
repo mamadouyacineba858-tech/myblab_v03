@@ -54,6 +54,13 @@ function resistiveTwoTerminalDc(pinA, pinB, resistance, supplyVoltage) {
   return { voltage: supplyVoltage, current: supplyVoltage / resistance }
 }
 
+/** Parameterized adapter for the existing non-polar resistive primitive. */
+export function createResistiveDcContribution({ terminalAPinId, terminalBPinId, resistanceParameter }) {
+  return ({ pins, params, supplyVoltage }) => resistiveTwoTerminalDc(
+    pins[terminalAPinId], pins[terminalBPinId], params[resistanceParameter], supplyVoltage,
+  )
+}
+
 function resistorDc({ pins, params, supplyVoltage }) {
   return resistiveTwoTerminalDc(pins.A, pins.B, params.resistance, supplyVoltage)
 }
@@ -359,6 +366,7 @@ const DC_CONTRIBUTIONS = new Map([
   ["PNP_TRANSISTOR", pnpTransistorDc],
   ["NMOS", nmosDc],
   ["PMOS", pmosDc],
+  ["RELAY", createResistiveDcContribution({ terminalAPinId: "coilA", terminalBPinId: "coilB", resistanceParameter: "coilResistance" })],
   ["TMP36", tmp36Dc],
   // A7-C2 : FORCE_SENSOR et FLEX_SENSOR sont des capteurs résistifs à deux
   // bornes NON polarisées, exactement le même contrat que RESISTOR/LIGHT_BULB

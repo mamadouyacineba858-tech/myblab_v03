@@ -21,7 +21,7 @@ describe("dcContributionRegistry — registre générique", () => {
     // A7-C2 : FORCE_SENSOR + FLEX_SENSOR ajoutés (réutilisent resistorDc, cf. dcContributionRegistry.js).
     // A7-C3 : SOIL_MOISTURE_SENSOR ajouté (contribution dédiée soilMoistureSensorDc, cf. dcContributionRegistry.js).
     // A5-ZENER_DIODE : ZENER_DIODE ajouté (réutilise createDiodeDcContribution avec reverseBreakdown, cf. dcContributionRegistry.js).
-    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "LIGHT_BULB", "HOBBY_GEARMOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR", "PNP_TRANSISTOR", "NMOS", "PMOS", "TMP36", "FORCE_SENSOR", "FLEX_SENSOR", "SOIL_MOISTURE_SENSOR", "ZENER_DIODE"]
+    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "LIGHT_BULB", "HOBBY_GEARMOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR", "PNP_TRANSISTOR", "NMOS", "PMOS", "RELAY", "TMP36", "FORCE_SENSOR", "FLEX_SENSOR", "SOIL_MOISTURE_SENSOR", "ZENER_DIODE"]
     expect([...getAllDcContributionTypes()].sort()).toEqual([...expected].sort())
     for (const type of expected) {
       expect(hasDcContribution(type)).toBe(true)
@@ -265,7 +265,7 @@ describe("createDiodeDcContribution — factory générique (A5-D-PREQ)", () => 
 
   it("T5 — aucun second Registry de breakdown n'est exporté par ce module (surface d'export inchangée + factory)", async () => {
     expect(Object.keys(await import("../dcContributionRegistry.js")).sort()).toEqual(
-      ["createControlledDcSwitchContribution", "createDiodeDcContribution", "getAllDcContributionTypes", "getDcContribution", "getUnconditionalConductionPinPair", "hasDcContribution"].sort()
+      ["createControlledDcSwitchContribution", "createDiodeDcContribution", "createResistiveDcContribution", "getAllDcContributionTypes", "getDcContribution", "getUnconditionalConductionPinPair", "hasDcContribution"].sort()
     )
   })
 
