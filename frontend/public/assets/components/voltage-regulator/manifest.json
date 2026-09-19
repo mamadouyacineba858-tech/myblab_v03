@@ -1,0 +1,31 @@
+{
+  "component": "VOLTAGE_REGULATOR",
+  "assetStatus": "FOUNDER_PASS_FROZEN",
+  "variant": "default",
+  "referenceDevice": "L7805CV",
+  "package": "TO-220",
+  "nominalOutputVoltage": 5,
+  "runtimeView": "front",
+  "files": {
+    "1x": {
+      "png": "voltage-regulator.default.1x.png",
+      "webp": "voltage-regulator.default.1x.webp",
+      "width": 144,
+      "height": 288
+    },
+    "3x": {
+      "png": "voltage-regulator.default.3x.png",
+      "webp": "voltage-regulator.default.3x.webp",
+      "width": 432,
+      "height": 864
+    },
+    "reference": "REFERENCE.png"
+  },
+  "notes": [
+    "Founder-approved visual reference.",
+    "REFERENCE.png preserves the complete approved multi-view sheet.",
+    "Runtime files use only the approved front view.",
+    "Electrical behavior and PhysicalContacts are intentionally not frozen by this asset-only pack.",
+    "Pixel-probe and breadboard-fit qualification are required before integration."
+  ]
+}

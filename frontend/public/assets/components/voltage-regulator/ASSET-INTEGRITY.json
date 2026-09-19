@@ -1,0 +1,37 @@
+{
+  "component": "VOLTAGE_REGULATOR",
+  "files": {
+    "README.md": {
+      "sha256": "1b070a0a962029682572d105f9e170fd1ac50ff08a441f2dc3bc980e6712affe",
+      "bytes": 988
+    },
+    "REFERENCE.md": {
+      "sha256": "b9e205c956140489c343a03da438caea9194f5e869f7b8eb429b31273c55316b",
+      "bytes": 1161
+    },
+    "REFERENCE.png": {
+      "sha256": "ff3304c49fc2fa1ece72c101d07a0b03d7ff229b748257f9ae61826aa60fde8c",
+      "bytes": 1215784
+    },
+    "manifest.json": {
+      "sha256": "bbf99f1d68025fd09e46ac6b5c7d21d6f01516bf9af84ae4699ae03c172ea371",
+      "bytes": 954
+    },
+    "voltage-regulator.default.1x.png": {
+      "sha256": "f6d7f7c9bb78aee6b8050201accd590a4064c2eec04975522ddcd4725e492ccf",
+      "bytes": 50869
+    },
+    "voltage-regulator.default.1x.webp": {
+      "sha256": "1aff0d2402b87821d8f9dcf98c9c0c13441d360887420c1128350722d00cc326",
+      "bytes": 32974
+    },
+    "voltage-regulator.default.3x.png": {
+      "sha256": "ee7bc9e2f50febd9afebd87901b744b98cd9acbe865e7cf933a0362e5f7713da",
+      "bytes": 424801
+    },
+    "voltage-regulator.default.3x.webp": {
+      "sha256": "2db5122c7f8d1f6d230ee2c17a148fde204b053df9141b67ec9282e02e0ad454",
+      "bytes": 274820
+    }
+  }
+}
