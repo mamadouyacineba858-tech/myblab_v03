@@ -383,7 +383,15 @@ export const RENDER_BUDGET = Object.freeze({
     maxWeightKbPerVariantSimple: 30,
     maxWeightKbPerVariantComplex: 175,
     // CR-1: explicit manifest requests may exceed the normal cap, never this bound.
-    maxWeightKbPerVariantExceptional: 425,
+    // A8-H-BRIDGE-ASSET-PREQ : plafond exceptionnel relevé de 425 à 575 Ko —
+    // mesure réelle du plus lourd asset complexe Founder-approved/Frozen
+    // qualifié à ce jour (≈ 569.51 Ko par variante), marge bornée ≈ 5.49 Ko
+    // (mêmes méthode et logique de calibration que les relèvements 150 puis
+    // 175 Ko ci-dessus). Les plafonds normaux 30/175 restent strictement
+    // inchangés ; l'exception n'est accordée que sur demande explicite du
+    // manifeste (budget.maxWeightKbPerVariant), jamais implicitement d'après
+    // l'identité du composant ni assetStatus.
+    maxWeightKbPerVariantExceptional: 575,
     maxVariants: 8,           // ex. RGB_LED : combinaisons r/g/b
     resolutions: 2,           // @1x + @3x
     maxDimensionPx: 1024,     // cote le plus long de l'asset @3x

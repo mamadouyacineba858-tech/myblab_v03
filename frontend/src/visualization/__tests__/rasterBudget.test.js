@@ -9,16 +9,21 @@ describe('generic bounded raster weight contract CR-1', () => {
   it.each([{ complexity: 'complex' }, { budget: { complexity: 'complex' } }, { states: ['off', 'on'] }])('preserves complex classification: %j', manifest => {
     expect(getRasterWeightLimitKb(manifest)).toBe(175)
   })
-  it('keeps normal limits unchanged and bounds exceptional requests at 425 KiB', () => {
-    expect(RENDER_BUDGET.raster).toMatchObject({ maxWeightKbPerVariantSimple: 30, maxWeightKbPerVariantComplex: 175, maxWeightKbPerVariantExceptional: 425 })
+  it('keeps normal limits unchanged and bounds exceptional requests at 575 KiB', () => {
+    expect(RENDER_BUDGET.raster).toMatchObject({ maxWeightKbPerVariantSimple: 30, maxWeightKbPerVariantComplex: 175, maxWeightKbPerVariantExceptional: 575 })
   })
-  it.each([175, 200, 425])('accepts a bounded complex request of %s KiB', maxWeightKbPerVariant => {
+  it.each([175, 200, 575])('accepts a bounded complex request of %s KiB', maxWeightKbPerVariant => {
     expect(getRasterWeightLimitKb({ complexity: 'complex', budget: { maxWeightKbPerVariant } })).toBe(maxWeightKbPerVariant)
   })
-  it.each([30, 100, 425])('accepts a bounded simple request of %s KiB', maxWeightKbPerVariant => {
+  it.each([30, 100, 575])('accepts a bounded simple request of %s KiB', maxWeightKbPerVariant => {
     expect(getRasterWeightLimitKb({ budget: { maxWeightKbPerVariant } })).toBe(maxWeightKbPerVariant)
   })
-  it.each([425.01, 426, Infinity, -Infinity, NaN, 0, -1, null, undefined, '425', true, 174.99])('rejects invalid or below-normal complex request %s', maxWeightKbPerVariant => {
+  it('accepts a realistic heavy-asset request of 570 KiB without altering the normal limits', () => {
+    expect(getRasterWeightLimitKb({ complexity: 'complex', budget: { maxWeightKbPerVariant: 570 } })).toBe(570)
+    expect(getRasterWeightLimitKb({ complexity: 'complex' })).toBe(175)
+    expect(getRasterWeightLimitKb({})).toBe(30)
+  })
+  it.each([575.01, 576, Infinity, -Infinity, NaN, 0, -1, null, undefined, '575', true, false, 174.99])('rejects invalid or below-normal complex request %s', maxWeightKbPerVariant => {
     expect(() => getRasterWeightLimitKb({ complexity: 'complex', budget: { maxWeightKbPerVariant } })).toThrow(RangeError)
   })
   it('rejects a request below the simple limit', () => {
