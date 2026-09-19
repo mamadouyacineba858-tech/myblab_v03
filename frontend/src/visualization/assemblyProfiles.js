@@ -7,10 +7,31 @@
  */
 
 /** @typedef {{ dx: number, dy: number }} LocalPoint */
+/** @typedef {'wire'|'metallic-wire'|'lug'|'dark-wire'} LeadStyle */
+/**
+ * Override facultatif d'un PhysicalContact d'un pin. `root` et `style` sont
+ * surchargeables independamment ; un champ absent ou invalide retombe sur le
+ * lead du pin.
+ * @typedef {Object} ContactLeadProfile
+ * @property {LocalPoint} [root]
+ * @property {LeadStyle} [style]
+ */
+/**
+ * `leads` est indexe par pin ELECTRIQUE canonique. `root`/`style` du pin sont le
+ * repli historique, applique a tous ses contacts. `contacts` (facultatif) est
+ * indexe par `contactId` et surcharge root/style pour un seul contact physique
+ * (ex. un pin GND expose par plusieurs broches). Priorite : override du contact
+ * > lead du pin > target (root) / "wire" (style). `contactId` reste une identite
+ * de PRESENTATION : il n'a aucune incidence sur l'identite electrique (pinId).
+ * @typedef {Object} AssemblyLead
+ * @property {LocalPoint} root
+ * @property {LeadStyle} [style]
+ * @property {Record<string, ContactLeadProfile>} [contacts]
+ */
 /**
  * @typedef {Object} AssemblyProfile
  * @property {'through-hole'} kind
- * @property {Record<string, { root: LocalPoint, style?: 'wire'|'metallic-wire'|'lug' }>} leads
+ * @property {Record<string, AssemblyLead>} leads
  * @property {{ bottom: number }} [bodyClip]
  */
 

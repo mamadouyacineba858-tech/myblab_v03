@@ -84,6 +84,23 @@ const LEAD_STYLES = new Set(["wire", "metallic-wire", "lug", "dark-wire"])
 
 const EMPTY = Object.freeze({ inserted: false, contacts: [] })
 
+function isValidRoot(root) {
+  return !!root && Number.isFinite(root.dx) && Number.isFinite(root.dy)
+}
+
+/**
+ * Override facultatif d'un contact physique (`lead.contacts[contactId]`).
+ * Lookup par clé propre uniquement : un contactId inconnu ou hérité du
+ * prototype n'affecte aucun contact réel.
+ */
+function getContactLeadProfile(leadProfile, contactId) {
+  const overrides = leadProfile?.contacts
+  if (!overrides || typeof overrides !== "object") return null
+  if (!Object.prototype.hasOwnProperty.call(overrides, contactId)) return null
+  const override = overrides[contactId]
+  return override && typeof override === "object" ? override : null
+}
+
 /**
  * @param {{ type?: string, x?: number, y?: number } | null} component  objet rendu (aperçu inclus)
  * @param {{ id?: string, position?: {x:number,y:number} } | null} breadboard
@@ -134,23 +151,23 @@ export function resolveAssemblyGeometry(component, breadboard, options = {}) {
     for (const physical of resolveWireConnectableContacts(pin)) {
       const target = { x: ox + physical.dx, y: oy + physical.dy }
 
-      let root = target
-      if (
-        leadProfile &&
-        leadProfile.root &&
-        Number.isFinite(leadProfile.root.dx) &&
-        Number.isFinite(leadProfile.root.dy)
-      ) {
-        root = { x: ox + leadProfile.root.dx, y: oy + leadProfile.root.dy }
-      }
+      // Priorité par champ, indépendante : override du contact > lead du pin
+      // (historique) > repli générique (target / "wire"). Un override absent
+      // ou invalide retombe sur le niveau suivant, jamais sur NaN.
+      const contactProfile = getContactLeadProfile(leadProfile, physical.id)
+      const rootSource = isValidRoot(contactProfile?.root)
+        ? contactProfile.root
+        : isValidRoot(leadProfile?.root) ? leadProfile.root : null
+      const root = rootSource ? { x: ox + rootSource.dx, y: oy + rootSource.dy } : target
 
       const hole = holeByKey.get(contactKey(pin.id, physical.id)) ?? null
       const holePosition = hole
         ? getBreadboardHolePosition(breadboard, hole.column, hole.row)
         : null
 
-      const requestedStyle = leadProfile?.style
-      const style = LEAD_STYLES.has(requestedStyle) ? requestedStyle : "wire"
+      const style = LEAD_STYLES.has(contactProfile?.style)
+        ? contactProfile.style
+        : LEAD_STYLES.has(leadProfile?.style) ? leadProfile.style : "wire"
 
       contacts.push({
         pinId: pin.id,
