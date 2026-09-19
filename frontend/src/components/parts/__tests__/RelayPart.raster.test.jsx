@@ -94,11 +94,10 @@ describe('A8-RELAY physical footprint', () => {
     expect(geometry.inserted).toBe(true)
     expect(geometry.contacts).toHaveLength(5)
     for (const contact of geometry.contacts) expect(contact.target).toEqual(contact.holePosition)
-    const hidden = geometry.contacts.find((c) => c.pinId === 'normallyClosed')
-    expect(hidden.root).toEqual(hidden.target)
-    expect(getAssemblyProfile('RELAY').leads.normallyClosed).toBeUndefined()
+    expect(getAssemblyProfile('RELAY').leads).toEqual({})
     expect(getAssemblyProfile('RELAY').bodyClip).toBeUndefined()
-    const roots = geometry.contacts.filter((c) => c.pinId !== 'normallyClosed').map((c) => [c.root.x - component.x, c.root.y - component.y])
-    expect(roots).toEqual([[60.5, 240], [137, 240], [184, 240], [233, 240]])
+    for (const contact of geometry.contacts) {
+      expect(contact.root).toEqual(contact.target)
+    }
   })
 })
