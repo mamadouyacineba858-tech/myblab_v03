@@ -48,11 +48,12 @@ distinct holes and strip groups prevent accidental contact shorts.
 Contacts extend below the 288x288 visual box to preserve every frozen pixel.
 At alpha>=128 the bbox is [30,8,261,277]. Scan y240 gives intervals
 [53,68]/[132,142]/[179,189]/[228,238], midpoints 60.5/137/184/233.
-These four roots bridge through AssemblyLeadsLayer. Their functional routing
-assignment is explicit and is not an electrical inference from the photo.
-NC is the fifth connection, not directly visible in this projection. No
-pixel-probed root or fifth raster leg is invented: the existing generic
-root=target fallback keeps its functional endpoint without a visible lead.
+These four roots remain pixel-probe evidence only; after Founder Canvas Gate R1
+they are not projected onto the five functional contacts because that produced
+long/crossed synthetic diagonals. The frozen raster itself preserves the four
+visible mechanical legs. NC is the fifth connection, not directly visible in
+this projection. No pixel-probed root or fifth raster leg is invented: all five
+functional endpoints use generic root=target presentation fallback.
 Level-1: nonpolar coil resistance 69.4 ohms; opposite resolved HIGH/LOW
 energizes COM-NO. All other signals select COM-NC, without retained state.
 No timing, inductance, flyback, or contact current physics is implemented.
