@@ -250,7 +250,7 @@ export function createControlledDcSwitchContribution(config) {
   if (activeControlSignal !== Signal.HIGH && activeControlSignal !== Signal.LOW) {
     throw new TypeError("Controlled DC switch active signal must be HIGH or LOW")
   }
-  return function controlledDcSwitchDc({ pins, params, supplyVoltage }) {
+  const contribute = function controlledDcSwitchDc({ pins, params, supplyVoltage }) {
     const terminalA = pins[terminalAPinId]
     const terminalB = pins[terminalBPinId]
     const control = pins[controlPinId]
@@ -260,6 +260,10 @@ export function createControlledDcSwitchContribution(config) {
       current: control === activeControlSignal ? supplyVoltage / params.onResistance : 0,
     }
   }
+  // Only declared controls may consume digital evidence without numeric volts.
+  // Power terminals must still be established by the DC voltage domains.
+  contribute.controlPinIds = Object.freeze([controlPinId])
+  return contribute
 }
 
 // Modèle NPN pédagogique historique : aucune physique transistor ajoutée.

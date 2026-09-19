@@ -25,7 +25,100 @@ function regulated() {
   return c
 }
 
+function controlledConflict() {
+  const c = combine(independent(), domain('c', 'BATTERY_AA', 'plus', 'minus'))
+  c.components.push({ uid: 'switch', type: 'NMOS' }, { uid: 'cpu', type: 'ARDUINO' })
+  c.wires.push(wire('as', '5V', 'bs', 'minus'), wire('cs', 'plus', 'switch', 'drain'),
+    wire('cs', 'minus', 'switch', 'source'), wire('cpu', 'D2', 'switch', 'gate'))
+  return c
+}
+
+function resolveExternal(c, external) {
+  return resolveSignals(c.components, prepareCircuit(c.components, c.wires), external)
+}
+
 describe('A8 multi-primary DC foundation', () => {
+  it.each([
+    ['NPN_TRANSISTOR', 'collector', 'emitter', 'base'],
+    ['NMOS', 'drain', 'source', 'gate'],
+  ])('CR1 preserves independent externally controlled %s during a primary conflict', (type, positive, negative, control) => {
+    const valid = domain('c', 'BATTERY_AA', 'plus', 'minus')
+    valid.components.push({ uid: 'switch', type }, { uid: 'idle', type }, { uid: 'cpu', type: 'ARDUINO' })
+    valid.wires.push(wire('cs', 'plus', 'switch', positive), wire('cs', 'minus', 'switch', negative),
+      wire('cs', 'plus', 'idle', positive), wire('cs', 'minus', 'idle', negative),
+      wire('cpu', 'D2', 'switch', control))
+    const external = new Map([['cpu:D2', 'HIGH']])
+    const before = resolveSignals(valid.components, prepareCircuit(valid.components, valid.wires), external)
+    expect(before.dcAnalysis.get('switch')).toEqual({ voltage: 1.5, current: 1.5 })
+    expect(before.dcAnalysis.get('idle')).toEqual({ voltage: 1.5, current: 0 })
+    const c = combine(independent(), valid)
+    c.wires.push(wire('as', '5V', 'bs', 'minus'))
+    const results = []
+    for (const reversed of [false, true]) {
+      const components = reversed ? [...c.components].reverse() : c.components
+      const wires = reversed ? [...c.wires].reverse() : c.wires
+      const prepared = prepareCircuit(components, wires)
+      const snapshot = structuredClone({ nets: prepared.nets, parent: prepared.uf.parent })
+      const result = resolveSignals(components, prepared, external)
+      expect([...result.pinSignals.values()].every(signal => signal === 'UNKNOWN')).toBe(true)
+      expect(result.dcVoltageDomains.get('as:5V')).toBeNull()
+      expect(result.dcAnalysis.has('ar')).toBe(false)
+      expect(result.dcAnalysis.has('br')).toBe(false)
+      expect(result.dcAnalysis.get('switch')).toEqual(before.dcAnalysis.get('switch'))
+      expect(result.dcAnalysis.get('idle')).toEqual(before.dcAnalysis.get('idle'))
+      expect({ nets: prepared.nets, parent: prepared.uf.parent }).toEqual(snapshot)
+      results.push(normalize(result))
+    }
+    expect(results[0]).toEqual(results[1])
+  })
+  it.each(['HIGH', 'LOW', 'UNKNOWN', 'FLOATING'])('CR1 local control preserves %s without inventing a level', signal => {
+    const result = resolveExternal(controlledConflict(), new Map([['cpu:D2', signal]]))
+    expect(result.dcAnalysis.get('switch')).toEqual({ voltage: 1.5, current: signal === 'HIGH' ? 1.5 : 0 })
+    expect([...result.pinSignals.values()].every(value => value === 'UNKNOWN')).toBe(true)
+  })
+  it('CR1 preserves externally controlled multi-primary analysis without a primary conflict', () => {
+    const c = controlledConflict()
+    c.wires = c.wires.filter(w => w.fromUid !== 'as' || w.toUid !== 'bs')
+    const result = resolveExternal(c, new Map([['cpu:D2', 'HIGH']]))
+    expect(result.dcAnalysis.get('switch')).toEqual({ voltage: 1.5, current: 1.5 })
+    expect(result.pinSignals.get('switch:gate')).toBe('HIGH')
+    expect(result.pinSignals.get('cpu:D3')).toBe('FLOATING')
+  })
+  it('CR1 contradictory controls on the same physical net remain blocked in either order', () => {
+    const c = controlledConflict()
+    for (const entries of [[['cpu:D2', 'HIGH'], ['switch:gate', 'LOW']], [['switch:gate', 'LOW'], ['cpu:D2', 'HIGH']]]) {
+      expect(resolveExternal(c, new Map(entries)).dcAnalysis.get('switch')).toEqual({ voltage: 1.5, current: 0 })
+    }
+  })
+  it.each([['as', '5V'], ['bs', 'plus']])('CR1 external control cannot override conflicting or foreign numeric evidence on %s:%s', (uid, pin) => {
+    const c = controlledConflict()
+    c.wires.push(wire(uid, pin, 'switch', 'gate'))
+    const result = resolveExternal(c, new Map([['cpu:D2', 'HIGH']]))
+    expect(result.dcAnalysis.has('switch')).toBe(false)
+    expect(result.dcAnalysis.get('cr')).toEqual(analysis(1.5))
+  })
+  it('CR1 numeric authority takes precedence over opposing external control', () => {
+    const c = controlledConflict()
+    c.wires.push(wire('cs', 'minus', 'switch', 'gate'))
+    expect(resolveExternal(c, new Map([['cpu:D2', 'HIGH']])).dcAnalysis.get('switch'))
+      .toEqual({ voltage: 1.5, current: 0 })
+  })
+  it('CR1 digital evidence can never replace a missing power terminal', () => {
+    const c = controlledConflict()
+    c.wires = c.wires.filter(w => w.toPin !== 'drain')
+    expect(resolveExternal(c, new Map([['cpu:D2', 'HIGH'], ['switch:drain', 'HIGH']])).dcAnalysis.has('switch')).toBe(false)
+  })
+  it('CR1 local control also selects existing conditional conduction for numeric domain propagation', () => {
+    const c = controlledConflict()
+    c.components.push({ uid: 'load', type: 'LDR' })
+    c.wires = c.wires.filter(w => w.toPin !== 'drain')
+    c.wires.push(wire('cs', 'plus', 'load', 'A'), wire('load', 'B', 'switch', 'drain'))
+    for (const components of [c.components, [...c.components].reverse()]) {
+      const result = resolveExternal({ components, wires: c.wires }, new Map([['cpu:D2', 'HIGH']]))
+      expect(result.dcAnalysis.get('load')).toEqual({ voltage: 1.5, current: 1.5 / 10000 })
+    }
+    expect(resolveExternal(c, new Map([['cpu:D2', 'LOW']])).dcAnalysis.has('load')).toBe(false)
+  })
   it('T1 preserves exact single-source analysis', () => {
     expect([...resolve(domain('a')).dcAnalysis]).toEqual([['ar', analysis(5)]])
   })

@@ -82,14 +82,18 @@ export function resolveSignals(components, prepared, externalSignals = null) {
     .sort((a, b) => a.uid.localeCompare(b.uid))
     .map((comp) => ({ comp, contract: getDcVoltageDomainContribution(comp.type) }))
     .filter(({ contract }) => contract !== null)
-  const dcVoltageDomains = resolveDcVoltageDomains(components, prepared, sources, domainContributors, pinSignals)
+  const dcControlSignals = sources.length > 1
+    ? resolveDcControlSignals(prepared, externalSignals) : new Map()
+  const dcTopologySignals = new Map([...pinSignals, ...dcControlSignals])
+  const dcVoltageDomains = resolveDcVoltageDomains(components, prepared, sources, domainContributors, dcTopologySignals)
   // Numeric facts carry their own voltage and physical reference. Multiple
   // primaries therefore use the same local authority checks as derived domains;
   // a conflict on one net does not erase evidence on independent nets. Digital
   // source-conflict refusal remains unchanged, independently of DC analysis.
   const dcAnalysis = sources.length > 0
     ? computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains,
-      sources.length === 1 && domainContributors.length === 0 ? sources[0].source.voltage : null)
+      sources.length === 1 && domainContributors.length === 0 ? sources[0].source.voltage : null,
+      dcControlSignals)
     : new Map()
   return { pinSignals, dcAnalysis, dcVoltageDomains }
 }
@@ -340,7 +344,27 @@ function buildPinSignalMap(comp, uf, pinSignals) {
   return map
 }
 
-function computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains, legacyVoltage) {
+/**
+ * External controls are evidence on existing physical nets, never a voltage
+ * authority. Conflicting external levels remain UNKNOWN, independent of order.
+ * Numeric facts (including null conflicts) take precedence at consumption.
+ * This local context never changes public digital conflict refusal.
+ */
+function resolveDcControlSignals(prepared, externalSignals) {
+  const signals = new Map()
+  if (!externalSignals) return signals
+  for (const keys of prepared.nets.values()) {
+    const levels = new Set(keys.filter(key => externalSignals.has(key)).map(key => externalSignals.get(key)))
+    if (levels.size === 0) continue
+    const [level] = levels
+    const signal = levels.size === 1 && (level === Signal.HIGH || level === Signal.LOW)
+      ? level : Signal.UNKNOWN
+    for (const key of keys) signals.set(key, signal)
+  }
+  return signals
+}
+
+function computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains, legacyVoltage, dcControlSignals) {
   const { uf } = prepared
   const dcAnalysis = new Map()
 
@@ -374,7 +398,9 @@ function computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains, l
       for (const pin of Object.keys(pins)) {
         const value = dcVoltageDomains.get(uf.key(comp.uid, pin))
         pins[pin] = value && value.reference === local.reference
-          ? (value.voltage > 0 ? Signal.HIGH : Signal.LOW) : Signal.UNKNOWN
+          ? (value.voltage > 0 ? Signal.HIGH : Signal.LOW)
+          : value === undefined && contribute.controlPinIds?.includes(pin)
+            ? (dcControlSignals.get(uf.key(comp.uid, pin)) ?? Signal.UNKNOWN) : Signal.UNKNOWN
       }
     }
     const contribution = contribute({ pins, params, supplyVoltage })
