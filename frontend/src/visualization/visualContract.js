@@ -130,6 +130,8 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'RELAY', box: [288, 288], physicalMm: [19.1, 15.3], ref: 'SONGLE SRD body width/height maxima, excludes leads; indicative front-view scale. https://nafcom.es/fotos_pdt/108.RL001/Relay_datasheet.pdf p1', impliedUnitsPerMm: 288 / 19.1 },
   // Frozen pixel dimensions only; no physical millimetre calibration is asserted.
   { type: 'VOLTAGE_REGULATOR', box: [144, 288], physicalMm: null, ref: 'L7805CV TO-220 Founder frozen raster; physical scale uncalibrated', impliedUnitsPerMm: null },
+  // Frozen pixel dimensions only; no physical millimetre calibration is asserted.
+  { type: 'H_BRIDGE', box: [144, 288], physicalMm: null, ref: 'L293D DIP-16 Founder frozen raster; physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'PMOS', box: [144, 288], physicalMm: [10.54, 29.33], ref: 'IRF9540N TO-220AB width/body/lead maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 29.33 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },

@@ -1,0 +1,85 @@
+{
+  "component": "H_BRIDGE",
+  "assetStatus": "FOUNDER_PASS_FROZEN",
+  "variant": "default",
+  "referenceDevice": "L293D",
+  "package": "DIP-16",
+  "runtimeView": "front",
+  "files": {
+    "1x": {
+      "png": "h-bridge.default.1x.png",
+      "webp": "h-bridge.default.1x.webp",
+      "width": 144,
+      "height": 288
+    },
+    "3x": {
+      "png": "h-bridge.default.3x.png",
+      "webp": "h-bridge.default.3x.webp",
+      "width": 432,
+      "height": 864
+    },
+    "reference": "REFERENCE.png"
+  },
+  "notes": [
+    "Founder-approved visual reference.",
+    "REFERENCE.png preserves the complete approved multi-view sheet.",
+    "Runtime files use only the approved front view.",
+    "Pin semantics, H-bridge behavior and PhysicalContacts are not frozen by this asset-only pack.",
+    "Pixel-probe and breadboard-fit qualification are required before integration."
+  ],
+  "backend": "raster",
+  "complexity": "complex",
+  "budget": {
+    "complexity": "complex",
+    "maxWeightKbPerVariant": 575
+  },
+  "states": [
+    "default"
+  ],
+  "canonical": {
+    "width": 144,
+    "height": 288
+  },
+  "assets": [
+    {
+      "file": "h-bridge.default.1x.png",
+      "state": "default",
+      "scale": 1,
+      "format": "png",
+      "width": 144,
+      "height": 288,
+      "bytes": 66636,
+      "sha256": "c569093ef2eff2857ccb7f1be2a078fb116262c653ab1830c69dbc6568a5e290"
+    },
+    {
+      "file": "h-bridge.default.1x.webp",
+      "state": "default",
+      "scale": 1,
+      "format": "webp",
+      "width": 144,
+      "height": 288,
+      "bytes": 46232,
+      "sha256": "1ee9026cd693497b0e6f6540807239d83f56689df1e51dadd3b6dcd483c70a6f"
+    },
+    {
+      "file": "h-bridge.default.3x.png",
+      "state": "default",
+      "scale": 3,
+      "format": "png",
+      "width": 432,
+      "height": 864,
+      "bytes": 583178,
+      "sha256": "d3d36c26020832ce02ae8cde7d19f8eea8f467b70b821bb37a1558c93c6d3508"
+    },
+    {
+      "file": "h-bridge.default.3x.webp",
+      "state": "default",
+      "scale": 3,
+      "format": "webp",
+      "width": 432,
+      "height": 864,
+      "bytes": 392690,
+      "sha256": "ef50b613aaae09095ae032e7f62afd17442bfaa7945cc93d8147ea9e89eff402"
+    }
+  ]
+}

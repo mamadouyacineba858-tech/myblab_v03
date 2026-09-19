@@ -124,6 +124,26 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "GND", label: "GND", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
     { id: "OUT", label: "OUT", dx: 84, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "OUT", dx: 84, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A8-H-BRIDGE : L293D DIP-16. 13 pins ELECTRIQUES, 16 PhysicalContacts : les 4 broches
+  // physiques GND (4, 5, 12, 13) sont 4 contacts du MEME pin electrique GND. Grille
+  // DIP deterministe (BREADBOARD_PITCH = 12) : rangee gauche x=30 (broches 1..8, haut -> bas),
+  // rangee droite x=114 (broches 9..16, bas -> haut), pas longitudinal 12, ecartement
+  // 84 = 7 x pitch. Geometrie mecanique NON derivee de l'alpha du raster (cf. assemblyProfiles.js).
+  H_BRIDGE: [
+    { id: "EN12", label: "EN12", dx: 30, dy: 102, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "EN12", dx: 30, dy: 102, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1A", label: "1A", dx: 30, dy: 114, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1A", dx: 30, dy: 114, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1Y", label: "1Y", dx: 30, dy: 126, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1Y", dx: 30, dy: 126, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 30, dy: 138, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND4", dx: 30, dy: 138, wireConnectable: true, breadboardInsertable: true }, { id: "GND5", dx: 30, dy: 150, wireConnectable: true, breadboardInsertable: true }, { id: "GND12", dx: 114, dy: 150, wireConnectable: true, breadboardInsertable: true }, { id: "GND13", dx: 114, dy: 138, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2Y", label: "2Y", dx: 30, dy: 162, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2Y", dx: 30, dy: 162, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2A", label: "2A", dx: 30, dy: 174, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2A", dx: 30, dy: 174, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC2", label: "VCC2", dx: 30, dy: 186, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC2", dx: 30, dy: 186, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "EN34", label: "EN34", dx: 114, dy: 186, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "EN34", dx: 114, dy: 186, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3A", label: "3A", dx: 114, dy: 174, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3A", dx: 114, dy: 174, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3Y", label: "3Y", dx: 114, dy: 162, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3Y", dx: 114, dy: 162, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4Y", label: "4Y", dx: 114, dy: 126, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4Y", dx: 114, dy: 126, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4A", label: "4A", dx: 114, dy: 114, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4A", dx: 114, dy: 114, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC1", label: "VCC1", dx: 114, dy: 102, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC1", dx: 114, dy: 102, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   PMOS: [
     { id: "drain", label: "D", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "drain", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
     { id: "gate", label: "G", dx: 60, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "gate", dx: 60, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
@@ -581,6 +601,7 @@ export const COMPONENT_TYPES = {
   // ids canoniques A/K imposés par le pack Founder (voir
   // dcContributionRegistry.js).
   ZENER_DIODE: { id: "ZENER_DIODE", label: "Diode Zener", icon: "⊳|", width: 144, height: 72, pins: buildPins("ZENER_DIODE") },
+  H_BRIDGE: { id: "H_BRIDGE", label: "Pont en H L293D", icon: "H_BRIDGE", width: 144, height: 288, pins: buildPins("H_BRIDGE") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -607,7 +628,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

@@ -163,6 +163,41 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 118 },
   },
+  // A8-H-BRIDGE : L293D DIP-16 (asset raster Founder PASS/FROZEN 144x288). Les 16
+  // PhysicalContacts suivent la grille DIP deterministe de componentDefinitions.js
+  // (x=30/114, pas 12) : ils ne sont PAS derives de l'alpha du raster, dont les
+  // pattes cuites ne s'isolent pas en 16 racines. Une root par contact physique, posee
+  // sur le bord lateral du corps mesure (x=32 a gauche, x=133 a droite, meme y que le
+  // contact) ; aucun bodyClip, le raster n'est ni deforme ni retouche.
+  // Le pin electrique GND porte 4 contacts (GND4/GND5/GND12/GND13) : root/style du pin
+  // = repli, contacts = une root par patte physique (contrat generique per-contact).
+  H_BRIDGE: {
+    kind: "through-hole",
+    leads: {
+      EN12: { root: { dx: 32, dy: 102 }, style: "metallic-wire" },
+      "1A": { root: { dx: 32, dy: 114 }, style: "metallic-wire" },
+      "1Y": { root: { dx: 32, dy: 126 }, style: "metallic-wire" },
+      GND: {
+        root: { dx: 32, dy: 138 },
+        style: "metallic-wire",
+        contacts: {
+          GND4: { root: { dx: 32, dy: 138 } },
+          GND5: { root: { dx: 32, dy: 150 } },
+          GND12: { root: { dx: 133, dy: 150 } },
+          GND13: { root: { dx: 133, dy: 138 } },
+        },
+      },
+      "2Y": { root: { dx: 32, dy: 162 }, style: "metallic-wire" },
+      "2A": { root: { dx: 32, dy: 174 }, style: "metallic-wire" },
+      VCC2: { root: { dx: 32, dy: 186 }, style: "metallic-wire" },
+      EN34: { root: { dx: 133, dy: 186 }, style: "metallic-wire" },
+      "3A": { root: { dx: 133, dy: 174 }, style: "metallic-wire" },
+      "3Y": { root: { dx: 133, dy: 162 }, style: "metallic-wire" },
+      "4Y": { root: { dx: 133, dy: 126 }, style: "metallic-wire" },
+      "4A": { root: { dx: 133, dy: 114 }, style: "metallic-wire" },
+      VCC1: { root: { dx: 133, dy: 102 }, style: "metallic-wire" },
+    },
+  },
   PMOS: {
     kind: "through-hole",
     leads: {

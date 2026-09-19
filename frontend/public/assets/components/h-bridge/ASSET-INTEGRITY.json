@@ -1,0 +1,37 @@
+{
+  "component": "H_BRIDGE",
+  "files": {
+    "README.md": {
+      "sha256": "b6be26375d058a9c7c0dc39b82042d124052df1d5ae36a46ea57f146bd1c0b30",
+      "bytes": 936
+    },
+    "REFERENCE.md": {
+      "sha256": "069ef1373987b829a68b37625eebb1f1ca86dba80797199a4b78af343b8a1ea6",
+      "bytes": 1102
+    },
+    "REFERENCE.png": {
+      "sha256": "48bc2cc97e9d65f5f0216eb379eb00c8c5643392295388c244b749bc359b45fb",
+      "bytes": 2057609
+    },
+    "h-bridge.default.1x.png": {
+      "sha256": "c569093ef2eff2857ccb7f1be2a078fb116262c653ab1830c69dbc6568a5e290",
+      "bytes": 66636
+    },
+    "h-bridge.default.1x.webp": {
+      "sha256": "1ee9026cd693497b0e6f6540807239d83f56689df1e51dadd3b6dcd483c70a6f",
+      "bytes": 46232
+    },
+    "h-bridge.default.3x.png": {
+      "sha256": "d3d36c26020832ce02ae8cde7d19f8eea8f467b70b821bb37a1558c93c6d3508",
+      "bytes": 583178
+    },
+    "h-bridge.default.3x.webp": {
+      "sha256": "ef50b613aaae09095ae032e7f62afd17442bfaa7945cc93d8147ea9e89eff402",
+      "bytes": 392690
+    },
+    "manifest.json": {
+      "sha256": "0e0ced195340187a590cfa6bc792faecca83d8c75e5908d6e3aadbe5bbfed66a",
+      "bytes": 2191
+    }
+  }
+}

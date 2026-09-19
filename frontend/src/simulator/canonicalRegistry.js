@@ -131,11 +131,15 @@ const DECLARED_TYPES_PINS = {
   // — PAS `anode`/`cathode` comme DIODE, dénomination imposée par l'asset.
   // Même rôle input/output que DIODE (§6/§18 du ticket).
   ZENER_DIODE:[{id:'A',role:'input'},{id:'K',role:'output'}],
+  // A8-H-BRIDGE : L293D DIP-16 — 13 pins ELECTRIQUES (les 4 broches physiques GND 4/5/12/13
+  // sont 4 PhysicalContacts du MEME pin GND, cf. componentDefinitions.js).
+  H_BRIDGE:[{id:'EN12',role:'input'},{id:'1A',role:'input'},{id:'1Y',role:'output'},{id:'GND',role:'ground'},{id:'2Y',role:'output'},{id:'2A',role:'input'},{id:'VCC2',role:'power'},{id:'EN34',role:'input'},{id:'3A',role:'input'},{id:'3Y',role:'output'},{id:'4Y',role:'output'},{id:'4A',role:'input'},{id:'VCC1',role:'power'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE']
 
 const DECLARED_PARAMETER_SCHEMA = {
+  H_BRIDGE:[],
   VOLTAGE_REGULATOR:[{key:'outputVoltage',parameterType:'voltage',unit:'V',minimum:0.001,maximum:1000,defaultValue:5,description:'Tension de sortie DC idéale Level-1, disponible si la tension IN est au moins égale à cette valeur.'}],
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
   COIN_CELL_CR2032:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:3,maximum:3,defaultValue:3,description:'Tension nominale fixe de la pile'}],
@@ -336,6 +340,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   HC_SR04:{distanceCm:100},
   INDUCTOR:{inductance:0.001},
   ZENER_DIODE:{forwardVoltage:0.7,onResistance:10,breakdownVoltage:5.1,breakdownResistance:10},
+  H_BRIDGE:{},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -398,6 +403,8 @@ const DECLARED_CAPABILITIES = {
   // DIODE), même patron exact que DIODE ci-dessus (TEST G4,
   // componentLibraryRolloutGate).
   ZENER_DIODE:['digital','dc'],
+  // A8-H-BRIDGE : Level-1 = conduction conditionnelle generique + domaines DC (aucune contribution DC propre).
+  H_BRIDGE:['digital'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -432,6 +439,7 @@ const DECLARED_MODEL_AVAILABLE = {
   HC_SR04:true,
   INDUCTOR:true,
   ZENER_DIODE:true,
+  H_BRIDGE:true,
 }
 
 /**
