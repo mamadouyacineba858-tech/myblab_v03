@@ -53,11 +53,11 @@ export function resolveSignals(components, prepared, externalSignals = null) {
   const { uf, nets } = prepared
   const { pinSignals, sources, conflictingNet } = seedSourceDrivenPinSignals(components, prepared)
 
-  if (conflictingNet) {
+  if (conflictingNet && sources.length === 1) {
     return { pinSignals, dcAnalysis: new Map(), dcVoltageDomains: new Map() }
   }
 
-  if (externalSignals) {
+  if (!conflictingNet && externalSignals) {
     for (const [key, signal] of externalSignals) {
       if (pinSignals.has(key) && pinSignals.get(key) === Signal.UNKNOWN) {
         pinSignals.set(key, signal)
@@ -69,7 +69,7 @@ export function resolveSignals(components, prepared, externalSignals = null) {
   propagateNetSignal(nets, pinSignals, Signal.LOW)
 
   for (const comp of components) {
-    if (comp.type !== "ARDUINO") continue
+    if (conflictingNet || comp.type !== "ARDUINO") continue
     for (const pinId of ["D2", "D3"]) {
       const k = uf.key(comp.uid, pinId)
       if (pinSignals.get(k) === Signal.UNKNOWN) pinSignals.set(k, Signal.FLOATING)
@@ -83,11 +83,13 @@ export function resolveSignals(components, prepared, externalSignals = null) {
     .map((comp) => ({ comp, contract: getDcVoltageDomainContribution(comp.type) }))
     .filter(({ contract }) => contract !== null)
   const dcVoltageDomains = resolveDcVoltageDomains(components, prepared, sources, domainContributors, pinSignals)
-  // Keep the historical multi-primary-source refusal. Derived authorities do
-  // not count as independent primary sources.
-  const dcAnalysis = sources.length === 1
+  // Numeric facts carry their own voltage and physical reference. Multiple
+  // primaries therefore use the same local authority checks as derived domains;
+  // a conflict on one net does not erase evidence on independent nets. Digital
+  // source-conflict refusal remains unchanged, independently of DC analysis.
+  const dcAnalysis = sources.length > 0
     ? computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains,
-      domainContributors.length === 0 ? sources[0].source.voltage : null)
+      sources.length === 1 && domainContributors.length === 0 ? sources[0].source.voltage : null)
     : new Map()
   return { pinSignals, dcAnalysis, dcVoltageDomains }
 }
@@ -152,7 +154,8 @@ function seedSourceDrivenPinSignals(components, prepared) {
   }
 
   // Preserve non-ambiguous digital signals, including separate source terminals.
-  // Opposing seeded levels on one net refuse the entire resolution, independent of order.
+  // Opposing seeded levels refuse all source-driven digital signals, independent
+  // of order. Numeric DC authorities are resolved separately by physical net.
   const conflictingNet = [...nets.values()].some((keys) =>
     keys.some((k) => pinSignals.get(k) === Signal.HIGH)
     && keys.some((k) => pinSignals.get(k) === Signal.LOW))
@@ -357,7 +360,7 @@ function computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains, l
     const pins = buildPinSignalMap(comp, uf, pinSignals)
     // Preserve the historical single-source approximation (including series
     // loads and externally driven controls) when no domain producer exists.
-    // Once a producer is present, there is NEVER a global-voltage fallback.
+    // With multiple primaries or a producer, there is no global fallback.
     let supplyVoltage = legacyVoltage
     if (legacyVoltage === null) {
       const values = Object.keys(pins).map((pin) => dcVoltageDomains.get(uf.key(comp.uid, pin)))

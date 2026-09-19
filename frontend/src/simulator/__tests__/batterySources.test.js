@@ -58,12 +58,14 @@ describe('FT-C-BAT-001 generic DC sources', () => {
     expect(resolveSignals(components, prepared, new Map([['r:A', 'HIGH'], ['r:B', 'LOW']])).dcAnalysis.size).toBe(0)
     expect(getDcSource(components[0])).toBeNull()
   })
-  it.each([['POWER', 'BATTERY_9V'], ['BATTERY_AA', 'COIN_CELL_CR2032'], ['BATTERY_9V', 'BATTERY_9V']])('multiple sources %s/%s refuse analysis in either order', (a,b) => {
+  it.each([['POWER', 'BATTERY_9V'], ['BATTERY_AA', 'COIN_CELL_CR2032'], ['BATTERY_9V', 'BATTERY_9V']])('an unrelated source %s/%s preserves local analysis in either order', (a,b) => {
     const c = circuit(a)
     c.components.push({ uid: 's2', type: b })
     for (const components of [c.components, [...c.components].reverse()]) {
       const result = resolve({ ...c, components })
-      expect(result.dcAnalysis.size).toBe(0)
+      expect(result.dcAnalysis.size).toBe(1)
+      const voltage = getDcSource(c.components[0]).voltage
+      expect(result.dcAnalysis.get('r')).toEqual({ voltage, current: voltage / 220 })
       expect(result.pinSignals.get('r:A')).toBe('HIGH')
       expect(result.pinSignals.get('r:B')).toBe('LOW')
       expect(runSimulation(components, c.wires)).toBeInstanceOf(Map)

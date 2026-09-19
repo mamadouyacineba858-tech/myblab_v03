@@ -39,7 +39,7 @@ describe('MB-CF2-SIM-001 architecture', () => {
  */
 describe('MB-SIM-008 v2 — contribution DC générique', () => {
   const DC_COMPONENT_TYPES = [
-    'RESISTOR', 'LDR', 'THERMISTOR', 'DIODE', 'DC_MOTOR', 'CAPACITOR', 'POTENTIOMETER', 'NPN_TRANSISTOR',
+    'RESISTOR', 'LDR', 'THERMISTOR', 'DIODE', 'DC_MOTOR', 'CAPACITOR', 'POTENTIOMETER', 'NPN_TRANSISTOR', 'H_BRIDGE',
   ]
 
   it('resolution.js ne contient aucune branche spécifique à un type de composant DC', () => {
