@@ -120,21 +120,18 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 118 },
   },
-  // RELAY: deterministic alpha>=128 scan at y240, intervals
-  // [53,68], [132,142], [179,189], [228,238]. Midpoints are measured
-  // mechanical roots only. Electrical assignment is a functional routing
-  // convention, never inferred from the front photo or decorative numbers.
-  // NC is the fifth footprint connection, hidden in this projection: no
-  // measured root is claimed. Generic root=target fallback draws no fifth lead.
-  // No clipping: all frozen raster pixels survive; contacts lie below its bbox.
+  // A8-RELAY-R1 — the Founder Canvas Gate showed that projecting the four
+  // visible front-view raster legs onto the five functional breadboard
+  // contacts creates long/crossed synthetic diagonals. The frozen raster
+  // already contains the only mechanically observed legs; the fifth contact
+  // is hidden in this projection. Keep the through-hole profile so assembly
+  // geometry still resolves all five PhysicalContacts, but provide no
+  // synthetic visual roots: generic root=target fallback yields zero-length
+  // presentation segments and therefore invents no extra leg.
+  // Electrical/PhysicalContact truth remains in componentDefinitions.js.
   RELAY: {
     kind: "through-hole",
-    leads: {
-      coilA: { root: { dx: 60.5, dy: 240 }, style: "metallic-wire" },
-      coilB: { root: { dx: 137, dy: 240 }, style: "metallic-wire" },
-      common: { root: { dx: 184, dy: 240 }, style: "metallic-wire" },
-      normallyOpen: { root: { dx: 233, dy: 240 }, style: "metallic-wire" },
-    },
+    leads: {},
   },
   PMOS: {
     kind: "through-hole",
