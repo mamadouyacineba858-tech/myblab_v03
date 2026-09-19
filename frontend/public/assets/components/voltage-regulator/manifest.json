@@ -27,5 +27,60 @@
     "Runtime files use only the approved front view.",
     "Electrical behavior and PhysicalContacts are intentionally not frozen by this asset-only pack.",
     "Pixel-probe and breadboard-fit qualification are required before integration."
+  ],
+  "backend": "raster",
+  "complexity": "complex",
+  "budget": {
+    "complexity": "complex",
+    "maxWeightKbPerVariant": 425
+  },
+  "states": [
+    "default"
+  ],
+  "canonical": {
+    "width": 144,
+    "height": 288
+  },
+  "assets": [
+    {
+      "file": "voltage-regulator.default.1x.png",
+      "state": "default",
+      "scale": 1,
+      "format": "png",
+      "width": 144,
+      "height": 288,
+      "bytes": 50869,
+      "sha256": "f6d7f7c9bb78aee6b8050201accd590a4064c2eec04975522ddcd4725e492ccf"
+    },
+    {
+      "file": "voltage-regulator.default.1x.webp",
+      "state": "default",
+      "scale": 1,
+      "format": "webp",
+      "width": 144,
+      "height": 288,
+      "bytes": 32974,
+      "sha256": "1aff0d2402b87821d8f9dcf98c9c0c13441d360887420c1128350722d00cc326"
+    },
+    {
+      "file": "voltage-regulator.default.3x.png",
+      "state": "default",
+      "scale": 3,
+      "format": "png",
+      "width": 432,
+      "height": 864,
+      "bytes": 424801,
+      "sha256": "ee7bc9e2f50febd9afebd87901b744b98cd9acbe865e7cf933a0362e5f7713da"
+    },
+    {
+      "file": "voltage-regulator.default.3x.webp",
+      "state": "default",
+      "scale": 3,
+      "format": "webp",
+      "width": 432,
+      "height": 864,
+      "bytes": 274820,
+      "sha256": "2db5122c7f8d1f6d230ee2c17a148fde204b053df9141b67ec9282e02e0ad454"
+    }
   ]
 }

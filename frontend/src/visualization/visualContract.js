@@ -128,6 +128,8 @@ export const SCALE_REFERENCE = Object.freeze([
   // Infineon IRF9540NPbF datasheet p8: TO-220AB width 10.54, body 15.24 + leads 14.09 mm.
   // https://www.infineon.com/dgdl/Infineon-IRF9540N-DataSheet-v01_01-EN.pdf?fileId=5546d462533600a401535611cfa21dc8
   { type: 'RELAY', box: [288, 288], physicalMm: [19.1, 15.3], ref: 'SONGLE SRD body width/height maxima, excludes leads; indicative front-view scale. https://nafcom.es/fotos_pdt/108.RL001/Relay_datasheet.pdf p1', impliedUnitsPerMm: 288 / 19.1 },
+  // Frozen pixel dimensions only; no physical millimetre calibration is asserted.
+  { type: 'VOLTAGE_REGULATOR', box: [144, 288], physicalMm: null, ref: 'L7805CV TO-220 Founder frozen raster; physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'PMOS', box: [144, 288], physicalMm: [10.54, 29.33], ref: 'IRF9540N TO-220AB width/body/lead maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 29.33 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },
@@ -380,6 +382,8 @@ export const RENDER_BUDGET = Object.freeze({
     // cohérente avec la marge ~8.1 Ko laissée par A7-C3).
     maxWeightKbPerVariantSimple: 30,
     maxWeightKbPerVariantComplex: 175,
+    // CR-1: explicit manifest requests may exceed the normal cap, never this bound.
+    maxWeightKbPerVariantExceptional: 425,
     maxVariants: 8,           // ex. RGB_LED : combinaisons r/g/b
     resolutions: 2,           // @1x + @3x
     maxDimensionPx: 1024,     // cote le plus long de l'asset @3x

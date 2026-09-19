@@ -18,7 +18,7 @@
  * T7 (cohérence des matériaux/conventions) n'a pas de test : aucune
  * convention n'existe encore à vérifier (voir §6 du contrat).
  */
-import React from "react"
+import React from "react" // eslint-disable-line no-unused-vars -- Vitest classic JSX transform.
 import { describe, it, expect } from "vitest"
 import { render, act } from "@testing-library/react"
 import { readFileSync, existsSync, statSync } from "node:fs"
@@ -27,7 +27,8 @@ import { fileURLToPath } from "node:url"
 import { dirname, resolve } from "node:path"
 
 import { COMPONENT_TYPES } from "../config/componentDefinitions.js"
-import { DEFAULT_REGISTRATIONS, getComponentByType, getComponentPresentation } from "../visualization/defaultRegistrations.js"
+import { getComponentByType, getComponentPresentation } from "../visualization/defaultRegistrations.js"
+import { getRasterWeightLimitKb } from '../visualization/rasterBudget.js'
 import { RENDER_BUDGET } from "../visualization/visualContract.js"
 import { CircuitProvider } from "../context/CircuitContext.jsx"
 import { useCircuit } from "../context/useCircuit.js"
@@ -75,7 +76,7 @@ describe("MB-VIS-RENDER-009 — TEST T1 : présence du contrat de qualité", () 
 describe("MB-VIS-RENDER-009 — TEST T2/T3 : cohérence dimensions/pins au niveau du conteneur CircuitComponent", () => {
   const circuitWrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
 
-  function Harness({ type, onReady }) {
+  function Harness({ onReady }) {
     const circuit = useCircuit()
     // MB-VIS-CANVAS-051 : `components` (componentsForRender) est désormais
     // exposé par useCircuitInteraction() (state haute fréquence) — fusionné
@@ -193,7 +194,6 @@ describe("MB-VIS-RENDER-009 — TEST T6 : absence de nouveau branchement génér
       const codeOnly = stripComments(readFileSync(path, "utf-8"))
       const found = [...codeOnly.matchAll(TYPE_BRANCH_PATTERN)].map((m) => m[2])
       const allowed = [...(KNOWN_EXCEPTIONS[key] ?? [])]
-      const unexpected = [...found]
       for (const type of found) {
         const idx = allowed.indexOf(type)
         if (idx !== -1) allowed.splice(idx, 1)
@@ -374,22 +374,13 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       const integrity = existsSync(integPath)
         ? (() => {
             const raw = JSON.parse(readFileSync(integPath, "utf-8"))
-            const list = Array.isArray(raw) ? raw : Array.isArray(raw.files) ? raw.files : []
+            const list = Array.isArray(raw) ? raw : Array.isArray(raw.files) ? raw.files
+              : Object.entries(raw.files ?? {}).map(([file, metadata]) => ({ ...metadata, file }))
             return new Map(list.map((r) => [r.file, r]))
           })()
         : null
 
-      // budget de poids : `complexe` si le manifeste le déclare explicitement,
-      // OU si le paquet embarque plusieurs états visuels émissifs (ex. LED :
-      // l'état `on` porte la luminescence cuite dans l'asset, nettement plus
-      // lourde qu'un passif matte — RENDER_BUDGET.raster est explicitement
-      // `provisional`, `confirmBy: MB-VIS-PROTOTYPE-001..003`). Sinon `simple`.
-      const cap =
-        manifest.complexity === "complex" ||
-        manifest.budget?.complexity === "complex" ||
-        stateCount > 1
-          ? RENDER_BUDGET.raster.maxWeightKbPerVariantComplex
-          : RENDER_BUDGET.raster.maxWeightKbPerVariantSimple
+      const cap = getRasterWeightLimitKb(manifest)
 
       for (const entry of imageEntries) {
         const p = resolve(dir, entry.file)

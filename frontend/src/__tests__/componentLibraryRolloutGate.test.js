@@ -1,3 +1,4 @@
+import { hasDcVoltageDomainContribution } from '../simulator/dcVoltageDomainRegistry.js'
 import { getDcSource } from '../simulator/dcSourceRegistry.js'
 /**
  * componentLibraryRolloutGate.test.js — MB-VIS-COMP-008 (Phase 4, TEST G1-G10)
@@ -79,14 +80,14 @@ describe("MB-VIS-COMP-008 — TEST G1-G4 : cohérence croisée des registres dé
     expect(paletteIds.length).toBe(ALL_COMPONENT_TYPES.length)
   })
 
-  it("G4 : chaque type canonique avec modelAvailable=true ET capability 'dc' a une contribution DC enregistrée (dcContributionRegistry.js), sinon computeDcAnalysis() l'ignorerait silencieusement (aucune erreur, mais composant électriquement inerte)", () => {
-    // Registered DC sources seed signals; consumers contribute DC analysis.
+  it("G4 : chaque modèle DC est une source primaire, une contribution DC ou un producteur de domaine dérivé", () => {
+    // DC models register as primary sources, loads or derived voltage-domain producers.
     const missing = getAllCanonicalTypes().filter((type) => {
       if (getDcSource({ type })) return false
       const entry = getCanonicalEntry(type)
-      return entry.modelAvailable && entry.capabilities?.includes("dc") && !hasDcContribution(type)
+      return entry.modelAvailable && entry.capabilities?.includes("dc") && !hasDcContribution(type) && !hasDcVoltageDomainContribution(type)
     })
-    expect(missing, `type(s) "dc" sans contribution DC enregistrée : ${missing.join(", ")}`).toEqual([])
+    expect(missing, `type(s) "dc" sans source, contribution DC ou domaine dérivé enregistré : ${missing.join(", ")}`).toEqual([])
   })
 })
 

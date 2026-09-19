@@ -20,6 +20,7 @@ const DECLARED_TYPES_PINS = {
   PNP_TRANSISTOR:[{id:'collector',role:'input'},{id:'base',role:'input'},{id:'emitter',role:'output'}],
   NMOS:[{id:'drain',role:'input'},{id:'gate',role:'input'},{id:'source',role:'output'}],
   RELAY:[{id:'coilA',role:'passive'},{id:'coilB',role:'passive'},{id:'common',role:'switch'},{id:'normallyClosed',role:'switch'},{id:'normallyOpen',role:'switch'}],
+  VOLTAGE_REGULATOR:[{id:'IN',role:'input'},{id:'GND',role:'ground'},{id:'OUT',role:'output'}],
   PMOS:[{id:'drain',role:'input'},{id:'gate',role:'input'},{id:'source',role:'output'}],
   SERVO:[{id:'signal',role:'gpio'},{id:'vcc',role:'power'},{id:'gnd',role:'ground'}],
   DC_MOTOR:[{id:'plus',role:'input'},{id:'minus',role:'input'}],
@@ -132,9 +133,10 @@ const DECLARED_TYPES_PINS = {
   ZENER_DIODE:[{id:'A',role:'input'},{id:'K',role:'output'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE']
 
 const DECLARED_PARAMETER_SCHEMA = {
+  VOLTAGE_REGULATOR:[{key:'outputVoltage',parameterType:'voltage',unit:'V',minimum:0.001,maximum:1000,defaultValue:5,description:'Tension de sortie DC idéale Level-1, disponible si la tension IN est au moins égale à cette valeur.'}],
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
   COIN_CELL_CR2032:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:3,maximum:3,defaultValue:3,description:'Tension nominale fixe de la pile'}],
   BATTERY_9V:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:9,maximum:9,defaultValue:9,description:'Tension nominale fixe de la pile'}],
@@ -322,6 +324,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   PNP_TRANSISTOR:{onResistance:1},
   NMOS:{onResistance:1},
   PMOS:{onResistance:1},
+  VOLTAGE_REGULATOR:{outputVoltage:5},
   RELAY:{coilResistance:69.4},
   TMP36:{outputVoltage:0.75},
   FORCE_SENSOR:{resistance:1000000},
@@ -355,6 +358,7 @@ const DECLARED_CAPABILITIES = {
   PNP_TRANSISTOR:['digital','dc'],
   NMOS:['digital','dc'],
   PMOS:['digital','dc'],
+  VOLTAGE_REGULATOR:['dc'],
   RELAY:['digital','dc'],
   TMP36:['digital','dc'],
   FORCE_SENSOR:['digital','dc'],
@@ -416,6 +420,7 @@ const DECLARED_MODEL_AVAILABLE = {
   PNP_TRANSISTOR:true,
   NMOS:true,
   PMOS:true,
+  VOLTAGE_REGULATOR:true,
   RELAY:true,
   TMP36:true,
   FORCE_SENSOR:true,

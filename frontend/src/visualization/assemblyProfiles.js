@@ -133,6 +133,15 @@ const ASSEMBLY_PROFILES = {
     kind: "through-hole",
     leads: {},
   },
+  VOLTAGE_REGULATOR: {
+    kind: "through-hole",
+    leads: {
+      IN: { root: { dx: 42, dy: 170 }, style: "metallic-wire" },
+      GND: { root: { dx: 72, dy: 170 }, style: "metallic-wire" },
+      OUT: { root: { dx: 103, dy: 170 }, style: "metallic-wire" },
+    },
+    bodyClip: { bottom: 118 },
+  },
   PMOS: {
     kind: "through-hole",
     leads: {

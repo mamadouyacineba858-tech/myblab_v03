@@ -110,9 +110,9 @@ describe('A8 derived DC voltage domains', () => {
     expect(prepared.uf).toBe(uf)
     expect({ nets, parent: uf.parent, allKeys: prepared.allKeys, ...c }).toEqual(snapshot)
   })
-  it('T-DV10 has no production regulator or domain contributor', () => {
-    expect(getCanonicalEntry('VOLTAGE_REGULATOR')).toBeFalsy()
-    expect(getDcVoltageDomainContribution('VOLTAGE_REGULATOR')).toBeNull()
+  it('T-DV10 keeps unknown types outside both registries', () => {
+    expect(getCanonicalEntry('UNKNOWN_DOMAIN_PRODUCER')).toBeFalsy()
+    expect(getDcVoltageDomainContribution('UNKNOWN_DOMAIN_PRODUCER')).toBeNull()
   })
   it('does not invent a common reference between isolated circuits', () => {
     const c = circuit()
