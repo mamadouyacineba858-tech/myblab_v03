@@ -201,13 +201,16 @@ describe("A7-C3-PREQ — T14 : les composants EFFECTIFS (post applyEnvironmental
     const withoutStimulus = runSimulationWithRuntime(components, [], { digitalContributionRegistry: fixture })
     expect(seen[0]).toBe(10000)
     expect(withoutStimulus.get("s1:B")).toBe(Signal.LOW)
+    expect(seen.every(value => value === 10000)).toBe(true)
+    seen.length = 0 // A9 may evaluate a pure contribution on several rounds.
 
     const withStimulus = runSimulationWithRuntime(components, [], {
       digitalContributionRegistry: fixture,
       environmentalStimuli: { LIGHT: 1 },
     })
     // LIGHT=1 -> résistance effective LDR = borne minimum (100 Ω, cf. canonicalRegistry.js) < 5000
-    expect(seen[1]).toBeLessThan(5000)
+    expect(seen.length).toBeGreaterThan(0)
+    expect(seen.every(value => value < 5000)).toBe(true)
     expect(withStimulus.get("s1:B")).toBe(Signal.HIGH)
   })
 })

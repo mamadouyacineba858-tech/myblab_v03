@@ -50,23 +50,13 @@ import { resolveComponentParameters } from "./resolveComponentParameters.js"
  *   dans pinSignals.
  */
 export function resolveSignals(components, prepared, externalSignals = null) {
-  const { uf, nets } = prepared
-  const { pinSignals, sources, conflictingNet } = seedSourceDrivenPinSignals(components, prepared)
+  const { uf } = prepared
+  const { pinSignals: seededSignals, sources, conflictingNet } = seedSourceDrivenPinSignals(components, prepared)
+  const pinSignals = projectDigitalPinSignals(prepared, seededSignals, conflictingNet ? null : externalSignals)
 
   if (conflictingNet && sources.length === 1) {
     return { pinSignals, dcAnalysis: new Map(), dcVoltageDomains: new Map() }
   }
-
-  if (!conflictingNet && externalSignals) {
-    for (const [key, signal] of externalSignals) {
-      if (pinSignals.has(key) && pinSignals.get(key) === Signal.UNKNOWN) {
-        pinSignals.set(key, signal)
-      }
-    }
-  }
-
-  propagateNetSignal(nets, pinSignals, Signal.HIGH)
-  propagateNetSignal(nets, pinSignals, Signal.LOW)
 
   for (const comp of components) {
     if (conflictingNet || comp.type !== "ARDUINO") continue
@@ -109,7 +99,10 @@ export function resolveSignals(components, prepared, externalSignals = null) {
  * Exécute UNIQUEMENT : découverte des sources DC (getDcSource), seeding
  * HIGH/LOW de leurs bornes, détection de conflit HIGH+LOW sur un même net
  * (jamais "powered" dans ce cas), puis propagation par nets — rien d'autre :
- * ni externalSignals, ni fallback ARDUINO→FLOATING, ni propagation passive
+ * Sans troisième argument, aucune autorité externe. A9-LOGIC-PREQ permet
+ * aussi de projeter les autorités digitales du step via `externalSignals`,
+ * avec la même priorité et propagation que resolveSignals(). Aucun fallback
+ * ARDUINO→FLOATING, ni propagation passive
  * dérivée (RESISTOR...), ni dcAnalysis, ni resolveSignals() elle-même (§4 :
  * "ne PAS exécuter conduction passive / sorties numériques calculées /
  * Runtime / Scheduler / dcAnalysis / resolveSignals complet").
@@ -122,16 +115,36 @@ export function resolveSignals(components, prepared, externalSignals = null) {
  *
  * @param {Array<{ uid, type, x, y, pins? }>} components
  * @param {{ uf, nets, allKeys }} prepared
- * @returns {Map<string, string>} pinSignals — Signal.HIGH/Signal.LOW
- *   uniquement pour les pins déterministement établies par une source DC et
- *   la topologie physique des nets ; Signal.UNKNOWN pour toute autre pin, et
+ * @param {Map<string, string>|null} [externalSignals] Autorités digitales
+ *   optionnelles, injectées avant propagation, sans résolution électrique.
+ * @returns {Map<string, string>} pinSignals — niveaux établis par les sources
+ *   DC, les autorités externes optionnelles et la topologie physique des
+ *   nets ; Signal.UNKNOWN pour toute autre pin, et
  *   pour TOUTES les pins si un conflit HIGH/LOW est détecté sur un même net
  *   (jamais un état "powered" en cas de conflit, §4 du ticket).
  */
-export function resolveSourceDrivenPinSignals(components, prepared) {
+export function resolveSourceDrivenPinSignals(components, prepared, externalSignals = null) {
   const { pinSignals, conflictingNet } = seedSourceDrivenPinSignals(components, prepared)
   if (conflictingNet) return pinSignals
 
+  return projectDigitalPinSignals(prepared, pinSignals, externalSignals)
+}
+
+/**
+ * Shared digital-only projection: source pin priority, external injection,
+ * then historical HIGH-before-LOW propagation into UNKNOWN pins. Distinct
+ * driven pins retain their levels, even on the same net. No passive/DC solve,
+ * Union-Find access, FLOATING promotion or mutation of the supplied baseline.
+ */
+function projectDigitalPinSignals(prepared, baseline, externalSignals) {
+  const pinSignals = new Map(baseline)
+  if (externalSignals) {
+    for (const [key, signal] of externalSignals) {
+      if (pinSignals.has(key) && pinSignals.get(key) === Signal.UNKNOWN) {
+        pinSignals.set(key, signal)
+      }
+    }
+  }
   propagateNetSignal(prepared.nets, pinSignals, Signal.HIGH)
   propagateNetSignal(prepared.nets, pinSignals, Signal.LOW)
   return pinSignals
@@ -300,11 +313,11 @@ function propagateSelectedPairs(selectedPairs, prepared, pinSignals) {
   }
 }
 
-function signalMapsEqual(a, b, keys) {
+export function signalMapsEqual(a, b, keys) {
   return keys.every((key) => a.get(key) === b.get(key))
 }
 
-function signalMapSignature(signals, keys) {
+export function signalMapSignature(signals, keys) {
   return keys.map((key) => `${key.length}:${key}=${signals.get(key) ?? Signal.UNKNOWN}`).join('|')
 }
 

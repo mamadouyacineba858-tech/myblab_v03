@@ -30,10 +30,13 @@
  *   mêmes defaults canoniques + overrides d'instance validés que
  *   `dcContributionRegistry.js`).
  * - `pinSignals` [A7-C3-PREQ2] : `{ pinId: Signal }`, les propres pins du
- *   composant PRÉ-résolues UNIQUEMENT depuis les sources DC et la topologie
- *   physique (`resolveSourceDrivenPinSignals`, resolution.js — AVANT toute
- *   conduction passive, sortie numérique calculée, Runtime ou résolution
- *   complète). Un contributeur qui a besoin de connaître l'état d'alimentation
+ *   composant dans le contexte digital du round courant : sources DC,
+ *   autorités Runtime/temporelles déjà produites pour le step et sorties
+ *   stateless du round précédent, propagées sur les nets physiques. La
+ *   composition A9-LOGIC-PREQ réévalue cette fonction pure jusqu'à stabilité,
+ *   AVANT toute conduction passive ou résolution électrique complète.
+ *   Aucun résultat ni état privé ne doit persister entre ces évaluations.
+ *   Un contributeur qui a besoin de connaître l'état d'alimentation
  *   de son propre composant (ex. "VCC=HIGH et GND=LOW requis") le lit ici de
  *   façon générique — voir `soilMoistureSensorDigital` ci-dessous pour le
  *   premier exemple réel de ce patron.

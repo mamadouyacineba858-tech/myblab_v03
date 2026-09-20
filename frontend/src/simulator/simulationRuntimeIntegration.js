@@ -18,7 +18,7 @@ export const SIMULATION_STEP_MS = 16
 // eslint-disable-next-line no-unused-vars
 import { runSimulation } from "./engine.js"
 import { prepareCircuit } from "./preparation.js"
-import { resolveSignals, resolveSourceDrivenPinSignals } from "./resolution.js"
+import { resolveSignals, resolveSourceDrivenPinSignals, signalMapsEqual, signalMapSignature } from "./resolution.js"
 import { createRuntimeOrchestrator } from "./runtimeOrchestrator.js"
 import { createScheduler } from "./scheduler.js"
 import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
@@ -107,14 +107,12 @@ export function circuitRequiresRuntime(components) {
  * Pure, synchrone : ne lit ni Scheduler ni Runtime, ne mute jamais
  * `effectiveComponents`.
  *
- * A7-C3-PREQ2 (§6/§7 du ticket) : le contexte de contribution est étendu
- * d'un champ `pinSignals` — les propres pins du composant, PRÉ-résolues
- * uniquement depuis les sources DC et la topologie physique
- * (`resolveSourceDrivenPinSignals`, resolution.js — même primitive que
- * resolveSignals(), §5), AVANT toute conduction passive, sortie numérique
- * calculée, Runtime ou résolution complète. Un contributeur peut ainsi
- * refuser de produire (retourner `null`) si son composant n'est pas
- * correctement alimenté (ex. `pinSignals.VCC !== Signal.HIGH`).
+ * `pinSignals` contient les propres pins du composant dans le contexte
+ * digital fourni. A9-LOGIC-PREQ appelle cet évaluateur une fois par round
+ * avec sources DC, autorités du step et sorties du round précédent déjà
+ * propagées. Cet évaluateur ne résout rien lui-même. Un contributeur peut
+ * refuser de produire (retourner `null`) si son alimentation ou ses entrées
+ * ne sont pas déterminées.
  * `sourceDrivenSignals` reste un 3e paramètre optionnel (défaut : Map vide,
  * donc `pinSignals` entièrement UNKNOWN) pour que tout appel historique de
  * cette fonction (§21 : PREQ tests existants) continue de fonctionner à
@@ -124,12 +122,11 @@ export function circuitRequiresRuntime(components) {
  *   déjà soumis à `applyEnvironmentalStimuli()` (§8 du ticket : ce Registry
  *   ne reçoit donc jamais les paramètres persistants bruts).
  * @param {{ hasDigitalContribution: (type: string) => boolean, getDigitalContribution: (type: string) => import('./digitalContributionRegistry.js').DigitalContributionFn | null }} digitalRegistry
- *   Par défaut le Registry de production (table vide dans ce ticket) ;
+ *   Par défaut le Registry de production ;
  *   injectable pour test (§13 du ticket), sans jamais passer par
  *   `canonicalRegistry.js` ni polluer la table de production.
- * @param {Map<string, string>} [sourceDrivenSignals] `resolveSourceDrivenPinSignals()`
- *   (résolution.js), clé "uid:pinId" — défaut Map vide (aucune pin connue
- *   comme alimentée, comportement historique PREQ1 inchangé).
+ * @param {Map<string, string>} [sourceDrivenSignals] Contexte digital du
+ *   round, clé "uid:pinId" — défaut Map vide (comportement historique).
  * @returns {Map<string, string>}
  */
 export function computeComponentDigitalSignals(effectiveComponents, digitalRegistry = {
@@ -160,6 +157,39 @@ export function computeComponentDigitalSignals(effectiveComponents, digitalRegis
   }
 
   return produced
+}
+
+/**
+ * A9-LOGIC-PREQ: compose the existing stateless contract on physical nets.
+ * Each synchronous round reads one complete digital context and projects its
+ * new outputs from the original sources + step authorities, never from prior
+ * outputs. Only resolution.js owns net propagation; no passive or DC solving
+ * takes place here. Runtime/timed authorities are data, not clocks to advance.
+ *
+ * The pin-count + 1 bound accommodates arbitrary acyclic cascade depth plus
+ * its stability check. It is a work budget, not a proof that every possible
+ * feedback circuit converges: repeated states or exhaustion discard ALL
+ * provisional stateless outputs. The caller retains the base authorities.
+ * No result or convergence history survives this call.
+ */
+export function computeCombinationalDigitalSignals(components, prepared, digitalRegistry, baseExternalSignals = new Map()) {
+  const ordered = [...components].sort((a, b) => a.uid.localeCompare(b.uid))
+  let previous = resolveSourceDrivenPinSignals(ordered, prepared, baseExternalSignals)
+  const seen = new Set([signalMapSignature(previous, prepared.allKeys)])
+  const maxIterations = prepared.allKeys.length + 1
+
+  for (let iteration = 0; iteration < maxIterations; iteration++) {
+    const outputs = computeComponentDigitalSignals(ordered, digitalRegistry, previous)
+    const authorities = mergeExternalSignals([baseExternalSignals, outputs])
+    const candidate = resolveSourceDrivenPinSignals(ordered, prepared, authorities)
+    if (signalMapsEqual(candidate, previous, prepared.allKeys)) return outputs
+
+    const signature = signalMapSignature(candidate, prepared.allKeys)
+    if (seen.has(signature)) return new Map()
+    seen.add(signature)
+    previous = candidate
+  }
+  return new Map()
 }
 
 /**
@@ -483,19 +513,14 @@ function computeElectricalStep(components, wires, options = {}) {
   // primitive partagée avec resolveSignals() (§5 : source unique de vérité).
   const sourceDrivenSignals = resolveSourceDrivenPinSignals(effectiveComponents, prepared)
 
-  // A7-C3-PREQ (§2/§6/§7 du ticket) : le Registry générique de sorties
-  // numériques calculées est consulté pour TOUS les composants, Runtime ou
-  // non — un futur capteur environnemental producteur de logique calculée
-  // (humidité du sol, mouvement, inclinaison, récepteur infrarouge, ...)
-  // produit un signal externe même en
-  // l'ABSENCE de tout ARDUINO dans le circuit (contrairement au mécanisme
-  // Runtime, câblé en dur sur ARDUINO ci-dessus). Calculé AVANT le GATE 0 :
-  // sa taille conditionne, au même titre que runtimeComponents, si le
-  // chemin historique `runSimulation()` peut encore être emprunté tel quel.
-  // A7-C3-PREQ2 : reçoit désormais `sourceDrivenSignals` (§6/§7 du ticket) —
-  // chaque contributeur peut consulter son propre état alimenté AVANT de
-  // produire (ou refuser de produire) sa sortie.
-  const computedDigitalSignals = computeComponentDigitalSignals(effectiveComponents, options.digitalContributionRegistry, sourceDrivenSignals)
+  // Detect contributors without evaluating them before the step authorities
+  // exist. A registered contributor may initially return no output and still
+  // become driven by another contributor later in this same step.
+  const digitalRegistry = options.digitalContributionRegistry ?? {
+    hasDigitalContribution: defaultHasDigitalContribution,
+    getDigitalContribution: defaultGetDigitalContribution,
+  }
+  const hasDigitalComponents = effectiveComponents.some((c) => c && digitalRegistry.hasDigitalContribution(c.type))
 
   // A7-C5-PREQ (§6/§14 du ticket) : le Registry générique de sorties
   // numériques TEMPORELLES (stateful, dépendantes du temps simulé) est
@@ -554,7 +579,7 @@ function computeElectricalStep(components, wires, options = {}) {
   // continue d'être appelable directement (I-A4-19).
   if (
     runtimeComponents.length === 0
-    && computedDigitalSignals.size === 0
+    && !hasDigitalComponents
     && timedDigitalComponents.length === 0
     && transientComponents.length === 0
   ) {
@@ -705,7 +730,11 @@ function computeElectricalStep(components, wires, options = {}) {
   // que `runtimeSignals`/`computedDigitalSignals`, avec la même politique de
   // collision explicite (`mergeExternalSignals`, aucun last-write-wins
   // silencieux).
-  const externalSignals = mergeExternalSignals([runtimeSignals, computedDigitalSignals, timedDigitalSignals])
+  const baseExternalSignals = mergeExternalSignals([runtimeSignals, timedDigitalSignals])
+  const computedDigitalSignals = hasDigitalComponents
+    ? computeCombinationalDigitalSignals(effectiveComponents, prepared, digitalRegistry, baseExternalSignals)
+    : new Map()
+  const externalSignals = mergeExternalSignals([baseExternalSignals, computedDigitalSignals])
   const { pinSignals, dcAnalysis } = resolveElectricalSignals(effectiveComponents, prepared, externalSignals)
   // A4-D-PREQ2 (§4 du ticket) : `electricalAnalysis` compose `dcAnalysis`
   // (steady-state, cette MÊME résolution — I-A4-17) avec
