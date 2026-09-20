@@ -124,25 +124,26 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "GND", label: "GND", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
     { id: "OUT", label: "OUT", dx: 84, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "OUT", dx: 84, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
   ],
-  // A8-H-BRIDGE : L293D DIP-16. 13 pins ELECTRIQUES, 16 PhysicalContacts : les 4 broches
-  // physiques GND (4, 5, 12, 13) sont 4 contacts du MEME pin electrique GND. Grille
-  // DIP deterministe (BREADBOARD_PITCH = 12) : rangee gauche x=30 (broches 1..8, haut -> bas),
-  // rangee droite x=114 (broches 9..16, bas -> haut), pas longitudinal 12, ecartement
-  // 84 = 7 x pitch. Geometrie mecanique NON derivee de l'alpha du raster (cf. assemblyProfiles.js).
+  // A8-H-BRIDGE : L293D DIP-16, raster Founder PASS/FROZEN tourne de 90 deg (derive runtime
+  // isotrope 132x88, encoche a gauche, broche 1 en bas a gauche). 13 pins ELECTRIQUES, 16
+  // PhysicalContacts : les 4 broches physiques GND (4, 5, 12, 13) sont 4 contacts du MEME pin
+  // electrique GND. DIP reel a cheval sur la rainure de STANDARD_V1 : rangee basse y=68
+  // (broches 1..8, gauche -> droite), rangee haute y=20 (broches 16..9, gauche -> droite),
+  // pas 12, ecartement 48 = 4 x pitch. x = 25 + 12k = centres de pattes mesures (pixel-probe).
   H_BRIDGE: [
-    { id: "EN12", label: "EN12", dx: 30, dy: 102, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "EN12", dx: 30, dy: 102, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "1A", label: "1A", dx: 30, dy: 114, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1A", dx: 30, dy: 114, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "1Y", label: "1Y", dx: 30, dy: 126, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1Y", dx: 30, dy: 126, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "GND", label: "GND", dx: 30, dy: 138, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND4", dx: 30, dy: 138, wireConnectable: true, breadboardInsertable: true }, { id: "GND5", dx: 30, dy: 150, wireConnectable: true, breadboardInsertable: true }, { id: "GND12", dx: 114, dy: 150, wireConnectable: true, breadboardInsertable: true }, { id: "GND13", dx: 114, dy: 138, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "2Y", label: "2Y", dx: 30, dy: 162, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2Y", dx: 30, dy: 162, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "2A", label: "2A", dx: 30, dy: 174, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2A", dx: 30, dy: 174, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "VCC2", label: "VCC2", dx: 30, dy: 186, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC2", dx: 30, dy: 186, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "EN34", label: "EN34", dx: 114, dy: 186, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "EN34", dx: 114, dy: 186, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "3A", label: "3A", dx: 114, dy: 174, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3A", dx: 114, dy: 174, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "3Y", label: "3Y", dx: 114, dy: 162, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3Y", dx: 114, dy: 162, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "4Y", label: "4Y", dx: 114, dy: 126, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4Y", dx: 114, dy: 126, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "4A", label: "4A", dx: 114, dy: 114, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4A", dx: 114, dy: 114, wireConnectable: true, breadboardInsertable: true }] },
-    { id: "VCC1", label: "VCC1", dx: 114, dy: 102, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC1", dx: 114, dy: 102, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "EN12", label: "EN12", dx: 25, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "EN12", dx: 25, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1A", label: "1A", dx: 37, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1A", dx: 37, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1Y", label: "1Y", dx: 49, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1Y", dx: 49, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 61, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND4", dx: 61, dy: 68, wireConnectable: true, breadboardInsertable: true }, { id: "GND5", dx: 73, dy: 68, wireConnectable: true, breadboardInsertable: true }, { id: "GND12", dx: 73, dy: 20, wireConnectable: true, breadboardInsertable: true }, { id: "GND13", dx: 61, dy: 20, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2Y", label: "2Y", dx: 85, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2Y", dx: 85, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2A", label: "2A", dx: 97, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2A", dx: 97, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC2", label: "VCC2", dx: 109, dy: 68, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC2", dx: 109, dy: 68, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "EN34", label: "EN34", dx: 109, dy: 20, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "EN34", dx: 109, dy: 20, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3A", label: "3A", dx: 97, dy: 20, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3A", dx: 97, dy: 20, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3Y", label: "3Y", dx: 85, dy: 20, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3Y", dx: 85, dy: 20, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4Y", label: "4Y", dx: 49, dy: 20, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4Y", dx: 49, dy: 20, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4A", label: "4A", dx: 37, dy: 20, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4A", dx: 37, dy: 20, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC1", label: "VCC1", dx: 25, dy: 20, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC1", dx: 25, dy: 20, wireConnectable: true, breadboardInsertable: true }] },
   ],
   PMOS: [
     { id: "drain", label: "D", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "drain", dx: 72, dy: 204, wireConnectable: true, breadboardInsertable: true }] },
@@ -601,7 +602,7 @@ export const COMPONENT_TYPES = {
   // ids canoniques A/K imposés par le pack Founder (voir
   // dcContributionRegistry.js).
   ZENER_DIODE: { id: "ZENER_DIODE", label: "Diode Zener", icon: "⊳|", width: 144, height: 72, pins: buildPins("ZENER_DIODE") },
-  H_BRIDGE: { id: "H_BRIDGE", label: "Pont en H L293D", icon: "H_BRIDGE", width: 144, height: 288, pins: buildPins("H_BRIDGE") },
+  H_BRIDGE: { id: "H_BRIDGE", label: "Pont en H L293D", icon: "H_BRIDGE", width: 132, height: 88, pins: buildPins("H_BRIDGE") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.

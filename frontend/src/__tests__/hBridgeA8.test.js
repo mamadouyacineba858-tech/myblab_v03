@@ -12,7 +12,8 @@ import { Signal } from '../simulator/signals.js'
 import { createComponent, getComponentDef, PALETTE_ITEMS } from '../config/componentDefinitions.js'
 import { resolveContacts, resolveWireConnectableContacts, resolveBreadboardInsertableContacts } from '../utils/contactModel.js'
 import { resolveAssemblyGeometry } from '../utils/assemblyGeometry.js'
-import { BREADBOARD_PITCH } from '../utils/breadboardGeometry.js'
+import { BREADBOARD_PITCH, resolveComponentContactHoles } from '../utils/breadboardGeometry.js'
+import { computeBreadboardPlacement } from '../utils/breadboardPlacementAdapter.js'
 import { getAssemblyProfile } from '../visualization/assemblyProfiles.js'
 import { DEFAULT_REGISTRATIONS } from '../visualization/defaultRegistrations.js'
 
@@ -21,20 +22,21 @@ const here = dirname(fileURLToPath(import.meta.url))
 const src = (...p) => readFileSync(resolve(here, '..', ...p), 'utf8')
 
 const ELECTRICAL_PINS = ['EN12', '1A', '1Y', 'GND', '2Y', '2A', 'VCC2', 'EN34', '3A', '3Y', '4Y', '4A', 'VCC1']
-// Physical DIP-16 pin number -> { pin (electrical), contact id, x, y } (CSA-locked mechanical contract).
+// Physical DIP-16 pin number -> { pin (electrical), contact id, x, y }: real DIP straddling the STANDARD_V1 trench,
+// bottom row = pins 1..8 (left to right), top row = pins 16..9 (left to right), notch at left.
 const DIP = [
-  [1, 'EN12', 'EN12', 30, 102], [2, '1A', '1A', 30, 114], [3, '1Y', '1Y', 30, 126], [4, 'GND', 'GND4', 30, 138],
-  [5, 'GND', 'GND5', 30, 150], [6, '2Y', '2Y', 30, 162], [7, '2A', '2A', 30, 174], [8, 'VCC2', 'VCC2', 30, 186],
-  [9, 'EN34', 'EN34', 114, 186], [10, '3A', '3A', 114, 174], [11, '3Y', '3Y', 114, 162], [12, 'GND', 'GND12', 114, 150],
-  [13, 'GND', 'GND13', 114, 138], [14, '4Y', '4Y', 114, 126], [15, '4A', '4A', 114, 114], [16, 'VCC1', 'VCC1', 114, 102],
+  [1, 'EN12', 'EN12', 25, 68], [2, '1A', '1A', 37, 68], [3, '1Y', '1Y', 49, 68], [4, 'GND', 'GND4', 61, 68],
+  [5, 'GND', 'GND5', 73, 68], [6, '2Y', '2Y', 85, 68], [7, '2A', '2A', 97, 68], [8, 'VCC2', 'VCC2', 109, 68],
+  [9, 'EN34', 'EN34', 109, 20], [10, '3A', '3A', 97, 20], [11, '3Y', '3Y', 85, 20], [12, 'GND', 'GND12', 73, 20],
+  [13, 'GND', 'GND13', 61, 20], [14, '4Y', '4Y', 49, 20], [15, '4A', '4A', 37, 20], [16, 'VCC1', 'VCC1', 25, 20],
 ]
 
 describe('C — canonical contract', () => {
   const def = getComponentDef(type)
-  it('C1/C2 exists once in the canonical registry with a 144x288 box', () => {
+  it('C1/C2 exists once in the canonical registry with a 132x88 box', () => {
     expect(getAllCanonicalTypes().filter(t => t === type)).toHaveLength(1)
     expect(getCanonicalEntry(type)).toMatchObject({ type, modelAvailable: true, capabilities: ['digital'], defaultParameters: {} })
-    expect([def.width, def.height]).toEqual([144, 288])
+    expect([def.width, def.height]).toEqual([132, 88])
     expect(PALETTE_ITEMS.filter(p => p.id === type)).toHaveLength(1)
     expect(createComponent(type, 10, 20)).toMatchObject({ type, x: 10, y: 20, pins: def.pins })
   })
@@ -74,20 +76,22 @@ describe('P — DIP-16 physical fit', () => {
       expect(c, `${pinId}/${contactId}`).toMatchObject({ dx, dy })
     }
   })
-  it('P1 has two rows of 8 contacts', () => {
-    expect(all.filter(c => c.dx === 30)).toHaveLength(8)
-    expect(all.filter(c => c.dx === 114)).toHaveLength(8)
+  it('P1/H4 has two rows of 8 contacts', () => {
+    expect(all.filter(c => c.dy === 68)).toHaveLength(8)
+    expect(all.filter(c => c.dy === 20)).toHaveLength(8)
+    expect(all).toHaveLength(16)
   })
-  it('P2 has an exact longitudinal pitch of 12 px', () => {
-    for (const x of [30, 114]) {
-      const ys = all.filter(c => c.dx === x).map(c => c.dy).sort((a, b) => a - b)
-      expect(ys).toEqual([102, 114, 126, 138, 150, 162, 174, 186])
-      ys.slice(1).forEach((y, i) => expect(y - ys[i]).toBe(BREADBOARD_PITCH))
+  it('P2/H5 has an exact pitch of 12 px within each row', () => {
+    for (const y of [68, 20]) {
+      const xs = all.filter(c => c.dy === y).map(c => c.dx).sort((a, b) => a - b)
+      expect(xs).toEqual([25, 37, 49, 61, 73, 85, 97, 109])
+      xs.slice(1).forEach((x, i) => expect(x - xs[i]).toBe(BREADBOARD_PITCH))
     }
   })
-  it('P3 separates the rows by 84 px = 7 x pitch', () => {
-    expect(114 - 30).toBe(7 * BREADBOARD_PITCH)
+  it('P3/H6 keeps two physically distinct rows, 48 px = 4 x pitch apart', () => {
+    expect(68 - 20).toBe(4 * BREADBOARD_PITCH)
     expect(BREADBOARD_PITCH).toBe(12)
+    expect(new Set(all.map(c => c.dy)).size).toBe(2)
   })
   it('P4 puts every contact on one breadboard grid (same phase modulo the pitch)', () => {
     const phase = c => [c.dx % BREADBOARD_PITCH, c.dy % BREADBOARD_PITCH].join(':')
@@ -132,21 +136,91 @@ describe('GND-ASSEMBLY — generic per-contact leads consumed as is', () => {
   })
   it('GND-ASSEMBLY-4 gives four distinct roots, one per physical lead', () => {
     expect(new Set(gndContacts.map(c => `${c.root.x},${c.root.y}`)).size).toBe(4)
-    expect(gndContacts.map(c => [c.root.x, c.root.y])).toEqual([[32, 138], [32, 150], [133, 150], [133, 138]])
-    expect(gndContacts.map(c => [c.target.x, c.target.y])).toEqual([[30, 138], [30, 150], [114, 150], [114, 138]])
+    expect(gndContacts.map(c => [c.root.x, c.root.y])).toEqual([[60.5, 69.4], [72.5, 69.4], [73.2, 17.8], [61.2, 17.8]])
+    expect(gndContacts.map(c => [c.target.x, c.target.y])).toEqual([[61, 68], [73, 68], [73, 20], [61, 20]])
   })
   it('GND-ASSEMBLY-5 never replaces the electrical identity by the contactId', () => {
     for (const c of geometry.contacts) expect(ELECTRICAL_PINS).toContain(c.pinId)
     expect(geometry.contacts.map(c => c.pinId)).not.toContain('GND4')
   })
-  it('gives every other pin a single root on its own row and the metallic style', () => {
-    for (const [, pinId, contactId, , dy] of DIP) {
+  it('H7 gives every contact its own root on its measured leg foot, in the metallic style', () => {
+    for (const [, pinId, contactId] of DIP) {
       const c = geometry.contacts.find(k => k.contactId === contactId)
       expect(c.pinId).toBe(pinId)
-      expect(c.root.y).toBe(dy)
+      expect(Math.abs(c.root.x - c.target.x)).toBeLessThanOrEqual(1)
+      expect(Math.abs(c.root.y - c.target.y)).toBeLessThanOrEqual(2.5)
+      expect(c.root.y === c.target.y && c.root.x === c.target.x).toBe(false)
       expect(c.style).toBe('metallic-wire')
     }
     expect(getAssemblyProfile(type).bodyClip).toBeUndefined()
+    expect(new Set(geometry.contacts.map(c => `${c.root.x},${c.root.y}`)).size).toBe(16)
+  })
+})
+
+describe('HBR-PHYS-16/16 — real DIP insertion on STANDARD_V1', () => {
+  const bb = { id: 'bb', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' }
+  const def = getComponentDef(type)
+  const contactDy = Object.fromEntries(def.pins.flatMap(resolveContacts).map(c => [c.id, c.dy]))
+  // Every origin of a small window that resolves all 16 contacts, one row per side of the central trench.
+  const straddling = []
+  for (let x = -30; x <= 10; x++) {
+    for (let y = 30; y <= 60; y++) {
+      const { results } = resolveComponentContactHoles(bb, def.pins, { x, y })
+      if (results.length !== 16 || !results.every(r => r.resolved)) continue
+      const holes = results.map(r => r.hole)
+      const sideOf = dy => new Set(results.filter(r => contactDy[r.contactId] === dy).map(r => r.hole.groupKey.split(':').pop()))
+      const bottomGroups = sideOf(68)
+      const topGroups = sideOf(20)
+      if (holes.every(h => h.kind === 'STRIP') && bottomGroups.size === 1 && topGroups.size === 1 && bottomGroups.has('bottom') && topGroups.has('top')) straddling.push({ x, y, holes })
+    }
+  }
+  it('H8 resolves all 16 PhysicalContacts on STANDARD_V1, one row on each side of the trench', () => {
+    expect(straddling.length).toBeGreaterThan(0)
+    const { holes } = straddling[0]
+    expect(new Set(holes.map(h => `${h.column}:${h.row}`)).size).toBe(16) // 16 distinct holes
+    expect(new Set(holes.map(h => h.row)).size).toBe(2)
+    const [rowA, rowB] = [...new Set(holes.map(h => h.row))].sort((a, b) => a - b)
+    expect(rowB - rowA).toBe(4)
+    for (const row of [rowA, rowB]) {
+      const columns = holes.filter(h => h.row === row).map(h => h.column).sort((a, b) => a - b)
+      expect(columns).toHaveLength(8)
+      columns.slice(1).forEach((column, i) => expect(column - columns[i]).toBe(1))
+    }
+  })
+  it('H8/H10 computeBreadboardPlacement reports compatible, valid and 16 resolved holes (no wire-only fallback)', () => {
+    const { x, y } = straddling[0]
+    const placement = computeBreadboardPlacement(bb, type, { x, y }, [])
+    expect(placement).toMatchObject({ compatible: true, valid: true, breadboardActive: true })
+    expect(placement.holes).toHaveLength(16)
+    expect(placement.holes.every(h => h.column !== null && h.row !== null)).toBe(true)
+    expect(placement.holes.filter(h => h.pinId === 'GND').map(h => h.contactId).sort()).toEqual(['GND12', 'GND13', 'GND4', 'GND5'])
+  })
+  it('H9 resolveAssemblyGeometry confirms inserted=true with 16 resolved contacts', () => {
+    const { x, y } = straddling[0]
+    const placement = computeBreadboardPlacement(bb, type, { x, y }, [])
+    const component = createComponent(type, placement.position.x, placement.position.y)
+    const g = resolveAssemblyGeometry(component, bb)
+    expect(g.inserted).toBe(true)
+    expect(g.contacts).toHaveLength(16)
+    expect(g.contacts.every(c => c.hole !== null && c.holePosition !== null)).toBe(true)
+    for (const c of g.contacts) {
+      expect(Math.abs(c.holePosition.x - c.target.x)).toBeLessThanOrEqual(2)
+      expect(Math.abs(c.holePosition.y - c.target.y)).toBeLessThanOrEqual(2)
+    }
+    expect(g.contacts.filter(c => c.pinId === 'GND')).toHaveLength(4)
+  })
+  it('H8b a grid-aligned origin exists (all contacts exactly on hole centres)', () => {
+    const aligned = straddling.filter(({ x, y }) => (x + 25) % 12 === 0 && (y + 20) % 12 === 0)
+    expect(aligned.length).toBeGreaterThan(0)
+    const { x, y } = aligned[0]
+    const g = resolveAssemblyGeometry(createComponent(type, x, y), bb)
+    expect(g.inserted).toBe(true)
+    for (const c of g.contacts) expect(c.holePosition).toEqual(c.target)
+  })
+  it('H11 does not require any H_BRIDGE knowledge in the breadboard geometry or placement code', () => {
+    for (const file of ['breadboardGeometry.js', 'breadboardPlacementAdapter.js', 'contactModel.js']) {
+      expect(src('utils', file)).not.toMatch(/H_BRIDGE|HBridge|L293/)
+    }
   })
 })
 
@@ -331,5 +405,34 @@ describe('AR — generic architecture only', () => {
     expect(DEFAULT_REGISTRATIONS.find(r => r.type === type).visual).toEqual({ backend: 'raster' })
     expect(src('simulator', 'simulationRegistry.js')).toMatch(/HBridgeModel/)
     expect(src('simulator', 'dcContributionRegistry.js')).not.toMatch(/H_BRIDGE/)
+  })
+})
+
+describe('Two independent bridges', () => {
+  function twin() {
+    const components = [
+      { uid: 'logic', type: 'POWER', parameters: { voltage: 5 } }, { uid: 'm9', type: 'BATTERY_9V' },
+      { uid: 'm6', type: 'POWER', parameters: { voltage: 6 } }, { uid: 'hbA', type }, { uid: 'hbB', type },
+    ]
+    const wires = [
+      wire('m9', 'minus', 'logic', 'GND'), wire('m6', 'GND', 'logic', 'GND'),
+      wire('logic', 'GND', 'hbA', 'GND'), wire('logic', 'GND', 'hbB', 'GND'),
+      wire('logic', '5V', 'hbA', 'VCC1'), wire('logic', '5V', 'hbB', 'VCC1'),
+      wire('m9', 'plus', 'hbA', 'VCC2'), wire('m6', '5V', 'hbB', 'VCC2'),
+      wire('logic', '5V', 'hbA', 'EN12'), wire('logic', '5V', 'hbA', '1A'), wire('logic', 'GND', 'hbA', '2A'),
+      wire('logic', '5V', 'hbB', 'EN12'), wire('logic', 'GND', 'hbB', '1A'), wire('logic', '5V', 'hbB', '2A'),
+    ]
+    return { components, wires }
+  }
+  it('drives each bridge from its own VCC2 with its own controls', () => {
+    const r = solve(twin())
+    expect([level(r, '1Y', 'hbA'), level(r, '2Y', 'hbA'), level(r, '3Y', 'hbA')]).toEqual([9, 0, 'Z'])
+    expect([level(r, '1Y', 'hbB'), level(r, '2Y', 'hbB'), level(r, '3Y', 'hbB')]).toEqual([0, 6, 'Z'])
+  })
+  it('is independent of component and wire order', () => {
+    const c = twin()
+    const norm = r => JSON.stringify(Object.fromEntries(Object.entries(r).map(([k, m]) => [k, [...m].sort(([a], [b]) => a.localeCompare(b))])))
+    const expected = norm(solve(c))
+    expect(norm(solve({ components: [...c.components].reverse(), wires: [...c.wires].reverse() }))).toBe(expected)
   })
 })

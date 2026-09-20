@@ -2,36 +2,36 @@
   "component": "H_BRIDGE",
   "files": {
     "README.md": {
-      "sha256": "b6be26375d058a9c7c0dc39b82042d124052df1d5ae36a46ea57f146bd1c0b30",
-      "bytes": 936
-    },
-    "REFERENCE.md": {
-      "sha256": "069ef1373987b829a68b37625eebb1f1ca86dba80797199a4b78af343b8a1ea6",
-      "bytes": 1102
+      "sha256": "e07dc9b1bde80e52f7e36ad5c4f5306b956adcfd7b76b77e7d2e2e985978bb21",
+      "bytes": 604
     },
     "REFERENCE.png": {
-      "sha256": "48bc2cc97e9d65f5f0216eb379eb00c8c5643392295388c244b749bc359b45fb",
-      "bytes": 2057609
+      "sha256": "7b88f0c71c27a3cb9ed244e92bc9cec8772a07aa4e4bd966880906fd2b16596d",
+      "bytes": 1995161
+    },
+    "SHA256SUMS.txt": {
+      "sha256": "67cec15fbeeaee6497f3c6e3a787d73ba9a381bf661c086325d2f6f8af9a8798",
+      "bytes": 230
     },
     "h-bridge.default.1x.png": {
-      "sha256": "c569093ef2eff2857ccb7f1be2a078fb116262c653ab1830c69dbc6568a5e290",
-      "bytes": 66636
+      "sha256": "4d90b072b8d9df01c64e53dabd34d046251e1021ca8de4adb9bb91761e0891e3",
+      "bytes": 13080
     },
     "h-bridge.default.1x.webp": {
-      "sha256": "1ee9026cd693497b0e6f6540807239d83f56689df1e51dadd3b6dcd483c70a6f",
-      "bytes": 46232
+      "sha256": "36c0f1157fab48510c48142cb41f8b3a996aa8cf69002e7b377bafab84e612ee",
+      "bytes": 4532
     },
     "h-bridge.default.3x.png": {
-      "sha256": "d3d36c26020832ce02ae8cde7d19f8eea8f467b70b821bb37a1558c93c6d3508",
-      "bytes": 583178
+      "sha256": "6affd5fab8a913594384efcd1b3f43a28de7a5db9ba19d70eddf9a0073d472b5",
+      "bytes": 88485
     },
     "h-bridge.default.3x.webp": {
-      "sha256": "ef50b613aaae09095ae032e7f62afd17442bfaa7945cc93d8147ea9e89eff402",
-      "bytes": 392690
+      "sha256": "e258070671948b5832d716cf39dc76c4a30206bbab07809ba69063b26406c38e",
+      "bytes": 19866
     },
     "manifest.json": {
-      "sha256": "0e0ced195340187a590cfa6bc792faecca83d8c75e5908d6e3aadbe5bbfed66a",
-      "bytes": 2191
+      "sha256": "6d30ad679e388a708d41dcc7bbf91088c3484318102f3411e971a536c9b5bdf6",
+      "bytes": 2785
     }
   }
 }

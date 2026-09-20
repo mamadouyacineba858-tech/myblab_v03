@@ -163,39 +163,38 @@ const ASSEMBLY_PROFILES = {
     },
     bodyClip: { bottom: 118 },
   },
-  // A8-H-BRIDGE : L293D DIP-16 (asset raster Founder PASS/FROZEN 144x288). Les 16
-  // PhysicalContacts suivent la grille DIP deterministe de componentDefinitions.js
-  // (x=30/114, pas 12) : ils ne sont PAS derives de l'alpha du raster, dont les
-  // pattes cuites ne s'isolent pas en 16 racines. Une root par contact physique, posee
-  // sur le bord lateral du corps mesure (x=32 a gauche, x=133 a droite, meme y que le
-  // contact) ; aucun bodyClip, le raster n'est ni deforme ni retouche.
-  // Le pin electrique GND porte 4 contacts (GND4/GND5/GND12/GND13) : root/style du pin
-  // = repli, contacts = une root par patte physique (contrat generique per-contact).
+  // A8-H-BRIDGE : L293D DIP-16 (raster Founder PASS/FROZEN, derive isotrope 132x88 tourne de
+  // 90 deg). Les 16 PhysicalContacts suivent la grille DIP de componentDefinitions.js (y=68
+  // rangee basse, y=20 rangee haute, x=25+12k). Roots mesurees par pixel-probe (alpha>=128)
+  // sur le raster runtime 3x (/3) : x = centre de chaque patte, y = milieu du pied visible
+  // (bas y=69.4 sur [67.7,71.0], haut y=17.8 sur [16.3,19.3]). Aucun bodyClip : le raster
+  // n'est ni deforme ni retouche. Le pin electrique GND porte 4 contacts (GND4/GND5/GND12/GND13) :
+  // root/style du pin = repli, contacts = une root par patte physique (contrat per-contact).
   H_BRIDGE: {
     kind: "through-hole",
     leads: {
-      EN12: { root: { dx: 32, dy: 102 }, style: "metallic-wire" },
-      "1A": { root: { dx: 32, dy: 114 }, style: "metallic-wire" },
-      "1Y": { root: { dx: 32, dy: 126 }, style: "metallic-wire" },
+      EN12: { root: { dx: 24.8, dy: 69.4 }, style: "metallic-wire" },
+      "1A": { root: { dx: 36.5, dy: 69.4 }, style: "metallic-wire" },
+      "1Y": { root: { dx: 48.7, dy: 69.4 }, style: "metallic-wire" },
       GND: {
-        root: { dx: 32, dy: 138 },
+        root: { dx: 60.5, dy: 69.4 },
         style: "metallic-wire",
         contacts: {
-          GND4: { root: { dx: 32, dy: 138 } },
-          GND5: { root: { dx: 32, dy: 150 } },
-          GND12: { root: { dx: 133, dy: 150 } },
-          GND13: { root: { dx: 133, dy: 138 } },
+          GND4: { root: { dx: 60.5, dy: 69.4 } },
+          GND5: { root: { dx: 72.5, dy: 69.4 } },
+          GND12: { root: { dx: 73.2, dy: 17.8 } },
+          GND13: { root: { dx: 61.2, dy: 17.8 } },
         },
       },
-      "2Y": { root: { dx: 32, dy: 162 }, style: "metallic-wire" },
-      "2A": { root: { dx: 32, dy: 174 }, style: "metallic-wire" },
-      VCC2: { root: { dx: 32, dy: 186 }, style: "metallic-wire" },
-      EN34: { root: { dx: 133, dy: 186 }, style: "metallic-wire" },
-      "3A": { root: { dx: 133, dy: 174 }, style: "metallic-wire" },
-      "3Y": { root: { dx: 133, dy: 162 }, style: "metallic-wire" },
-      "4Y": { root: { dx: 133, dy: 126 }, style: "metallic-wire" },
-      "4A": { root: { dx: 133, dy: 114 }, style: "metallic-wire" },
-      VCC1: { root: { dx: 133, dy: 102 }, style: "metallic-wire" },
+      "2Y": { root: { dx: 84.5, dy: 69.4 }, style: "metallic-wire" },
+      "2A": { root: { dx: 96.7, dy: 69.4 }, style: "metallic-wire" },
+      VCC2: { root: { dx: 108.5, dy: 69.4 }, style: "metallic-wire" },
+      EN34: { root: { dx: 109.2, dy: 17.8 }, style: "metallic-wire" },
+      "3A": { root: { dx: 97.3, dy: 17.8 }, style: "metallic-wire" },
+      "3Y": { root: { dx: 85.3, dy: 17.8 }, style: "metallic-wire" },
+      "4Y": { root: { dx: 49.2, dy: 17.8 }, style: "metallic-wire" },
+      "4A": { root: { dx: 37.2, dy: 17.8 }, style: "metallic-wire" },
+      VCC1: { root: { dx: 25.3, dy: 17.8 }, style: "metallic-wire" },
     },
   },
   PMOS: {

@@ -1,4 +1,4 @@
-﻿import React from 'react' // eslint-disable-line no-unused-vars -- Vitest classic JSX transform.
+import React from 'react' // eslint-disable-line no-unused-vars -- Vitest classic JSX transform.
 import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
@@ -13,14 +13,15 @@ import { RENDER_BUDGET } from '../../../visualization/visualContract.js'
 
 const dir = dirname(fileURLToPath(import.meta.url))
 const asset = name => resolve(dir, '../../../../public/assets/components/h-bridge', name)
-// SHA-256 of the Founder PASS/FROZEN blobs staged before integration.
+// SHA-256 of the Founder PASS/FROZEN reference (byte-identical to the approved source) and of the
+// isotropic runtime derivatives integrated by A8-H-BRIDGE.
 // Independent of the editable manifest and integrity metadata.
 const lockedImageHashes = {
-  'REFERENCE.png': '48bc2cc97e9d65f5f0216eb379eb00c8c5643392295388c244b749bc359b45fb',
-  'h-bridge.default.1x.png': 'c569093ef2eff2857ccb7f1be2a078fb116262c653ab1830c69dbc6568a5e290',
-  'h-bridge.default.1x.webp': '1ee9026cd693497b0e6f6540807239d83f56689df1e51dadd3b6dcd483c70a6f',
-  'h-bridge.default.3x.png': 'd3d36c26020832ce02ae8cde7d19f8eea8f467b70b821bb37a1558c93c6d3508',
-  'h-bridge.default.3x.webp': 'ef50b613aaae09095ae032e7f62afd17442bfaa7945cc93d8147ea9e89eff402',
+  'REFERENCE.png': '7b88f0c71c27a3cb9ed244e92bc9cec8772a07aa4e4bd966880906fd2b16596d',
+  'h-bridge.default.1x.png': '4d90b072b8d9df01c64e53dabd34d046251e1021ca8de4adb9bb91761e0891e3',
+  'h-bridge.default.1x.webp': '36c0f1157fab48510c48142cb41f8b3a996aa8cf69002e7b377bafab84e612ee',
+  'h-bridge.default.3x.png': '6affd5fab8a913594384efcd1b3f43a28de7a5db9ba19d70eddf9a0073d472b5',
+  'h-bridge.default.3x.webp': 'e258070671948b5832d716cf39dc76c4a30206bbab07809ba69063b26406c38e',
 }
 const RUNTIME = Object.keys(lockedImageHashes).filter(name => name !== 'REFERENCE.png').sort()
 const manifest = () => JSON.parse(readFileSync(asset('manifest.json'), 'utf8'))
@@ -40,7 +41,7 @@ describe('A8 H_BRIDGE frozen raster pack', () => {
   it('A1/A2/A3 declares a raster manifest the generic gate understands', () => {
     expect(manifest()).toMatchObject({
       component: 'H_BRIDGE', backend: 'raster', assetStatus: 'FOUNDER_PASS_FROZEN', variant: 'default', referenceDevice: 'L293D',
-      package: 'DIP-16', runtimeView: 'front', complexity: 'complex', states: ['default'], canonical: { width: 144, height: 288 },
+      package: 'DIP-16', runtimeView: 'front', complexity: 'complex', states: ['default'], canonical: { width: 132, height: 88 },
     })
     expect(getComponentPresentation('H_BRIDGE').backend).toBe('raster')
   })
@@ -52,9 +53,9 @@ describe('A8 H_BRIDGE frozen raster pack', () => {
     expect(assets.map(a => a.file)).not.toContain('REFERENCE.png')
     expect(RENDER_BUDGET.raster.resolutions).toBe(2)
   })
-  it('A5/A6 has real 1x 144x288 and 3x 432x864 dimensions', () => {
+  it('A5/A6 has real 1x 132x88 and 3x 396x264 dimensions', () => {
     for (const entry of manifest().assets) {
-      const expected = [144 * entry.scale, 288 * entry.scale]
+      const expected = [132 * entry.scale, 88 * entry.scale]
       expect([entry.width, entry.height], entry.file).toEqual(expected)
       expect(sizeOf(entry.file), entry.file).toEqual(expected)
     }
@@ -69,18 +70,18 @@ describe('A8 H_BRIDGE frozen raster pack', () => {
     }
     expect(createHash('sha256').update(readFileSync(asset('REFERENCE.png'))).digest('hex')).toBe(lockedImageHashes['REFERENCE.png'])
   })
-  it('A9/A10 explicitly requests the bounded 575 KiB budget and the 3x PNG fits', () => {
-    expect(manifest().budget).toEqual({ complexity: 'complex', maxWeightKbPerVariant: 575 })
-    expect(getRasterWeightLimitKb(manifest())).toBe(575)
+  it('A9/A10 needs no exceptional budget: the 3x PNG fits the normal complex cap', () => {
+    expect(manifest().budget).toEqual({ complexity: 'complex' })
+    expect(getRasterWeightLimitKb(manifest())).toBe(RENDER_BUDGET.raster.maxWeightKbPerVariantComplex)
     expect(RENDER_BUDGET.raster).toMatchObject({ maxWeightKbPerVariantSimple: 30, maxWeightKbPerVariantComplex: 175 })
     const png3 = manifest().assets.find(a => a.file === 'h-bridge.default.3x.png')
-    expect(png3.bytes / 1024).toBeGreaterThan(RENDER_BUDGET.raster.maxWeightKbPerVariantComplex)
-    expect(png3.bytes / 1024).toBeLessThanOrEqual(575)
+    expect(png3.bytes / 1024).toBeGreaterThan(RENDER_BUDGET.raster.maxWeightKbPerVariantSimple)
+    expect(png3.bytes / 1024).toBeLessThanOrEqual(RENDER_BUDGET.raster.maxWeightKbPerVariantComplex)
     for (const entry of manifest().assets) expect(entry.bytes / 1024, entry.file).toBeLessThanOrEqual(getRasterWeightLimitKb(manifest()))
   })
   it('keeps the ASSET-INTEGRITY.json inventory truthful (LF blobs) and consistent with the manifest', () => {
     const integrity = JSON.parse(readFileSync(asset('ASSET-INTEGRITY.json'), 'utf8'))
-    expect(Object.keys(integrity.files)).toHaveLength(8)
+    expect(Object.keys(integrity.files)).toHaveLength(8) // README, REFERENCE.png, SHA256SUMS, 4 runtime images, manifest
     for (const [name, expected] of Object.entries(integrity.files)) {
       const raw = readFileSync(asset(name))
       // Git on Windows checks out text with CRLF; the recorded hashes describe LF blobs.
@@ -106,7 +107,7 @@ describe('A8 H_BRIDGE raster renderer', () => {
     const img = container.querySelector('img')
     expect(img.getAttribute('src')).toBe(`${base}1x.png`)
     expect(img.getAttribute('srcset')).toBe(`${base}1x.png 1x, ${base}3x.png 3x`)
-    expect([img.width, img.height]).toEqual([144, 288])
+    expect([img.width, img.height]).toEqual([132, 88])
     expect(img.style.objectFit).toBe('contain')
     expect(img.draggable).toBe(false)
     expect(img.getAttribute('alt')).toBe('')
