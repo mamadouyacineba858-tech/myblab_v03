@@ -160,6 +160,22 @@ function irReceiverDigital({ params, pinSignals }) {
 }
 
 /**
+ * A9-AND: LOW is decisive even when the other input is undetermined.
+ * Otherwise both inputs must be HIGH. As in existing contributors, null
+ * means no driven output: generic resolution preserves the unknown net.
+ * FLOATING is not a logic level and is never coerced to HIGH or LOW.
+ */
+function andGateDigital({ pinSignals }) {
+  if (pinSignals.A === Signal.LOW || pinSignals.B === Signal.LOW) {
+    return new Map([["Q", Signal.LOW]])
+  }
+  if (pinSignals.A === Signal.HIGH && pinSignals.B === Signal.HIGH) {
+    return new Map([["Q", Signal.HIGH]])
+  }
+  return null
+}
+
+/**
  * Fabrique un Registry isolé — même patron que `createSimulationRegistry`
  * (`simulationRegistry.js`) : permet à un test d'injecter une table de
  * contributions FIXTURE, sans jamais enregistrer de faux type de production
@@ -200,6 +216,7 @@ const defaultRegistry = createDigitalContributionRegistry({
     ["PIR_MOTION_SENSOR", pirMotionSensorDigital],
     ["TILT_SENSOR", tiltSensorDigital],
     ["IR_RECEIVER", irReceiverDigital],
+    ["AND_GATE", andGateDigital],
   ]),
 })
 

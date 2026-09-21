@@ -1,0 +1,128 @@
+{
+  "component": "AND_GATE",
+  "assetStatus": "FOUNDER_PASS_FROZEN",
+  "variant": "default",
+  "runtimeView": "front",
+  "backend": "raster",
+  "complexity": "complex",
+  "budget": {
+    "complexity": "complex"
+  },
+  "states": [
+    "default"
+  ],
+  "canonical": {
+    "width": 144,
+    "height": 96
+  },
+  "assets": [
+    {
+      "file": "and-gate.default.1x.png",
+      "state": "default",
+      "scale": 1,
+      "format": "png",
+      "width": 144,
+      "height": 96,
+      "bytes": 12858,
+      "sha256": "f77388f35d1c49130499839271bdaa36ac348db257cbf6119a93c2e006dbd59b"
+    },
+    {
+      "file": "and-gate.default.1x.webp",
+      "state": "default",
+      "scale": 1,
+      "format": "webp",
+      "width": 144,
+      "height": 96,
+      "bytes": 5194,
+      "sha256": "7b01eaecbcc5e8968bf615d6ca8b048faef4340fdc61a6b0902e6271bbd729ba"
+    },
+    {
+      "file": "and-gate.default.3x.png",
+      "state": "default",
+      "scale": 3,
+      "format": "png",
+      "width": 432,
+      "height": 288,
+      "bytes": 89038,
+      "sha256": "14da056f93af0fbe74bb6b37c87d2bcefd07c89b586367d940289a00b08a88df"
+    },
+    {
+      "file": "and-gate.default.3x.webp",
+      "state": "default",
+      "scale": 3,
+      "format": "webp",
+      "width": 432,
+      "height": 288,
+      "bytes": 20492,
+      "sha256": "af7895c2548146ae366fa8d0cd6fc14b1338fae63dae41de5faefba9fb72c242"
+    }
+  ],
+  "reference": {
+    "file": "and-gate.founder-reference.png",
+    "sha256": "7aba60ecd45f4c10314f81690938bae91370949206ce145a2e6e90b1bd74d0d7",
+    "width": 1536,
+    "height": 1024
+  },
+  "derivation": {
+    "source": "and-gate.founder-reference.png",
+    "method": "Full-source isotropic Lanczos resize with premultiplied alpha; no crop, rotation, recolor, redraw or alpha removal.",
+    "scale": "3/32 at 1x; 9/32 at 3x",
+    "webp": "quality 92, method 6",
+    "probeThreshold": "At source y=950, RGB minimum >=130 and alpha >=200",
+    "pixelProbe": [
+      {
+        "pin": "A",
+        "sourceRow": 950,
+        "metalSpan": [
+          492,
+          532
+        ],
+        "sourceRoot": [
+          512.0,
+          950
+        ],
+        "runtimeRoot": [
+          48.0,
+          89.0625
+        ]
+      },
+      {
+        "pin": "B",
+        "sourceRow": 950,
+        "metalSpan": [
+          740,
+          780
+        ],
+        "sourceRoot": [
+          760.0,
+          950
+        ],
+        "runtimeRoot": [
+          71.25,
+          89.0625
+        ]
+      },
+      {
+        "pin": "Q",
+        "sourceRow": 950,
+        "metalSpan": [
+          1005,
+          1045
+        ],
+        "sourceRoot": [
+          1025.0,
+          950
+        ],
+        "runtimeRoot": [
+          96.09375,
+          89.0625
+        ]
+      }
+    ]
+  },
+  "notes": [
+    "Three electrical pins A/B/Q; no additional electrical pins for upper decorative/labeled ends.",
+    "PhysicalContacts at (48,90), (72,90), (96,90); generic AssemblyLeadsLayer joins measured lower feet to grid targets.",
+    "No bodyClip; reference remains byte-identical."
+  ]
+}

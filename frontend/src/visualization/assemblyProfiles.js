@@ -37,6 +37,18 @@
 
 /** @type {Record<string, AssemblyProfile>} */
 const ASSEMBLY_PROFILES = {
+  // Source row y=950, metal RGB>=130 and alpha>=200: spans A [492,532],
+  // B [740,780], Q [1005,1045]. Centres scaled isotropically by 3/32.
+  // No clip: preserve all Founder markings and both visible ends of each
+  // column. Only the lower feet are functional contacts in this 3-pin model.
+  AND_GATE: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 48, dy: 89.0625 }, style: "metallic-wire" },
+      B: { root: { dx: 71.25, dy: 89.0625 }, style: "metallic-wire" },
+      Q: { root: { dx: 96.09375, dy: 89.0625 }, style: "metallic-wire" },
+    },
+  },
   LED: {
     kind: "through-hole",
     leads: {

@@ -1,0 +1,42 @@
+{
+  "component": "AND_GATE",
+  "textNormalization": "LF",
+  "files": {
+    "and-gate.default.1x.png": {
+      "sha256": "f77388f35d1c49130499839271bdaa36ac348db257cbf6119a93c2e006dbd59b",
+      "bytes": 12858
+    },
+    "and-gate.default.1x.webp": {
+      "sha256": "7b01eaecbcc5e8968bf615d6ca8b048faef4340fdc61a6b0902e6271bbd729ba",
+      "bytes": 5194
+    },
+    "and-gate.default.3x.png": {
+      "sha256": "14da056f93af0fbe74bb6b37c87d2bcefd07c89b586367d940289a00b08a88df",
+      "bytes": 89038
+    },
+    "and-gate.default.3x.webp": {
+      "sha256": "af7895c2548146ae366fa8d0cd6fc14b1338fae63dae41de5faefba9fb72c242",
+      "bytes": 20492
+    },
+    "and-gate.founder-reference.png": {
+      "sha256": "7aba60ecd45f4c10314f81690938bae91370949206ce145a2e6e90b1bd74d0d7",
+      "bytes": 1683375
+    },
+    "FOUNDER-ASSET.json": {
+      "sha256": "e3f006477b845def2bd15a0b1abde5b26982b739b8037c8b9e82e756d7c093d2",
+      "bytes": 470
+    },
+    "manifest.json": {
+      "sha256": "490188f7788fd36a63a806967b884dfed9e82a8ab234875fa8a540f235d6b1e4",
+      "bytes": 3049
+    },
+    "README.md": {
+      "sha256": "659b903d96426e4012a0b5392ca8e9f18a34aeda9f3f0b625ea1b50e76781323",
+      "bytes": 1330
+    },
+    "README.txt": {
+      "sha256": "22a764157fa52894d55122a3787a974e6d3d794e2190f3b27fed0e5816d392e2",
+      "bytes": 223
+    }
+  }
+}

@@ -29,8 +29,8 @@ describe("A7-C3-PREQ — T01 : Registry inconnu -> null/absent", () => {
   it("hasDigitalContribution(type inconnu) retourne false", () => {
     expect(hasDigitalContribution("UNKNOWN_TYPE")).toBe(false)
   })
-  it("registre de production : SOIL_MOISTURE_SENSOR (A7-C3) + PIR_MOTION_SENSOR (A7-C4-PIR) + TILT_SENSOR (A7-C4-TILT) + IR_RECEIVER (A7-C4-IR), aucun autre type", () => {
-    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR", "PIR_MOTION_SENSOR", "TILT_SENSOR", "IR_RECEIVER"])
+  it("registre de production : SOIL_MOISTURE_SENSOR (A7-C3) + PIR_MOTION_SENSOR (A7-C4-PIR) + TILT_SENSOR (A7-C4-TILT) + IR_RECEIVER (A7-C4-IR) + AND_GATE (A9-AND), aucun autre type", () => {
+    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR", "PIR_MOTION_SENSOR", "TILT_SENSOR", "IR_RECEIVER", "AND_GATE"])
   })
 })
 
@@ -41,7 +41,7 @@ describe("A7-C3-PREQ — createDigitalContributionRegistry : Registry isolé, in
     })
     expect(fixture.hasDigitalContribution("LDR")).toBe(true)
     expect(hasDigitalContribution("LDR")).toBe(false)
-    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR", "PIR_MOTION_SENSOR", "TILT_SENSOR", "IR_RECEIVER"])
+    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR", "PIR_MOTION_SENSOR", "TILT_SENSOR", "IR_RECEIVER", "AND_GATE"])
   })
 
   it("getDigitalContribution du Registry fixture retourne la fonction enregistrée, exécutable", () => {

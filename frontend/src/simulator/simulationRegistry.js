@@ -16,6 +16,7 @@ import { PnpTransistorModel } from './models/PnpTransistorModel.js'
 import { NmosModel } from './models/NmosModel.js'
 import { RelayModel } from './models/RelayModel.js'
 import { VoltageRegulatorModel } from './models/VoltageRegulatorModel.js'
+import { AndGateModel } from './models/AndGateModel.js'
 import { HBridgeModel } from './models/HBridgeModel.js'
 import { PmosModel } from './models/PmosModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
@@ -129,6 +130,7 @@ const defaultRegistry = createSimulationRegistry({
     PmosModel,
     VoltageRegulatorModel,
     HBridgeModel,
+    AndGateModel,
     RelayModel,
     Tmp36Model,
     ForceSensorModel,

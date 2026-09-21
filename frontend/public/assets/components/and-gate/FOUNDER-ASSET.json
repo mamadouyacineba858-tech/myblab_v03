@@ -1,0 +1,13 @@
+{
+  "ticket": "A9-AND",
+  "componentType": "AND_GATE",
+  "status": "FOUNDER_PASS_FROZEN",
+  "referenceFile": "and-gate.founder-reference.png",
+  "sha256": "7aba60ecd45f4c10314f81690938bae91370949206ce145a2e6e90b1bd74d0d7",
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "mode": "RGBA",
+  "note": "Founder-approved visual reference. Preserve visual identity; runtime derivatives may only be normalized/resampled without redraw, recolor, deformation, or destructive crop."
+}
