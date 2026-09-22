@@ -3,15 +3,17 @@
   "componentType": "NAND_GATE",
   "status": "FOUNDER_PASS_FROZEN",
   "referenceFile": "nand-gate.founder-reference.png",
-  "sha256": "676a9f047f9bbcb4a353cf612806530876b91e672371a3880e343620e4bdf96d",
+  "sha256": "fc35f979ec5faf2b062ecef55df9a20e34e7d55e31812514cc7bbb3b1238fbb9",
   "dimensions": [
     1536,
     1024
   ],
+  "mode": "RGBA",
   "pins": [
     "A",
     "B",
     "Q"
   ],
-  "logic": "Q = NOT(A AND B)"
+  "logic": "Q = NOT(A AND B)",
+  "note": "Corrected from an opaque RGB source (sha256 676a9f047f9bbcb4a353cf612806530876b91e672371a3880e343620e4bdf96d) to true RGBA using the method qualified for A9-OR: exterior background made transparent, all RGB content preserved."
 }

@@ -13,8 +13,8 @@
       "format": "png",
       "width": 144,
       "height": 96,
-      "bytes": 11540,
-      "sha256": "c0723a40ed5d5947037b8407302764e60da8ff1ee0e079775f6f9c1b52989711"
+      "bytes": 12149,
+      "sha256": "4fb3cbc3c1f1505eed55acd53a5b3f324f7e3a58c49fe4b1d07e5d2abb87c345"
     },
     {
       "file": "nand-gate.default.1x.webp",
@@ -22,8 +22,8 @@
       "format": "webp",
       "width": 144,
       "height": 96,
-      "bytes": 2574,
-      "sha256": "2b11757ca0c52d37a0be0e2b71f55160acd3634de38e770b21305f89dea679ef"
+      "bytes": 4502,
+      "sha256": "346ed212422bef775ee5ba2bc826969a7217f92783c5472d60a2fc7751649ecb"
     },
     {
       "file": "nand-gate.default.3x.png",
@@ -31,8 +31,8 @@
       "format": "png",
       "width": 432,
       "height": 288,
-      "bytes": 115016,
-      "sha256": "1bd3d0a9b026bf0672425dc93ccaed4b78e305ba1cca37bab661215ca7e02c20"
+      "bytes": 72284,
+      "sha256": "2bc1866c81e6b4f91c14106d0c880d21f0d249dd14d255918cafe1e941c56a36"
     },
     {
       "file": "nand-gate.default.3x.webp",
@@ -40,23 +40,31 @@
       "format": "webp",
       "width": 432,
       "height": 288,
-      "bytes": 10182,
-      "sha256": "c5b6a11c8a3ab66ee1b82bbf111bab1205719a46249b79e644f33201fa284c5d"
+      "bytes": 15508,
+      "sha256": "00ac23dbc8784e87bdea20b8dc17f01bd6fa0ebed87b7f539a17c4d42e91a59b"
     }
   ],
   "reference": {
     "file": "nand-gate.founder-reference.png",
-    "sha256": "676a9f047f9bbcb4a353cf612806530876b91e672371a3880e343620e4bdf96d",
+    "sha256": "fc35f979ec5faf2b062ecef55df9a20e34e7d55e31812514cc7bbb3b1238fbb9",
     "width": 1536,
     "height": 1024
   },
   "derivation": {
     "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
-    "pixelProbe": "TO_BE_MEASURED_DURING_IMPLEMENTATION"
+    "pixelProbe": "TO_BE_MEASURED_DURING_IMPLEMENTATION",
+    "transparency": {
+      "note": "Founder reference corrected from opaque RGB to true RGBA: exterior background (connected to the four canvas corners) flood-filled to alpha 0, with a 2 px proportional feather band at the silhouette edge, using the same method qualified for A9-OR. No RGB channel redrawn.",
+      "priorSha256": "676a9f047f9bbcb4a353cf612806530876b91e672371a3880e343620e4bdf96d",
+      "borderMatchThreshold": 24,
+      "featherHighThreshold": 90,
+      "featherBandPx": 2
+    }
   },
   "notes": [
     "Pins A/B/Q.",
     "Qualify physical contacts against 12 px breadboard pitch.",
-    "Do not invent VCC/GND."
+    "Do not invent VCC/GND.",
+    "Reference RGB content remains byte-identical to the pre-correction source, only alpha changed."
   ]
 }

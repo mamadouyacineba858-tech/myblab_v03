@@ -2,40 +2,40 @@
   "component": "NAND_GATE",
   "files": {
     "FOUNDER-ASSET.json": {
-      "sha256": "3ce6627835fbc6fd06ba0d6b3d5225e2a497eecf94b96cafc9c6ab1cfeba0584",
-      "bytes": 343
+      "sha256": "3cf73d05986c568c9169d42c911b8b9f564e14a80e3930cf02b291858522ea8c",
+      "bytes": 600
     },
     "README.md": {
-      "sha256": "3d08b48efd20bdce60497d1e71979d63e9231e81953d47cc2a130ed81f92d44f",
-      "bytes": 398
+      "sha256": "3ee5dbbaf7266c570fec9e79e1f0edc81c70b39b901c4bcc93e4ebaf86c47a1f",
+      "bytes": 1017
     },
     "README.txt": {
-      "sha256": "ff6b648450325ad35a123bf9a314c6641f014742da56c581e258d305771f8ba5",
-      "bytes": 396
+      "sha256": "a64b341e3d47e60bd250e3626c5164079b79621297617cf41dbb852c1225a02e",
+      "bytes": 1015
     },
     "manifest.json": {
-      "sha256": "51700fab2cdfb61f1075b313b56ac222b9b9c887f2bed0d8577efe526bb365fd",
-      "bytes": 1640
+      "sha256": "3de9e3903a7b857b7e4036d7af30e28073bab7473df2f3ae2d8f86f77280fe07",
+      "bytes": 2240
     },
     "nand-gate.default.1x.png": {
-      "sha256": "c0723a40ed5d5947037b8407302764e60da8ff1ee0e079775f6f9c1b52989711",
-      "bytes": 11540
+      "sha256": "4fb3cbc3c1f1505eed55acd53a5b3f324f7e3a58c49fe4b1d07e5d2abb87c345",
+      "bytes": 12149
     },
     "nand-gate.default.1x.webp": {
-      "sha256": "2b11757ca0c52d37a0be0e2b71f55160acd3634de38e770b21305f89dea679ef",
-      "bytes": 2574
+      "sha256": "346ed212422bef775ee5ba2bc826969a7217f92783c5472d60a2fc7751649ecb",
+      "bytes": 4502
     },
     "nand-gate.default.3x.png": {
-      "sha256": "1bd3d0a9b026bf0672425dc93ccaed4b78e305ba1cca37bab661215ca7e02c20",
-      "bytes": 115016
+      "sha256": "2bc1866c81e6b4f91c14106d0c880d21f0d249dd14d255918cafe1e941c56a36",
+      "bytes": 72284
     },
     "nand-gate.default.3x.webp": {
-      "sha256": "c5b6a11c8a3ab66ee1b82bbf111bab1205719a46249b79e644f33201fa284c5d",
-      "bytes": 10182
+      "sha256": "00ac23dbc8784e87bdea20b8dc17f01bd6fa0ebed87b7f539a17c4d42e91a59b",
+      "bytes": 15508
     },
     "nand-gate.founder-reference.png": {
-      "sha256": "676a9f047f9bbcb4a353cf612806530876b91e672371a3880e343620e4bdf96d",
-      "bytes": 1366745
+      "sha256": "fc35f979ec5faf2b062ecef55df9a20e34e7d55e31812514cc7bbb3b1238fbb9",
+      "bytes": 1222883
     }
   }
 }
