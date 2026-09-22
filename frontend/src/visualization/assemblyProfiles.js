@@ -49,6 +49,19 @@ const ASSEMBLY_PROFILES = {
       Q: { root: { dx: 94.546875, dy: 82.03125 }, style: "metallic-wire" },
     },
   },
+  // A9-NAND: own real pixel-probe on the FROZEN RGBA reference — frozen
+  // source row y=890, neutral metal min(RGB)>=130, max(RGB)-min(RGB)<45,
+  // alpha>=200: lower-foot spans A [478,508], B [750,780], Q [1017,1044].
+  // Bounding centres scaled by 3/32 (see NAND manifest.json derivation).
+  // Preserve the entire bitmap; generic leads bridge to contacts at y=83.
+  NAND_GATE: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 46.21875, dy: 83.4375 }, style: "metallic-wire" },
+      B: { root: { dx: 71.71875, dy: 83.4375 }, style: "metallic-wire" },
+      Q: { root: { dx: 96.609375, dy: 83.4375 }, style: "metallic-wire" },
+    },
+  },
   // Source row y=950, metal RGB>=130 and alpha>=200: spans A [492,532],
   // B [740,780], Q [1005,1045]. Centres scaled isotropically by 3/32.
   // No clip: preserve all Founder markings and both visible ends of each

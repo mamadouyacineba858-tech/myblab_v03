@@ -1,7 +1,16 @@
 {
   "component": "NAND_GATE",
   "assetStatus": "FOUNDER_PASS_FROZEN",
+  "variant": "default",
+  "runtimeView": "front",
   "backend": "raster",
+  "complexity": "complex",
+  "budget": {
+    "complexity": "complex"
+  },
+  "states": [
+    "default"
+  ],
   "canonical": {
     "width": 144,
     "height": 96
@@ -52,7 +61,78 @@
   },
   "derivation": {
     "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
-    "pixelProbe": "TO_BE_MEASURED_DURING_IMPLEMENTATION",
+    "pixelProbe": [
+      {
+        "pin": "A",
+        "regionX": [
+          460,
+          530
+        ],
+        "sourceSpan": [
+          478,
+          508
+        ],
+        "sourceRoot": [
+          493.0,
+          890
+        ],
+        "runtimeRoot": [
+          46.21875,
+          83.4375
+        ],
+        "physicalContact": [
+          48,
+          83
+        ]
+      },
+      {
+        "pin": "B",
+        "regionX": [
+          730,
+          800
+        ],
+        "sourceSpan": [
+          750,
+          780
+        ],
+        "sourceRoot": [
+          765.0,
+          890
+        ],
+        "runtimeRoot": [
+          71.71875,
+          83.4375
+        ],
+        "physicalContact": [
+          72,
+          83
+        ]
+      },
+      {
+        "pin": "Q",
+        "regionX": [
+          1000,
+          1060
+        ],
+        "sourceSpan": [
+          1017,
+          1044
+        ],
+        "sourceRoot": [
+          1030.5,
+          890
+        ],
+        "runtimeRoot": [
+          96.609375,
+          83.4375
+        ],
+        "physicalContact": [
+          96,
+          83
+        ]
+      }
+    ],
+    "pixelProbeMethod": "Source row 890; neutral metal min(RGB)>=130 and max(RGB)-min(RGB)<45, alpha>=200, inside each lower-foot ROI. Centre of thresholded bounding span. Scale 3/32. Own measurement for NAND_GATE.",
     "transparency": {
       "note": "Founder reference corrected from opaque RGB to true RGBA: exterior background (connected to the four canvas corners) flood-filled to alpha 0, with a 2 px proportional feather band at the silhouette edge, using the same method qualified for A9-OR. No RGB channel redrawn.",
       "priorSha256": "676a9f047f9bbcb4a353cf612806530876b91e672371a3880e343620e4bdf96d",
@@ -62,9 +142,9 @@
     }
   },
   "notes": [
-    "Pins A/B/Q.",
-    "Qualify physical contacts against 12 px breadboard pitch.",
+    "Three electrical pins A/B/Q.",
+    "PhysicalContacts at (48,83), (72,83), (96,83); generic AssemblyLeadsLayer joins measured lower feet to grid targets.",
     "Do not invent VCC/GND.",
-    "Reference RGB content remains byte-identical to the pre-correction source, only alpha changed."
+    "No bodyClip; reference RGB content remains byte-identical to the pre-correction source, only alpha changed."
   ]
 }

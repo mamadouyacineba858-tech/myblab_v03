@@ -191,6 +191,24 @@ function orGateDigital({ pinSignals }) {
 }
 
 /**
+ * A9-NAND: NAND is the logical negation of AND, so a decisive LOW on either
+ * input is enough to establish Q=HIGH regardless of the other input's value
+ * (including UNKNOWN/FLOATING). Only when both inputs are decisively HIGH is
+ * Q=LOW. Any other combination produces no drive; the existing fixed-point
+ * propagation and resolution preserve UNKNOWN. FLOATING is not a logic level
+ * and is never coerced to HIGH or LOW.
+ */
+function nandGateDigital({ pinSignals }) {
+  if (pinSignals.A === Signal.LOW || pinSignals.B === Signal.LOW) {
+    return new Map([["Q", Signal.HIGH]])
+  }
+  if (pinSignals.A === Signal.HIGH && pinSignals.B === Signal.HIGH) {
+    return new Map([["Q", Signal.LOW]])
+  }
+  return null
+}
+
+/**
  * Fabrique un Registry isolé — même patron que `createSimulationRegistry`
  * (`simulationRegistry.js`) : permet à un test d'injecter une table de
  * contributions FIXTURE, sans jamais enregistrer de faux type de production
@@ -233,6 +251,7 @@ const defaultRegistry = createDigitalContributionRegistry({
     ["IR_RECEIVER", irReceiverDigital],
     ["AND_GATE", andGateDigital],
     ["OR_GATE", orGateDigital],
+    ["NAND_GATE", nandGateDigital],
   ]),
 })
 

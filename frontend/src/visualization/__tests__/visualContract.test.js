@@ -300,7 +300,9 @@ describe('G — Backend Contract', () => {
     // réaliste Founder PASS FROZEN, inductance axiale).
     // A5-ZENER_DIODE : ZENER_DIODE rejoint également rasterTypes (paquet
     // d'assets réaliste Founder PASS FROZEN, diode Zener axiale).
-    expect(rasterTypes.slice().sort()).toEqual(['AND_GATE', 'ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'FLEX_SENSOR', 'FORCE_SENSOR', 'HC_SR04', 'HOBBY_GEARMOTOR', 'H_BRIDGE', 'INDUCTOR', 'IR_RECEIVER', 'LDR', 'LED', 'LIGHT_BULB', 'NMOS', 'NPN_TRANSISTOR', 'OR_GATE', 'PIR_MOTION_SENSOR', 'PMOS', 'PNP_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RELAY', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH', 'SOIL_MOISTURE_SENSOR', 'TILT_SENSOR', 'TMP36', 'VIBRATION_MOTOR', 'VOLTAGE_REGULATOR', 'ZENER_DIODE'])
+    // A9-NAND : NAND_GATE rejoint également rasterTypes (paquet d'assets
+    // Founder PASS FROZEN, même pipeline que AND_GATE/OR_GATE).
+    expect(rasterTypes.slice().sort()).toEqual(['AND_GATE', 'ARDUINO', 'BATTERY_9V', 'BATTERY_AA', 'BUTTON', 'BUTTON_LATCHING', 'BUZZER', 'CAPACITOR', 'COIN_CELL_CR2032', 'DC_MOTOR', 'DIODE', 'DIP_SWITCH', 'FLEX_SENSOR', 'FORCE_SENSOR', 'HC_SR04', 'HOBBY_GEARMOTOR', 'H_BRIDGE', 'INDUCTOR', 'IR_RECEIVER', 'LDR', 'LED', 'LIGHT_BULB', 'NAND_GATE', 'NMOS', 'NPN_TRANSISTOR', 'OR_GATE', 'PIR_MOTION_SENSOR', 'PMOS', 'PNP_TRANSISTOR', 'POLARIZED_CAPACITOR', 'POTENTIOMETER', 'POWER', 'RELAY', 'RESISTOR', 'RGB_LED', 'SERVO', 'SLIDE_SWITCH', 'SOIL_MOISTURE_SENSOR', 'TILT_SENSOR', 'TMP36', 'VIBRATION_MOTOR', 'VOLTAGE_REGULATOR', 'ZENER_DIODE'])
     const svgTypes = DEFAULT_REGISTRATIONS
       .map((e) => e.type)
       .filter((t) => getComponentPresentation(t).backend === 'svg')

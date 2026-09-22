@@ -20,10 +20,10 @@ inversion bubble, metal highlights) keeps both its original colour and
 full opacity. Running it against the historical RGB source reproduces the
 frozen RGBA reference below byte-for-byte.
 
-This is asset-only tooling: no NAND electrical/logic contract is defined
-or read here. Pixel-probe / PhysicalContacts remain
-'TO_BE_MEASURED_DURING_IMPLEMENTATION' until the functional A9-NAND ticket
-measures them, same as the shipped manifest before this fix.
+A9-NAND (functional ticket): pixel-probe measured on the frozen RGBA
+reference itself — source row y=890, neutral metal min(RGB)>=130,
+max(RGB)-min(RGB)<45, alpha>=200 inside each lower-foot ROI. Own real
+measurement, not copied from AND_GATE/OR_GATE's rows or PhysicalContacts.
 """
 from pathlib import Path
 import hashlib
@@ -91,6 +91,23 @@ assert (arr[0, 0, 3], arr[0, -1, 3], arr[-1, 0, 3], arr[-1, -1, 3]) == (0, 0, 0,
 assert (arr[..., 3] == 255).sum() > 460000, 'component interior must remain substantially opaque'
 assert (arr[..., 3] == 0).sum() > 0 and (arr[..., 3] == 255).sum() > 0, 'alpha must not be uniform'
 
+# Probe the actual metal, not bounding boxes or pin names. Source row 890;
+# neutral metal min(RGB)>=130 and max(RGB)-min(RGB)<45, alpha>=200, inside
+# each lower-foot ROI. Own measurement for NAND_GATE (not copied from
+# AND_GATE/OR_GATE).
+probe = []
+for pin, lo, hi in [('A', 460, 530), ('B', 730, 800), ('Q', 1000, 1060)]:
+    row = 890
+    xs = []
+    for x in range(lo, hi):
+        r, g, b, a = im.getpixel((x, row))
+        if min(r, g, b) >= 130 and max(r, g, b) - min(r, g, b) < 45 and a >= 200:
+            xs.append(x)
+    centre = (min(xs) + max(xs)) / 2
+    probe.append({'pin': pin, 'regionX': [lo, hi], 'sourceSpan': [min(xs), max(xs)],
+                  'sourceRoot': [centre, row], 'runtimeRoot': [centre * 3 / 32, row * 3 / 32],
+                  'physicalContact': [{'A': 48, 'B': 72, 'Q': 96}[pin], 83]})
+
 assets = []
 for scale in [1, 3]:
     size = (144 * scale, 96 * scale)
@@ -105,12 +122,15 @@ for scale in [1, 3]:
                        'width': size[0], 'height': size[1], 'bytes': len(raw), 'sha256': digest(raw)})
 
 write_json('manifest.json', {
-    'component': 'NAND_GATE', 'assetStatus': 'FOUNDER_PASS_FROZEN', 'backend': 'raster',
+    'component': 'NAND_GATE', 'assetStatus': 'FOUNDER_PASS_FROZEN', 'variant': 'default',
+    'runtimeView': 'front', 'backend': 'raster', 'complexity': 'complex',
+    'budget': {'complexity': 'complex'}, 'states': ['default'],
     'canonical': {'width': 144, 'height': 96}, 'assets': assets,
     'reference': {'file': REFERENCE, 'sha256': LOCKED_SHA, 'width': 1536, 'height': 1024},
     'derivation': {
         'method': 'Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.',
-        'pixelProbe': 'TO_BE_MEASURED_DURING_IMPLEMENTATION',
+        'pixelProbe': probe,
+        'pixelProbeMethod': 'Source row 890; neutral metal min(RGB)>=130 and max(RGB)-min(RGB)<45, alpha>=200, inside each lower-foot ROI. Centre of thresholded bounding span. Scale 3/32. Own measurement for NAND_GATE.',
         'transparency': {
             'note': 'Founder reference corrected from opaque RGB to true RGBA: exterior background (connected to the four canvas corners) flood-filled to alpha 0, with a 2 px proportional feather band at the silhouette edge, using the same method qualified for A9-OR. No RGB channel redrawn.',
             'priorSha256': '676a9f047f9bbcb4a353cf612806530876b91e672371a3880e343620e4bdf96d',
@@ -118,10 +138,10 @@ write_json('manifest.json', {
             'featherBandPx': FEATHER_BAND_PX,
         },
     },
-    'notes': ['Pins A/B/Q.',
-              'Qualify physical contacts against 12 px breadboard pitch.',
+    'notes': ['Three electrical pins A/B/Q.',
+              'PhysicalContacts at (48,83), (72,83), (96,83); generic AssemblyLeadsLayer joins measured lower feet to grid targets.',
               'Do not invent VCC/GND.',
-              'Reference RGB content remains byte-identical to the pre-correction source, only alpha changed.']})
+              'No bodyClip; reference RGB content remains byte-identical to the pre-correction source, only alpha changed.']})
 
 files = {}
 for path in sorted(PACK.iterdir()):
