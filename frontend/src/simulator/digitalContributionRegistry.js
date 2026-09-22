@@ -227,6 +227,32 @@ function norGateDigital({ pinSignals }) {
 }
 
 /**
+ * A9-XOR: unlike AND/OR/NAND/NOR, no single decisively-known input is ever
+ * enough on its own — XOR's truth table genuinely depends on BOTH inputs
+ * (a decisive A alone cannot rule out either output value while B is
+ * UNKNOWN/FLOATING). Q is only driven once A and B are both decisively
+ * HIGH or LOW; any other combination (including one input UNKNOWN/FLOATING)
+ * produces no drive, and the existing fixed-point propagation and
+ * resolution preserve UNKNOWN. FLOATING is not a logic level and is never
+ * coerced to HIGH or LOW.
+ */
+function xorGateDigital({ pinSignals }) {
+  if (pinSignals.A === Signal.HIGH && pinSignals.B === Signal.HIGH) {
+    return new Map([["Q", Signal.LOW]])
+  }
+  if (pinSignals.A === Signal.LOW && pinSignals.B === Signal.LOW) {
+    return new Map([["Q", Signal.LOW]])
+  }
+  if (pinSignals.A === Signal.HIGH && pinSignals.B === Signal.LOW) {
+    return new Map([["Q", Signal.HIGH]])
+  }
+  if (pinSignals.A === Signal.LOW && pinSignals.B === Signal.HIGH) {
+    return new Map([["Q", Signal.HIGH]])
+  }
+  return null
+}
+
+/**
  * Fabrique un Registry isolé — même patron que `createSimulationRegistry`
  * (`simulationRegistry.js`) : permet à un test d'injecter une table de
  * contributions FIXTURE, sans jamais enregistrer de faux type de production
@@ -271,6 +297,7 @@ const defaultRegistry = createDigitalContributionRegistry({
     ["OR_GATE", orGateDigital],
     ["NAND_GATE", nandGateDigital],
     ["NOR_GATE", norGateDigital],
+    ["XOR_GATE", xorGateDigital],
   ]),
 })
 

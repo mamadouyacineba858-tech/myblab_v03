@@ -137,18 +137,21 @@ const DECLARED_TYPES_PINS = {
   NAND_GATE:[{id:'A',role:'input'},{id:'B',role:'input'},{id:'Q',role:'output'}],
   // A9-NOR: same 2-input/1-output electrical shape as AND_GATE/OR_GATE/NAND_GATE.
   NOR_GATE:[{id:'A',role:'input'},{id:'B',role:'input'},{id:'Q',role:'output'}],
+  // A9-XOR: same 2-input/1-output electrical shape as AND_GATE/OR_GATE/NAND_GATE/NOR_GATE.
+  XOR_GATE:[{id:'A',role:'input'},{id:'B',role:'input'},{id:'Q',role:'output'}],
   // A8-H-BRIDGE : L293D DIP-16 — 13 pins ELECTRIQUES (les 4 broches physiques GND 4/5/12/13
   // sont 4 PhysicalContacts du MEME pin GND, cf. componentDefinitions.js).
   H_BRIDGE:[{id:'EN12',role:'input'},{id:'1A',role:'input'},{id:'1Y',role:'output'},{id:'GND',role:'ground'},{id:'2Y',role:'output'},{id:'2A',role:'input'},{id:'VCC2',role:'power'},{id:'EN34',role:'input'},{id:'3A',role:'input'},{id:'3Y',role:'output'},{id:'4Y',role:'output'},{id:'4A',role:'input'},{id:'VCC1',role:'power'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE']
 
 const DECLARED_PARAMETER_SCHEMA = {
   AND_GATE:[],
   OR_GATE:[],
   NAND_GATE:[],
   NOR_GATE:[],
+  XOR_GATE:[],
   H_BRIDGE:[],
   VOLTAGE_REGULATOR:[{key:'outputVoltage',parameterType:'voltage',unit:'V',minimum:0.001,maximum:1000,defaultValue:5,description:'Tension de sortie DC idéale Level-1, disponible si la tension IN est au moins égale à cette valeur.'}],
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
@@ -354,6 +357,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   OR_GATE:{},
   NAND_GATE:{},
   NOR_GATE:{},
+  XOR_GATE:{},
   H_BRIDGE:{},
 }
 
@@ -421,6 +425,7 @@ const DECLARED_CAPABILITIES = {
   OR_GATE:['digital'],
   NAND_GATE:['digital'],
   NOR_GATE:['digital'],
+  XOR_GATE:['digital'],
   // A8-H-BRIDGE : Level-1 = conduction conditionnelle generique + domaines DC (aucune contribution DC propre).
   H_BRIDGE:['digital'],
 }
@@ -461,6 +466,7 @@ const DECLARED_MODEL_AVAILABLE = {
   OR_GATE:true,
   NAND_GATE:true,
   NOR_GATE:true,
+  XOR_GATE:true,
   H_BRIDGE:true,
 }
 

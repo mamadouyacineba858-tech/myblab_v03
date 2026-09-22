@@ -235,7 +235,7 @@ describe("A9-LOGIC-PREQ — stateless propagation", () => {
   })
 
   it("T20: production registry contains the historical producers and A9-AND, no fixture", () => {
-    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR", "PIR_MOTION_SENSOR", "TILT_SENSOR", "IR_RECEIVER", "AND_GATE", "OR_GATE", "NAND_GATE", "NOR_GATE"])
+    expect(getAllDigitalContributionTypes()).toEqual(["SOIL_MOISTURE_SENSOR", "PIR_MOTION_SENSOR", "TILT_SENSOR", "IR_RECEIVER", "AND_GATE", "OR_GATE", "NAND_GATE", "NOR_GATE", "XOR_GATE"])
     const source = readFileSync(new URL("../simulationRuntimeIntegration.js", import.meta.url), "utf8")
     const code = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "")
     expect(code).not.toMatch(/Date\.now|performance\.now|setTimeout|setInterval|requestAnimationFrame/)

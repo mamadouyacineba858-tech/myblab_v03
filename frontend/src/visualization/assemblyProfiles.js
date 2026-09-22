@@ -75,6 +75,19 @@ const ASSEMBLY_PROFILES = {
       Q: { root: { dx: 97.171875, dy: 83.4375 }, style: "metallic-wire" },
     },
   },
+  // A9-XOR: own real pixel-probe on the FROZEN RGBA reference — frozen
+  // source row y=890, neutral metal min(RGB)>=130, max(RGB)-min(RGB)<45,
+  // alpha>=200: lower-foot spans A [470,492], B [748,770], Q [1023,1044].
+  // Bounding centres scaled by 3/32 (see XOR manifest.json derivation.pixelProbe).
+  // Preserve the entire bitmap; generic leads bridge to contacts at y=83.
+  XOR_GATE: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 45.09375, dy: 83.4375 }, style: "metallic-wire" },
+      B: { root: { dx: 71.15625, dy: 83.4375 }, style: "metallic-wire" },
+      Q: { root: { dx: 96.890625, dy: 83.4375 }, style: "metallic-wire" },
+    },
+  },
   // Source row y=950, metal RGB>=130 and alpha>=200: spans A [492,532],
   // B [740,780], Q [1005,1045]. Centres scaled isotropically by 3/32.
   // No clip: preserve all Founder markings and both visible ends of each

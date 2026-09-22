@@ -165,9 +165,22 @@ describe('A9-XOR-ASSET-FIX frozen raster asset (transparency lock, no applicativ
     }
   })
 
-  it('no functional XOR logic, electrical pixel-probe, or PhysicalContacts registration is introduced by this asset-fix', () => {
+  it('A9-XOR (functional ticket) filled the real pixel-probe left unmeasured by this asset-fix ticket', () => {
+    // A9-XOR-ASSET-FIX deliberately left pixelProbe as
+    // 'NOT_MEASURED_IN_A9-XOR-ASSET-FIX_SCOPE' (no functional ticket
+    // authorized yet). A9-XOR is that functional ticket: it measured A/B/Q
+    // on this same frozen raster and filled pixelProbe with the real result
+    // — this asset-only test now locks that real measurement instead of the
+    // placeholder, without introducing any electrical registration here
+    // (no top-level PhysicalContacts registry key on the manifest itself).
     const m = json('manifest.json')
-    expect(m.derivation.pixelProbe).toBe('NOT_MEASURED_IN_A9-XOR-ASSET-FIX_SCOPE')
+    expect(Array.isArray(m.derivation.pixelProbe)).toBe(true)
+    expect(m.derivation.pixelProbe.map(p => p.pin)).toEqual(['A', 'B', 'Q'])
+    for (const p of m.derivation.pixelProbe) {
+      expect(p.sourceRoot[1]).toBe(890)
+      expect(Number.isFinite(p.runtimeRoot[0])).toBe(true)
+      expect(p.runtimeRoot[1]).toBeCloseTo(890 * 3 / 32)
+    }
     expect(m).not.toHaveProperty('physicalContacts')
     expect(m).not.toHaveProperty('PhysicalContacts')
     const founder = json('FOUNDER-ASSET.json')
