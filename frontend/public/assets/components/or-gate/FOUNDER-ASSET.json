@@ -3,11 +3,11 @@
   "componentType": "OR_GATE",
   "status": "FOUNDER_PASS_FROZEN",
   "referenceFile": "or-gate.founder-reference.png",
-  "sha256": "56a3c8991d902c337dac73a1ed451df34184a67c2e443a7e051a778ee6d73b67",
+  "sha256": "113b775b8d35968cfab1e394fc5d5277d968062b7a01507ebe63fb50df7a8ee3",
   "dimensions": [
     1536,
     1024
   ],
-  "mode": "RGB",
-  "note": "Founder-approved isolated visual reference. Preserve visual identity; runtime derivatives may only be normalized/resampled without redraw, recolor, deformation, or destructive crop."
+  "mode": "RGBA",
+  "note": "Founder-approved isolated visual reference. Preserve visual identity; runtime derivatives may only be normalized/resampled without redraw, recolor, deformation, or destructive crop. Corrected from an opaque RGB source (sha256 56a3c8991d902c337dac73a1ed451df34184a67c2e443a7e051a778ee6d73b67) to true RGBA: exterior background made transparent, all RGB content preserved."
 }

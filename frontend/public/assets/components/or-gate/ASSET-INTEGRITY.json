@@ -3,40 +3,40 @@
   "textNormalization": "LF",
   "files": {
     "FOUNDER-ASSET.json": {
-      "sha256": "e5f25ac675a0b32cc533ad9c398cd17765a9dd9b17b9f23bd361aa2fadfdbb52",
-      "bytes": 475
+      "sha256": "5cc799fcdc525a309acc271a36c2f1252bc5477f72a577119493e745965873d8",
+      "bytes": 665
     },
     "README.md": {
-      "sha256": "81ce9ecedcbcdb0351c159cada7bb5a32cab728ed044dfa61bf1a965e58a8478",
-      "bytes": 730
+      "sha256": "cc2c03cabf1c79d6cc7f9be8c720298ab01aa1b9404f96a36fb5d160efddaf4b",
+      "bytes": 1395
     },
     "README.txt": {
-      "sha256": "bac7e0063b5b73de46dbf6a52c709af79388c99c41b27046a0a6c955236832a8",
-      "bytes": 728
+      "sha256": "0c7c1fcf5cee58df8412a4a8d46efd4fc80b31691f1b73dcf28bd7ac76d57586",
+      "bytes": 1393
     },
     "manifest.json": {
-      "sha256": "8d8a1a5a335f0c40821e2eb78ab490b1c4f89767e6051dc3b488e4be3f245e96",
-      "bytes": 3429
+      "sha256": "991127b3b3346db5abe45c159b48982bf323ce95f809d447a86c3ac6159aab91",
+      "bytes": 3978
     },
     "or-gate.default.1x.png": {
-      "sha256": "56241d37045271301cc95d90456a146700b72eaa7a8e328d264290846a925647",
-      "bytes": 10192
+      "sha256": "2645e655b577673e95842bdbdd27a487ab941fa3eeeeb06d2794fc886cf65dd2",
+      "bytes": 10751
     },
     "or-gate.default.1x.webp": {
-      "sha256": "37268ac56a821123e9d6972f0b3cd49bf6876afee3313013a77e1ee8651a197e",
-      "bytes": 2282
+      "sha256": "ac5b666d0fc90fd0445dbc8a571f4afbd5b9884a4d2aa6cbe1b6c72c77a08d9d",
+      "bytes": 4024
     },
     "or-gate.default.3x.png": {
-      "sha256": "0f9f7cbb93daad1ab8886dfaaf08f6092de6a80bdf7b8b96c02b762256202f37",
-      "bytes": 110636
+      "sha256": "1485c57881644e281377a71d03d21708eab395b753fe644963b9d9a87e60f084",
+      "bytes": 63649
     },
     "or-gate.default.3x.webp": {
-      "sha256": "58f06d3acc0846e6df7515eede6943674c9f3e0b90fb1ab49a2f98048edc23a1",
-      "bytes": 8706
+      "sha256": "ae5a281f5af7bd709c881554452c89433630f8079be7935d40207ad6c5e0d6ff",
+      "bytes": 14040
     },
     "or-gate.founder-reference.png": {
-      "sha256": "56a3c8991d902c337dac73a1ed451df34184a67c2e443a7e051a778ee6d73b67",
-      "bytes": 1341759
+      "sha256": "113b775b8d35968cfab1e394fc5d5277d968062b7a01507ebe63fb50df7a8ee3",
+      "bytes": 1204868
     }
   }
 }

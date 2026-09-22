@@ -23,8 +23,8 @@
       "format": "png",
       "width": 144,
       "height": 96,
-      "bytes": 10192,
-      "sha256": "56241d37045271301cc95d90456a146700b72eaa7a8e328d264290846a925647"
+      "bytes": 10751,
+      "sha256": "2645e655b577673e95842bdbdd27a487ab941fa3eeeeb06d2794fc886cf65dd2"
     },
     {
       "file": "or-gate.default.1x.webp",
@@ -33,8 +33,8 @@
       "format": "webp",
       "width": 144,
       "height": 96,
-      "bytes": 2282,
-      "sha256": "37268ac56a821123e9d6972f0b3cd49bf6876afee3313013a77e1ee8651a197e"
+      "bytes": 4024,
+      "sha256": "ac5b666d0fc90fd0445dbc8a571f4afbd5b9884a4d2aa6cbe1b6c72c77a08d9d"
     },
     {
       "file": "or-gate.default.3x.png",
@@ -43,8 +43,8 @@
       "format": "png",
       "width": 432,
       "height": 288,
-      "bytes": 110636,
-      "sha256": "0f9f7cbb93daad1ab8886dfaaf08f6092de6a80bdf7b8b96c02b762256202f37"
+      "bytes": 63649,
+      "sha256": "1485c57881644e281377a71d03d21708eab395b753fe644963b9d9a87e60f084"
     },
     {
       "file": "or-gate.default.3x.webp",
@@ -53,13 +53,13 @@
       "format": "webp",
       "width": 432,
       "height": 288,
-      "bytes": 8706,
-      "sha256": "58f06d3acc0846e6df7515eede6943674c9f3e0b90fb1ab49a2f98048edc23a1"
+      "bytes": 14040,
+      "sha256": "ae5a281f5af7bd709c881554452c89433630f8079be7935d40207ad6c5e0d6ff"
     }
   ],
   "reference": {
     "file": "or-gate.founder-reference.png",
-    "sha256": "56a3c8991d902c337dac73a1ed451df34184a67c2e443a7e051a778ee6d73b67",
+    "sha256": "113b775b8d35968cfab1e394fc5d5277d968062b7a01507ebe63fb50df7a8ee3",
     "width": 1536,
     "height": 1024
   },
@@ -139,11 +139,18 @@
         ]
       }
     ],
-    "pixelProbeMethod": "Source row 875; neutral metal min(RGB)>=130 and max(RGB)-min(RGB)<45 inside each lower-foot ROI; centre of thresholded bounding span. Scale 3/32. No image modification."
+    "pixelProbeMethod": "Source row 875; neutral metal min(RGB)>=130 and max(RGB)-min(RGB)<45, alpha>=200, inside each lower-foot ROI. Centre of thresholded bounding span. Scale 3/32. Geometry unaffected by the transparency correction.",
+    "transparency": {
+      "note": "Founder reference corrected from opaque RGB to true RGBA: exterior background (connected to the four canvas corners) flood-filled to alpha 0, with a 2 px proportional feather band at the silhouette edge. No RGB channel redrawn.",
+      "priorSha256": "56a3c8991d902c337dac73a1ed451df34184a67c2e443a7e051a778ee6d73b67",
+      "borderMatchThreshold": 24,
+      "featherHighThreshold": 90,
+      "featherBandPx": 2
+    }
   },
   "notes": [
-    "Three intended electrical pins A/B/Q.",
-    "PhysicalContacts and AssemblyProfile coordinates must be established by pixel-probe from the frozen reference; do not invent them.",
-    "Reference remains byte-identical."
+    "Three electrical pins A/B/Q.",
+    "PhysicalContacts at (48,84), (72,84), (96,84); generic AssemblyLeadsLayer joins measured lower feet to grid targets.",
+    "No bodyClip; reference RGB content remains byte-identical to the pre-correction source, only alpha changed."
   ]
 }

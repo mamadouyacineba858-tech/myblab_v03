@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
+import { inflateSync } from 'node:zlib'
 import { Buffer } from 'node:buffer'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -25,13 +26,58 @@ const here = dirname(fileURLToPath(import.meta.url))
 const asset = name => resolve(here, '../../../../public/assets/components/or-gate', name)
 const json = name => JSON.parse(readFileSync(asset(name), 'utf8'))
 const hash = data => createHash('sha256').update(data).digest('hex')
-const frozenSha = '56a3c8991d902c337dac73a1ed451df34184a67c2e443a7e051a778ee6d73b67'
+const frozenSha = '113b775b8d35968cfab1e394fc5d5277d968062b7a01507ebe63fb50df7a8ee3'
 function size(raw, format) {
   if (format === 'png') return [raw.readUInt32BE(16), raw.readUInt32BE(20)]
   const kind = raw.toString('ascii', 12, 16)
   if (kind === 'VP8X') return [1 + raw.readUIntLE(24, 3), 1 + raw.readUIntLE(27, 3)]
   if (kind === 'VP8L') { const v = raw.readUInt32LE(21); return [1 + (v & 0x3fff), 1 + ((v >> 14) & 0x3fff)] }
   return [raw.readUInt16LE(26) & 0x3fff, raw.readUInt16LE(28) & 0x3fff]
+}
+// Minimal PNG RGBA8 decoder: concatenate IDAT chunks, zlib-inflate, then
+// un-filter each scanline (None/Sub/Up/Average/Paeth) per the PNG spec.
+// Only what's needed to read real per-pixel alpha out of the frozen
+// reference, so the transparency fix is checked against actual bytes.
+function decodePngRgba(raw) {
+  const w = raw.readUInt32BE(16)
+  const h = raw.readUInt32BE(20)
+  if (raw[24] !== 8 || raw[25] !== 6) throw new Error('expected 8-bit RGBA PNG')
+  const idat = []
+  let off = 8
+  while (off < raw.length) {
+    const len = raw.readUInt32BE(off)
+    const type = raw.toString('ascii', off + 4, off + 8)
+    if (type === 'IDAT') idat.push(raw.subarray(off + 8, off + 8 + len))
+    off += 12 + len
+  }
+  const raw2 = inflateSync(Buffer.concat(idat))
+  const bpp = 4
+  const stride = w * bpp
+  const out = Buffer.alloc(h * stride)
+  const paeth = (a, b, c) => {
+    const p = a + b - c
+    const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c)
+    return pa <= pb && pa <= pc ? a : pb <= pc ? b : c
+  }
+  for (let y = 0; y < h; y++) {
+    const filter = raw2[y * (stride + 1)]
+    const src = y * (stride + 1) + 1
+    for (let x = 0; x < stride; x++) {
+      const cur = raw2[src + x]
+      const a = x >= bpp ? out[y * stride + x - bpp] : 0
+      const b = y > 0 ? out[(y - 1) * stride + x] : 0
+      const c = x >= bpp && y > 0 ? out[(y - 1) * stride + x - bpp] : 0
+      let value
+      if (filter === 0) value = cur
+      else if (filter === 1) value = cur + a
+      else if (filter === 2) value = cur + b
+      else if (filter === 3) value = cur + Math.floor((a + b) / 2)
+      else if (filter === 4) value = cur + paeth(a, b, c)
+      else throw new Error(`unsupported PNG filter ${filter}`)
+      out[y * stride + x] = value & 0xff
+    }
+  }
+  return { width: w, height: h, pixels: out }
 }
 
 describe('A9-OR raster and frozen source', () => {
@@ -54,9 +100,28 @@ describe('A9-OR raster and frozen source', () => {
     const raw = readFileSync(asset('or-gate.founder-reference.png'))
     expect(hash(raw)).toBe(frozenSha)
     expect(size(raw, 'png')).toEqual([1536, 1024])
-    expect(json('FOUNDER-ASSET.json')).toMatchObject({ sha256: frozenSha, dimensions: [1536, 1024], mode: 'RGB' })
-    expect(raw[25]).toBe(2) // PNG truecolour RGB, no alpha.
+    expect(json('FOUNDER-ASSET.json')).toMatchObject({ sha256: frozenSha, dimensions: [1536, 1024], mode: 'RGBA' })
+    expect(raw[25]).toBe(6) // PNG truecolour with alpha.
     expect(json('manifest.json').reference.sha256).toBe(frozenSha)
+  })
+  it('T23: exterior background is genuinely transparent, not an opaque white rectangle', () => {
+    const raw = readFileSync(asset('or-gate.founder-reference.png'))
+    const { width, height, pixels } = decodePngRgba(raw)
+    const alphaAt = (x, y) => pixels[(y * width + x) * 4 + 3]
+    // All four canvas corners must be fully transparent.
+    for (const [x, y] of [[0, 0], [width - 1, 0], [0, height - 1], [width - 1, height - 1]]) {
+      expect(alphaAt(x, y)).toBe(0)
+    }
+    // The component silhouette must remain substantially opaque, and the
+    // measured lower-foot metal at the pixel-probe row (875) must be fully
+    // opaque, matching manifest.json derivation.pixelProbe.
+    let opaque = 0
+    for (let i = 3; i < pixels.length; i += 4) if (pixels[i] === 255) opaque++
+    expect(opaque).toBeGreaterThan(380000)
+    for (const x of [503, 756, 1008]) expect(alphaAt(x, 875)).toBe(255)
+    expect(json('manifest.json').derivation.transparency).toMatchObject({
+      priorSha256: '56a3c8991d902c337dac73a1ed451df34184a67c2e443a7e051a778ee6d73b67',
+    })
   })
   it('runtime inventory, dimensions, hashes and normal complex budget are truthful', () => {
     const m = json('manifest.json')
