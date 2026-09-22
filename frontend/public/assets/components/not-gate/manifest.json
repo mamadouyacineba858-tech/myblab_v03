@@ -1,0 +1,63 @@
+{
+  "component": "NOT_GATE",
+  "assetStatus": "FOUNDER_PASS_FROZEN",
+  "backend": "raster",
+  "canonical": {
+    "width": 144,
+    "height": 96
+  },
+  "assets": [
+    {
+      "file": "not-gate.default.1x.png",
+      "scale": 1,
+      "format": "png",
+      "width": 144,
+      "height": 96,
+      "bytes": 8007,
+      "sha256": "add7cbdecb3471835bc3e3a5fb0db489d75937aa29c55545c8ec8db79d3691fb"
+    },
+    {
+      "file": "not-gate.default.1x.webp",
+      "scale": 1,
+      "format": "webp",
+      "width": 144,
+      "height": 96,
+      "bytes": 1608,
+      "sha256": "2cab24776e17dbb1b6fd77d06c0cb00e0304bf490b6e8ece759a6f9a2269c90a"
+    },
+    {
+      "file": "not-gate.default.3x.png",
+      "scale": 3,
+      "format": "png",
+      "width": 432,
+      "height": 288,
+      "bytes": 99387,
+      "sha256": "b4fc03ff7b40193af2f39e085048d0e7437c04aa244785d90d19e128958d00c8"
+    },
+    {
+      "file": "not-gate.default.3x.webp",
+      "scale": 3,
+      "format": "webp",
+      "width": 432,
+      "height": 288,
+      "bytes": 6418,
+      "sha256": "a4e629935b330316c639087838176b477a006103a9f34a13ad00e768b7ec63e0"
+    }
+  ],
+  "reference": {
+    "file": "not-gate.founder-reference.png",
+    "sha256": "58271344adea31d04b59d2a4c97f21eef674b70b0967d9708d30e10afbb8a827",
+    "width": 1536,
+    "height": 1024
+  },
+  "derivation": {
+    "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
+    "pixelProbe": "TO_BE_MEASURED_DURING_IMPLEMENTATION"
+  },
+  "notes": [
+    "Exactly two intended electrical pins: A input and Q output.",
+    "Do not reuse the three-contact geometry of AND/OR/NAND/NOR/XOR.",
+    "Qualify A/Q physical contacts against 12 px breadboard pitch.",
+    "Do not invent VCC/GND for this abstract Level-1 inverter."
+  ]
+}
