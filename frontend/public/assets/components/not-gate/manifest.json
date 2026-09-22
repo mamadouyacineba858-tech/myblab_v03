@@ -2,6 +2,7 @@
   "component": "NOT_GATE",
   "assetStatus": "FOUNDER_PASS_FROZEN",
   "backend": "raster",
+  "correctedReferenceStatus": "TECHNICAL_CANDIDATE_PENDING_FOUNDER_ASSET_GATE",
   "canonical": {
     "width": 144,
     "height": 96
@@ -13,8 +14,8 @@
       "format": "png",
       "width": 144,
       "height": 96,
-      "bytes": 8007,
-      "sha256": "add7cbdecb3471835bc3e3a5fb0db489d75937aa29c55545c8ec8db79d3691fb"
+      "bytes": 7787,
+      "sha256": "999ce4f969cebe9b6a09b561041d45c19e1b0a71f930a79a2aec50742a0854e7"
     },
     {
       "file": "not-gate.default.1x.webp",
@@ -22,8 +23,8 @@
       "format": "webp",
       "width": 144,
       "height": 96,
-      "bytes": 1608,
-      "sha256": "2cab24776e17dbb1b6fd77d06c0cb00e0304bf490b6e8ece759a6f9a2269c90a"
+      "bytes": 2624,
+      "sha256": "77decfa5760f6a6987a72a995f884f6d7ba7cdb9aed7edf0b343ad95328d60eb"
     },
     {
       "file": "not-gate.default.3x.png",
@@ -31,8 +32,8 @@
       "format": "png",
       "width": 432,
       "height": 288,
-      "bytes": 99387,
-      "sha256": "b4fc03ff7b40193af2f39e085048d0e7437c04aa244785d90d19e128958d00c8"
+      "bytes": 46981,
+      "sha256": "424ff03716f79b0237f68a6187da4b76559437942c079fb49204b5080ae93874"
     },
     {
       "file": "not-gate.default.3x.webp",
@@ -40,24 +41,83 @@
       "format": "webp",
       "width": 432,
       "height": 288,
-      "bytes": 6418,
-      "sha256": "a4e629935b330316c639087838176b477a006103a9f34a13ad00e768b7ec63e0"
+      "bytes": 9174,
+      "sha256": "f339e8a8210bb34876d4986d04bac44b30eba8f3700ab9057dc90b72fa7b1dbe"
     }
   ],
   "reference": {
     "file": "not-gate.founder-reference.png",
+    "sha256": "43f13e75f460575406a6c1c9df93813157073403f15ccf96a05ce7b6165011cd",
+    "width": 1536,
+    "height": 1024,
+    "mode": "RGBA",
+    "pngColorType": 6,
+    "bitDepth": 8
+  },
+  "originalFounderSource": {
     "sha256": "58271344adea31d04b59d2a4c97f21eef674b70b0967d9708d30e10afbb8a827",
     "width": 1536,
-    "height": 1024
+    "height": 1024,
+    "mode": "RGB",
+    "pngColorType": 2,
+    "bitDepth": 8,
+    "recoverableAt": "e29d1aeaf9d6f454f06875b3b4897d08e0ad20fb"
   },
   "derivation": {
     "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
-    "pixelProbe": "TO_BE_MEASURED_DURING_IMPLEMENTATION"
+    "pixelProbe": "NOT_MEASURED_IN_A9-NOT-ASSET-FIX_SCOPE",
+    "pixelProbeMethod": "Electrical A/Q pixel-probe and PhysicalContacts belong to the separate, not-yet-authorized functional A9-NOT ticket; this asset-fix ticket does not register them. A generic physical-preservation check (metalZoneCheck below) verifies the visible metal leads stayed opaque through the correction.",
+    "metalZoneCheck": [
+      {
+        "zone": "a-lead-metal",
+        "row": 250,
+        "regionX": [
+          705,
+          828
+        ],
+        "opaquePixelCount": 116
+      },
+      {
+        "zone": "q-lead-metal",
+        "row": 900,
+        "regionX": [
+          718,
+          815
+        ],
+        "opaquePixelCount": 90
+      }
+    ],
+    "transparency": {
+      "note": "Founder reference corrected from opaque RGB to true RGBA: exterior background (connected to the four canvas corners) flood-filled to alpha 0, with a 2 px proportional feather band at the silhouette edge, using the same method qualified for A9-OR/A9-NAND/A9-NOR/A9-XOR. No RGB channel redrawn.",
+      "priorSha256": "58271344adea31d04b59d2a4c97f21eef674b70b0967d9708d30e10afbb8a827",
+      "priorShaRecoverableAt": "e29d1aeaf9d6f454f06875b3b4897d08e0ad20fb",
+      "borderMatchThreshold": 24,
+      "featherHighThreshold": 90,
+      "featherBandPx": 2,
+      "rgbChannelsSha256": "34ee4a3ea7348c6fba0065ac5133958db542fb3c9373c1778dcefb8930463d84",
+      "rgbChannelsIdenticalToOriginal": true,
+      "alphaStats": {
+        "totalPixels": 1572864,
+        "alpha0": 1259082,
+        "alpha255": 313080,
+        "alphaPartial": 702,
+        "cornerAlpha": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    }
   },
   "notes": [
     "Exactly two intended electrical pins: A input and Q output.",
+    "Q = NOT(A).",
     "Do not reuse the three-contact geometry of AND/OR/NAND/NOR/XOR.",
     "Qualify A/Q physical contacts against 12 px breadboard pitch.",
-    "Do not invent VCC/GND for this abstract Level-1 inverter."
+    "Do not invent VCC/GND for this abstract Level-1 inverter.",
+    "No bodyClip; reference RGB content remains byte-identical to the original Founder source, only alpha changed.",
+    "This is an asset-only correction: no functional NOT_GATE component, registration or simulation contract is introduced by this ticket.",
+    "These corrected bytes are a technical candidate: they await the Founder's own visual re-qualification (direct Asset Gate) before being treated as a fresh Founder PASS."
   ]
 }

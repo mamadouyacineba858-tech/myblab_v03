@@ -1,41 +1,42 @@
 {
   "component": "NOT_GATE",
+  "textNormalization": "LF",
   "files": {
     "FOUNDER-ASSET.json": {
-      "sha256": "c5e6e8f251f1a106d551ccadf1e01d448ac9962cf2479e567bdb6ebb44603d5b",
-      "bytes": 325
+      "sha256": "9a39d7e1c38f9b3ce11929f4d13bd7b43e13e575f989e68229194a71129fc04a",
+      "bytes": 1190
     },
     "README.md": {
-      "sha256": "2647a50aeedf50879e7494e533ee42290855736a27133e30ab17d79ebed290aa",
-      "bytes": 533
+      "sha256": "e9bd10772455bdf4adb6c2e710d6fbc883deb91a3789dab5e38e315958559d03",
+      "bytes": 1778
     },
     "README.txt": {
-      "sha256": "a483c2f07c7b93584b397866994e8479fad8cc974ec49dc713321e45e2f6fcbf",
-      "bytes": 531
+      "sha256": "8ebca716150899132804bff6220fdd3e7c9717585b59ccf32b2cb274bb48e47d",
+      "bytes": 1776
     },
     "manifest.json": {
-      "sha256": "f8440f3e5a0ec9a7cfa0238b0ed4104f6e582ab7259f33758eee964c24671cc5",
-      "bytes": 1789
+      "sha256": "ee8b600c3ab78a255de76bb8637043ee662f99e5379a4bc6618403c530dbab94",
+      "bytes": 4310
     },
     "not-gate.default.1x.png": {
-      "sha256": "add7cbdecb3471835bc3e3a5fb0db489d75937aa29c55545c8ec8db79d3691fb",
-      "bytes": 8007
+      "sha256": "999ce4f969cebe9b6a09b561041d45c19e1b0a71f930a79a2aec50742a0854e7",
+      "bytes": 7787
     },
     "not-gate.default.1x.webp": {
-      "sha256": "2cab24776e17dbb1b6fd77d06c0cb00e0304bf490b6e8ece759a6f9a2269c90a",
-      "bytes": 1608
+      "sha256": "77decfa5760f6a6987a72a995f884f6d7ba7cdb9aed7edf0b343ad95328d60eb",
+      "bytes": 2624
     },
     "not-gate.default.3x.png": {
-      "sha256": "b4fc03ff7b40193af2f39e085048d0e7437c04aa244785d90d19e128958d00c8",
-      "bytes": 99387
+      "sha256": "424ff03716f79b0237f68a6187da4b76559437942c079fb49204b5080ae93874",
+      "bytes": 46981
     },
     "not-gate.default.3x.webp": {
-      "sha256": "a4e629935b330316c639087838176b477a006103a9f34a13ad00e768b7ec63e0",
-      "bytes": 6418
+      "sha256": "f339e8a8210bb34876d4986d04bac44b30eba8f3700ab9057dc90b72fa7b1dbe",
+      "bytes": 9174
     },
     "not-gate.founder-reference.png": {
-      "sha256": "58271344adea31d04b59d2a4c97f21eef674b70b0967d9708d30e10afbb8a827",
-      "bytes": 1197033
+      "sha256": "43f13e75f460575406a6c1c9df93813157073403f15ccf96a05ce7b6165011cd",
+      "bytes": 911428
     }
   }
 }
