@@ -1,0 +1,41 @@
+{
+  "component": "NAND_GATE",
+  "files": {
+    "FOUNDER-ASSET.json": {
+      "sha256": "3ce6627835fbc6fd06ba0d6b3d5225e2a497eecf94b96cafc9c6ab1cfeba0584",
+      "bytes": 343
+    },
+    "README.md": {
+      "sha256": "3d08b48efd20bdce60497d1e71979d63e9231e81953d47cc2a130ed81f92d44f",
+      "bytes": 398
+    },
+    "README.txt": {
+      "sha256": "ff6b648450325ad35a123bf9a314c6641f014742da56c581e258d305771f8ba5",
+      "bytes": 396
+    },
+    "manifest.json": {
+      "sha256": "51700fab2cdfb61f1075b313b56ac222b9b9c887f2bed0d8577efe526bb365fd",
+      "bytes": 1640
+    },
+    "nand-gate.default.1x.png": {
+      "sha256": "c0723a40ed5d5947037b8407302764e60da8ff1ee0e079775f6f9c1b52989711",
+      "bytes": 11540
+    },
+    "nand-gate.default.1x.webp": {
+      "sha256": "2b11757ca0c52d37a0be0e2b71f55160acd3634de38e770b21305f89dea679ef",
+      "bytes": 2574
+    },
+    "nand-gate.default.3x.png": {
+      "sha256": "1bd3d0a9b026bf0672425dc93ccaed4b78e305ba1cca37bab661215ca7e02c20",
+      "bytes": 115016
+    },
+    "nand-gate.default.3x.webp": {
+      "sha256": "c5b6a11c8a3ab66ee1b82bbf111bab1205719a46249b79e644f33201fa284c5d",
+      "bytes": 10182
+    },
+    "nand-gate.founder-reference.png": {
+      "sha256": "676a9f047f9bbcb4a353cf612806530876b91e672371a3880e343620e4bdf96d",
+      "bytes": 1366745
+    }
+  }
+}

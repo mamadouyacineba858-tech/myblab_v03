@@ -1,0 +1,17 @@
+{
+  "ticket": "A9-NAND",
+  "componentType": "NAND_GATE",
+  "status": "FOUNDER_PASS_FROZEN",
+  "referenceFile": "nand-gate.founder-reference.png",
+  "sha256": "676a9f047f9bbcb4a353cf612806530876b91e672371a3880e343620e4bdf96d",
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "pins": [
+    "A",
+    "B",
+    "Q"
+  ],
+  "logic": "Q = NOT(A AND B)"
+}
