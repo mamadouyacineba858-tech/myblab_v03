@@ -1,0 +1,17 @@
+{
+  "ticket": "A9-XOR",
+  "componentType": "XOR_GATE",
+  "status": "FOUNDER_PASS_FROZEN",
+  "referenceFile": "xor-gate.founder-reference.png",
+  "sha256": "8ff6d6af57779a88019a385f6d0c480f9ecd558c9d41d6d4e06b84bf9a974fe9",
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "pins": [
+    "A",
+    "B",
+    "Q"
+  ],
+  "logic": "Q = A XOR B"
+}

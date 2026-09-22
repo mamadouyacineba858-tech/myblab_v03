@@ -1,0 +1,41 @@
+{
+  "component": "XOR_GATE",
+  "files": {
+    "FOUNDER-ASSET.json": {
+      "sha256": "5ea45f70cac4927338708b049bb0be4cdc3225b989846420ba31bedda601727b",
+      "bytes": 335
+    },
+    "README.md": {
+      "sha256": "65e301fdf0a097b00a417481e4c009f8c5fcb4afc2c86829925f1f130a0ad5f7",
+      "bytes": 396
+    },
+    "README.txt": {
+      "sha256": "3afb4d0f7f44156e454d706cad83169b9ebe4c24b49704c35314d5058a97688c",
+      "bytes": 394
+    },
+    "manifest.json": {
+      "sha256": "55118238afc2b7546600ac7f0ce942bf4385bbe26e2c29c8e29a0a1731d860c7",
+      "bytes": 1665
+    },
+    "xor-gate.default.1x.png": {
+      "sha256": "a60cf4986715ad60bf74a87d5c28337a7b349aab012cb1a6684640cb492ba1d2",
+      "bytes": 12628
+    },
+    "xor-gate.default.1x.webp": {
+      "sha256": "e59d341be125103fde9b838bf4a55dfd97509f697849d061ca02ce63982f038b",
+      "bytes": 2838
+    },
+    "xor-gate.default.3x.png": {
+      "sha256": "2a36b7e7143f586a87ec1d76dbe7835e6da0908be5d8259e69443ea5038364e5",
+      "bytes": 117202
+    },
+    "xor-gate.default.3x.webp": {
+      "sha256": "d698fc2f3fa992b4007eae637bfb6f4fc20c9b0618cde51a9bd374bdd670d324",
+      "bytes": 11456
+    },
+    "xor-gate.founder-reference.png": {
+      "sha256": "8ff6d6af57779a88019a385f6d0c480f9ecd558c9d41d6d4e06b84bf9a974fe9",
+      "bytes": 1314400
+    }
+  }
+}

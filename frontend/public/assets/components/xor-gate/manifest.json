@@ -1,0 +1,62 @@
+{
+  "component": "XOR_GATE",
+  "assetStatus": "FOUNDER_PASS_FROZEN",
+  "backend": "raster",
+  "canonical": {
+    "width": 144,
+    "height": 96
+  },
+  "assets": [
+    {
+      "file": "xor-gate.default.1x.png",
+      "scale": 1,
+      "format": "png",
+      "width": 144,
+      "height": 96,
+      "bytes": 12628,
+      "sha256": "a60cf4986715ad60bf74a87d5c28337a7b349aab012cb1a6684640cb492ba1d2"
+    },
+    {
+      "file": "xor-gate.default.1x.webp",
+      "scale": 1,
+      "format": "webp",
+      "width": 144,
+      "height": 96,
+      "bytes": 2838,
+      "sha256": "e59d341be125103fde9b838bf4a55dfd97509f697849d061ca02ce63982f038b"
+    },
+    {
+      "file": "xor-gate.default.3x.png",
+      "scale": 3,
+      "format": "png",
+      "width": 432,
+      "height": 288,
+      "bytes": 117202,
+      "sha256": "2a36b7e7143f586a87ec1d76dbe7835e6da0908be5d8259e69443ea5038364e5"
+    },
+    {
+      "file": "xor-gate.default.3x.webp",
+      "scale": 3,
+      "format": "webp",
+      "width": 432,
+      "height": 288,
+      "bytes": 11456,
+      "sha256": "d698fc2f3fa992b4007eae637bfb6f4fc20c9b0618cde51a9bd374bdd670d324"
+    }
+  ],
+  "reference": {
+    "file": "xor-gate.founder-reference.png",
+    "sha256": "8ff6d6af57779a88019a385f6d0c480f9ecd558c9d41d6d4e06b84bf9a974fe9",
+    "width": 1536,
+    "height": 1024
+  },
+  "derivation": {
+    "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
+    "pixelProbe": "TO_BE_MEASURED_DURING_IMPLEMENTATION"
+  },
+  "notes": [
+    "Pins A/B/Q.",
+    "Qualify physical contacts against 12 px breadboard pitch.",
+    "Do not invent VCC/GND for this abstract Level-1 gate."
+  ]
+}
