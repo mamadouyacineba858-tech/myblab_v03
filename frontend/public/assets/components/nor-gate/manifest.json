@@ -13,8 +13,8 @@
       "format": "png",
       "width": 144,
       "height": 96,
-      "bytes": 12367,
-      "sha256": "6a944e672b1ac273d5a399476fe6d83520f3d4888a430c6a134926c873838667"
+      "bytes": 13022,
+      "sha256": "472ef5e170302cdb030019100a4064ed3a95c705fb2272083eb822424fb7af11"
     },
     {
       "file": "nor-gate.default.1x.webp",
@@ -22,8 +22,8 @@
       "format": "webp",
       "width": 144,
       "height": 96,
-      "bytes": 2718,
-      "sha256": "5db6b721d14a50cb00ff3331bdcb7ebc9b1976dbb76aa348934119d1a293e32e"
+      "bytes": 4914,
+      "sha256": "84266699aefa74a4ce027c49f30837a2867d280f41537c35f6d7baae9c531265"
     },
     {
       "file": "nor-gate.default.3x.png",
@@ -31,8 +31,8 @@
       "format": "png",
       "width": 432,
       "height": 288,
-      "bytes": 118287,
-      "sha256": "c14cf75a64005bb1ab117c8494a8692bca2a86a376611959113c70a1b6ecffcb"
+      "bytes": 75968,
+      "sha256": "48752511458a4cf904ad2b1ccf4dca8bd6fb44ecb5210f0144dc7e6c970a1829"
     },
     {
       "file": "nor-gate.default.3x.webp",
@@ -40,23 +40,64 @@
       "format": "webp",
       "width": 432,
       "height": 288,
-      "bytes": 10912,
-      "sha256": "0300a6ebb20a1ea1b89638f51563593ca04aa4005b887b7129e2f1ec0d75a738"
+      "bytes": 16844,
+      "sha256": "8701294cb5a0c69d95bc678a21d99bb50e95a154531d51c16a495fce287f4f1d"
     }
   ],
   "reference": {
     "file": "nor-gate.founder-reference.png",
-    "sha256": "625ce6ce6cc2d07d4cc6b8187d70d2a457eeeb44b20ecb5a7c07d900983b43d4",
+    "sha256": "49a20318651184977210e9efd518006bc20fbeb5bff62d473edac383b4a97be2",
     "width": 1536,
     "height": 1024
   },
   "derivation": {
     "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
-    "pixelProbe": "TO_BE_MEASURED_DURING_IMPLEMENTATION"
+    "pixelProbe": "NOT_MEASURED_IN_A9-NOR-ASSET-FIX_SCOPE",
+    "pixelProbeMethod": "Electrical A/B/Q pixel-probe and PhysicalContacts belong to the separate, not-yet-authorized functional A9-NOR ticket; this asset-fix ticket does not register them. A generic physical-preservation check (metalZoneCheck below) verifies the visible lower metal feet stayed opaque through the correction.",
+    "metalZoneCheck": [
+      {
+        "zone": "left-foot",
+        "row": 890,
+        "regionX": [
+          440,
+          546
+        ],
+        "opaquePixelCount": 85
+      },
+      {
+        "zone": "middle-foot",
+        "row": 890,
+        "regionX": [
+          714,
+          820
+        ],
+        "opaquePixelCount": 86
+      },
+      {
+        "zone": "right-foot",
+        "row": 890,
+        "regionX": [
+          985,
+          1092
+        ],
+        "opaquePixelCount": 86
+      }
+    ],
+    "transparency": {
+      "note": "Founder reference corrected from opaque RGB to true RGBA: exterior background (connected to the four canvas corners) flood-filled to alpha 0, with a 2 px proportional feather band at the silhouette edge, using the same method qualified for A9-OR/A9-NAND. No RGB channel redrawn.",
+      "priorSha256": "625ce6ce6cc2d07d4cc6b8187d70d2a457eeeb44b20ecb5a7c07d900983b43d4",
+      "priorShaRecoverableAt": "ed341cebf8334bf878c7968777615ceeda3bb483",
+      "borderMatchThreshold": 24,
+      "featherHighThreshold": 90,
+      "featherBandPx": 2
+    }
   },
   "notes": [
     "Pins A/B/Q.",
+    "Q = NOT(A OR B).",
     "Qualify physical contacts against 12 px breadboard pitch.",
-    "Do not invent VCC/GND for this abstract Level-1 gate."
+    "Do not invent VCC/GND for this abstract Level-1 gate.",
+    "No bodyClip; reference RGB content remains byte-identical to the pre-correction source, only alpha changed.",
+    "This is an asset-only correction: no functional NOR_GATE component, registration or simulation contract is introduced by this ticket."
   ]
 }

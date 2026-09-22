@@ -3,15 +3,17 @@
   "componentType": "NOR_GATE",
   "status": "FOUNDER_PASS_FROZEN",
   "referenceFile": "nor-gate.founder-reference.png",
-  "sha256": "625ce6ce6cc2d07d4cc6b8187d70d2a457eeeb44b20ecb5a7c07d900983b43d4",
+  "sha256": "49a20318651184977210e9efd518006bc20fbeb5bff62d473edac383b4a97be2",
   "dimensions": [
     1536,
     1024
   ],
+  "mode": "RGBA",
   "pins": [
     "A",
     "B",
     "Q"
   ],
-  "logic": "Q = NOT(A OR B)"
+  "logic": "Q = NOT(A OR B)",
+  "note": "A9-NOR-ASSET-FIX: corrected from an opaque RGB source (sha256 625ce6ce6cc2d07d4cc6b8187d70d2a457eeeb44b20ecb5a7c07d900983b43d4, recoverable at commit ed341cebf8334bf878c7968777615ceeda3bb483) to true RGBA using the border-connected segmentation method qualified for A9-OR/A9-NAND: exterior background made transparent, all RGB content preserved byte-identical. This is a technical transparency correction of the Founder-approved visual identity; the new RGBA bytes await the Founder's own visual re-qualification (Canvas/visual asset gate) before being treated as a fresh Founder PASS on those bytes."
 }

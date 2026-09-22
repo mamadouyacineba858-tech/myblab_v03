@@ -1,41 +1,42 @@
 {
   "component": "NOR_GATE",
+  "textNormalization": "LF",
   "files": {
     "FOUNDER-ASSET.json": {
-      "sha256": "a696fde80409cfb02ede3f3566adfbba55df64f64bf760d35404609b407666a1",
-      "bytes": 339
+      "sha256": "b87b5367119e90456c66c69e1a0bc23d2936571ebefc2258b46231886979f94c",
+      "bytes": 971
     },
     "README.md": {
-      "sha256": "1b3a8f5b79531025ceb9289fb3f380ff47ee0266959b394ee21c5799fdb7bece",
-      "bytes": 400
+      "sha256": "8eebbb3019e2e0269ef8ed878e0d75d963fd7987db26644608b57189703d4cdc",
+      "bytes": 1470
     },
     "README.txt": {
-      "sha256": "68e9d1c40930d3652b17dc7df5a03f1e7d947b1a78d498e132860ac32d23bb89",
-      "bytes": 398
+      "sha256": "1772034e0a4b7e2df1093c26b9f27084f3483b96f2f31dfc908462fa48c16aab",
+      "bytes": 1071
     },
     "manifest.json": {
-      "sha256": "7b0c4f0efca5c38e157f125f0c28f51bc7a5c449c8784edef56a4280930e2120",
-      "bytes": 1665
+      "sha256": "5e8726b1f3b2659189abfc1c042e87d217722cf9e48b271a6867e9392da966a9",
+      "bytes": 3365
     },
     "nor-gate.default.1x.png": {
-      "sha256": "6a944e672b1ac273d5a399476fe6d83520f3d4888a430c6a134926c873838667",
-      "bytes": 12367
+      "sha256": "472ef5e170302cdb030019100a4064ed3a95c705fb2272083eb822424fb7af11",
+      "bytes": 13022
     },
     "nor-gate.default.1x.webp": {
-      "sha256": "5db6b721d14a50cb00ff3331bdcb7ebc9b1976dbb76aa348934119d1a293e32e",
-      "bytes": 2718
+      "sha256": "84266699aefa74a4ce027c49f30837a2867d280f41537c35f6d7baae9c531265",
+      "bytes": 4914
     },
     "nor-gate.default.3x.png": {
-      "sha256": "c14cf75a64005bb1ab117c8494a8692bca2a86a376611959113c70a1b6ecffcb",
-      "bytes": 118287
+      "sha256": "48752511458a4cf904ad2b1ccf4dca8bd6fb44ecb5210f0144dc7e6c970a1829",
+      "bytes": 75968
     },
     "nor-gate.default.3x.webp": {
-      "sha256": "0300a6ebb20a1ea1b89638f51563593ca04aa4005b887b7129e2f1ec0d75a738",
-      "bytes": 10912
+      "sha256": "8701294cb5a0c69d95bc678a21d99bb50e95a154531d51c16a495fce287f4f1d",
+      "bytes": 16844
     },
     "nor-gate.founder-reference.png": {
-      "sha256": "625ce6ce6cc2d07d4cc6b8187d70d2a457eeeb44b20ecb5a7c07d900983b43d4",
-      "bytes": 1342605
+      "sha256": "49a20318651184977210e9efd518006bc20fbeb5bff62d473edac383b4a97be2",
+      "bytes": 1116283
     }
   }
 }
