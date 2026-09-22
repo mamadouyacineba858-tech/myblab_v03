@@ -1,0 +1,17 @@
+{
+  "ticket": "A9-NOR",
+  "componentType": "NOR_GATE",
+  "status": "FOUNDER_PASS_FROZEN",
+  "referenceFile": "nor-gate.founder-reference.png",
+  "sha256": "625ce6ce6cc2d07d4cc6b8187d70d2a457eeeb44b20ecb5a7c07d900983b43d4",
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "pins": [
+    "A",
+    "B",
+    "Q"
+  ],
+  "logic": "Q = NOT(A OR B)"
+}

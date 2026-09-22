@@ -1,0 +1,62 @@
+{
+  "component": "NOR_GATE",
+  "assetStatus": "FOUNDER_PASS_FROZEN",
+  "backend": "raster",
+  "canonical": {
+    "width": 144,
+    "height": 96
+  },
+  "assets": [
+    {
+      "file": "nor-gate.default.1x.png",
+      "scale": 1,
+      "format": "png",
+      "width": 144,
+      "height": 96,
+      "bytes": 12367,
+      "sha256": "6a944e672b1ac273d5a399476fe6d83520f3d4888a430c6a134926c873838667"
+    },
+    {
+      "file": "nor-gate.default.1x.webp",
+      "scale": 1,
+      "format": "webp",
+      "width": 144,
+      "height": 96,
+      "bytes": 2718,
+      "sha256": "5db6b721d14a50cb00ff3331bdcb7ebc9b1976dbb76aa348934119d1a293e32e"
+    },
+    {
+      "file": "nor-gate.default.3x.png",
+      "scale": 3,
+      "format": "png",
+      "width": 432,
+      "height": 288,
+      "bytes": 118287,
+      "sha256": "c14cf75a64005bb1ab117c8494a8692bca2a86a376611959113c70a1b6ecffcb"
+    },
+    {
+      "file": "nor-gate.default.3x.webp",
+      "scale": 3,
+      "format": "webp",
+      "width": 432,
+      "height": 288,
+      "bytes": 10912,
+      "sha256": "0300a6ebb20a1ea1b89638f51563593ca04aa4005b887b7129e2f1ec0d75a738"
+    }
+  ],
+  "reference": {
+    "file": "nor-gate.founder-reference.png",
+    "sha256": "625ce6ce6cc2d07d4cc6b8187d70d2a457eeeb44b20ecb5a7c07d900983b43d4",
+    "width": 1536,
+    "height": 1024
+  },
+  "derivation": {
+    "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
+    "pixelProbe": "TO_BE_MEASURED_DURING_IMPLEMENTATION"
+  },
+  "notes": [
+    "Pins A/B/Q.",
+    "Qualify physical contacts against 12 px breadboard pitch.",
+    "Do not invent VCC/GND for this abstract Level-1 gate."
+  ]
+}
