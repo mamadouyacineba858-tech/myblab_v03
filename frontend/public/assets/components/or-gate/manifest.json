@@ -1,0 +1,149 @@
+{
+  "component": "OR_GATE",
+  "assetStatus": "FOUNDER_PASS_FROZEN",
+  "variant": "default",
+  "runtimeView": "front",
+  "backend": "raster",
+  "complexity": "complex",
+  "budget": {
+    "complexity": "complex"
+  },
+  "states": [
+    "default"
+  ],
+  "canonical": {
+    "width": 144,
+    "height": 96
+  },
+  "assets": [
+    {
+      "file": "or-gate.default.1x.png",
+      "state": "default",
+      "scale": 1,
+      "format": "png",
+      "width": 144,
+      "height": 96,
+      "bytes": 10192,
+      "sha256": "56241d37045271301cc95d90456a146700b72eaa7a8e328d264290846a925647"
+    },
+    {
+      "file": "or-gate.default.1x.webp",
+      "state": "default",
+      "scale": 1,
+      "format": "webp",
+      "width": 144,
+      "height": 96,
+      "bytes": 2282,
+      "sha256": "37268ac56a821123e9d6972f0b3cd49bf6876afee3313013a77e1ee8651a197e"
+    },
+    {
+      "file": "or-gate.default.3x.png",
+      "state": "default",
+      "scale": 3,
+      "format": "png",
+      "width": 432,
+      "height": 288,
+      "bytes": 110636,
+      "sha256": "0f9f7cbb93daad1ab8886dfaaf08f6092de6a80bdf7b8b96c02b762256202f37"
+    },
+    {
+      "file": "or-gate.default.3x.webp",
+      "state": "default",
+      "scale": 3,
+      "format": "webp",
+      "width": 432,
+      "height": 288,
+      "bytes": 8706,
+      "sha256": "58f06d3acc0846e6df7515eede6943674c9f3e0b90fb1ab49a2f98048edc23a1"
+    }
+  ],
+  "reference": {
+    "file": "or-gate.founder-reference.png",
+    "sha256": "56a3c8991d902c337dac73a1ed451df34184a67c2e443a7e051a778ee6d73b67",
+    "width": 1536,
+    "height": 1024
+  },
+  "derivation": {
+    "source": "or-gate.founder-reference.png",
+    "method": "Full-source isotropic Lanczos resize with premultiplied alpha; no crop, rotation, recolor, redraw or alpha removal.",
+    "scale": "3/32 at 1x; 9/32 at 3x",
+    "webp": "quality 92, method 6",
+    "pixelProbe": [
+      {
+        "pin": "A",
+        "regionX": [
+          480,
+          530
+        ],
+        "sourceSpan": [
+          492,
+          515
+        ],
+        "sourceRoot": [
+          503.5,
+          875
+        ],
+        "runtimeRoot": [
+          47.203125,
+          82.03125
+        ],
+        "physicalContact": [
+          48,
+          84
+        ]
+      },
+      {
+        "pin": "B",
+        "regionX": [
+          735,
+          780
+        ],
+        "sourceSpan": [
+          745,
+          768
+        ],
+        "sourceRoot": [
+          756.5,
+          875
+        ],
+        "runtimeRoot": [
+          70.921875,
+          82.03125
+        ],
+        "physicalContact": [
+          72,
+          84
+        ]
+      },
+      {
+        "pin": "Q",
+        "regionX": [
+          985,
+          1030
+        ],
+        "sourceSpan": [
+          998,
+          1019
+        ],
+        "sourceRoot": [
+          1008.5,
+          875
+        ],
+        "runtimeRoot": [
+          94.546875,
+          82.03125
+        ],
+        "physicalContact": [
+          96,
+          84
+        ]
+      }
+    ],
+    "pixelProbeMethod": "Source row 875; neutral metal min(RGB)>=130 and max(RGB)-min(RGB)<45 inside each lower-foot ROI; centre of thresholded bounding span. Scale 3/32. No image modification."
+  },
+  "notes": [
+    "Three intended electrical pins A/B/Q.",
+    "PhysicalContacts and AssemblyProfile coordinates must be established by pixel-probe from the frozen reference; do not invent them.",
+    "Reference remains byte-identical."
+  ]
+}

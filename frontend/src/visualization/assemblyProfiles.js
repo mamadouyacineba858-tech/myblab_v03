@@ -37,6 +37,18 @@
 
 /** @type {Record<string, AssemblyProfile>} */
 const ASSEMBLY_PROFILES = {
+  // A9-OR: frozen source row y=875, neutral metal min(RGB)>=130,
+  // max(RGB)-min(RGB)<45, lower-foot spans A [492,515], B [745,768],
+  // Q [998,1019]. Bounding centres scaled by 3/32 (see OR manifest.json).
+  // Preserve the entire bitmap; generic leads bridge to contacts at y=84.
+  OR_GATE: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 47.203125, dy: 82.03125 }, style: "metallic-wire" },
+      B: { root: { dx: 70.921875, dy: 82.03125 }, style: "metallic-wire" },
+      Q: { root: { dx: 94.546875, dy: 82.03125 }, style: "metallic-wire" },
+    },
+  },
   // Source row y=950, metal RGB>=130 and alpha>=200: spans A [492,532],
   // B [740,780], Q [1005,1045]. Centres scaled isotropically by 3/32.
   // No clip: preserve all Founder markings and both visible ends of each

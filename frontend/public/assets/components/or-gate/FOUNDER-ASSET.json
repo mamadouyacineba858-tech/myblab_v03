@@ -1,0 +1,13 @@
+{
+  "ticket": "A9-OR",
+  "componentType": "OR_GATE",
+  "status": "FOUNDER_PASS_FROZEN",
+  "referenceFile": "or-gate.founder-reference.png",
+  "sha256": "56a3c8991d902c337dac73a1ed451df34184a67c2e443a7e051a778ee6d73b67",
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "mode": "RGB",
+  "note": "Founder-approved isolated visual reference. Preserve visual identity; runtime derivatives may only be normalized/resampled without redraw, recolor, deformation, or destructive crop."
+}

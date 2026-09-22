@@ -176,6 +176,21 @@ function andGateDigital({ pinSignals }) {
 }
 
 /**
+ * A9-OR: HIGH is decisive, symmetrically to AND's decisive LOW.
+ * Otherwise both inputs must be LOW. Undetermined inputs produce no drive;
+ * the existing fixed-point propagation and resolution preserve UNKNOWN.
+ */
+function orGateDigital({ pinSignals }) {
+  if (pinSignals.A === Signal.HIGH || pinSignals.B === Signal.HIGH) {
+    return new Map([["Q", Signal.HIGH]])
+  }
+  if (pinSignals.A === Signal.LOW && pinSignals.B === Signal.LOW) {
+    return new Map([["Q", Signal.LOW]])
+  }
+  return null
+}
+
+/**
  * Fabrique un Registry isolé — même patron que `createSimulationRegistry`
  * (`simulationRegistry.js`) : permet à un test d'injecter une table de
  * contributions FIXTURE, sans jamais enregistrer de faux type de production
@@ -217,6 +232,7 @@ const defaultRegistry = createDigitalContributionRegistry({
     ["TILT_SENSOR", tiltSensorDigital],
     ["IR_RECEIVER", irReceiverDigital],
     ["AND_GATE", andGateDigital],
+    ["OR_GATE", orGateDigital],
   ]),
 })
 
