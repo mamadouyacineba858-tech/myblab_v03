@@ -3,15 +3,17 @@
   "componentType": "XOR_GATE",
   "status": "FOUNDER_PASS_FROZEN",
   "referenceFile": "xor-gate.founder-reference.png",
-  "sha256": "8ff6d6af57779a88019a385f6d0c480f9ecd558c9d41d6d4e06b84bf9a974fe9",
+  "sha256": "be3c922f8c6a7c0095f4dbe0b273a26123316200341023a42ab896f0aef081bd",
   "dimensions": [
     1536,
     1024
   ],
+  "mode": "RGBA",
   "pins": [
     "A",
     "B",
     "Q"
   ],
-  "logic": "Q = A XOR B"
+  "logic": "Q = A XOR B",
+  "note": "A9-XOR-ASSET-FIX: corrected from an opaque RGB source (sha256 8ff6d6af57779a88019a385f6d0c480f9ecd558c9d41d6d4e06b84bf9a974fe9, recoverable at commit 211119a3ca92610b74275ed65f99eb22990bcceb) to true RGBA using the border-connected segmentation method qualified for A9-OR/A9-NAND/A9-NOR: exterior background made transparent, all RGB content preserved byte-identical. This is a technical transparency correction of the Founder-approved visual identity; the new RGBA bytes await the Founder's own visual re-qualification (Canvas/visual asset gate) before being treated as a fresh Founder PASS on those bytes."
 }

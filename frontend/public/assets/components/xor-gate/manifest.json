@@ -13,8 +13,8 @@
       "format": "png",
       "width": 144,
       "height": 96,
-      "bytes": 12628,
-      "sha256": "a60cf4986715ad60bf74a87d5c28337a7b349aab012cb1a6684640cb492ba1d2"
+      "bytes": 13375,
+      "sha256": "d3cf2c607f287a897237291cdd305b9dc43576f76ba411d5eb93bfa50ca1c6d9"
     },
     {
       "file": "xor-gate.default.1x.webp",
@@ -22,8 +22,8 @@
       "format": "webp",
       "width": 144,
       "height": 96,
-      "bytes": 2838,
-      "sha256": "e59d341be125103fde9b838bf4a55dfd97509f697849d061ca02ce63982f038b"
+      "bytes": 5044,
+      "sha256": "cc29741c0d616aeda7563aaf325f2bb1a8a1ac094be3ae79ddf3870e64c59711"
     },
     {
       "file": "xor-gate.default.3x.png",
@@ -31,8 +31,8 @@
       "format": "png",
       "width": 432,
       "height": 288,
-      "bytes": 117202,
-      "sha256": "2a36b7e7143f586a87ec1d76dbe7835e6da0908be5d8259e69443ea5038364e5"
+      "bytes": 77794,
+      "sha256": "2630367b6a59d148e13a3342faaa47a0e85b3f8bb14a09591ef3ce542b0efe50"
     },
     {
       "file": "xor-gate.default.3x.webp",
@@ -40,23 +40,65 @@
       "format": "webp",
       "width": 432,
       "height": 288,
-      "bytes": 11456,
-      "sha256": "d698fc2f3fa992b4007eae637bfb6f4fc20c9b0618cde51a9bd374bdd670d324"
+      "bytes": 16848,
+      "sha256": "acf4fa16ec1212d90433bb96eef558c38aeb2539a35087b7190c3385c5f8e582"
     }
   ],
   "reference": {
     "file": "xor-gate.founder-reference.png",
-    "sha256": "8ff6d6af57779a88019a385f6d0c480f9ecd558c9d41d6d4e06b84bf9a974fe9",
+    "sha256": "be3c922f8c6a7c0095f4dbe0b273a26123316200341023a42ab896f0aef081bd",
     "width": 1536,
     "height": 1024
   },
   "derivation": {
     "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
-    "pixelProbe": "TO_BE_MEASURED_DURING_IMPLEMENTATION"
+    "pixelProbe": "NOT_MEASURED_IN_A9-XOR-ASSET-FIX_SCOPE",
+    "pixelProbeMethod": "Electrical A/B/Q pixel-probe and PhysicalContacts belong to the separate, not-yet-authorized functional A9-XOR ticket; this asset-fix ticket does not register them. A generic physical-preservation check (metalZoneCheck below) verifies the visible metal leads stayed opaque through the correction.",
+    "metalZoneCheck": [
+      {
+        "zone": "left-foot",
+        "row": 890,
+        "regionX": [
+          440,
+          522
+        ],
+        "opaquePixelCount": 74
+      },
+      {
+        "zone": "middle-foot",
+        "row": 890,
+        "regionX": [
+          718,
+          800
+        ],
+        "opaquePixelCount": 75
+      },
+      {
+        "zone": "right-foot",
+        "row": 890,
+        "regionX": [
+          993,
+          1075
+        ],
+        "opaquePixelCount": 75
+      }
+    ],
+    "transparency": {
+      "note": "Founder reference corrected from opaque RGB to true RGBA: exterior background (connected to the four canvas corners) flood-filled to alpha 0, with a 2 px proportional feather band at the silhouette edge, using the same method qualified for A9-OR/A9-NAND/A9-NOR. No RGB channel redrawn.",
+      "priorSha256": "8ff6d6af57779a88019a385f6d0c480f9ecd558c9d41d6d4e06b84bf9a974fe9",
+      "priorShaRecoverableAt": "211119a3ca92610b74275ed65f99eb22990bcceb",
+      "borderMatchThreshold": 24,
+      "featherHighThreshold": 90,
+      "featherBandPx": 2
+    }
   },
   "notes": [
     "Pins A/B/Q.",
+    "Q = A XOR B.",
     "Qualify physical contacts against 12 px breadboard pitch.",
-    "Do not invent VCC/GND for this abstract Level-1 gate."
+    "Do not invent VCC/GND for this abstract Level-1 gate.",
+    "No bodyClip; reference RGB content remains byte-identical to the pre-correction source, only alpha changed.",
+    "This is an asset-only correction: no functional XOR_GATE component, registration or simulation contract is introduced by this ticket.",
+    "These corrected bytes are a technical candidate: they await the Founder's own visual re-qualification (Canvas/visual asset gate) before being treated as a fresh Founder PASS."
   ]
 }
