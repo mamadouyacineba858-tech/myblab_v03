@@ -20,8 +20,8 @@ describe('canonicalRegistry — contract shape', () => {
     // A7-C4-IR : 31 -> 32 (IR_RECEIVER ajouté). A7-C5 : 32 -> 33 (HC_SR04 ajouté).
     // A4-INDUCTOR : 33 -> 34 (INDUCTOR ajouté). A5-ZENER_DIODE : 34 -> 35
     // (ZENER_DIODE ajouté). A8-H-BRIDGE : 40 -> 41 (H_BRIDGE ajouté).
-    // A9-NAND : 43 -> 44 (NAND_GATE ajouté).
-    expect(getAllCanonicalTypes()).toHaveLength(44);
+    // A9-NAND : 43 -> 44 (NAND_GATE ajouté). A9-NOR : 44 -> 45 (NOR_GATE ajouté).
+    expect(getAllCanonicalTypes()).toHaveLength(45);
     expect(getAllCanonicalTypes()).toContain('LED');
     expect(getAllCanonicalTypes()).toContain('POWER');
     expect(getAllCanonicalTypes()).toContain('RESISTOR');
@@ -215,8 +215,8 @@ describe('canonicalRegistry — contract shape', () => {
     }
   });
 
-  it('getAllCanonicalEntries returns all 44 entries', () => {
-    expect(getAllCanonicalEntries()).toHaveLength(44);
+  it('getAllCanonicalEntries returns all 45 entries', () => {
+    expect(getAllCanonicalEntries()).toHaveLength(45);
   });
 
   it('A6-OUT3 : HOBBY_GEARMOTOR entry exposes the complete declarative contract (reuses DC_MOTOR family)', () => {

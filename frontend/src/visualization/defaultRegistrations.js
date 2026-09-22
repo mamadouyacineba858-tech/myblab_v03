@@ -41,6 +41,7 @@ import { VoltageRegulatorPart } from '../components/parts/VoltageRegulatorPart.j
 import { AndGatePart } from '../components/parts/AndGatePart.jsx'
 import { OrGatePart } from '../components/parts/OrGatePart.jsx'
 import { NandGatePart } from '../components/parts/NandGatePart.jsx'
+import { NorGatePart } from '../components/parts/NorGatePart.jsx'
 import { HBridgePart } from '../components/parts/HBridgePart.jsx'
 import { PmosPart } from '../components/parts/PmosPart.jsx'
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
@@ -185,6 +186,7 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'AND_GATE', component: AndGatePart, visual: { backend: 'raster' } },
   { type: 'OR_GATE', component: OrGatePart, visual: { backend: 'raster' } },
   { type: 'NAND_GATE', component: NandGatePart, visual: { backend: 'raster' } },
+  { type: 'NOR_GATE', component: NorGatePart, visual: { backend: 'raster' } },
   { type: 'H_BRIDGE', component: HBridgePart, visual: { backend: 'raster' } },
   { type: 'PMOS', component: PmosPart, visual: { backend: 'raster' } },
   { type: 'RELAY', component: RelayPart, visual: { backend: 'raster' } },

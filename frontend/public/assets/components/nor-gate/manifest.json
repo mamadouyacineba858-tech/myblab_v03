@@ -2,6 +2,11 @@
   "component": "NOR_GATE",
   "assetStatus": "FOUNDER_PASS_FROZEN",
   "backend": "raster",
+  "complexity": "complex",
+  "budget": {
+    "complexity": "complex"
+  },
+  "states": ["default"],
   "canonical": {
     "width": 144,
     "height": 96
@@ -52,8 +57,12 @@
   },
   "derivation": {
     "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
-    "pixelProbe": "NOT_MEASURED_IN_A9-NOR-ASSET-FIX_SCOPE",
-    "pixelProbeMethod": "Electrical A/B/Q pixel-probe and PhysicalContacts belong to the separate, not-yet-authorized functional A9-NOR ticket; this asset-fix ticket does not register them. A generic physical-preservation check (metalZoneCheck below) verifies the visible lower metal feet stayed opaque through the correction.",
+    "pixelProbe": [
+      { "pin": "A", "regionX": [440, 546], "sourceSpan": [474, 505], "sourceRoot": [489.5, 890], "runtimeRoot": [45.890625, 83.4375], "physicalContact": [48, 83] },
+      { "pin": "B", "regionX": [714, 820], "sourceSpan": [751, 780], "sourceRoot": [765.5, 890], "runtimeRoot": [71.765625, 83.4375], "physicalContact": [72, 83] },
+      { "pin": "Q", "regionX": [985, 1092], "sourceSpan": [1022, 1051], "sourceRoot": [1036.5, 890], "runtimeRoot": [97.171875, 83.4375], "physicalContact": [96, 83] }
+    ],
+    "pixelProbeMethod": "A9-NOR functional ticket: source row 890; neutral metal min(RGB)>=130 and max(RGB)-min(RGB)<45, alpha>=200, largest contiguous span inside each lower-foot ROI. Centre of thresholded bounding span, scale 3/32. Own measurement for NOR_GATE on the FROZEN RGBA reference (not copied from AND_GATE/OR_GATE/NAND_GATE); measured spans differ from NAND_GATE's own measurement at the same row. Max distance between measured runtimeRoot and retained PhysicalContact across A/B/Q: ~2.15px (A).",
     "metalZoneCheck": [
       {
         "zone": "left-foot",
@@ -98,6 +107,6 @@
     "Qualify physical contacts against 12 px breadboard pitch.",
     "Do not invent VCC/GND for this abstract Level-1 gate.",
     "No bodyClip; reference RGB content remains byte-identical to the pre-correction source, only alpha changed.",
-    "This is an asset-only correction: no functional NOR_GATE component, registration or simulation contract is introduced by this ticket."
+    "A9-NOR: functional NOR_GATE component (stateless, Q = NOT(A OR B)) registered via digitalContributionRegistry.js; no VCC/GND/ENABLE/CLOCK invented."
   ]
 }

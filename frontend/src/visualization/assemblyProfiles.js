@@ -62,6 +62,19 @@ const ASSEMBLY_PROFILES = {
       Q: { root: { dx: 96.609375, dy: 83.4375 }, style: "metallic-wire" },
     },
   },
+  // A9-NOR: own real pixel-probe on the FROZEN RGBA reference — frozen
+  // source row y=890, neutral metal min(RGB)>=130, max(RGB)-min(RGB)<45,
+  // alpha>=200: lower-foot spans A [474,505], B [751,780], Q [1022,1051].
+  // Bounding centres scaled by 3/32 (see NOR manifest.json derivation).
+  // Preserve the entire bitmap; generic leads bridge to contacts at y=83.
+  NOR_GATE: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 45.890625, dy: 83.4375 }, style: "metallic-wire" },
+      B: { root: { dx: 71.765625, dy: 83.4375 }, style: "metallic-wire" },
+      Q: { root: { dx: 97.171875, dy: 83.4375 }, style: "metallic-wire" },
+    },
+  },
   // Source row y=950, metal RGB>=130 and alpha>=200: spans A [492,532],
   // B [740,780], Q [1005,1045]. Centres scaled isotropically by 3/32.
   // No clip: preserve all Founder markings and both visible ends of each
