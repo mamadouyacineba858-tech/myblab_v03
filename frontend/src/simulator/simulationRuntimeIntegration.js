@@ -220,10 +220,12 @@ export function computeCombinationalDigitalSignals(components, prepared, digital
  *   EFFECTIFS déjà filtrés par le Registry temporel (voir
  *   `runSimulationWithRuntime`).
  * @param {{ hasTimedDigitalContribution: (type: string) => boolean, getTimedDigitalContribution: (type: string) => import('./timedDigitalContributionRegistry.js').TimedDigitalContributionFn | null }} timedDigitalRegistry
- * @param {Map<string, string>} sourceDrivenSignals `resolveSourceDrivenPinSignals()`
- *   (resolution.js), clé "uid:pinId" — même Map que celle transmise à
- *   `computeComponentDigitalSignals` (une seule résolution pré-électrique
- *   par step).
+ * @param {Map<string, string>} sourceDrivenSignals contexte digital observé,
+ *   clé "uid:pinId". A9-SEQ-PREQ : depuis `runSimulationWithRuntime`, c'est le
+ *   contexte d'échantillonnage (`computeTimedDigitalSampleSignals`) — sources
+ *   DC, Runtime courant, sorties timed maintenues et combinatoire dérivé —,
+ *   identique au `resolveSourceDrivenPinSignals()` historique en l'absence
+ *   de ces autorités.
  * @param {number} currentTimeMs Temps simulé courant, issu du Scheduler
  *   partagé (§4/§13 du ticket).
  * @param {Map<string, object>} timedDigitalStates Store d'état runtime
@@ -260,6 +262,58 @@ export function computeTimedDigitalSignals(timedDigitalComponents, timedDigitalR
   }
 
   return produced
+}
+
+/**
+ * A9-SEQ-PREQ — contexte d'échantillonnage des producteurs timed (phase
+ * SAMPLE). `sampleAuthorities` = autorités Runtime du step courant + sorties
+ * timed MAINTENUES du step précédent (jamais celles du step courant). Le
+ * point fixe combinatoire existant dérive ce qu'elles pilotent, puis la même
+ * projection digitale que A9-LOGIC-PREQ (`resolveSourceDrivenPinSignals`)
+ * donne le contexte observé. Aucune `resolveSignals()`, aucune conduction
+ * passive. Sans autorité ni contributeur, le résultat est exactement
+ * `resolveSourceDrivenPinSignals(components, prepared)` : contexte historique
+ * A7-C5-PREQ inchangé.
+ */
+function computeTimedDigitalSampleSignals(effectiveComponents, prepared, digitalRegistry, sampleAuthorities) {
+  const sampleDigitalSignals = digitalRegistry
+    ? computeCombinationalDigitalSignals(effectiveComponents, prepared, digitalRegistry, sampleAuthorities)
+    : new Map()
+  return resolveSourceDrivenPinSignals(effectiveComponents, prepared, mergeExternalSignals([sampleAuthorities, sampleDigitalSignals]))
+}
+
+/**
+ * A9-SEQ-PREQ — dernières sorties timed, par store runtime. Clé : la Map
+ * `timedDigitalStates` fournie par l'appelant ; valeur : Map<uid, Map<"uid:pinId",
+ * Signal>>. La durée de vie suit donc exactement celle du store (nouvelle Map
+ * = aucun historique ; un uid absent du store = aucune sortie maintenue).
+ * Volatile, hors Document/History ; le contenu de `timedDigitalStates`
+ * lui-même (état privé de chaque producteur) reste inchangé.
+ */
+const heldTimedDigitalOutputs = new WeakMap()
+
+function readHeldTimedDigitalSignals(timedDigitalComponents, timedDigitalStates) {
+  const held = new Map()
+  const byUid = heldTimedDigitalOutputs.get(timedDigitalStates)
+  if (!byUid) return held
+  for (const comp of timedDigitalComponents) {
+    if (!timedDigitalStates.has(comp.uid)) continue
+    for (const [key, signal] of byUid.get(comp.uid) ?? []) held.set(key, signal)
+  }
+  return held
+}
+
+function rememberHeldTimedDigitalSignals(timedDigitalComponents, timedDigitalStates, timedDigitalSignals) {
+  const byUid = new Map()
+  for (const comp of timedDigitalComponents) {
+    const outputs = new Map()
+    for (const pin of getCanonicalEntry(comp.type)?.pins ?? []) {
+      const key = `${comp.uid}:${pin.id}`
+      if (timedDigitalSignals.has(key)) outputs.set(key, timedDigitalSignals.get(key))
+    }
+    byUid.set(comp.uid, outputs)
+  }
+  heldTimedDigitalOutputs.set(timedDigitalStates, byUid)
 }
 
 /**
@@ -682,13 +736,24 @@ function computeElectricalStep(components, wires, options = {}) {
       // Runtime) — une nouvelle Map par défaut si omis (comportement
       // déterministe, sans persistance, §22).
       const timedDigitalStates = options.timedDigitalStates instanceof Map ? options.timedDigitalStates : new Map()
+      // A9-SEQ-PREQ : SAMPLE puis COMMIT. Tous les producteurs timed du step
+      // observent le MÊME contexte d'échantillonnage (voir
+      // `computeTimedDigitalSampleSignals`), construit avant qu'aucune de
+      // leurs nouvelles sorties n'existe — simultanéité logique.
+      const sampleSignals = computeTimedDigitalSampleSignals(
+        effectiveComponents,
+        prepared,
+        hasDigitalComponents ? digitalRegistry : null,
+        mergeExternalSignals([runtimeSignals, readHeldTimedDigitalSignals(timedDigitalComponents, timedDigitalStates)])
+      )
       timedDigitalSignals = computeTimedDigitalSignals(
         timedDigitalComponents,
         timedDigitalRegistry,
-        sourceDrivenSignals,
+        sampleSignals,
         currentTimeMs,
         timedDigitalStates
       )
+      rememberHeldTimedDigitalSignals(timedDigitalComponents, timedDigitalStates, timedDigitalSignals)
     }
 
     if (transientComponents.length > 0) {

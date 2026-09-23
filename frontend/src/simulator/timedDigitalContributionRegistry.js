@@ -35,6 +35,13 @@
  *   `digitalContributionRegistry.js`, AVANT toute conduction passive, sortie
  *   numérique calculée, Runtime ou résolution complète) — jamais lu
  *   directement depuis un wire/DOM/Canvas.
+ *   A9-SEQ-PREQ : dans `runSimulationWithRuntime`, ce contexte est le
+ *   contexte d'ÉCHANTILLONNAGE du step : il inclut en plus les autorités
+ *   Runtime courantes, les sorties timed MAINTENUES du step précédent et les
+ *   sorties combinatoires qu'elles pilotent — jamais les nouvelles sorties
+ *   timed du step courant (tous les producteurs échantillonnent le même
+ *   contexte). Sans ces autorités, il reste identique au contexte historique.
+ *   UNKNOWN/FLOATING sont transmis tels quels, jamais convertis.
  * - `currentTimeMs` : temps simulé courant, tel que retourné par le
  *   Scheduler partagé (scheduler.js — seule source de temps, voir
  *   `simulationRuntimeIntegration.js`). Un producteur ne possède jamais sa
