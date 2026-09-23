@@ -88,6 +88,19 @@ const ASSEMBLY_PROFILES = {
       Q: { root: { dx: 96.890625, dy: 83.4375 }, style: "metallic-wire" },
     },
   },
+  // A9-NOT: own real pixel-probe on the FROZEN RGBA reference — two vertical
+  // leads, each probed over its free-standing metal segment (neutral metal
+  // min(RGB)>=130, max(RGB)-min(RGB)<45, alpha>=200): A rows 163-272 ->
+  // box x[709,825]; Q rows 848-893 -> box x[722,808]. Box centres scaled by
+  // 3/32 (see NOT manifest.json derivation.pixelProbe). Preserve the entire
+  // bitmap; generic leads bridge to contacts A(72,21) / Q(72,81).
+  NOT_GATE: {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 71.90625, dy: 20.390625 }, style: "metallic-wire" },
+      Q: { root: { dx: 71.71875, dy: 81.609375 }, style: "metallic-wire" },
+    },
+  },
   // Source row y=950, metal RGB>=130 and alpha>=200: spans A [492,532],
   // B [740,780], Q [1005,1045]. Centres scaled isotropically by 3/32.
   // No clip: preserve all Founder markings and both visible ends of each

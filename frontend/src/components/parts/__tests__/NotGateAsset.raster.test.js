@@ -204,13 +204,26 @@ describe('A9-NOT-ASSET-FIX raster asset (transparency lock, no applicative logic
     }
   })
 
-  it('documents exactly two pins A/Q and does not fake an electrical pixel-probe', () => {
+  it('A9-NOT (functional ticket) filled the real two-pin A/Q pixel-probe; Founder Asset Gate PASS recorded', () => {
+    // A9-NOT-ASSET-FIX deliberately left pixelProbe as
+    // 'NOT_MEASURED_IN_A9-NOT-ASSET-FIX_SCOPE'. A9-NOT is the functional
+    // ticket: it measured A/Q once on this same FROZEN raster; this asset
+    // test now locks that measurement (exactly two pins, vertical leads)
+    // without any PhysicalContacts registry key on the manifest itself.
     const m = json('manifest.json')
     expect(json('FOUNDER-ASSET.json').pins).toEqual(['A', 'Q'])
-    expect(m.derivation.pixelProbe).toBe('NOT_MEASURED_IN_A9-NOT-ASSET-FIX_SCOPE')
+    expect(m.derivation.pixelProbe.map(p => p.pin)).toEqual(['A', 'Q'])
+    for (const p of m.derivation.pixelProbe) {
+      expect(p.runtimeRoot).toEqual(p.sourceRoot.map(v => v * 3 / 32))
+      expect(Math.hypot(p.runtimeRoot[0] - p.physicalContact[0], p.runtimeRoot[1] - p.physicalContact[1])).toBeLessThan(0.75)
+      // The measured root sits on opaque lead metal of the FROZEN raster.
+      expect(alphaAt(Math.round(p.sourceRoot[0]), Math.round(p.sourceRoot[1]))).toBe(255)
+    }
+    expect(m.derivation.pixelProbe.map(p => p.physicalContact)).toEqual([[72, 21], [72, 81]])
     expect(m).not.toHaveProperty('physicalContacts')
     expect(m).not.toHaveProperty('PhysicalContacts')
     expect(m.derivation).not.toHaveProperty('physicalContacts')
-    expect(json('FOUNDER-ASSET.json').note).toMatch(/await the Founder's own visual re-qualification/)
+    expect(m.correctedReferenceStatus).toBe('FOUNDER_PASS_FROZEN')
+    expect(json('FOUNDER-ASSET.json')).toMatchObject({ status: 'FOUNDER_PASS_FROZEN', correctedReferenceStatus: 'FOUNDER_PASS_FROZEN' })
   })
 })

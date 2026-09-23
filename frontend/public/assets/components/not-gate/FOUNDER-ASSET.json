@@ -2,7 +2,7 @@
   "ticket": "A9-NOT",
   "componentType": "NOT_GATE",
   "status": "FOUNDER_PASS_FROZEN",
-  "correctedReferenceStatus": "TECHNICAL_CANDIDATE_PENDING_FOUNDER_ASSET_GATE",
+  "correctedReferenceStatus": "FOUNDER_PASS_FROZEN",
   "referenceFile": "not-gate.founder-reference.png",
   "sha256": "43f13e75f460575406a6c1c9df93813157073403f15ccf96a05ce7b6165011cd",
   "originalFounderSourceSha256": "58271344adea31d04b59d2a4c97f21eef674b70b0967d9708d30e10afbb8a827",
@@ -16,5 +16,5 @@
     "Q"
   ],
   "logic": "Q = NOT(A)",
-  "note": "A9-NOT-ASSET-FIX: ORIGINAL FOUNDER SOURCE (opaque RGB, sha256 58271344adea31d04b59d2a4c97f21eef674b70b0967d9708d30e10afbb8a827, recoverable at commit e29d1aeaf9d6f454f06875b3b4897d08e0ad20fb) corrected to this CORRECTED FOUNDER REFERENCE (true RGBA) using the border-connected segmentation method qualified for A9-OR/A9-NAND/A9-NOR/A9-XOR: exterior background made transparent, all RGB content preserved byte-identical. This is a technical transparency correction of the Founder-approved visual identity; the new RGBA bytes await the Founder's own visual re-qualification (direct Asset Gate) before being treated as a fresh Founder PASS on those bytes."
+  "note": "A9-NOT-ASSET-FIX: ORIGINAL FOUNDER SOURCE (opaque RGB, sha256 58271344adea31d04b59d2a4c97f21eef674b70b0967d9708d30e10afbb8a827, recoverable at commit e29d1aeaf9d6f454f06875b3b4897d08e0ad20fb) corrected to this CORRECTED FOUNDER REFERENCE (true RGBA) using the border-connected segmentation method qualified for A9-OR/A9-NAND/A9-NOR/A9-XOR: exterior background made transparent, all RGB content preserved byte-identical. The Founder then passed these exact corrected RGBA bytes at the direct Founder Asset Gate: FROZEN CORRECTED FOUNDER REFERENCE (FOUNDER PASS / FROZEN)."
 }

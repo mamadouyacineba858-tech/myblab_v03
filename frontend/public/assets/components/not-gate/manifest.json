@@ -2,7 +2,14 @@
   "component": "NOT_GATE",
   "assetStatus": "FOUNDER_PASS_FROZEN",
   "backend": "raster",
-  "correctedReferenceStatus": "TECHNICAL_CANDIDATE_PENDING_FOUNDER_ASSET_GATE",
+  "correctedReferenceStatus": "FOUNDER_PASS_FROZEN",
+  "complexity": "complex",
+  "budget": {
+    "complexity": "complex"
+  },
+  "states": [
+    "default"
+  ],
   "canonical": {
     "width": 144,
     "height": 96
@@ -65,8 +72,73 @@
   },
   "derivation": {
     "method": "Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.",
-    "pixelProbe": "NOT_MEASURED_IN_A9-NOT-ASSET-FIX_SCOPE",
-    "pixelProbeMethod": "Electrical A/Q pixel-probe and PhysicalContacts belong to the separate, not-yet-authorized functional A9-NOT ticket; this asset-fix ticket does not register them. A generic physical-preservation check (metalZoneCheck below) verifies the visible metal leads stayed opaque through the correction.",
+    "pixelProbe": [
+      {
+        "pin": "A",
+        "regionX": [
+          690,
+          850
+        ],
+        "regionY": [
+          163,
+          272
+        ],
+        "sourceSpanX": [
+          709,
+          825
+        ],
+        "sourceSpanY": [
+          163,
+          272
+        ],
+        "sourceRoot": [
+          767.0,
+          217.5
+        ],
+        "runtimeRoot": [
+          71.90625,
+          20.390625
+        ],
+        "physicalContact": [
+          72,
+          21
+        ],
+        "rootToContactPx": 0.6165
+      },
+      {
+        "pin": "Q",
+        "regionX": [
+          690,
+          850
+        ],
+        "regionY": [
+          848,
+          893
+        ],
+        "sourceSpanX": [
+          722,
+          808
+        ],
+        "sourceSpanY": [
+          848,
+          893
+        ],
+        "sourceRoot": [
+          765.0,
+          870.5
+        ],
+        "runtimeRoot": [
+          71.71875,
+          81.609375
+        ],
+        "physicalContact": [
+          72,
+          81
+        ],
+        "rootToContactPx": 0.6711
+      }
+    ],
+    "pixelProbeMethod": "A9-NOT functional ticket, own measurement on the FROZEN RGBA reference (not copied from AND/OR/NAND/NOR/XOR, whose three feet share one row): each vertical lead probed over its free-standing metal segment (A: rows 163-272 between key cap and the body silhouette flare; Q: rows 848-893 between key cap and green tip), x ROI 690-850; neutral metal min(RGB)>=130, max(RGB)-min(RGB)<45, alpha>=200; root = centre of the thresholded bounding box, scale 3/32 (full-source 1536x1024 -> 144x96). PhysicalContacts retained at A(72,21) / Q(72,81): same column, 60 = 5 x 12 px apart, straddling the breadboard groove; max root-to-contact distance ~0.67 px (Q).",
     "metalZoneCheck": [
       {
         "zone": "a-lead-metal",
@@ -117,7 +189,7 @@
     "Qualify A/Q physical contacts against 12 px breadboard pitch.",
     "Do not invent VCC/GND for this abstract Level-1 inverter.",
     "No bodyClip; reference RGB content remains byte-identical to the original Founder source, only alpha changed.",
-    "This is an asset-only correction: no functional NOT_GATE component, registration or simulation contract is introduced by this ticket.",
-    "These corrected bytes are a technical candidate: they await the Founder's own visual re-qualification (direct Asset Gate) before being treated as a fresh Founder PASS."
+    "A9-NOT: functional NOT_GATE component (stateless, Q = NOT(A)) registered via digitalContributionRegistry.js; exactly two PhysicalContacts A/Q from derivation.pixelProbe; no VCC/GND/ENABLE/CLOCK invented.",
+    "Founder Asset Gate (direct): PASS / FROZEN on these exact corrected RGBA bytes."
   ]
 }

@@ -21,6 +21,7 @@ import { OrGateModel } from './models/OrGateModel.js'
 import { NandGateModel } from './models/NandGateModel.js'
 import { NorGateModel } from './models/NorGateModel.js'
 import { XorGateModel } from './models/XorGateModel.js'
+import { NotGateModel } from './models/NotGateModel.js'
 import { HBridgeModel } from './models/HBridgeModel.js'
 import { PmosModel } from './models/PmosModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
@@ -139,6 +140,7 @@ const defaultRegistry = createSimulationRegistry({
     NandGateModel,
     NorGateModel,
     XorGateModel,
+    NotGateModel,
     RelayModel,
     Tmp36Model,
     ForceSensorModel,

@@ -253,6 +253,19 @@ function xorGateDigital({ pinSignals }) {
 }
 
 /**
+ * A9-NOT: single-input inverter. A decisively HIGH drives Q LOW and a
+ * decisively LOW drives Q HIGH; UNKNOWN or FLOATING on A produces no drive
+ * (null), so the existing fixed-point propagation and resolution decide Q
+ * (typically UNKNOWN). FLOATING is not a logic level and is never coerced to
+ * HIGH or LOW; no previous output is remembered.
+ */
+function notGateDigital({ pinSignals }) {
+  if (pinSignals.A === Signal.HIGH) return new Map([["Q", Signal.LOW]])
+  if (pinSignals.A === Signal.LOW) return new Map([["Q", Signal.HIGH]])
+  return null
+}
+
+/**
  * Fabrique un Registry isolé — même patron que `createSimulationRegistry`
  * (`simulationRegistry.js`) : permet à un test d'injecter une table de
  * contributions FIXTURE, sans jamais enregistrer de faux type de production
@@ -298,6 +311,7 @@ const defaultRegistry = createDigitalContributionRegistry({
     ["NAND_GATE", nandGateDigital],
     ["NOR_GATE", norGateDigital],
     ["XOR_GATE", xorGateDigital],
+    ["NOT_GATE", notGateDigital],
   ]),
 })
 

@@ -3,20 +3,20 @@
   "textNormalization": "LF",
   "files": {
     "FOUNDER-ASSET.json": {
-      "sha256": "9a39d7e1c38f9b3ce11929f4d13bd7b43e13e575f989e68229194a71129fc04a",
-      "bytes": 1190
+      "sha256": "7b6d06d24083826fb6be62be225999fe7c61b8be75b2a3895bd66dcafa220860",
+      "bytes": 1081
     },
     "README.md": {
-      "sha256": "e9bd10772455bdf4adb6c2e710d6fbc883deb91a3789dab5e38e315958559d03",
-      "bytes": 1778
+      "sha256": "1c9c3af19e8a570d086dc18b6e1511896ae5dc1047701b71ebf9b0336ca2ea01",
+      "bytes": 1623
     },
     "README.txt": {
-      "sha256": "8ebca716150899132804bff6220fdd3e7c9717585b59ccf32b2cb274bb48e47d",
-      "bytes": 1776
+      "sha256": "71c3ccc57ed939590e2995677d1495027de03617222183a548c7f97ba3f21aca",
+      "bytes": 1621
     },
     "manifest.json": {
-      "sha256": "ee8b600c3ab78a255de76bb8637043ee662f99e5379a4bc6618403c530dbab94",
-      "bytes": 4310
+      "sha256": "4153b01c462f1f7b22911496797192ac8b6714078123597b7d1284cb71ebb9dc",
+      "bytes": 5761
     },
     "not-gate.default.1x.png": {
       "sha256": "999ce4f969cebe9b6a09b561041d45c19e1b0a71f930a79a2aec50742a0854e7",

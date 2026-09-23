@@ -33,14 +33,22 @@ RGB sample stream (row-major, 3 bytes/pixel) in manifest.json
 derivation.transparency.rgbChannelsSha256 so the JS raster test can
 re-verify it from the corrected PNG alone.
 
-This is A9-NOT-ASSET-FIX, a raster asset correction only. NOT_GATE has no
-functional component/registration/simulation contract yet — that is the
-separate, not-yet-authorized A9-NOT ticket. Accordingly this script does
-not compute or register electrical PhysicalContacts for A/Q. The only raster
-probe below is a generic check that the two visible metal lead zones (A lead
-at the top, Q lead at the bottom) stay substantially opaque after the
-correction — a physical-preservation check, not an electrical pin
-registration.
+A9-NOT-ASSET-FIX introduced the correction above; the Founder then passed
+the corrected RGBA bytes at the direct Founder Asset Gate (FOUNDER PASS /
+FROZEN), and they are not modified again.
+
+A9-NOT (functional ticket) adds the real electrical pixel-probe below
+(`probe_lead`), measured once on the FROZEN reference and written to
+manifest.json derivation.pixelProbe. NOT_GATE has exactly two contacts with
+its own vertical geometry (A lead above the body, Q lead below it), so the
+three-foot single-row probe of AND/OR/NAND/NOR/XOR does not apply: each lead
+is probed over its own metal segment (same neutral-metal thresholds as the
+siblings: min(RGB)>=130, max(RGB)-min(RGB)<45, alpha>=200), root = centre of
+the thresholded bounding box, scaled isotropically by 3/32 (full-source
+1536x1024 -> 144x96, no crop). The declarative PhysicalContacts
+(componentDefinitions.js) and lead roots (assemblyProfiles.js) are copied
+from this measurement; nothing reads pixels at runtime. The metalZoneCheck
+rows remain a separate generic physical-preservation check.
 """
 from pathlib import Path
 import hashlib
@@ -154,13 +162,58 @@ assert alpha_stats['alpha0'] > 1000000, 'exterior background must be genuinely t
 assert alpha_stats['alphaPartial'] > 0, 'a real anti-aliasing feather band must exist'
 
 # Generic physical-preservation raster check, NOT an electrical/PhysicalContacts
-# registration. The exact A/Q electrical pixel-probe belongs to the separate,
-# not-yet authorized functional A9-NOT ticket.
+# registration (the electrical A/Q pixel-probe is `probe_lead` below).
 metal_zones = []
 for label, row, lo, hi in METAL_ZONES:
     opaque = sum(1 for x in range(lo, hi) if im.getpixel((x, row))[3] >= 200)
     metal_zones.append({'zone': label, 'row': row, 'regionX': [lo, hi], 'opaquePixelCount': opaque})
     assert opaque > 80, f'{label} metal zone lost opacity after transparency correction'
+
+# A9-NOT electrical pixel-probe (FROZEN reference, measured once).
+# Each segment is the free-standing metal of one lead. A: rows from the A key
+# cap's lower edge (163) down to the last row before the body silhouette starts
+# to flare around the lead (opaque span 709..825 up to row 272, widening from
+# 274). Q: rows between the Q key cap (848) and the green insulated tip (893),
+# the terminal the siblings' lower-foot probe also targets, just above the
+# coloured lead tip.
+PROBE_SEGMENTS = [
+    ('A', (690, 850), (163, 272)),
+    ('Q', (690, 850), (848, 893)),
+]
+PROBE_SCALE = 3 / 32
+# Retained PhysicalContacts on the 12 px breadboard pitch: same column (x=72),
+# A->Q vertical spacing 60 = 5 x 12 (measured roots are 61.2 px apart; the
+# nearest alternatives 21/81 +/- 1 would drift >= 1.4 px), so A and Q straddle
+# the central groove on two distinct strips (top rows 3..7 / bottom rows 9..13).
+PHYSICAL_CONTACTS = {'A': (72, 21), 'Q': (72, 81)}
+
+
+def probe_lead(rgba, x_roi, y_roi):
+    x0, x1 = x_roi
+    y0, y1 = y_roi
+    px = rgba[y0:y1 + 1, x0:x1 + 1].astype(np.int16)
+    lo = px[..., :3].min(axis=-1)
+    hi = px[..., :3].max(axis=-1)
+    ys, xs = np.nonzero((lo >= 130) & (hi - lo < 45) & (px[..., 3] >= 200))
+    assert len(xs) > 500, 'lead metal not found in probe segment'
+    span_x = [int(xs.min()) + x0, int(xs.max()) + x0]
+    span_y = [int(ys.min()) + y0, int(ys.max()) + y0]
+    assert x0 < span_x[0] and span_x[1] < x1, 'lead metal must not touch the probe ROI edges'
+    return span_x, span_y, [(span_x[0] + span_x[1]) / 2, (span_y[0] + span_y[1]) / 2]
+
+
+pixel_probe = []
+for pin, x_roi, y_roi in PROBE_SEGMENTS:
+    span_x, span_y, root = probe_lead(arr, x_roi, y_roi)
+    runtime_root = [root[0] * PROBE_SCALE, root[1] * PROBE_SCALE]
+    contact = PHYSICAL_CONTACTS[pin]
+    error = float(np.hypot(runtime_root[0] - contact[0], runtime_root[1] - contact[1]))
+    assert error < 0.75, f'{pin} contact drifts {error:.3f}px from its measured root'
+    pixel_probe.append({'pin': pin, 'regionX': list(x_roi), 'regionY': list(y_roi),
+                        'sourceSpanX': span_x, 'sourceSpanY': span_y, 'sourceRoot': root,
+                        'runtimeRoot': runtime_root, 'physicalContact': list(contact),
+                        'rootToContactPx': round(error, 4)})
+assert (PHYSICAL_CONTACTS['Q'][1] - PHYSICAL_CONTACTS['A'][1]) % 12 == 0
 
 assets = []
 for scale in [1, 3]:
@@ -177,7 +230,8 @@ for scale in [1, 3]:
 
 write_json('manifest.json', {
     'component': 'NOT_GATE', 'assetStatus': 'FOUNDER_PASS_FROZEN', 'backend': 'raster',
-    'correctedReferenceStatus': 'TECHNICAL_CANDIDATE_PENDING_FOUNDER_ASSET_GATE',
+    'correctedReferenceStatus': 'FOUNDER_PASS_FROZEN',
+    'complexity': 'complex', 'budget': {'complexity': 'complex'}, 'states': ['default'],
     'canonical': {'width': 144, 'height': 96}, 'assets': assets,
     'reference': {'file': REFERENCE, 'sha256': current_sha, 'width': 1536, 'height': 1024,
                   'mode': 'RGBA', 'pngColorType': 6, 'bitDepth': 8},
@@ -186,11 +240,16 @@ write_json('manifest.json', {
                               'recoverableAt': PRIOR_SHA_RECOVERABLE_AT},
     'derivation': {
         'method': 'Full-source premultiplied-alpha Lanczos resize; no crop/redraw/recolor/deformation.',
-        'pixelProbe': 'NOT_MEASURED_IN_A9-NOT-ASSET-FIX_SCOPE',
-        'pixelProbeMethod': 'Electrical A/Q pixel-probe and PhysicalContacts belong to the separate, '
-                             'not-yet-authorized functional A9-NOT ticket; this asset-fix ticket does not '
-                             'register them. A generic physical-preservation check (metalZoneCheck below) '
-                             'verifies the visible metal leads stayed opaque through the correction.',
+        'pixelProbe': pixel_probe,
+        'pixelProbeMethod': 'A9-NOT functional ticket, own measurement on the FROZEN RGBA reference (not '
+                             'copied from AND/OR/NAND/NOR/XOR, whose three feet share one row): each vertical '
+                             'lead probed over its free-standing metal segment (A: rows 163-272 between key cap '
+                             'and the body silhouette flare; Q: rows 848-893 between key cap and green tip), '
+                             'x ROI 690-850; neutral '
+                             'metal min(RGB)>=130, max(RGB)-min(RGB)<45, alpha>=200; root = centre of the '
+                             'thresholded bounding box, scale 3/32 (full-source 1536x1024 -> 144x96). '
+                             'PhysicalContacts retained at A(72,21) / Q(72,81): same column, 60 = 5 x 12 px '
+                             'apart, straddling the breadboard groove; max root-to-contact distance ~0.67 px (Q).',
         'metalZoneCheck': metal_zones,
         'transparency': {
             'note': 'Founder reference corrected from opaque RGB to true RGBA: exterior background '
@@ -213,16 +272,16 @@ write_json('manifest.json', {
               'Do not invent VCC/GND for this abstract Level-1 inverter.',
               'No bodyClip; reference RGB content remains byte-identical to the original Founder source, '
               'only alpha changed.',
-              'This is an asset-only correction: no functional NOT_GATE component, registration or '
-              'simulation contract is introduced by this ticket.',
-              'These corrected bytes are a technical candidate: they await the Founder\'s own visual '
-              're-qualification (direct Asset Gate) before being treated as a fresh Founder PASS.']})
+              'A9-NOT: functional NOT_GATE component (stateless, Q = NOT(A)) registered via '
+              'digitalContributionRegistry.js; exactly two PhysicalContacts A/Q from derivation.pixelProbe; '
+              'no VCC/GND/ENABLE/CLOCK invented.',
+              'Founder Asset Gate (direct): PASS / FROZEN on these exact corrected RGBA bytes.']})
 
 write_json('FOUNDER-ASSET.json', {
     'ticket': 'A9-NOT',
     'componentType': 'NOT_GATE',
     'status': 'FOUNDER_PASS_FROZEN',
-    'correctedReferenceStatus': 'TECHNICAL_CANDIDATE_PENDING_FOUNDER_ASSET_GATE',
+    'correctedReferenceStatus': 'FOUNDER_PASS_FROZEN',
     'referenceFile': REFERENCE,
     'sha256': current_sha,
     'originalFounderSourceSha256': PRIOR_OPAQUE_SHA,
@@ -234,21 +293,20 @@ write_json('FOUNDER-ASSET.json', {
             'recoverable at commit ' + PRIOR_SHA_RECOVERABLE_AT + ') corrected to this CORRECTED FOUNDER '
             'REFERENCE (true RGBA) using the border-connected segmentation method qualified for '
             'A9-OR/A9-NAND/A9-NOR/A9-XOR: exterior background made transparent, all RGB content preserved '
-            'byte-identical. This is a technical transparency correction of the Founder-approved visual '
-            'identity; the new RGBA bytes await the Founder\'s own visual re-qualification (direct Asset '
-            'Gate) before being treated as a fresh Founder PASS on those bytes.',
+            'byte-identical. The Founder then passed these exact corrected RGBA bytes at the direct Founder '
+            'Asset Gate: FROZEN CORRECTED FOUNDER REFERENCE (FOUNDER PASS / FROZEN).',
 })
 
-readme = f"""# A9-NOT / Inverter raster pack (A9-NOT-ASSET-FIX)
+readme = f"""# A9-NOT / Inverter frozen raster pack
 NOT_GATE — A -> Q = NOT(A)
-Founder-approved visual identity; asset-only transparency correction (technical pass), pending the Founder's own visual re-qualification of the corrected bytes (direct Asset Gate).
+Founder PASS / FROZEN: the corrected RGBA bytes below passed the direct Founder Asset Gate.
 
 ORIGINAL FOUNDER SOURCE
 1536x1024 RGB (PNG colour type 2, 8-bit, no alpha) — SHA-256:
 {PRIOR_OPAQUE_SHA}
 Recoverable at git commit {PRIOR_SHA_RECOVERABLE_AT}.
 
-CORRECTED FOUNDER REFERENCE
+FROZEN CORRECTED FOUNDER REFERENCE
 Reference: {REFERENCE}
 1536x1024 RGBA (PNG colour type 6, 8-bit) — SHA-256:
 {current_sha}
@@ -268,10 +326,10 @@ above.
 
 This component has exactly two intended electrical contacts: A and Q.
 Do not copy the three-contact geometry used by the two-input gates.
-This is an asset-only correction (A9-NOT-ASSET-FIX): NOT_GATE has no
-functional component, registration or simulation contract yet. Electrical
-A/Q pixel-probe and PhysicalContacts coordinates belong to the separate,
-not-yet-authorized functional A9-NOT ticket. Do not invent VCC/GND.
+Electrical A/Q pixel-probe (A9-NOT, manifest.json derivation.pixelProbe):
+A lead root ({pixel_probe[0]['sourceRoot'][0]}, {pixel_probe[0]['sourceRoot'][1]}) source -> PhysicalContact (72, 21);
+Q lead root ({pixel_probe[1]['sourceRoot'][0]}, {pixel_probe[1]['sourceRoot'][1]}) source -> PhysicalContact (72, 81).
+Do not invent VCC/GND.
 """
 write_text('README.md', readme)
 write_text('README.txt', readme.replace('# ', '').replace('\n\n\n', '\n\n'))
@@ -287,4 +345,5 @@ write_json('ASSET-INTEGRITY.json', {'component': 'NOT_GATE', 'textNormalization'
 
 assert (PACK / REFERENCE).read_bytes() == source
 print(json.dumps({'referenceSha256': current_sha, 'rgbChannelsSha256': rgb_channels_sha,
-                  'alphaStats': alpha_stats, 'metalZoneCheck': metal_zones, 'assets': assets}, indent=2))
+                  'alphaStats': alpha_stats, 'metalZoneCheck': metal_zones, 'pixelProbe': pixel_probe,
+                  'assets': assets}, indent=2))
