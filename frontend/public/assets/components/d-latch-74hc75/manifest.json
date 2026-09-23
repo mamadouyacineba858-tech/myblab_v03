@@ -1,0 +1,117 @@
+{
+  "ticket": "A9-LATCH1",
+  "component": "74HC75",
+  "status": "FOUNDER_PASS_CSA_LOCKED",
+  "runtimeCanvas": {
+    "width": 120,
+    "height": 64
+  },
+  "normalization": {
+    "method": "isotropic",
+    "measuredSourcePitchPx": 64.3,
+    "targetPitchPx": 12,
+    "scale": 0.18662519440124417
+  },
+  "physicalContacts": {
+    "top": [
+      {
+        "pin": 16,
+        "name": "1Q",
+        "x": 19,
+        "y": 8
+      },
+      {
+        "pin": 15,
+        "name": "2Q",
+        "x": 31,
+        "y": 8
+      },
+      {
+        "pin": 14,
+        "name": "2NQ",
+        "x": 43,
+        "y": 8
+      },
+      {
+        "pin": 13,
+        "name": "LE12",
+        "x": 55,
+        "y": 8
+      },
+      {
+        "pin": 12,
+        "name": "GND",
+        "x": 67,
+        "y": 8
+      },
+      {
+        "pin": 11,
+        "name": "3NQ",
+        "x": 79,
+        "y": 8
+      },
+      {
+        "pin": 10,
+        "name": "3Q",
+        "x": 91,
+        "y": 8
+      },
+      {
+        "pin": 9,
+        "name": "4Q",
+        "x": 103,
+        "y": 8
+      }
+    ],
+    "bottom": [
+      {
+        "pin": 1,
+        "name": "1NQ",
+        "x": 19,
+        "y": 56
+      },
+      {
+        "pin": 2,
+        "name": "1D",
+        "x": 31,
+        "y": 56
+      },
+      {
+        "pin": 3,
+        "name": "2D",
+        "x": 43,
+        "y": 56
+      },
+      {
+        "pin": 4,
+        "name": "LE34",
+        "x": 55,
+        "y": 56
+      },
+      {
+        "pin": 5,
+        "name": "VCC",
+        "x": 67,
+        "y": 56
+      },
+      {
+        "pin": 6,
+        "name": "3D",
+        "x": 79,
+        "y": 56
+      },
+      {
+        "pin": 7,
+        "name": "4D",
+        "x": 91,
+        "y": 56
+      },
+      {
+        "pin": 8,
+        "name": "4NQ",
+        "x": 103,
+        "y": 56
+      }
+    ]
+  }
+}
