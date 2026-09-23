@@ -51,7 +51,15 @@ import {
 // runtimeArchitecture.test.js). Ce fichier n'importe ni runtimeOrchestrator.js
 // ni ArduinoSimulator.js : ces instances ne sont créées que lazily, à
 // l'intérieur de simulationRuntimeIntegration.js.
-import { runSimulationWithRuntime, stopFirmwareSimulation, SIMULATION_STEP_MS } from "../simulator/simulationRuntimeIntegration.js"
+import {
+  runSimulationWithRuntime,
+  stopFirmwareSimulation,
+  SIMULATION_STEP_MS,
+  circuitRequiresContinuousStepping,
+  createSimulationRuntimeSession,
+  resetSimulationRuntimeSession,
+  retainSimulationRuntimeSessionUids,
+} from "../simulator/simulationRuntimeIntegration.js"
 // MB-L1-ENV-001 (CSA GO) : `isValidLightStimulus` est la SEULE frontière de
 // validation consultée ici — ce hook ne réimplémente jamais la règle
 // "LIGHT ∈ [0,1], fini" (ENV-20), il se contente de rejeter (jamais de
@@ -440,6 +448,12 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   const [firmwareDiagnostics, setFirmwareDiagnostics] = useState({})
   const [ownOrchestratorsFallback] = useState(() => new Map())
   const orchestrators = injectedOrchestrators instanceof Map ? injectedOrchestrators : ownOrchestratorsFallback
+  // A9-SEQ-PREQ2 : container runtime générique (états temporels/transitoires,
+  // autorité temporelle créée paresseusement par simulationRuntimeIntegration.js).
+  // Ce hook en possède seulement la durée de vie : même frontières que
+  // `orchestrators` (start/stop/clear/import/unmount), jamais exposé au
+  // Contexte, jamais dans le Document/History.
+  const [runtimeSession] = useState(() => createSimulationRuntimeSession())
   // =========================================================================
   // FIN MB-ARDUINO-BRIDGE-001 (container)
   // =========================================================================
@@ -587,7 +601,7 @@ const getUndoCount = useCallback(() => {
         const coreDoc = ReactDocumentMapper.toCore({ components: safeComponents, wires: safeWires, breadboards })
         const adapted = toEngineInput(coreDoc)
         setPinSignals(runSimulationWithRuntime(adapted.components, adapted.wires, {
-          orchestrators, firmwareSessions, firmwareComponents: safeComponents, dt, environmentalStimuli,
+          orchestrators, firmwareSessions, firmwareComponents: safeComponents, dt, environmentalStimuli, runtimeSession,
         }) ?? EMPTY_MAP)
         const diagnostics = Object.fromEntries([...firmwareSessions].map(([uid, session]) => [uid, session.diagnostics]))
         setFirmwareDiagnostics(previous => JSON.stringify(previous) === JSON.stringify(diagnostics) ? previous : diagnostics)
@@ -602,16 +616,23 @@ const getUndoCount = useCallback(() => {
       solve(SIMULATION_STEP_MS)
       frame = requestAnimationFrame(tick)
     }
-    if (safeComponents.some(c => c.type === "ARDUINO") && typeof requestAnimationFrame === "function") {
+    // RAF ne fait que déclencher des steps de SIMULATION_STEP_MS ; le temps
+    // simulé reste celui du Scheduler. A9-SEQ-PREQ2 : tout circuit dont les
+    // sorties évoluent avec le temps simulé (Runtime ou producteur temporel,
+    // décidé par le Registry) doit continuer à avancer.
+    if (circuitRequiresContinuousStepping(safeComponents) && typeof requestAnimationFrame === "function") {
       frame = requestAnimationFrame(tick)
     }
     return () => {
       cancelled = true
       if (frame !== undefined) cancelAnimationFrame(frame)
     }
-  }, [safeComponents, safeWires, breadboards, simulationActive, orchestrators, firmwareSessions, environmentalStimuli])
+  }, [safeComponents, safeWires, breadboards, simulationActive, orchestrators, firmwareSessions, environmentalStimuli, runtimeSession])
 
-  useEffect(() => () => stopFirmwareSimulation(orchestrators, firmwareSessions), [orchestrators, firmwareSessions])
+  useEffect(() => () => {
+    stopFirmwareSimulation(orchestrators, firmwareSessions)
+    resetSimulationRuntimeSession(runtimeSession)
+  }, [orchestrators, firmwareSessions, runtimeSession])
 
   const isWiringActive = pendingPin !== null || wireGesture !== null
 
@@ -694,7 +715,9 @@ const getUndoCount = useCallback(() => {
     for (const uid of Array.from(orchestrators.keys())) {
       if (!liveArduinoUids.has(uid)) orchestrators.delete(uid)
     }
-  }, [safeComponents, orchestrators])
+    // A9-SEQ-PREQ2 : même purge, générique (uids vivants vs clés d'état).
+    retainSimulationRuntimeSessionUids(runtimeSession, new Set(safeComponents.map((c) => c.uid)))
+  }, [safeComponents, orchestrators, runtimeSession])
 
   // =========================================================================
   // MB-VIS-CANVAS-052 : un composant focalisé qui disparaît du Document
@@ -2489,7 +2512,8 @@ if (import.meta.env.DEV) {
     // MB-ARDUINO-BRIDGE-001 (§5/§17 du Blueprint) : un nouveau Document (vide)
     // ne doit jamais hériter de l'état runtime d'un circuit précédent.
     stopFirmwareSimulation(orchestrators, firmwareSessions)
-  }, [orchestrators, firmwareSessions])
+    resetSimulationRuntimeSession(runtimeSession)
+  }, [orchestrators, firmwareSessions, runtimeSession])
 
   // MB-BREADBOARD-003 (Blueprint §6, AC-23) : `breadboard` était absent de
   // l'objet exporté et ignoré à l'import (lacune préexistante, explicitement
@@ -2538,18 +2562,21 @@ if (import.meta.env.DEV) {
     // MB-ARDUINO-BRIDGE-001 (§5/§17 du Blueprint) : un Document importé ne
     // doit jamais hériter de l'état runtime du circuit précédemment chargé.
     stopFirmwareSimulation(orchestrators, firmwareSessions)
-  }, [orchestrators, firmwareSessions])
+    resetSimulationRuntimeSession(runtimeSession)
+  }, [orchestrators, firmwareSessions, runtimeSession])
 
   const startSimulation = useCallback(() => {
     if (simulationActive) return
     stopFirmwareSimulation(orchestrators, firmwareSessions)
+    resetSimulationRuntimeSession(runtimeSession)
     setFirmwareDiagnostics({})
     setSimulationActive(true)
-  }, [simulationActive, orchestrators, firmwareSessions])
+  }, [simulationActive, orchestrators, firmwareSessions, runtimeSession])
   const stopSimulation = useCallback(() => {
     stopFirmwareSimulation(orchestrators, firmwareSessions)
+    resetSimulationRuntimeSession(runtimeSession)
     setSimulationActive(false)
-  }, [orchestrators, firmwareSessions])
+  }, [orchestrators, firmwareSessions, runtimeSession])
 
   // =========================================================================
   // MB-L1-ENV-001 (CSA GO, §13 du ticket) : API applicative minimale pour

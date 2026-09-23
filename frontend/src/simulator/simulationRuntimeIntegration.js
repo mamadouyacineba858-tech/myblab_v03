@@ -90,6 +90,56 @@ export function circuitRequiresRuntime(components) {
 }
 
 /**
+ * A9-SEQ-PREQ2 — le circuit contient-il un producteur dont les sorties
+ * numériques évoluent avec le temps simulé sans autre changement du Document
+ * (Runtime embarqué ou producteur du Registry temporel) ? Registry-driven,
+ * aucun nom de type autre que RUNTIME_COMPONENT_TYPE. Les contributeurs
+ * électriques transitoires n'en font pas partie : ils n'alimentent pas
+ * `pinSignals` (voir `computeTransientElectricalContributions`).
+ *
+ * @param {Array<{ type }>} components
+ * @param {{ hasTimedDigitalContribution: (type: string) => boolean }} [timedDigitalRegistry]
+ * @returns {boolean}
+ */
+export function circuitRequiresContinuousStepping(components, timedDigitalRegistry = {
+  hasTimedDigitalContribution: defaultHasTimedDigitalContribution,
+}) {
+  return Array.isArray(components) && components.some((c) => c
+    && (c.type === RUNTIME_COMPONENT_TYPE || timedDigitalRegistry.hasTimedDigitalContribution(c.type)))
+}
+
+/**
+ * A9-SEQ-PREQ2 — container runtime VOLATILE d'une simulation applicative :
+ * états privés des producteurs temporels, états électriques transitoires et
+ * autorité temporelle générique. La couche application possède le container
+ * (sa durée de vie) ; ce module seul en connaît le contenu et crée le
+ * Scheduler paresseusement au premier step qui en a besoin (voir
+ * `computeElectricalStep`). Jamais dans le Document, jamais sérialisé,
+ * jamais historisé.
+ *
+ * @returns {{ timedDigitalStates: Map<string, object>, electricalTransientStates: Map<string, object>, scheduler: import('./scheduler.js').Scheduler | null }}
+ */
+export function createSimulationRuntimeSession() {
+  return { timedDigitalStates: new Map(), electricalTransientStates: new Map(), scheduler: null }
+}
+
+/** Nouveau runtime : aucun état ni temps simulé du runtime précédent ne survit. */
+export function resetSimulationRuntimeSession(session) {
+  session.timedDigitalStates.clear()
+  session.electricalTransientStates.clear()
+  session.scheduler = null
+}
+
+/** Retire l'état runtime de tout uid absent de `liveUids` ; les autres sont conservés. */
+export function retainSimulationRuntimeSessionUids(session, liveUids) {
+  for (const states of [session.timedDigitalStates, session.electricalTransientStates]) {
+    for (const uid of Array.from(states.keys())) {
+      if (!liveUids.has(uid)) states.delete(uid)
+    }
+  }
+}
+
+/**
  * A7-C3-PREQ — Generic Computed Digital Output composition (§2/§5 du
  * ticket).
  *
@@ -679,8 +729,21 @@ function computeElectricalStep(components, wires, options = {}) {
     // historique inchangé pour le chemin Arduino : un nouvel orchestrateur
     // sans Scheduler injecté créait déjà, en interne, exactement le même
     // Scheduler par défaut).
+    // A9-SEQ-PREQ2 : une session runtime applicative (voir
+    // `createSimulationRuntimeSession`) conserve l'autorité temporelle
+    // générique créée paresseusement ici, pour qu'elle survive d'un step à
+    // l'autre sans ARDUINO. Elle adopte l'autorité effectivement retenue pour
+    // ce step (Scheduler d'orchestrateur, explicite ou nouveau) : une seule
+    // autorité par session, jamais deux Scheduler concurrents.
+    const runtimeSession = options.runtimeSession ?? null
     if (!sharedScheduler) {
-      sharedScheduler = options.scheduler ?? createScheduler()
+      sharedScheduler = options.scheduler ?? runtimeSession?.scheduler ?? createScheduler()
+    }
+    if (runtimeSession) {
+      if (runtimeSession.scheduler && runtimeSession.scheduler !== sharedScheduler) {
+        throw new Error("A simulation runtime session must keep one Scheduler")
+      }
+      runtimeSession.scheduler = sharedScheduler
     }
 
     // Une seule source de temps (GATE 1) : lorsque plusieurs composants
@@ -735,7 +798,9 @@ function computeElectricalStep(components, wires, options = {}) {
       // (même convention que `options.orchestrators` pour l'Embedded
       // Runtime) — une nouvelle Map par défaut si omis (comportement
       // déterministe, sans persistance, §22).
-      const timedDigitalStates = options.timedDigitalStates instanceof Map ? options.timedDigitalStates : new Map()
+      const timedDigitalStates = options.timedDigitalStates instanceof Map
+        ? options.timedDigitalStates
+        : options.runtimeSession?.timedDigitalStates ?? new Map()
       // A9-SEQ-PREQ : SAMPLE puis COMMIT. Tous les producteurs timed du step
       // observent le MÊME contexte d'échantillonnage (voir
       // `computeTimedDigitalSampleSignals`), construit avant qu'aucune de
@@ -773,7 +838,9 @@ function computeElectricalStep(components, wires, options = {}) {
       const dcSources = effectiveComponents.map((c) => getDcSource(c)).filter((source) => source !== null)
       const supplyVoltage = dcSources.length === 1 ? dcSources[0].voltage : null
 
-      const electricalTransientStates = options.electricalTransientStates instanceof Map ? options.electricalTransientStates : new Map()
+      const electricalTransientStates = options.electricalTransientStates instanceof Map
+        ? options.electricalTransientStates
+        : options.runtimeSession?.electricalTransientStates ?? new Map()
       transientContributions = computeTransientElectricalContributions(
         transientComponents,
         transientRegistry,
