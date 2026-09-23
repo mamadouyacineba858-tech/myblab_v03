@@ -1,0 +1,159 @@
+{
+  "ticket": "A9-DFF1",
+  "component": "74HC74 Dual D-Type Positive-Edge-Triggered Flip-Flop",
+  "status": "FOUNDER PASS / CSA PROBE LOCKED",
+  "founderReference": {
+    "file": "74hc74.founder-reference.png",
+    "sha256": "a0eba66ea7d120cc2787a527b5c59bd10a7357f2ee32b247479a2cee18f673d0",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "unchanged": true
+  },
+  "normalization": {
+    "method": "isotropic resize only; no redraw, recolor, deformation or destructive crop",
+    "alphaBBox": [
+      352,
+      159,
+      1419,
+      723
+    ],
+    "sourceLeadCentersPx": [
+      432.5,
+      583.0,
+      732.0,
+      881.0,
+      1030.0,
+      1180.0,
+      1330.5
+    ],
+    "sourceMeanPitchPx": 149.66666666666666,
+    "scale": 0.0801781737193764,
+    "runtimeCanvas": [
+      120,
+      88
+    ],
+    "scaledVisibleSize": [
+      86,
+      45
+    ],
+    "offset": [
+      16,
+      21
+    ],
+    "canonicalPitch": 12
+  },
+  "physicalContacts": [
+    {
+      "pin": 14,
+      "name": "VCC",
+      "x": 25,
+      "y": 20
+    },
+    {
+      "pin": 13,
+      "name": "2CLR",
+      "x": 37,
+      "y": 20
+    },
+    {
+      "pin": 12,
+      "name": "2D",
+      "x": 49,
+      "y": 20
+    },
+    {
+      "pin": 11,
+      "name": "2CLK",
+      "x": 61,
+      "y": 20
+    },
+    {
+      "pin": 10,
+      "name": "2PRE",
+      "x": 73,
+      "y": 20
+    },
+    {
+      "pin": 9,
+      "name": "2Q",
+      "x": 85,
+      "y": 20
+    },
+    {
+      "pin": 8,
+      "name": "2NQ",
+      "x": 97,
+      "y": 20
+    },
+    {
+      "pin": 1,
+      "name": "1CLR",
+      "x": 25,
+      "y": 68
+    },
+    {
+      "pin": 2,
+      "name": "1D",
+      "x": 37,
+      "y": 68
+    },
+    {
+      "pin": 3,
+      "name": "1CLK",
+      "x": 49,
+      "y": 68
+    },
+    {
+      "pin": 4,
+      "name": "1PRE",
+      "x": 61,
+      "y": 68
+    },
+    {
+      "pin": 5,
+      "name": "1Q",
+      "x": 73,
+      "y": 68
+    },
+    {
+      "pin": 6,
+      "name": "1NQ",
+      "x": 85,
+      "y": 68
+    },
+    {
+      "pin": 7,
+      "name": "GND",
+      "x": 97,
+      "y": 68
+    }
+  ],
+  "runtime": {
+    "png1x": {
+      "file": "74hc74.default.1x.png",
+      "sha256": "31ecd0a5a45ad289a88493dc78453735e7ceaf2bce0e18fe79bead8070e99e81",
+      "dimensions": [
+        120,
+        88
+      ]
+    },
+    "png3x": {
+      "file": "74hc74.default.3x.png",
+      "sha256": "30201a11286537a0bf85e0e9d8b5f0fd5d6c2f63ee2179626bf6d55e3581d35a",
+      "dimensions": [
+        360,
+        264
+      ]
+    },
+    "webp1x": {
+      "file": "74hc74.default.1x.webp",
+      "sha256": "f2c9aec1dc4c4667b82186104f0e57f03a3972c3e809acb6d3e0c9373b71c359"
+    },
+    "webp3x": {
+      "file": "74hc74.default.3x.webp",
+      "sha256": "541f157460309fdc82c739671dda265a42e9f0f53fb1ce4522734d52241da684"
+    }
+  }
+}
