@@ -258,6 +258,104 @@ function jkFlipFlop74HC73TimedDigital({ pinSignals, previousState }) {
 }
 
 /**
+ * A9-DFF1 — 74HC74 : double bascule D à front MONTANT, deux canaux
+ * INDÉPENDANTS (broches nD/nCLK/nPRE/nCLR -> nQ/nNQ). Même contrat
+ * A9-SEQ-PREQ/PREQ2 que le 74HC73 : `currentTimeMs` n'est pas utilisé, le
+ * mécanisme timed sert uniquement à l'état privé inter-step et à la
+ * détection de front sur le contexte d'échantillonnage du step.
+ */
+const D_74HC74_CHANNELS = Object.freeze([
+  Object.freeze({ key: "channel1", d: "1D", clock: "1CLK", preset: "1PRE", clear: "1CLR", q: "1Q", nq: "1NQ" }),
+  Object.freeze({ key: "channel2", d: "2D", clock: "2CLK", preset: "2PRE", clear: "2CLR", q: "2Q", nq: "2NQ" }),
+])
+
+/** Niveaux possibles d'une entrée : elle-même si décisive, sinon LOW et HIGH (jamais coercée). */
+const possibleLevels = (level) => (isDecisive(level) ? [level] : [Signal.LOW, Signal.HIGH])
+
+/** Valeur commune à toutes les interprétations si elle est décisive, sinon UNKNOWN. */
+function agreedLevel(levels) {
+  const distinct = new Set(levels)
+  if (distinct.size !== 1) return Signal.UNKNOWN
+  const [only] = distinct
+  return isDecisive(only) ? only : Signal.UNKNOWN
+}
+
+/**
+ * Une interprétation décisive (PRE, CLR, D) d'un canal : PRE/CLR asynchrones
+ * actifs LOW prioritaires sur l'horloge ; PRE=CLR=LOW (condition non normale
+ * du 74HC74) force Q=HIGH ET NQ=HIGH et laisse la mémoire UNKNOWN, de sorte
+ * que sa libération ne restitue aucun Q déterminé ; sinon capture de D au
+ * front montant, HOLD en l'absence de front.
+ */
+function dInterpretation(preset, clear, d, risingEdge, q) {
+  if (preset === Signal.LOW && clear === Signal.LOW) return { q: Signal.UNKNOWN, outQ: Signal.HIGH, outNQ: Signal.HIGH }
+  if (preset === Signal.LOW) return { q: Signal.HIGH, outQ: Signal.HIGH, outNQ: Signal.LOW }
+  if (clear === Signal.LOW) return { q: Signal.LOW, outQ: Signal.LOW, outNQ: Signal.HIGH }
+  const next = risingEdge ? d : q
+  return { q: next, outQ: next, outNQ: complement(next) }
+}
+
+/**
+ * Un canal : front montant strict previousClock LOW -> clock HIGH ;
+ * UNKNOWN/FLOATING sur l'horloge ne sont jamais un front. PRE/CLR/D
+ * indéterminés ne sont jamais convertis : chaque sortie (et la mémoire) n'est
+ * déterminée que si toutes leurs interprétations possibles concordent.
+ */
+function dChannelStep(channel, pinSignals, previous) {
+  const clock = pinSignals[channel.clock]
+  const risingEdge = previous.previousClock === Signal.LOW && clock === Signal.HIGH
+  const outcomes = []
+  for (const preset of possibleLevels(pinSignals[channel.preset])) {
+    for (const clear of possibleLevels(pinSignals[channel.clear])) {
+      for (const d of risingEdge ? possibleLevels(pinSignals[channel.d]) : [Signal.UNKNOWN]) {
+        outcomes.push(dInterpretation(preset, clear, d, risingEdge, previous.q))
+      }
+    }
+  }
+  return {
+    state: { q: agreedLevel(outcomes.map((o) => o.q)), previousClock: clock },
+    outQ: agreedLevel(outcomes.map((o) => o.outQ)),
+    outNQ: agreedLevel(outcomes.map((o) => o.outNQ)),
+  }
+}
+
+/** État initial : Q indéterminé, aucun niveau d'horloge observé. */
+function initialDChannelState() {
+  return { q: Signal.UNKNOWN, previousClock: Signal.UNKNOWN }
+}
+
+/**
+ * A9-DFF1 — 74HC74 : contribution timed/stateful.
+ *
+ * Garde d'alimentation (même patron que le 74HC73) : sans VCC HIGH et GND
+ * LOW, `outputs = null` et l'état privé revient à l'état initial (Q UNKNOWN).
+ *
+ * État privé (volatile, store runtime PREQ2 uniquement, jamais le Document) :
+ *   { channel1: { q, previousClock }, channel2: { q, previousClock } }
+ *
+ * Sorties : nQ / nNQ pilotées indépendamment, chacune seulement si elle est
+ * déterminée (NQ = NOT Q hors condition PRE=CLR=LOW, où Q = NQ = HIGH).
+ */
+function dFlipFlop74HC74TimedDigital({ pinSignals, previousState }) {
+  if (pinSignals.VCC !== Signal.HIGH || pinSignals.GND !== Signal.LOW) {
+    return {
+      state: { channel1: initialDChannelState(), channel2: initialDChannelState() },
+      outputs: null,
+    }
+  }
+
+  const state = {}
+  const outputs = new Map()
+  for (const channel of D_74HC74_CHANNELS) {
+    const next = dChannelStep(channel, pinSignals, previousState?.[channel.key] ?? initialDChannelState())
+    state[channel.key] = next.state
+    if (isDecisive(next.outQ)) outputs.set(channel.q, next.outQ)
+    if (isDecisive(next.outNQ)) outputs.set(channel.nq, next.outNQ)
+  }
+  return { state, outputs: outputs.size > 0 ? outputs : null }
+}
+
+/**
  * Fabrique un Registry isolé — même patron que
  * `createDigitalContributionRegistry` (`digitalContributionRegistry.js`) :
  * permet à un test d'injecter une table de contributions FIXTURE, sans
@@ -298,6 +396,8 @@ const defaultRegistry = createTimedDigitalContributionRegistry({
     ["HC_SR04", hcSr04TimedDigital],
     // A9-JK1 : premier producteur séquentiel réel (état inter-step + front descendant).
     ["JK_FLIP_FLOP_74HC73", jkFlipFlop74HC73TimedDigital],
+    // A9-DFF1 : double bascule D à front montant (même contrat séquentiel).
+    ["D_FLIP_FLOP_74HC74", dFlipFlop74HC74TimedDigital],
   ]),
 })
 

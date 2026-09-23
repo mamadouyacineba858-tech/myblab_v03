@@ -298,6 +298,31 @@ const ASSEMBLY_PROFILES = {
       "2NQ": { root: { dx: 96.5, dy: 20 }, style: "metallic-wire" },
     },
   },
+  // A9-DFF1 : 74HC74 DIP-14 (raster Founder PASS/FROZEN, derive isotrope 120x88, pack CSA
+  // LOCKED). Roots x = centres des pattes deduits UNIQUEMENT des donnees CSA du manifest.json
+  // (normalization : offset.x + (sourceLeadCentersPx - alphaBBox.x0) x scale, arrondi 1e-3),
+  // colonnes communes aux deux rangees DIP. Aucun re-probe ici : y des roots = rangees des
+  // PhysicalContacts CSA LOCKED (20 / 68), jamais deplaces ; les leads generiques relient
+  // chaque patte a son contact (ecart ~2.5 px). Aucun bodyClip.
+  D_FLIP_FLOP_74HC74: {
+    kind: "through-hole",
+    leads: {
+      "1CLR": { root: { dx: 22.454, dy: 68 }, style: "metallic-wire" },
+      "1D": { root: { dx: 34.521, dy: 68 }, style: "metallic-wire" },
+      "1CLK": { root: { dx: 46.468, dy: 68 }, style: "metallic-wire" },
+      "1PRE": { root: { dx: 58.414, dy: 68 }, style: "metallic-wire" },
+      "1Q": { root: { dx: 70.361, dy: 68 }, style: "metallic-wire" },
+      "1NQ": { root: { dx: 82.388, dy: 68 }, style: "metallic-wire" },
+      GND: { root: { dx: 94.454, dy: 68 }, style: "metallic-wire" },
+      VCC: { root: { dx: 22.454, dy: 20 }, style: "metallic-wire" },
+      "2CLR": { root: { dx: 34.521, dy: 20 }, style: "metallic-wire" },
+      "2D": { root: { dx: 46.468, dy: 20 }, style: "metallic-wire" },
+      "2CLK": { root: { dx: 58.414, dy: 20 }, style: "metallic-wire" },
+      "2PRE": { root: { dx: 70.361, dy: 20 }, style: "metallic-wire" },
+      "2Q": { root: { dx: 82.388, dy: 20 }, style: "metallic-wire" },
+      "2NQ": { root: { dx: 94.454, dy: 20 }, style: "metallic-wire" },
+    },
+  },
   PMOS: {
     kind: "through-hole",
     leads: {

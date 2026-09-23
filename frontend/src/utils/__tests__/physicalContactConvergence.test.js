@@ -263,10 +263,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR', 'PNP_TRANSISTOR', 'NMOS', 'PMOS', 'VOLTAGE_REGULATOR', 'RELAY',
     'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH', 'VIBRATION_MOTOR',
     'LIGHT_BULB', 'HOBBY_GEARMOTOR', 'TMP36', 'FORCE_SENSOR', 'FLEX_SENSOR', 'SOIL_MOISTURE_SENSOR',
-    'PIR_MOTION_SENSOR', 'TILT_SENSOR', 'IR_RECEIVER', 'HC_SR04', 'INDUCTOR', 'ZENER_DIODE', 'H_BRIDGE', 'AND_GATE', 'OR_GATE', 'NAND_GATE', 'NOR_GATE', 'XOR_GATE', 'NOT_GATE', 'JK_FLIP_FLOP_74HC73',
+    'PIR_MOTION_SENSOR', 'TILT_SENSOR', 'IR_RECEIVER', 'HC_SR04', 'INDUCTOR', 'ZENER_DIODE', 'H_BRIDGE', 'AND_GATE', 'OR_GATE', 'NAND_GATE', 'NOR_GATE', 'XOR_GATE', 'NOT_GATE', 'JK_FLIP_FLOP_74HC73', 'D_FLIP_FLOP_74HC74',
   ]
 
-  it('le catalogue compte exactement 48 types', () => {
+  it('le catalogue compte exactement 49 types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
     // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
     // A7-C1 : 25 -> 26 (TMP36 ajouté). A7-C2 : 26 -> 28 (FORCE_SENSOR + FLEX_SENSOR ajoutés).
@@ -276,7 +276,8 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     // A4-INDUCTOR : 33 -> 34 (INDUCTOR ajouté). A9-NAND : 43 -> 44 (NAND_GATE ajouté).
     // A9-NOR : 44 -> 45 (NOR_GATE ajouté). A9-XOR : 45 -> 46 (XOR_GATE ajouté).
     // A9-NOT : 46 -> 47 (NOT_GATE ajouté). A9-JK1 : 47 -> 48 (JK_FLIP_FLOP_74HC73 ajouté).
-    expect(new Set(CATALOGUE).size).toBe(48)
+    // A9-DFF1 : 48 -> 49 (D_FLIP_FLOP_74HC74 ajouté).
+    expect(new Set(CATALOGUE).size).toBe(49)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -390,7 +391,11 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
       // A9-JK1 : 74HC73 DIP-14, 14 PhysicalContacts CSA LOCKED au pas 12, rangées
       // écartées de 48 = 4×BREADBOARD_PITCH (cf. JkFlipFlop74HC73Part.raster.test.jsx)
       // -> breadboardInsertable:true.
-      'JK_FLIP_FLOP_74HC73']
+      'JK_FLIP_FLOP_74HC73',
+      // A9-DFF1 : 74HC74 DIP-14, 14 PhysicalContacts CSA LOCKED au pas 12, rangées
+      // écartées de 48 = 4×BREADBOARD_PITCH (cf. DFlipFlop74HC74Part.raster.test.jsx)
+      // -> breadboardInsertable:true.
+      'D_FLIP_FLOP_74HC74']
     // A6-OUT1-R1 : VIBRATION_MOTOR quitte NON_DIRECT (rejoint INSERTABLE ci-dessus).
     // A6-OUT3 : HOBBY_GEARMOTOR ajouté à NON_DIRECT — wire-only par contrat
     // produit (jamais de géométrie breadboard recherchée, cf.

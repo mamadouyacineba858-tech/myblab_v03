@@ -23,6 +23,7 @@ import { NorGateModel } from './models/NorGateModel.js'
 import { XorGateModel } from './models/XorGateModel.js'
 import { NotGateModel } from './models/NotGateModel.js'
 import { JkFlipFlop74HC73Model } from './models/JkFlipFlop74HC73Model.js'
+import { DFlipFlop74HC74Model } from './models/DFlipFlop74HC74Model.js'
 import { HBridgeModel } from './models/HBridgeModel.js'
 import { PmosModel } from './models/PmosModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
@@ -143,6 +144,7 @@ const defaultRegistry = createSimulationRegistry({
     XorGateModel,
     NotGateModel,
     JkFlipFlop74HC73Model,
+    DFlipFlop74HC74Model,
     RelayModel,
     Tmp36Model,
     ForceSensorModel,

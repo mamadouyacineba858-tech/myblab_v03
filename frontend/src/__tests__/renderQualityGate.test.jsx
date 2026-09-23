@@ -286,6 +286,20 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
   // n'est donc pas le nom du dossier) — seule exception déclarée à la dérivation.
   const ASSET_DIR_BY_TYPE = { JK_FLIP_FLOP_74HC73: "jk-flip-flop" }
   const toKebab = (type) => ASSET_DIR_BY_TYPE[type] ?? type.toLowerCase().replace(/_/g, "-")
+  // A9-DFF1 : le manifest CSA LOCKED du 74HC74 (FROZEN, jamais réécrit) suit un schéma
+  // propre : `ticket` + `normalization.runtimeCanvas` + `runtime{png1x,png3x,webp1x,webp3x}`
+  // (`component` y est le nom descriptif). Adaptateur déclaré, en lecture seule, vers le
+  // schéma du gate ; `complexity: "complex"` = même classe que les DIP-14/16 raster
+  // (74HC73, L293D). Hashes vérifiés par DFlipFlop74HC74Part.raster.test.jsx.
+  const FROZEN_MANIFEST_ADAPTERS = {
+    D_FLIP_FLOP_74HC74: (m) => ({
+      component: "D_FLIP_FLOP_74HC74",
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.normalization.runtimeCanvas[0], height: m.normalization.runtimeCanvas[1] },
+      assets: Object.values(m.runtime).map(({ file }) => ({ file })),
+    }),
+  }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 
   // Dimensions réelles d'un PNG (IHDR) ou d'un WebP (VP8X / VP8L / VP8 lossy).
@@ -330,7 +344,8 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       const dir = resolve(publicDir, `assets/components/${kebab}`)
       const manifestPath = resolve(dir, "manifest.json")
       expect(existsSync(manifestPath), `manifeste manquant : ${manifestPath}`).toBe(true)
-      const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"))
+      const rawManifest = JSON.parse(readFileSync(manifestPath, "utf-8"))
+      const manifest = FROZEN_MANIFEST_ADAPTERS[type]?.(rawManifest) ?? rawManifest
 
       // composant déclaré (schéma RESISTOR: `type` ; schéma DIODE: `component`)
       expect(manifest.type ?? manifest.component).toBe(type)
