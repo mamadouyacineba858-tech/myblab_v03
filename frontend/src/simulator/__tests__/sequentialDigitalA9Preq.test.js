@@ -150,7 +150,7 @@ describe('A9-SEQ-PREQ — registries and production isolation', () => {
     expect(registry.hasTimedDigitalContribution('HC_SR04')).toBe(true)
     expect(hasTimedDigitalContribution(EDGE_HOST)).toBe(false)
     expect(hasTimedDigitalContribution(LEVEL_HOST)).toBe(false)
-    expect(getAllTimedDigitalContributionTypes()).toEqual(['HC_SR04', 'JK_FLIP_FLOP_74HC73', 'D_FLIP_FLOP_74HC74'])
+    expect(getAllTimedDigitalContributionTypes()).toEqual(['HC_SR04', 'JK_FLIP_FLOP_74HC73', 'D_FLIP_FLOP_74HC74', 'D_LATCH_74HC75'])
     expect(combinationalRegistry().hasDigitalContribution(EDGE_HOST)).toBe(false)
     expect(combinationalRegistry().hasDigitalContribution('AND_GATE')).toBe(true)
   })

@@ -299,6 +299,17 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       canonical: { width: m.normalization.runtimeCanvas[0], height: m.normalization.runtimeCanvas[1] },
       assets: Object.values(m.runtime).map(({ file }) => ({ file })),
     }),
+    // A9-LATCH1 : le manifest CSA LOCKED du 74HC75 (FROZEN) ne déclare que `ticket`,
+    // `runtimeCanvas` et les PhysicalContacts — aucune liste de variantes. Les quatre
+    // dérivés runtime sont ceux du pack FROZEN (noms figés, hashes vérifiés contre
+    // SHA256SUMS.txt par DLatch74HC75Part.raster.test.jsx).
+    D_LATCH_74HC75: (m) => ({
+      component: "D_LATCH_74HC75",
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.runtimeCanvas.width, height: m.runtimeCanvas.height },
+      assets: ["74hc75.default.1x.webp", "74hc75.default.3x.webp", "74hc75.default.1x.png", "74hc75.default.3x.png"].map((file) => ({ file })),
+    }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 

@@ -47,6 +47,7 @@ import { NotGatePart } from '../components/parts/NotGatePart.jsx'
 import { HBridgePart } from '../components/parts/HBridgePart.jsx'
 import { JkFlipFlop74HC73Part } from '../components/parts/JkFlipFlop74HC73Part.jsx'
 import { DFlipFlop74HC74Part } from '../components/parts/DFlipFlop74HC74Part.jsx'
+import { DLatch74HC75Part } from '../components/parts/DLatch74HC75Part.jsx'
 import { PmosPart } from '../components/parts/PmosPart.jsx'
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
@@ -196,6 +197,7 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'H_BRIDGE', component: HBridgePart, visual: { backend: 'raster' } },
   { type: 'JK_FLIP_FLOP_74HC73', component: JkFlipFlop74HC73Part, visual: { backend: 'raster' } },
   { type: 'D_FLIP_FLOP_74HC74', component: DFlipFlop74HC74Part, visual: { backend: 'raster' } },
+  { type: 'D_LATCH_74HC75', component: DLatch74HC75Part, visual: { backend: 'raster' } },
   { type: 'PMOS', component: PmosPart, visual: { backend: 'raster' } },
   { type: 'RELAY', component: RelayPart, visual: { backend: 'raster' } },
   // SERVO : porté au backend raster (asset réaliste validé MB-VIS-COMP-035,

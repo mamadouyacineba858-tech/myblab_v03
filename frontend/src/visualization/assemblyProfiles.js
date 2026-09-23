@@ -323,6 +323,32 @@ const ASSEMBLY_PROFILES = {
       "2NQ": { root: { dx: 94.454, dy: 20 }, style: "metallic-wire" },
     },
   },
+  // A9-LATCH1 : 74HC75 DIP-16 (raster Founder PASS/FROZEN, derive isotrope 120x64, pack CSA
+  // LOCKED). Le manifest CSA ne declare aucun probe de pattes : roots = PhysicalContacts CSA
+  // LOCKED eux-memes (rangees y=8 / y=56, pas 12), jamais recalcules depuis le raster. Le
+  // derive runtime place deja chaque patte sur son contact (pointes y=8 / y=55, centres a
+  // <= 1.5 px des contacts, alpha>=128). Aucun bodyClip.
+  D_LATCH_74HC75: {
+    kind: "through-hole",
+    leads: {
+      "1NQ": { root: { dx: 19, dy: 56 }, style: "metallic-wire" },
+      "1D": { root: { dx: 31, dy: 56 }, style: "metallic-wire" },
+      "2D": { root: { dx: 43, dy: 56 }, style: "metallic-wire" },
+      LE34: { root: { dx: 55, dy: 56 }, style: "metallic-wire" },
+      VCC: { root: { dx: 67, dy: 56 }, style: "metallic-wire" },
+      "3D": { root: { dx: 79, dy: 56 }, style: "metallic-wire" },
+      "4D": { root: { dx: 91, dy: 56 }, style: "metallic-wire" },
+      "4NQ": { root: { dx: 103, dy: 56 }, style: "metallic-wire" },
+      "1Q": { root: { dx: 19, dy: 8 }, style: "metallic-wire" },
+      "2Q": { root: { dx: 31, dy: 8 }, style: "metallic-wire" },
+      "2NQ": { root: { dx: 43, dy: 8 }, style: "metallic-wire" },
+      LE12: { root: { dx: 55, dy: 8 }, style: "metallic-wire" },
+      GND: { root: { dx: 67, dy: 8 }, style: "metallic-wire" },
+      "3NQ": { root: { dx: 79, dy: 8 }, style: "metallic-wire" },
+      "3Q": { root: { dx: 91, dy: 8 }, style: "metallic-wire" },
+      "4Q": { root: { dx: 103, dy: 8 }, style: "metallic-wire" },
+    },
+  },
   PMOS: {
     kind: "through-hole",
     leads: {

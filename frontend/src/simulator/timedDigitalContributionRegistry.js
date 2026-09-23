@@ -356,6 +356,70 @@ function dFlipFlop74HC74TimedDigital({ pinSignals, previousState }) {
 }
 
 /**
+ * A9-LATCH1 — 74HC75 : quadruple latch D TRANSPARENT SUR NIVEAU (aucun front),
+ * quatre canaux nD -> nQ/nNQ, validation par paires : LE12 pilote les canaux
+ * 1/2, LE34 les canaux 3/4. Même contrat A9-SEQ-PREQ/PREQ2 que 74HC73/74HC74 :
+ * `currentTimeMs` n'est pas utilisé, le mécanisme timed sert uniquement à la
+ * mémoire inter-step (LE LOW) ; aucun niveau d'enable précédent n'est mémorisé.
+ */
+const LATCH_74HC75_CHANNELS = Object.freeze([
+  Object.freeze({ key: "channel1", d: "1D", enable: "LE12", q: "1Q", nq: "1NQ" }),
+  Object.freeze({ key: "channel2", d: "2D", enable: "LE12", q: "2Q", nq: "2NQ" }),
+  Object.freeze({ key: "channel3", d: "3D", enable: "LE34", q: "3Q", nq: "3NQ" }),
+  Object.freeze({ key: "channel4", d: "4D", enable: "LE34", q: "4Q", nq: "4NQ" }),
+])
+
+/**
+ * Un canal : LE HIGH -> transparent (Q = D) ; LE LOW -> mémoire (Q conservé).
+ * LE/D UNKNOWN/FLOATING ne sont jamais convertis : Q n'est déterminé que si
+ * toutes les interprétations possibles concordent (même principe que le
+ * 74HC74), sinon Q (et la mémoire) devient UNKNOWN.
+ */
+function latchChannelStep(channel, pinSignals, previousQ) {
+  const outcomes = []
+  for (const enable of possibleLevels(pinSignals[channel.enable])) {
+    if (enable === Signal.LOW) outcomes.push(previousQ)
+    else outcomes.push(...possibleLevels(pinSignals[channel.d]))
+  }
+  return agreedLevel(outcomes)
+}
+
+/** État initial : les quatre mémoires sont indéterminées (jamais un LOW inventé). */
+function initialLatch74HC75State() {
+  return { channel1: { q: Signal.UNKNOWN }, channel2: { q: Signal.UNKNOWN }, channel3: { q: Signal.UNKNOWN }, channel4: { q: Signal.UNKNOWN } }
+}
+
+/**
+ * A9-LATCH1 — 74HC75 : contribution timed/stateful.
+ *
+ * Garde d'alimentation (même patron que 74HC73/74HC74) : sans VCC HIGH et
+ * GND LOW, `outputs = null` et l'état privé revient à l'état initial.
+ *
+ * État privé (volatile, store runtime PREQ2 uniquement, jamais le Document) :
+ *   { channel1: { q }, channel2: { q }, channel3: { q }, channel4: { q } }
+ *
+ * Sorties : pour chaque canal dont Q est déterminé, nQ = Q et nNQ = NOT Q ;
+ * un Q UNKNOWN ne pilote ni nQ ni nNQ. `null` si aucun canal n'est déterminé.
+ */
+function dLatch74HC75TimedDigital({ pinSignals, previousState }) {
+  if (pinSignals.VCC !== Signal.HIGH || pinSignals.GND !== Signal.LOW) {
+    return { state: initialLatch74HC75State(), outputs: null }
+  }
+
+  const state = {}
+  const outputs = new Map()
+  for (const channel of LATCH_74HC75_CHANNELS) {
+    const q = latchChannelStep(channel, pinSignals, previousState?.[channel.key]?.q ?? Signal.UNKNOWN)
+    state[channel.key] = { q }
+    if (isDecisive(q)) {
+      outputs.set(channel.q, q)
+      outputs.set(channel.nq, complement(q))
+    }
+  }
+  return { state, outputs: outputs.size > 0 ? outputs : null }
+}
+
+/**
  * Fabrique un Registry isolé — même patron que
  * `createDigitalContributionRegistry` (`digitalContributionRegistry.js`) :
  * permet à un test d'injecter une table de contributions FIXTURE, sans
@@ -398,6 +462,8 @@ const defaultRegistry = createTimedDigitalContributionRegistry({
     ["JK_FLIP_FLOP_74HC73", jkFlipFlop74HC73TimedDigital],
     // A9-DFF1 : double bascule D à front montant (même contrat séquentiel).
     ["D_FLIP_FLOP_74HC74", dFlipFlop74HC74TimedDigital],
+    // A9-LATCH1 : quadruple latch D transparent sur niveau (même contrat séquentiel, aucun front).
+    ["D_LATCH_74HC75", dLatch74HC75TimedDigital],
   ]),
 })
 

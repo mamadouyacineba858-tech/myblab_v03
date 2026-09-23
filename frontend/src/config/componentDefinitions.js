@@ -523,6 +523,28 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "2CLR", label: "2CLR", dx: 37, dy: 20, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2CLR", dx: 37, dy: 20, wireConnectable: true, breadboardInsertable: true }] },
     { id: "VCC", label: "VCC", dx: 25, dy: 20, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 25, dy: 20, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A9-LATCH1 : 74HC75 DIP-16 quadruple latch D, raster Founder PASS/FROZEN (derive runtime
+  // isotrope 120x64, pack CSA LOCKED). 16 pins ELECTRIQUES = 16 PhysicalContacts CSA LOCKED
+  // (manifest.json physicalContacts) : rangee basse y=56 (broches 1..8, gauche -> droite),
+  // rangee haute y=8 (broches 9..16, droite -> gauche), pas 12, ecartement 48 = 4 x pitch.
+  D_LATCH_74HC75: [
+    { id: "1NQ", label: "1NQ", dx: 19, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1NQ", dx: 19, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1D", label: "1D", dx: 31, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1D", dx: 31, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2D", label: "2D", dx: 43, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2D", dx: 43, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "LE34", label: "LE34", dx: 55, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "LE34", dx: 55, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC", label: "VCC", dx: 67, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 67, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3D", label: "3D", dx: 79, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3D", dx: 79, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4D", label: "4D", dx: 91, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4D", dx: 91, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4NQ", label: "4NQ", dx: 103, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4NQ", dx: 103, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4Q", label: "4Q", dx: 103, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4Q", dx: 103, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3Q", label: "3Q", dx: 91, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3Q", dx: 91, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3NQ", label: "3NQ", dx: 79, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3NQ", dx: 79, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 67, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 67, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "LE12", label: "LE12", dx: 55, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "LE12", dx: 55, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2NQ", label: "2NQ", dx: 43, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2NQ", dx: 43, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2Q", label: "2Q", dx: 31, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2Q", dx: 31, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1Q", label: "1Q", dx: 19, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1Q", dx: 19, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   // A5-ZENER_DIODE — asset Founder PASS FROZEN 144×72, pixel-probe réel
   // (alpha>=32, createImageBitmap/getImageData sur le fichier livré) :
   // bounding box opaque globale (1x) x∈[0,143] y∈[7,63] (== manifest.json
@@ -706,6 +728,7 @@ export const COMPONENT_TYPES = {
   NOT_GATE: { id: "NOT_GATE", label: "NOT Gate", icon: "NOT_GATE", width: 144, height: 96, pins: buildPins("NOT_GATE") },
   JK_FLIP_FLOP_74HC73: { id: "JK_FLIP_FLOP_74HC73", label: "74HC73 Dual J-K Flip-Flop", icon: "JK_FLIP_FLOP_74HC73", width: 120, height: 88, pins: buildPins("JK_FLIP_FLOP_74HC73") },
   D_FLIP_FLOP_74HC74: { id: "D_FLIP_FLOP_74HC74", label: "74HC74 Dual D Flip-Flop", icon: "D_FLIP_FLOP_74HC74", width: 120, height: 88, pins: buildPins("D_FLIP_FLOP_74HC74") },
+  D_LATCH_74HC75: { id: "D_LATCH_74HC75", label: "74HC75 Quad D Latch", icon: "D_LATCH_74HC75", width: 120, height: 64, pins: buildPins("D_LATCH_74HC75") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -732,7 +755,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 
