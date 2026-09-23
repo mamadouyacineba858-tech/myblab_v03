@@ -1,0 +1,220 @@
+{
+  "component": "JK_FLIP_FLOP_74HC73",
+  "assetStatus": "FOUNDER_PASS_FROZEN__CSA_PROBE_LOCKED",
+  "variant": "default",
+  "referenceDevice": "74HC73",
+  "package": "DIP-14",
+  "runtimeView": "top",
+  "backend": "raster",
+  "complexity": "complex",
+  "canonical": {
+    "width": 120,
+    "height": 88
+  },
+  "states": [
+    "default"
+  ],
+  "assets": [
+    {
+      "file": "jk-flip-flop.default.1x.png",
+      "state": "default",
+      "scale": 1,
+      "format": "png",
+      "width": 120,
+      "height": 88,
+      "bytes": 10073,
+      "sha256": "d1443f2a8784034bbf588cafcbb5aeb8627b82e04b0f19f4d520da15155bf51b"
+    },
+    {
+      "file": "jk-flip-flop.default.1x.webp",
+      "state": "default",
+      "scale": 1,
+      "format": "webp",
+      "width": 120,
+      "height": 88,
+      "bytes": 4378,
+      "sha256": "0f21586633a1491d2ba464d05673427cc0b80b40eb76fedc0aceb5d1d291115b"
+    },
+    {
+      "file": "jk-flip-flop.default.3x.png",
+      "state": "default",
+      "scale": 3,
+      "format": "png",
+      "width": 360,
+      "height": 264,
+      "bytes": 62182,
+      "sha256": "e68c055fb1d1f90ca9ddfbd79aafefdd9b01ce631ecca3faa6be2a1faff2b7cd"
+    },
+    {
+      "file": "jk-flip-flop.default.3x.webp",
+      "state": "default",
+      "scale": 3,
+      "format": "webp",
+      "width": 360,
+      "height": 264,
+      "bytes": 21304,
+      "sha256": "0ca03fb0182c8e5fd7eb6ceae3b10b57779007345b642863517b48f5a0408e19"
+    }
+  ],
+  "reference": {
+    "file": "jk-flip-flop.founder-reference.png",
+    "sha256": "a6b05836d7a998f7a7e6957955c11da89fa47bdc7535e04565886a74493b17f6",
+    "width": 1400,
+    "height": 789,
+    "mode": "RGBA",
+    "status": "FOUNDER_PASS_FROZEN_BYTES_UNCHANGED"
+  },
+  "derivation": {
+    "method": "Isotropic Lanczos resize from frozen Founder reference; transparent padding only; no crop, redraw, recolor or anisotropic deformation.",
+    "founderPixelProbe": {
+      "topPinCentersPx": [
+        141.5,
+        319.5,
+        503.0,
+        689.0,
+        874.5,
+        1059.0,
+        1244.0
+      ],
+      "meanPitchPx": 183.75
+    },
+    "runtimeScale": 0.0653061224489796,
+    "innerRuntimeSize": [
+      91,
+      52
+    ],
+    "canvasOffset": [
+      16,
+      18
+    ],
+    "breadboardPitchPx": 12,
+    "rowSpacingPx": 48,
+    "physicalContactsStatus": "CSA_LOCKED",
+    "physicalContacts": {
+      "1CP": [
+        25,
+        68
+      ],
+      "1R": [
+        37,
+        68
+      ],
+      "1K": [
+        49,
+        68
+      ],
+      "VCC": [
+        61,
+        68
+      ],
+      "2CP": [
+        73,
+        68
+      ],
+      "2R": [
+        85,
+        68
+      ],
+      "2J": [
+        97,
+        68
+      ],
+      "1J": [
+        25,
+        20
+      ],
+      "1NQ": [
+        37,
+        20
+      ],
+      "1Q": [
+        49,
+        20
+      ],
+      "GND": [
+        61,
+        20
+      ],
+      "2K": [
+        73,
+        20
+      ],
+      "2Q": [
+        85,
+        20
+      ],
+      "2NQ": [
+        97,
+        20
+      ]
+    },
+    "physicalPinNumbers": {
+      "1CP": 1,
+      "1R": 2,
+      "1K": 3,
+      "VCC": 4,
+      "2CP": 5,
+      "2R": 6,
+      "2J": 7,
+      "2NQ": 8,
+      "2Q": 9,
+      "2K": 10,
+      "GND": 11,
+      "1Q": 12,
+      "1NQ": 13,
+      "1J": 14
+    },
+    "runtimeVisualProbe": {
+      "method": "alpha>=128 direct probe on final 1x PNG",
+      "topProbeBandY": [
+        18,
+        24
+      ],
+      "topLegCentersPx": [
+        24.5,
+        36.5,
+        48.5,
+        60.5,
+        72.5,
+        84.5,
+        96.5
+      ],
+      "bottomProbeBandY": [
+        60,
+        70
+      ],
+      "bottomLegCentersPx": [
+        25.0,
+        37.0,
+        48.0,
+        60.0,
+        72.0,
+        84.0,
+        96.5
+      ],
+      "maxHorizontalDeltaToLockedContactPx": 1.0,
+      "result": "PASS"
+    }
+  },
+  "logicContract": {
+    "device": "dual J-K flip-flop",
+    "clockEdge": "falling",
+    "reset": "asynchronous active LOW",
+    "truthTable": {
+      "J0_K0": "HOLD",
+      "J0_K1": "RESET",
+      "J1_K0": "SET",
+      "J1_K1": "TOGGLE"
+    },
+    "outputs": [
+      "Q",
+      "NQ"
+    ]
+  },
+  "notes": [
+    "Founder raster bytes are unchanged from Founder-approved source.",
+    "Runtime normalization is isotropic; only transparent padding was added.",
+    "PhysicalContacts are CSA LOCKED at exact 12 px pitch and 48 px row spacing.",
+    "Claude must implement these coordinates exactly and must not re-probe or redesign them."
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "ticket": "A9-JK1-ASSET",
+  "componentType": "JK_FLIP_FLOP_74HC73",
+  "status": "FOUNDER_PASS_FROZEN",
+  "referenceFile": "jk-flip-flop.founder-reference.png",
+  "sha256": "a6b05836d7a998f7a7e6957955c11da89fa47bdc7535e04565886a74493b17f6",
+  "dimensions": [
+    1400,
+    789
+  ],
+  "runtimeGeometryStatus": "CSA_PROBE_LOCKED",
+  "physicalContacts": {
+    "1CP": [
+      25,
+      68
+    ],
+    "1R": [
+      37,
+      68
+    ],
+    "1K": [
+      49,
+      68
+    ],
+    "VCC": [
+      61,
+      68
+    ],
+    "2CP": [
+      73,
+      68
+    ],
+    "2R": [
+      85,
+      68
+    ],
+    "2J": [
+      97,
+      68
+    ],
+    "1J": [
+      25,
+      20
+    ],
+    "1NQ": [
+      37,
+      20
+    ],
+    "1Q": [
+      49,
+      20
+    ],
+    "GND": [
+      61,
+      20
+    ],
+    "2K": [
+      73,
+      20
+    ],
+    "2Q": [
+      85,
+      20
+    ],
+    "2NQ": [
+      97,
+      20
+    ]
+  }
+}

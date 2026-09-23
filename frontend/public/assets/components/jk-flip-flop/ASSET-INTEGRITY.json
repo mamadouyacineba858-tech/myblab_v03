@@ -1,0 +1,46 @@
+{
+  "component": "JK_FLIP_FLOP_74HC73",
+  "status": "CSA_PROBE_LOCKED",
+  "files": {
+    "FOUNDER-ASSET.json": {
+      "sha256": "2d46e37f6036386dbce32771ca31de0282e49b0cea3e3baecba687458dc984ba",
+      "bytes": 899
+    },
+    "README.md": {
+      "sha256": "1df2d3e4eda153ad5cc515273a82aceebfbcf3d18a82c67528da50db64755d9c",
+      "bytes": 1017
+    },
+    "README.txt": {
+      "sha256": "1df2d3e4eda153ad5cc515273a82aceebfbcf3d18a82c67528da50db64755d9c",
+      "bytes": 1017
+    },
+    "SHA256SUMS.txt": {
+      "sha256": "6a914a41d7ca15f32f7414e24e644cf2159e17ce12d009ae472be812298d23d2",
+      "bytes": 797
+    },
+    "jk-flip-flop.default.1x.png": {
+      "sha256": "d1443f2a8784034bbf588cafcbb5aeb8627b82e04b0f19f4d520da15155bf51b",
+      "bytes": 10073
+    },
+    "jk-flip-flop.default.1x.webp": {
+      "sha256": "0f21586633a1491d2ba464d05673427cc0b80b40eb76fedc0aceb5d1d291115b",
+      "bytes": 4378
+    },
+    "jk-flip-flop.default.3x.png": {
+      "sha256": "e68c055fb1d1f90ca9ddfbd79aafefdd9b01ce631ecca3faa6be2a1faff2b7cd",
+      "bytes": 62182
+    },
+    "jk-flip-flop.default.3x.webp": {
+      "sha256": "0ca03fb0182c8e5fd7eb6ceae3b10b57779007345b642863517b48f5a0408e19",
+      "bytes": 21304
+    },
+    "jk-flip-flop.founder-reference.png": {
+      "sha256": "a6b05836d7a998f7a7e6957955c11da89fa47bdc7535e04565886a74493b17f6",
+      "bytes": 1114938
+    },
+    "manifest.json": {
+      "sha256": "0b3304e70f11419c39af3e3376e5e2cac54ec5309b55925d4e3c00104fe5ec6b",
+      "bytes": 4454
+    }
+  }
+}
