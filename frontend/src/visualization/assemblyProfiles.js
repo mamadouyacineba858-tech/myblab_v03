@@ -273,6 +273,31 @@ const ASSEMBLY_PROFILES = {
       VCC1: { root: { dx: 25.3, dy: 17.8 }, style: "metallic-wire" },
     },
   },
+  // A9-JK1 : 74HC73 DIP-14 (raster Founder PASS/FROZEN, derive isotrope 120x88, pack CSA
+  // LOCKED). Roots x = centres visuels mesures par le CSA sur le raster runtime 1x
+  // (manifest.json derivation.runtimeVisualProbe, alpha>=128 : topLegCentersPx /
+  // bottomLegCentersPx, delta max 1 px avec la grille). Aucun re-probe ici : y des roots =
+  // rangees des PhysicalContacts CSA LOCKED (20 / 68), jamais deplaces. Aucun bodyClip :
+  // le raster normalise coincide deja avec les contacts.
+  JK_FLIP_FLOP_74HC73: {
+    kind: "through-hole",
+    leads: {
+      "1CP": { root: { dx: 25, dy: 68 }, style: "metallic-wire" },
+      "1R": { root: { dx: 37, dy: 68 }, style: "metallic-wire" },
+      "1K": { root: { dx: 48, dy: 68 }, style: "metallic-wire" },
+      VCC: { root: { dx: 60, dy: 68 }, style: "metallic-wire" },
+      "2CP": { root: { dx: 72, dy: 68 }, style: "metallic-wire" },
+      "2R": { root: { dx: 84, dy: 68 }, style: "metallic-wire" },
+      "2J": { root: { dx: 96.5, dy: 68 }, style: "metallic-wire" },
+      "1J": { root: { dx: 24.5, dy: 20 }, style: "metallic-wire" },
+      "1NQ": { root: { dx: 36.5, dy: 20 }, style: "metallic-wire" },
+      "1Q": { root: { dx: 48.5, dy: 20 }, style: "metallic-wire" },
+      GND: { root: { dx: 60.5, dy: 20 }, style: "metallic-wire" },
+      "2K": { root: { dx: 72.5, dy: 20 }, style: "metallic-wire" },
+      "2Q": { root: { dx: 84.5, dy: 20 }, style: "metallic-wire" },
+      "2NQ": { root: { dx: 96.5, dy: 20 }, style: "metallic-wire" },
+    },
+  },
   PMOS: {
     kind: "through-hole",
     leads: {

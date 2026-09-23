@@ -19,8 +19,8 @@ import { Signal } from "../signals.js"
  */
 
 describe("A7-C5-PREQ/A7-C5 — TD-01/TD-02/TD-03 : Registry de production", () => {
-  it("TD-01 — HC_SR04 (A7-C5) est le seul type réel enregistré à ce jour", () => {
-    expect(getAllTimedDigitalContributionTypes()).toEqual(["HC_SR04"])
+  it("TD-01 — HC_SR04 (A7-C5) et JK_FLIP_FLOP_74HC73 (A9-JK1) sont les seuls types réels enregistrés à ce jour", () => {
+    expect(getAllTimedDigitalContributionTypes()).toEqual(["HC_SR04", "JK_FLIP_FLOP_74HC73"])
   })
   it("TD-02 — hasTimedDigitalContribution(type inconnu) retourne false", () => {
     expect(hasTimedDigitalContribution("UNKNOWN_TYPE")).toBe(false)
@@ -44,7 +44,7 @@ describe("A7-C5-PREQ — TD-04/TD-06 : createTimedDigitalContributionRegistry, R
     })
     expect(fixture.hasTimedDigitalContribution("TIMED_TEST_COMPONENT")).toBe(true)
     expect(hasTimedDigitalContribution("TIMED_TEST_COMPONENT")).toBe(false)
-    expect(getAllTimedDigitalContributionTypes()).toEqual(["HC_SR04"])
+    expect(getAllTimedDigitalContributionTypes()).toEqual(["HC_SR04", "JK_FLIP_FLOP_74HC73"])
   })
 
   it("un Registry fixture sans contributions déclarées reste vide, indépendant du Registry de production (HC_SR04)", () => {

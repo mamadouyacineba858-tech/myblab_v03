@@ -281,7 +281,11 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
   const RASTER_TYPES = ALL_TYPES.filter(
     (type) => getComponentPresentation(type).backend === "raster"
   )
-  const toKebab = (type) => type.toLowerCase().replace(/_/g, "-")
+  // A9-JK1 : le type canonique JK_FLIP_FLOP_74HC73 et le dossier d'asset CSA LOCKED
+  // `jk-flip-flop/` sont tous deux verrouillés par le ticket (le nom kebab du type
+  // n'est donc pas le nom du dossier) — seule exception déclarée à la dérivation.
+  const ASSET_DIR_BY_TYPE = { JK_FLIP_FLOP_74HC73: "jk-flip-flop" }
+  const toKebab = (type) => ASSET_DIR_BY_TYPE[type] ?? type.toLowerCase().replace(/_/g, "-")
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 
   // Dimensions réelles d'un PNG (IHDR) ou d'un WebP (VP8X / VP8L / VP8 lossy).

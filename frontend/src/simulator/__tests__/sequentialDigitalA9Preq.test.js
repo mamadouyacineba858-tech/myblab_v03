@@ -150,7 +150,7 @@ describe('A9-SEQ-PREQ — registries and production isolation', () => {
     expect(registry.hasTimedDigitalContribution('HC_SR04')).toBe(true)
     expect(hasTimedDigitalContribution(EDGE_HOST)).toBe(false)
     expect(hasTimedDigitalContribution(LEVEL_HOST)).toBe(false)
-    expect(getAllTimedDigitalContributionTypes()).toEqual(['HC_SR04'])
+    expect(getAllTimedDigitalContributionTypes()).toEqual(['HC_SR04', 'JK_FLIP_FLOP_74HC73'])
     expect(combinationalRegistry().hasDigitalContribution(EDGE_HOST)).toBe(false)
     expect(combinationalRegistry().hasDigitalContribution('AND_GATE')).toBe(true)
   })
@@ -612,8 +612,11 @@ describe('A9-SEQ-PREQ — single authorities and architecture', () => {
   })
 
   it('S27: generic files carry no knowledge of future sequential types', () => {
+    // A9-JK1 : timedDigitalContributionRegistry.js et canonicalRegistry.js sont les points
+    // d'extension DÉCLARATIFS où un type séquentiel réel (JK_FLIP_FLOP_74HC73) est enregistré ;
+    // les fichiers du moteur générique restent sans aucune connaissance séquentielle.
     const generic = ['engine.js', 'resolution.js', 'preparation.js', 'clock.js', 'scheduler.js', 'runtimeOrchestrator.js',
-      'simulationRuntimeIntegration.js', 'timedDigitalContributionRegistry.js', 'digitalContributionRegistry.js', 'canonicalRegistry.js']
+      'simulationRuntimeIntegration.js', 'digitalContributionRegistry.js']
     for (const file of generic) {
       const source = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8')
       expect(source, file).not.toMatch(/FLIP_?FLOP|SR_LATCH|JK_|D_LATCH|\bCOUNTER\b|flip-?flop/i)

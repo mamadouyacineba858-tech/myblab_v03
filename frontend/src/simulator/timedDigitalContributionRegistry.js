@@ -155,6 +155,109 @@ function hcSr04TimedDigital({ params, pinSignals, currentTimeMs, previousState }
 }
 
 /**
+ * A9-JK1 — 74HC73 : double bascule J-K, deux canaux INDÉPENDANTS (broches
+ * nJ/nK/nCP/nR -> nQ/nNQ). Premier producteur SÉQUENTIEL réel du contrat
+ * A9-SEQ-PREQ/PREQ2 : `currentTimeMs` n'est pas utilisé (aucune durée), le
+ * mécanisme timed sert uniquement à l'état privé inter-step et à la
+ * détection de front sur le contexte d'échantillonnage du step.
+ */
+const JK_74HC73_CHANNELS = Object.freeze([
+  Object.freeze({ key: "channel1", j: "1J", k: "1K", clock: "1CP", reset: "1R", q: "1Q", nq: "1NQ" }),
+  Object.freeze({ key: "channel2", j: "2J", k: "2K", clock: "2CP", reset: "2R", q: "2Q", nq: "2NQ" }),
+])
+
+const isDecisive = (level) => level === Signal.HIGH || level === Signal.LOW
+const complement = (level) => (level === Signal.HIGH ? Signal.LOW : level === Signal.LOW ? Signal.HIGH : Signal.UNKNOWN)
+
+/**
+ * État initial (§14 du ticket) : Q indéterminé, aucun niveau d'horloge
+ * observé. Un Q=LOW n'est jamais inventé au démarrage.
+ */
+function initialJkChannelState() {
+  return { q: Signal.UNKNOWN, previousClock: Signal.UNKNOWN }
+}
+
+/** Table J-K au front descendant pour J/K décisifs (HOLD/RESET/SET/TOGGLE). */
+function jkNext(j, k, q) {
+  if (j === Signal.LOW && k === Signal.LOW) return q
+  if (j === Signal.LOW && k === Signal.HIGH) return Signal.LOW
+  if (j === Signal.HIGH && k === Signal.LOW) return Signal.HIGH
+  return complement(q)
+}
+
+/**
+ * Prochain Q au front descendant. J/K UNKNOWN/FLOATING ne sont jamais
+ * convertis : on évalue la table pour CHAQUE niveau possible de l'entrée
+ * indéterminée ; Q n'est déterminé que si toutes les branches concordent
+ * (même principe « valeur décisive » que andGateDigital/orGateDigital,
+ * digitalContributionRegistry.js), sinon Q devient UNKNOWN.
+ */
+function jkNextAtFallingEdge(j, k, q) {
+  const js = isDecisive(j) ? [j] : [Signal.LOW, Signal.HIGH]
+  const ks = isDecisive(k) ? [k] : [Signal.LOW, Signal.HIGH]
+  const outcomes = new Set()
+  for (const jj of js) for (const kk of ks) outcomes.add(jkNext(jj, kk, q))
+  if (outcomes.size !== 1) return Signal.UNKNOWN
+  const [only] = outcomes
+  return isDecisive(only) ? only : Signal.UNKNOWN
+}
+
+/**
+ * Un canal : reset asynchrone actif LOW prioritaire (§9), puis front
+ * descendant strict previousClock HIGH -> clock LOW (§10). UNKNOWN/FLOATING
+ * sur l'horloge ne sont jamais un front. Un reset indéterminé ne laisse Q
+ * déterminé que si le résultat hors reset est déjà LOW (même valeur que le
+ * reset), sinon Q devient UNKNOWN.
+ */
+function jkChannelStep(channel, pinSignals, previous) {
+  const clock = pinSignals[channel.clock]
+  const reset = pinSignals[channel.reset]
+  if (reset === Signal.LOW) return { q: Signal.LOW, previousClock: clock }
+
+  const fallingEdge = previous.previousClock === Signal.HIGH && clock === Signal.LOW
+  const clocked = fallingEdge ? jkNextAtFallingEdge(pinSignals[channel.j], pinSignals[channel.k], previous.q) : previous.q
+  if (reset === Signal.HIGH) return { q: clocked, previousClock: clock }
+  return { q: clocked === Signal.LOW ? Signal.LOW : Signal.UNKNOWN, previousClock: clock }
+}
+
+/**
+ * A9-JK1 — 74HC73 : contribution timed/stateful.
+ *
+ * Garde d'alimentation (§8, même patron que `hcSr04TimedDigital`) : sans
+ * VCC HIGH et GND LOW, aucune sortie (`outputs = null`, jamais un LOW
+ * inventé). Un circuit non alimenté ne mémorise rien : l'état privé revient
+ * à l'état initial (Q UNKNOWN), de sorte qu'une remise sous tension ne
+ * restitue jamais un Q fantôme.
+ *
+ * État privé (volatile, store runtime PREQ2 uniquement, jamais le Document) :
+ *   { channel1: { q, previousClock }, channel2: { q, previousClock } }
+ *
+ * Sorties : pour chaque canal dont Q est déterminé, nQ = Q et nNQ = NOT Q ;
+ * un Q UNKNOWN ne pilote ni nQ ni nNQ (la résolution générique préserve
+ * UNKNOWN). `null` si aucun canal n'est déterminé.
+ */
+function jkFlipFlop74HC73TimedDigital({ pinSignals, previousState }) {
+  if (pinSignals.VCC !== Signal.HIGH || pinSignals.GND !== Signal.LOW) {
+    return {
+      state: { channel1: initialJkChannelState(), channel2: initialJkChannelState() },
+      outputs: null,
+    }
+  }
+
+  const state = {}
+  const outputs = new Map()
+  for (const channel of JK_74HC73_CHANNELS) {
+    const next = jkChannelStep(channel, pinSignals, previousState?.[channel.key] ?? initialJkChannelState())
+    state[channel.key] = next
+    if (isDecisive(next.q)) {
+      outputs.set(channel.q, next.q)
+      outputs.set(channel.nq, complement(next.q))
+    }
+  }
+  return { state, outputs: outputs.size > 0 ? outputs : null }
+}
+
+/**
  * Fabrique un Registry isolé — même patron que
  * `createDigitalContributionRegistry` (`digitalContributionRegistry.js`) :
  * permet à un test d'injecter une table de contributions FIXTURE, sans
@@ -193,6 +296,8 @@ export function createTimedDigitalContributionRegistry({ contributions = new Map
 const defaultRegistry = createTimedDigitalContributionRegistry({
   contributions: new Map([
     ["HC_SR04", hcSr04TimedDigital],
+    // A9-JK1 : premier producteur séquentiel réel (état inter-step + front descendant).
+    ["JK_FLIP_FLOP_74HC73", jkFlipFlop74HC73TimedDigital],
   ]),
 })
 

@@ -138,6 +138,7 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'XOR_GATE', box: [144, 96], physicalMm: null, ref: 'Founder frozen raster, isotropic 3/32 derivative; abstract Level-1 logic, physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'NOT_GATE', box: [144, 96], physicalMm: null, ref: 'Founder frozen raster, isotropic 3/32 derivative; abstract Level-1 logic, physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'H_BRIDGE', box: [132, 88], physicalMm: null, ref: 'L293D DIP-16 Founder frozen raster, isotropic derivative rotated 90 deg; physical scale uncalibrated', impliedUnitsPerMm: null },
+  { type: 'JK_FLIP_FLOP_74HC73', box: [120, 88], physicalMm: null, ref: '74HC73 DIP-14 Founder frozen raster, isotropic derivative (CSA probe locked); physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'PMOS', box: [144, 288], physicalMm: [10.54, 29.33], ref: 'IRF9540N TO-220AB width/body/lead maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 29.33 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },

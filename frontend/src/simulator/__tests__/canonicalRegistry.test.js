@@ -11,7 +11,7 @@ import * as CanonicalRegistry from '../canonicalRegistry.js';
 import { COMPONENT_TYPES } from '../../config/componentDefinitions.js';
 
 describe('canonicalRegistry — contract shape', () => {
-  it('exposes all 43 declared types', () => {
+  it('exposes all 48 declared types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
     // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
     // A7-C1 : 25 -> 26 (TMP36 ajouté). A7-C2 : 26 -> 28 (FORCE_SENSOR + FLEX_SENSOR ajoutés).
@@ -22,7 +22,8 @@ describe('canonicalRegistry — contract shape', () => {
     // (ZENER_DIODE ajouté). A8-H-BRIDGE : 40 -> 41 (H_BRIDGE ajouté).
     // A9-NAND : 43 -> 44 (NAND_GATE ajouté). A9-NOR : 44 -> 45 (NOR_GATE ajouté).
     // A9-XOR : 45 -> 46 (XOR_GATE ajouté). A9-NOT : 46 -> 47 (NOT_GATE ajouté).
-    expect(getAllCanonicalTypes()).toHaveLength(47);
+    // A9-JK1 : 47 -> 48 (JK_FLIP_FLOP_74HC73 ajouté).
+    expect(getAllCanonicalTypes()).toHaveLength(48);
     expect(getAllCanonicalTypes()).toContain('LED');
     expect(getAllCanonicalTypes()).toContain('POWER');
     expect(getAllCanonicalTypes()).toContain('RESISTOR');
@@ -216,8 +217,8 @@ describe('canonicalRegistry — contract shape', () => {
     }
   });
 
-  it('getAllCanonicalEntries returns all 47 entries', () => {
-    expect(getAllCanonicalEntries()).toHaveLength(47);
+  it('getAllCanonicalEntries returns all 48 entries', () => {
+    expect(getAllCanonicalEntries()).toHaveLength(48);
   });
 
   it('A6-OUT3 : HOBBY_GEARMOTOR entry exposes the complete declarative contract (reuses DC_MOTOR family)', () => {
