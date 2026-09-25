@@ -1,0 +1,9 @@
+{
+  "ticket": "A9-COUNTER1",
+  "reference": "SN74HC161N",
+  "package": "PDIP-16",
+  "status": "FOUNDER_PASS",
+  "sourceFile": "counter-74hc161.founder-reference.png",
+  "sha256": "095f2c38ce4870cee8d5af645043d1d2530916e32c9be27f60a8cb811942023a",
+  "note": "Founder-approved source preserved bit-identically."
+}

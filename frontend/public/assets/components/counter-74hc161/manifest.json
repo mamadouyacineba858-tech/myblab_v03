@@ -1,0 +1,148 @@
+{
+  "id": "counter-74hc161",
+  "ticket": "A9-COUNTER1",
+  "manufacturerReference": "Texas Instruments SN74HC161N",
+  "family": "74HC161",
+  "package": "PDIP-16 (N)",
+  "pins": 16,
+  "canvasSize": {
+    "width": 120,
+    "height": 64
+  },
+  "founderReference": {
+    "file": "counter-74hc161.founder-reference.png",
+    "status": "FOUNDER_PASS",
+    "sha256": "095f2c38ce4870cee8d5af645043d1d2530916e32c9be27f60a8cb811942023a"
+  },
+  "images": {
+    "1x": {
+      "png": "counter-74hc161.default.1x.png",
+      "webp": "counter-74hc161.default.1x.webp"
+    },
+    "3x": {
+      "png": "counter-74hc161.default.3x.png",
+      "webp": "counter-74hc161.default.3x.webp"
+    }
+  },
+  "physicalContacts": {
+    "coordinateSpace": "120x64",
+    "pitchPx": 12,
+    "count": 16,
+    "contacts": [
+      {
+        "pin": 16,
+        "name": "VCC",
+        "x": 18,
+        "y": 8
+      },
+      {
+        "pin": 15,
+        "name": "TC_RCO",
+        "x": 30,
+        "y": 8
+      },
+      {
+        "pin": 14,
+        "name": "Q0_QA",
+        "x": 42,
+        "y": 8
+      },
+      {
+        "pin": 13,
+        "name": "Q1_QB",
+        "x": 54,
+        "y": 8
+      },
+      {
+        "pin": 12,
+        "name": "Q2_QC",
+        "x": 66,
+        "y": 8
+      },
+      {
+        "pin": 11,
+        "name": "Q3_QD",
+        "x": 78,
+        "y": 8
+      },
+      {
+        "pin": 10,
+        "name": "CET_ENT",
+        "x": 90,
+        "y": 8
+      },
+      {
+        "pin": 9,
+        "name": "PE_LOAD",
+        "x": 102,
+        "y": 8
+      },
+      {
+        "pin": 1,
+        "name": "MR_CLR",
+        "x": 18,
+        "y": 56
+      },
+      {
+        "pin": 2,
+        "name": "CP_CLK",
+        "x": 30,
+        "y": 56
+      },
+      {
+        "pin": 3,
+        "name": "D0_A",
+        "x": 42,
+        "y": 56
+      },
+      {
+        "pin": 4,
+        "name": "D1_B",
+        "x": 54,
+        "y": 56
+      },
+      {
+        "pin": 5,
+        "name": "D2_C",
+        "x": 66,
+        "y": 56
+      },
+      {
+        "pin": 6,
+        "name": "D3_D",
+        "x": 78,
+        "y": 56
+      },
+      {
+        "pin": 7,
+        "name": "CEP_ENP",
+        "x": 90,
+        "y": 56
+      },
+      {
+        "pin": 8,
+        "name": "GND",
+        "x": 102,
+        "y": 56
+      }
+    ]
+  },
+  "pinout": {
+    "1": "MR/CLR",
+    "2": "CP/CLK",
+    "3": "D0/A",
+    "4": "D1/B",
+    "5": "D2/C",
+    "6": "D3/D",
+    "7": "CEP/ENP",
+    "8": "GND",
+    "9": "PE/LOAD",
+    "10": "CET/ENT",
+    "11": "Q3/QD",
+    "12": "Q2/QC",
+    "13": "Q1/QB",
+    "14": "Q0/QA",
+    "15": "TC/RCO",
+    "16": "VCC"
+  }
+}

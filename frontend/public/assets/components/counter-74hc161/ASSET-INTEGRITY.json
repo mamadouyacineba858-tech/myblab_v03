@@ -1,0 +1,19 @@
+{
+  "asset": "counter-74hc161",
+  "status": "CSA_LOCKED",
+  "requiredFiles": [
+    "ASSET-INTEGRITY.json",
+    "FOUNDER-ASSET.json",
+    "README.md",
+    "README.txt",
+    "SHA256SUMS.txt",
+    "counter-74hc161.default.1x.png",
+    "counter-74hc161.default.1x.webp",
+    "counter-74hc161.default.3x.png",
+    "counter-74hc161.default.3x.webp",
+    "counter-74hc161.founder-reference.png",
+    "manifest.json"
+  ],
+  "physicalContactCount": 16,
+  "pinPitchPx": 12
+}
