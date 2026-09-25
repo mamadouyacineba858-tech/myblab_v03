@@ -349,6 +349,32 @@ const ASSEMBLY_PROFILES = {
       "4Q": { root: { dx: 103, dy: 8 }, style: "metallic-wire" },
     },
   },
+  // A9-COUNTER1 : 74HC161 DIP-16 (raster Founder PASS/FROZEN, derive isotrope 120x64, pack CSA
+  // LOCKED). Le Founder est une photographie EN PERSPECTIVE : ses pattes ne sont pas des
+  // probes electriques fiables. Apparence (raster) et geometrie electrique sont donc
+  // separees explicitement : roots = PhysicalContacts CSA LOCKED NORMALISES DIP-16 (rangees
+  // y=8 / y=56, pas 12), jamais recalcules ni sondes depuis le raster. Aucun bodyClip.
+  BINARY_COUNTER_74HC161: {
+    kind: "through-hole",
+    leads: {
+      MR: { root: { dx: 18, dy: 56 }, style: "metallic-wire" },
+      CP: { root: { dx: 30, dy: 56 }, style: "metallic-wire" },
+      D0: { root: { dx: 42, dy: 56 }, style: "metallic-wire" },
+      D1: { root: { dx: 54, dy: 56 }, style: "metallic-wire" },
+      D2: { root: { dx: 66, dy: 56 }, style: "metallic-wire" },
+      D3: { root: { dx: 78, dy: 56 }, style: "metallic-wire" },
+      CEP: { root: { dx: 90, dy: 56 }, style: "metallic-wire" },
+      GND: { root: { dx: 102, dy: 56 }, style: "metallic-wire" },
+      VCC: { root: { dx: 18, dy: 8 }, style: "metallic-wire" },
+      TC: { root: { dx: 30, dy: 8 }, style: "metallic-wire" },
+      Q0: { root: { dx: 42, dy: 8 }, style: "metallic-wire" },
+      Q1: { root: { dx: 54, dy: 8 }, style: "metallic-wire" },
+      Q2: { root: { dx: 66, dy: 8 }, style: "metallic-wire" },
+      Q3: { root: { dx: 78, dy: 8 }, style: "metallic-wire" },
+      CET: { root: { dx: 90, dy: 8 }, style: "metallic-wire" },
+      PE: { root: { dx: 102, dy: 8 }, style: "metallic-wire" },
+    },
+  },
   PMOS: {
     kind: "through-hole",
     leads: {

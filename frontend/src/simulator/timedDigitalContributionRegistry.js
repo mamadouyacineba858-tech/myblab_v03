@@ -356,6 +356,117 @@ function dFlipFlop74HC74TimedDigital({ pinSignals, previousState }) {
 }
 
 /**
+ * A9-COUNTER1 — 74HC161 : compteur binaire SYNCHRONE 4 bits à front MONTANT,
+ * chargement parallèle synchrone (PE actif LOW), validations CEP/CET, reset
+ * MR ASYNCHRONE actif LOW. Même contrat A9-SEQ-PREQ/PREQ2 que 74HC73/74HC74 :
+ * `currentTimeMs` n'est pas utilisé, le mécanisme timed sert uniquement à
+ * l'état privé inter-step et à la détection de front sur le contexte
+ * d'échantillonnage du step. Bits LSB d'abord : Q0 est le poids 1, Q3 le
+ * poids 8 ; D0..D3 correspondent un à un.
+ */
+const COUNTER_74HC161_Q = Object.freeze(["Q0", "Q1", "Q2", "Q3"])
+const COUNTER_74HC161_D = Object.freeze(["D0", "D1", "D2", "D3"])
+
+/** Mots 0..15 compatibles avec des bits (LSB d'abord) : chaque bit indéterminé couvre LOW et HIGH. */
+function possibleWords(bits) {
+  let words = [0]
+  bits.forEach((bit, i) => {
+    words = words.flatMap((word) => possibleLevels(bit).map((level) => (level === Signal.HIGH ? word | (1 << i) : word)))
+  })
+  return words
+}
+
+const wordBit = (word, i) => ((word >> i) & 1 ? Signal.HIGH : Signal.LOW)
+
+/**
+ * Une interprétation décisive (MR, PE, CEP, CET, D) : MR LOW efface
+ * immédiatement, sans front et avant tout le reste ; sans front montant le
+ * mot est conservé ; au front, PE LOW charge D (indépendamment de CEP/CET),
+ * sinon CEP ET CET HIGH incrémentent modulo 16, sinon HOLD.
+ */
+function counterNextWord(mr, pe, cep, cet, d, risingEdge, word) {
+  if (mr === Signal.LOW) return 0
+  if (!risingEdge) return word
+  if (pe === Signal.LOW) return d
+  if (cep === Signal.HIGH && cet === Signal.HIGH) return (word + 1) & 0xf
+  return word
+}
+
+/**
+ * Pas d'horloge : front montant strict previousClock LOW -> CP HIGH ;
+ * UNKNOWN/FLOATING sur CP ne sont jamais un front. MR/PE/CEP/CET/D et les
+ * bits mémorisés indéterminés ne sont jamais convertis : chaque bit n'est
+ * déterminé que si toutes les interprétations possibles concordent, sinon
+ * il devient UNKNOWN. Sans front, seul MR est pertinent.
+ */
+function counterStep(pinSignals, previous) {
+  const clock = pinSignals.CP
+  const risingEdge = previous.previousClock === Signal.LOW && clock === Signal.HIGH
+  const onEdge = (level) => (risingEdge ? possibleLevels(level) : [Signal.UNKNOWN])
+  const loads = risingEdge ? possibleWords(COUNTER_74HC161_D.map((pin) => pinSignals[pin])) : [0]
+  const words = possibleWords(previous.q)
+  const outcomes = new Set()
+  for (const mr of possibleLevels(pinSignals.MR)) {
+    for (const pe of onEdge(pinSignals.PE)) {
+      for (const cep of onEdge(pinSignals.CEP)) {
+        for (const cet of onEdge(pinSignals.CET)) {
+          for (const d of loads) {
+            for (const word of words) outcomes.add(counterNextWord(mr, pe, cep, cet, d, risingEdge, word))
+          }
+        }
+      }
+    }
+  }
+  return {
+    q: COUNTER_74HC161_Q.map((_, i) => agreedLevel([...outcomes].map((word) => wordBit(word, i)))),
+    previousClock: clock,
+  }
+}
+
+/**
+ * TC = CET · Q0 · Q1 · Q2 · Q3, COMBINATOIRE (jamais mémorisé) : CEP ne
+ * l'influence pas. Un facteur LOW suffit à le déterminer LOW ; HIGH
+ * seulement si tous les facteurs sont HIGH ; sinon UNKNOWN.
+ */
+function counterTerminalCount(cet, q) {
+  const factors = [cet, ...q]
+  if (factors.some((level) => level === Signal.LOW)) return Signal.LOW
+  return factors.every((level) => level === Signal.HIGH) ? Signal.HIGH : Signal.UNKNOWN
+}
+
+/** État initial : quatre bits indéterminés, aucun niveau d'horloge observé (jamais un 0000 inventé). */
+function initialCounter74HC161State() {
+  return { q: [Signal.UNKNOWN, Signal.UNKNOWN, Signal.UNKNOWN, Signal.UNKNOWN], previousClock: Signal.UNKNOWN }
+}
+
+/**
+ * A9-COUNTER1 — 74HC161 : contribution timed/stateful.
+ *
+ * Garde d'alimentation (même patron que 74HC73/74HC74/74HC75) : sans VCC
+ * HIGH et GND LOW, `outputs = null` et l'état privé revient à l'état initial.
+ *
+ * État privé (volatile, store runtime PREQ2 uniquement, jamais le Document) :
+ *   { q: [Q0, Q1, Q2, Q3], previousClock } — TC n'y figure pas.
+ *
+ * Sorties : chaque Qn seulement s'il est déterminé ; TC seulement s'il est
+ * déterminé. `null` si aucune sortie n'est déterminée.
+ */
+function binaryCounter74HC161TimedDigital({ pinSignals, previousState }) {
+  if (pinSignals.VCC !== Signal.HIGH || pinSignals.GND !== Signal.LOW) {
+    return { state: initialCounter74HC161State(), outputs: null }
+  }
+
+  const state = counterStep(pinSignals, previousState ?? initialCounter74HC161State())
+  const outputs = new Map()
+  COUNTER_74HC161_Q.forEach((pin, i) => {
+    if (isDecisive(state.q[i])) outputs.set(pin, state.q[i])
+  })
+  const tc = counterTerminalCount(pinSignals.CET, state.q)
+  if (isDecisive(tc)) outputs.set("TC", tc)
+  return { state, outputs: outputs.size > 0 ? outputs : null }
+}
+
+/**
  * A9-LATCH1 — 74HC75 : quadruple latch D TRANSPARENT SUR NIVEAU (aucun front),
  * quatre canaux nD -> nQ/nNQ, validation par paires : LE12 pilote les canaux
  * 1/2, LE34 les canaux 3/4. Même contrat A9-SEQ-PREQ/PREQ2 que 74HC73/74HC74 :
@@ -464,6 +575,8 @@ const defaultRegistry = createTimedDigitalContributionRegistry({
     ["D_FLIP_FLOP_74HC74", dFlipFlop74HC74TimedDigital],
     // A9-LATCH1 : quadruple latch D transparent sur niveau (même contrat séquentiel, aucun front).
     ["D_LATCH_74HC75", dLatch74HC75TimedDigital],
+    // A9-COUNTER1 : compteur binaire synchrone 4 bits (même contrat séquentiel, front montant).
+    ["BINARY_COUNTER_74HC161", binaryCounter74HC161TimedDigital],
   ]),
 })
 

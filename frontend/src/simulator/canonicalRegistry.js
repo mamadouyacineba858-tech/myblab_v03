@@ -153,9 +153,12 @@ const DECLARED_TYPES_PINS = {
   // A9-LATCH1 : 74HC75 DIP-16, quadruple latch D (transparent sur niveau) — 16 pins ELECTRIQUES,
   // ordre = broches physiques 1..16 (1NQ 1D 2D LE34 VCC 3D 4D 4NQ 4Q 3Q 3NQ GND LE12 2NQ 2Q 1Q).
   D_LATCH_74HC75:[{id:'1NQ',role:'output'},{id:'1D',role:'input'},{id:'2D',role:'input'},{id:'LE34',role:'input'},{id:'VCC',role:'power'},{id:'3D',role:'input'},{id:'4D',role:'input'},{id:'4NQ',role:'output'},{id:'4Q',role:'output'},{id:'3Q',role:'output'},{id:'3NQ',role:'output'},{id:'GND',role:'ground'},{id:'LE12',role:'input'},{id:'2NQ',role:'output'},{id:'2Q',role:'output'},{id:'1Q',role:'output'}],
+  // A9-COUNTER1 : 74HC161 DIP-16, compteur binaire synchrone 4 bits (reset asynchrone) — 16 pins
+  // ELECTRIQUES, ordre = broches physiques 1..16 (MR CP D0 D1 D2 D3 CEP GND PE CET Q3 Q2 Q1 Q0 TC VCC).
+  BINARY_COUNTER_74HC161:[{id:'MR',role:'input'},{id:'CP',role:'input'},{id:'D0',role:'input'},{id:'D1',role:'input'},{id:'D2',role:'input'},{id:'D3',role:'input'},{id:'CEP',role:'input'},{id:'GND',role:'ground'},{id:'PE',role:'input'},{id:'CET',role:'input'},{id:'Q3',role:'output'},{id:'Q2',role:'output'},{id:'Q1',role:'output'},{id:'Q0',role:'output'},{id:'TC',role:'output'},{id:'VCC',role:'power'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161']
 
 const DECLARED_PARAMETER_SCHEMA = {
   AND_GATE:[],
@@ -168,6 +171,7 @@ const DECLARED_PARAMETER_SCHEMA = {
   JK_FLIP_FLOP_74HC73:[],
   D_FLIP_FLOP_74HC74:[],
   D_LATCH_74HC75:[],
+  BINARY_COUNTER_74HC161:[],
   VOLTAGE_REGULATOR:[{key:'outputVoltage',parameterType:'voltage',unit:'V',minimum:0.001,maximum:1000,defaultValue:5,description:'Tension de sortie DC idéale Level-1, disponible si la tension IN est au moins égale à cette valeur.'}],
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
   COIN_CELL_CR2032:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:3,maximum:3,defaultValue:3,description:'Tension nominale fixe de la pile'}],
@@ -378,6 +382,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   JK_FLIP_FLOP_74HC73:{},
   D_FLIP_FLOP_74HC74:{},
   D_LATCH_74HC75:{},
+  BINARY_COUNTER_74HC161:{},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -454,6 +459,8 @@ const DECLARED_CAPABILITIES = {
   D_FLIP_FLOP_74HC74:['digital'],
   // A9-LATCH1 : sequentiel pur, sorties via le registre timed/stateful (aucune contribution DC).
   D_LATCH_74HC75:['digital'],
+  // A9-COUNTER1 : sequentiel pur, sorties via le registre timed/stateful (aucune contribution DC).
+  BINARY_COUNTER_74HC161:['digital'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -498,6 +505,7 @@ const DECLARED_MODEL_AVAILABLE = {
   JK_FLIP_FLOP_74HC73:true,
   D_FLIP_FLOP_74HC74:true,
   D_LATCH_74HC75:true,
+  BINARY_COUNTER_74HC161:true,
 }
 
 /**

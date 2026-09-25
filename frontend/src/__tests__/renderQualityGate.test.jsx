@@ -283,8 +283,10 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
   )
   // A9-JK1 : le type canonique JK_FLIP_FLOP_74HC73 et le dossier d'asset CSA LOCKED
   // `jk-flip-flop/` sont tous deux verrouillés par le ticket (le nom kebab du type
-  // n'est donc pas le nom du dossier) — seule exception déclarée à la dérivation.
-  const ASSET_DIR_BY_TYPE = { JK_FLIP_FLOP_74HC73: "jk-flip-flop" }
+  // n'est donc pas le nom du dossier) — exception déclarée à la dérivation.
+  // A9-COUNTER1 : même situation — type canonique BINARY_COUNTER_74HC161, dossier
+  // d'asset CSA LOCKED `counter-74hc161/` (pack FROZEN, jamais renommé).
+  const ASSET_DIR_BY_TYPE = { JK_FLIP_FLOP_74HC73: "jk-flip-flop", BINARY_COUNTER_74HC161: "counter-74hc161" }
   const toKebab = (type) => ASSET_DIR_BY_TYPE[type] ?? type.toLowerCase().replace(/_/g, "-")
   // A9-DFF1 : le manifest CSA LOCKED du 74HC74 (FROZEN, jamais réécrit) suit un schéma
   // propre : `ticket` + `normalization.runtimeCanvas` + `runtime{png1x,png3x,webp1x,webp3x}`
@@ -309,6 +311,16 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       complexity: "complex",
       canonical: { width: m.runtimeCanvas.width, height: m.runtimeCanvas.height },
       assets: ["74hc75.default.1x.webp", "74hc75.default.3x.webp", "74hc75.default.1x.png", "74hc75.default.3x.png"].map((file) => ({ file })),
+    }),
+    // A9-COUNTER1 : le manifest CSA LOCKED du 74HC161 (FROZEN) déclare `canvasSize` et
+    // `images{1x,3x}{png,webp}` (`id` = nom du dossier). Adaptateur déclaré, en lecture
+    // seule ; hashes vérifiés contre SHA256SUMS.txt par BinaryCounter74HC161Part.raster.test.jsx.
+    BINARY_COUNTER_74HC161: (m) => ({
+      component: "BINARY_COUNTER_74HC161",
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.canvasSize.width, height: m.canvasSize.height },
+      assets: Object.values(m.images).flatMap((formats) => Object.values(formats)).map((file) => ({ file })),
     }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")

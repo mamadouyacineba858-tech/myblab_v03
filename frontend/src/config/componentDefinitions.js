@@ -545,6 +545,32 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "2Q", label: "2Q", dx: 31, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2Q", dx: 31, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
     { id: "1Q", label: "1Q", dx: 19, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1Q", dx: 19, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A9-COUNTER1 : 74HC161 DIP-16 compteur binaire synchrone 4 bits, raster Founder PASS/FROZEN
+  // (derive runtime isotrope 120x64, pack CSA LOCKED). Le raster est une photographie en
+  // perspective : les 16 pins ELECTRIQUES = 16 PhysicalContacts CSA LOCKED NORMALISES DIP-16
+  // (manifest.json physicalContacts), jamais des pixel-probes photographiques. Ordre = broches
+  // physiques 1..16 : rangee basse y=56 (broches 1..8, gauche -> droite), rangee haute y=8
+  // (broches 9..16, droite -> gauche), pas 12, ecartement 48 = 4 x pitch. Nomenclature
+  // canonique unique (MR CP D0..D3 CEP PE CET Q0..Q3 TC) ; alias TI (CLR CLK A..D ENP LOAD ENT
+  // QA..QD RCO) documentes dans le manifest uniquement, jamais dupliques en pins.
+  BINARY_COUNTER_74HC161: [
+    { id: "MR", label: "MR", dx: 18, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "MR", dx: 18, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "CP", label: "CP", dx: 30, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "CP", dx: 30, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "D0", label: "D0", dx: 42, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "D0", dx: 42, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "D1", label: "D1", dx: 54, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "D1", dx: 54, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "D2", label: "D2", dx: 66, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "D2", dx: 66, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "D3", label: "D3", dx: 78, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "D3", dx: 78, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "CEP", label: "CEP", dx: 90, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "CEP", dx: 90, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 102, dy: 56, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 102, dy: 56, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "PE", label: "PE", dx: 102, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "PE", dx: 102, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "CET", label: "CET", dx: 90, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "CET", dx: 90, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "Q3", label: "Q3", dx: 78, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "Q3", dx: 78, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "Q2", label: "Q2", dx: 66, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "Q2", dx: 66, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "Q1", label: "Q1", dx: 54, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "Q1", dx: 54, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "Q0", label: "Q0", dx: 42, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "Q0", dx: 42, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "TC", label: "TC", dx: 30, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "TC", dx: 30, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC", label: "VCC", dx: 18, dy: 8, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 18, dy: 8, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   // A5-ZENER_DIODE — asset Founder PASS FROZEN 144×72, pixel-probe réel
   // (alpha>=32, createImageBitmap/getImageData sur le fichier livré) :
   // bounding box opaque globale (1x) x∈[0,143] y∈[7,63] (== manifest.json
@@ -729,6 +755,7 @@ export const COMPONENT_TYPES = {
   JK_FLIP_FLOP_74HC73: { id: "JK_FLIP_FLOP_74HC73", label: "74HC73 Dual J-K Flip-Flop", icon: "JK_FLIP_FLOP_74HC73", width: 120, height: 88, pins: buildPins("JK_FLIP_FLOP_74HC73") },
   D_FLIP_FLOP_74HC74: { id: "D_FLIP_FLOP_74HC74", label: "74HC74 Dual D Flip-Flop", icon: "D_FLIP_FLOP_74HC74", width: 120, height: 88, pins: buildPins("D_FLIP_FLOP_74HC74") },
   D_LATCH_74HC75: { id: "D_LATCH_74HC75", label: "74HC75 Quad D Latch", icon: "D_LATCH_74HC75", width: 120, height: 64, pins: buildPins("D_LATCH_74HC75") },
+  BINARY_COUNTER_74HC161: { id: "BINARY_COUNTER_74HC161", label: "74HC161 4-bit Binary Counter", icon: "BINARY_COUNTER_74HC161", width: 120, height: 64, pins: buildPins("BINARY_COUNTER_74HC161") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -755,7 +782,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

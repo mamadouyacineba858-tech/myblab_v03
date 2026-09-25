@@ -141,6 +141,7 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'JK_FLIP_FLOP_74HC73', box: [120, 88], physicalMm: null, ref: '74HC73 DIP-14 Founder frozen raster, isotropic derivative (CSA probe locked); physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'D_FLIP_FLOP_74HC74', box: [120, 88], physicalMm: null, ref: '74HC74 DIP-14 Founder frozen raster, isotropic derivative (CSA probe locked); physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'D_LATCH_74HC75', box: [120, 64], physicalMm: null, ref: '74HC75 DIP-16 Founder frozen raster, isotropic derivative (CSA contacts locked); physical scale uncalibrated', impliedUnitsPerMm: null },
+  { type: 'BINARY_COUNTER_74HC161', box: [120, 64], physicalMm: null, ref: '74HC161 DIP-16 Founder frozen raster (perspective photo), isotropic derivative; CSA normalized DIP-16 contacts; physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'PMOS', box: [144, 288], physicalMm: [10.54, 29.33], ref: 'IRF9540N TO-220AB width/body/lead maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 29.33 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },
