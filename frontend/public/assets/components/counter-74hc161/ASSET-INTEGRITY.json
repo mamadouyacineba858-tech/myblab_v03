@@ -1,6 +1,8 @@
 {
   "asset": "counter-74hc161",
+  "ticket": "A9-COUNTER1-VIS-CORR-001",
   "status": "CSA_LOCKED",
+  "correctionScope": "VISUAL_ONLY",
   "requiredFiles": [
     "ASSET-INTEGRITY.json",
     "FOUNDER-ASSET.json",
@@ -15,5 +17,8 @@
     "manifest.json"
   ],
   "physicalContactCount": 16,
-  "pinPitchPx": 12
+  "pinPitchPx": 12,
+  "physicalContactsChanged": false,
+  "runtimeCanvas": "120x64",
+  "runtime1xSha256": "225ff21fd45fa5f42eeb7b9936247fe928aeb57b3d68711a7d8a4ce2fbe7814d"
 }

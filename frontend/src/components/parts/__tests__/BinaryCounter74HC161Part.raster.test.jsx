@@ -20,8 +20,8 @@ import { createSimulationRuntimeSession, runSimulationWithRuntime, SIMULATION_ST
 import { Signal } from '../../../simulator/signals.js'
 
 /**
- * A9-COUNTER1 — 74HC161 DIP-16 : asset FROZEN / CSA LOCKED, catalogue, PhysicalContacts
- * NORMALISES (le Founder est une photographie en perspective : aucun pixel-probe), renderer,
+ * A9-COUNTER1-VIS-CORR-001 — 74HC161 DIP-16 : asset FROZEN / CSA LOCKED, catalogue, PhysicalContacts
+ * NORMALISES (le Founder est un rendu horizontal top-down PDIP-16, Founder PASS : aucun pixel-probe), renderer,
  * assembly, insertion breadboard réelle.
  */
 
@@ -32,9 +32,9 @@ const asset = name => resolve(ASSET_DIR, name)
 const manifest = () => JSON.parse(readFileSync(asset('manifest.json'), 'utf8'))
 const hash = data => createHash('sha256').update(data).digest('hex')
 const src = (...p) => readFileSync(resolve(here, '../../..', ...p), 'utf8')
-const FOUNDER_SHA = '095f2c38ce4870cee8d5af645043d1d2530916e32c9be27f60a8cb811942023a'
-const RUNTIME_1X_PNG_SHA = '898a28cd8b3d5bdbecfe1a84c1741f44f4c9be52135706ab26938b368c94da7e'
-const RUNTIME_1X_WEBP_SHA = '2112ae182ce5e84751fbdfcfae3771e266d3c62ad82a8be1f1877777ce726ad9'
+const FOUNDER_SHA = 'ab001685b1a9339880f8c8ccae9c5b033e1464b824579157f7e4b800d03587aa'
+const RUNTIME_1X_PNG_SHA = '225ff21fd45fa5f42eeb7b9936247fe928aeb57b3d68711a7d8a4ce2fbe7814d'
+const RUNTIME_1X_WEBP_SHA = '0fa0d9adf90ba62ce149bb918f8519ea51d33e1a25e56de9882f68ce5b016c84'
 const PACK = [
   'ASSET-INTEGRITY.json', 'FOUNDER-ASSET.json', 'README.md', 'README.txt', 'SHA256SUMS.txt',
   'counter-74hc161.default.1x.png', 'counter-74hc161.default.1x.webp', 'counter-74hc161.default.3x.png', 'counter-74hc161.default.3x.webp',
@@ -143,10 +143,10 @@ describe('A9-COUNTER1 — CTR-35 / CTR-36 asset pack FROZEN / CSA LOCKED', () =>
 
   it('CTR-36: FOUNDER-ASSET and manifest identity (SN74HC161N, PDIP-16, FOUNDER_PASS, same SHA)', () => {
     const founder = JSON.parse(readFileSync(asset('FOUNDER-ASSET.json'), 'utf8'))
-    expect(founder).toMatchObject({ ticket: 'A9-COUNTER1', reference: 'SN74HC161N', package: 'PDIP-16', status: 'FOUNDER_PASS', sha256: FOUNDER_SHA })
+    expect(founder).toMatchObject({ ticket: 'A9-COUNTER1-VIS-CORR-001', reference: 'SN74HC161N', package: 'PDIP-16', status: 'FOUNDER_PASS', sha256: FOUNDER_SHA })
     const m = manifest()
-    expect(m).toMatchObject({ id: 'counter-74hc161', ticket: 'A9-COUNTER1', family: '74HC161', pins: 16 })
-    expect(m.founderReference).toEqual({ file: 'counter-74hc161.founder-reference.png', status: 'FOUNDER_PASS', sha256: FOUNDER_SHA })
+    expect(m).toMatchObject({ id: 'counter-74hc161', ticket: 'A9-COUNTER1-VIS-CORR-001', family: '74HC161', pins: 16 })
+    expect(m.founderReference).toEqual({ file: 'counter-74hc161.founder-reference.png', status: 'FOUNDER_PASS', sha256: FOUNDER_SHA, visualCorrection: 'horizontal top-down PDIP-16; replaces oblique Founder raster' })
     expect(readFileSync(asset('README.md'), 'utf8')).toBe(readFileSync(asset('README.txt'), 'utf8'))
   })
 

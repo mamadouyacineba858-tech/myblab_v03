@@ -1,6 +1,6 @@
 {
   "id": "counter-74hc161",
-  "ticket": "A9-COUNTER1",
+  "ticket": "A9-COUNTER1-VIS-CORR-001",
   "manufacturerReference": "Texas Instruments SN74HC161N",
   "family": "74HC161",
   "package": "PDIP-16 (N)",
@@ -12,7 +12,8 @@
   "founderReference": {
     "file": "counter-74hc161.founder-reference.png",
     "status": "FOUNDER_PASS",
-    "sha256": "095f2c38ce4870cee8d5af645043d1d2530916e32c9be27f60a8cb811942023a"
+    "sha256": "ab001685b1a9339880f8c8ccae9c5b033e1464b824579157f7e4b800d03587aa",
+    "visualCorrection": "horizontal top-down PDIP-16; replaces oblique Founder raster"
   },
   "images": {
     "1x": {
@@ -28,6 +29,7 @@
     "coordinateSpace": "120x64",
     "pitchPx": 12,
     "count": 16,
+    "status": "UNCHANGED_FROM_A9_COUNTER1",
     "contacts": [
       {
         "pin": 16,
