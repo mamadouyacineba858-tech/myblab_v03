@@ -1,0 +1,9 @@
+{
+  "ticket": "A10-DISP1",
+  "manufacturer": "Kingbright",
+  "reference": "SC56-11EWA",
+  "status": "FOUNDER_PASS",
+  "approvedVisual": "orthographic front / Tinkercad-like compact presentation",
+  "sourceFile": "seven-segment-sc56-11ewa.founder-reference.png",
+  "qualification": "Visual Founder approval only. Electrical dimensions and pinout are locked from Kingbright datasheet DSAP6671 Rev V.1A."
+}

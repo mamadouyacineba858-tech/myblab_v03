@@ -1,0 +1,109 @@
+{
+  "id": "seven-segment-sc56-11ewa",
+  "ticket": "A10-DISP1",
+  "manufacturer": "Kingbright",
+  "manufacturerReference": "SC56-11EWA",
+  "package": "0.56-inch single-digit through-hole, 10 leads",
+  "topology": "common-cathode",
+  "decimal": "right-hand",
+  "digitHeightMm": 14.22,
+  "bodyDimensionsMm": {
+    "width": 12.7,
+    "height": 19.05,
+    "depth": 8.0
+  },
+  "runtimeCanvasPx": {
+    "width": 72,
+    "height": 114
+  },
+  "breadboardPitchPx": 12,
+  "geometryBasis": {
+    "horizontalPitchMm": 2.54,
+    "rowSeparationMm": 15.24,
+    "scale": "12 px per 2.54 mm",
+    "note": "Electrical contacts normalized from manufacturer PCB layout; not claimed as pixel-probed from generated raster."
+  },
+  "pinMap": {
+    "1": "e",
+    "2": "d",
+    "3": "COM",
+    "4": "c",
+    "5": "DP",
+    "6": "b",
+    "7": "a",
+    "8": "COM",
+    "9": "f",
+    "10": "g"
+  },
+  "physicalContacts": [
+    {
+      "pin": "10",
+      "dx": 12,
+      "dy": 21
+    },
+    {
+      "pin": "9",
+      "dx": 24,
+      "dy": 21
+    },
+    {
+      "pin": "8",
+      "dx": 36,
+      "dy": 21
+    },
+    {
+      "pin": "7",
+      "dx": 48,
+      "dy": 21
+    },
+    {
+      "pin": "6",
+      "dx": 60,
+      "dy": 21
+    },
+    {
+      "pin": "1",
+      "dx": 12,
+      "dy": 93
+    },
+    {
+      "pin": "2",
+      "dx": 24,
+      "dy": 93
+    },
+    {
+      "pin": "3",
+      "dx": 36,
+      "dy": 93
+    },
+    {
+      "pin": "4",
+      "dx": 48,
+      "dy": 93
+    },
+    {
+      "pin": "5",
+      "dx": 60,
+      "dy": 93
+    }
+  ],
+  "founder": {
+    "status": "FOUNDER_PASS",
+    "source": "CSA-generated technical reference sheet approved by Founder",
+    "note": "Runtime is an isotropic crop/derivative of the approved front orthographic panel; manufacturer dimensions/pinout supersede generated imagery."
+  },
+  "visualState": {
+    "segments": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "f",
+      "g",
+      "DP"
+    ],
+    "inactive": "white-diffused/gray-face",
+    "emittingColor": "High Efficiency Red"
+  }
+}

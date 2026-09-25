@@ -1,0 +1,10 @@
+{
+  "ticket": "A10-DISP1",
+  "status": "CSA_LOCKED_ASSET_CANDIDATE",
+  "manufacturerReference": "Kingbright SC56-11EWA",
+  "assetFirst": true,
+  "physicalContactsLocked": true,
+  "pixelProbeClaim": false,
+  "runtimeDerivation": "isotropic resize of approved front-view crop",
+  "electricalGeometryAuthority": "Kingbright SC56-11EWA datasheet recommended PCB layout"
+}
