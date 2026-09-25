@@ -150,7 +150,8 @@ describe('A10-DISP1 — renderer raster + émission des segments', () => {
 
   it('raster de base présent, dimensions logiques 72x114, aucun segment émis au repos', () => {
     const { container } = render(<SevenSegmentDisplayPart />)
-    expect([...container.querySelectorAll('*')].map((e) => e.tagName)).toEqual(['DIV', 'PICTURE', 'SOURCE', 'IMG', 'DIV'])
+    // A10-DISP1-VIS-CORR-001 : racine > [pattes locales (10) , corps (raster + émission)].
+    expect([...container.querySelectorAll('*')].map((e) => e.tagName)).toEqual(['DIV', ...Array(11).fill('DIV'), 'DIV', 'PICTURE', 'SOURCE', 'IMG', 'DIV'])
     expect(container.innerHTML).not.toMatch(/<svg|base64/)
     const root = container.firstChild
     expect([root.style.width, root.style.height]).toEqual(['72px', '114px'])
@@ -205,6 +206,138 @@ describe('A10-DISP1 — renderer raster + émission des segments', () => {
   it('le renderer ne contient aucune logique électrique ni chiffre', () => {
     const source = src('components', 'parts', 'SevenSegmentDisplayPart.jsx')
     expect(source).not.toMatch(/Signal|pinSignals|getSegmentedDisplay|digit|useState|useEffect|founder-reference/)
+  })
+})
+
+describe('A10-DISP1-VIS-CORR-001 — pattes de présentation locales = PhysicalContacts', () => {
+  const def = getComponentDef(TYPE)
+  const contacts = def.pins.flatMap((p) => resolveContacts(p).map((c) => ({ pinId: p.id, ...c })))
+  const px = (v) => Number(String(v).replace('px', ''))
+  const leadsOf = (container) => [...container.querySelectorAll('.part-seven-segment-display__lead')].map((el) => {
+    const left = px(el.style.left)
+    const width = px(el.style.width)
+    const top = px(el.style.top)
+    const height = px(el.style.height)
+    return { el, pinId: el.getAttribute('data-pin'), contactId: el.getAttribute('data-contact'), x: left + width / 2, top, bottom: top + height, tip: { x: Number(el.getAttribute('data-tip-x')), y: Number(el.getAttribute('data-tip-y')) } }
+  })
+  const bodyOf = (container) => container.querySelector('.part-seven-segment-display__body')
+  // Transform du corps : translateY(T) scaleY(k), origine 0 0 -> y' = T + k * y.
+  const bodyMap = (container) => {
+    const m = bodyOf(container).style.transform.match(/translateY\(([-\d.e]+)px\) scaleY\(([-\d.e]+)\)/)
+    return (y) => Number(m[1]) + Number(m[2]) * y
+  }
+  // Géométrie d'émission A10-DISP1 (commit 13384dc) — doit rester inchangée.
+  const SHAPES_13384DC = {
+    a: 'polygon(24.3px 29.7px, 27px 27.3px, 52.7px 27.3px, 55px 29.7px, 55px 30.7px, 50.3px 34.7px, 28px 34.7px, 24.3px 30.7px)',
+    b: 'polygon(51.3px 35.7px, 55.3px 32px, 56.7px 31.7px, 59px 34.7px, 55.7px 54.3px, 55px 55.7px, 51.3px 58.3px, 48px 54.7px)',
+    c: 'polygon(47px 64px, 51px 60.7px, 52px 60.7px, 54px 63px, 54px 66.7px, 51px 84.3px, 48.3px 87px, 47.3px 87px, 44px 83.3px)',
+    d: 'polygon(16.3px 87.7px, 20.3px 84px, 43px 84px, 46.3px 87.7px, 46.3px 89px, 44px 91px, 18.3px 91px, 16.3px 89px)',
+    e: 'polygon(15.7px 63.3px, 18.7px 60.7px, 20px 60.7px, 22.7px 63.7px, 20px 82.7px, 15.7px 86.7px, 14.3px 86.7px, 12.3px 84.3px)',
+    f: 'polygon(20px 33.7px, 22.3px 31.7px, 23.3px 31.7px, 27px 35.7px, 24px 54.3px, 19.7px 58.3px, 19px 58.3px, 16.3px 55px)',
+    g: 'polygon(21px 58.7px, 24.7px 55.7px, 46.7px 55.7px, 50px 58.7px, 50px 59.7px, 46.3px 63px, 23.7px 63px, 20.7px 59.7px)',
+    DP: 'circle(4.2px at 57.5px 87px)',
+  }
+
+  it('exactement 10 pattes : 5 en haut (y=21), 5 en bas (y=93), une par PhysicalContact', () => {
+    const leads = leadsOf(render(<SevenSegmentDisplayPart />).container)
+    expect(leads).toHaveLength(10)
+    expect(leads.map((l) => l.contactId).sort()).toEqual(contacts.map((c) => c.id).sort())
+    expect(leads.filter((l) => l.tip.y === 21).map((l) => l.tip.x).sort((a, b) => a - b)).toEqual([12, 24, 36, 48, 60])
+    expect(leads.filter((l) => l.tip.y === 93).map((l) => l.tip.x).sort((a, b) => a - b)).toEqual([12, 24, 36, 48, 60])
+  })
+
+  it.each(PINS10)('broche %i (%s / %s) : visualLead.tip == PhysicalContact (%i,%i), mesuré sur la géométrie rendue', (_, pinId, contactId, x, y) => {
+    const lead = leadsOf(render(<SevenSegmentDisplayPart />).container).find((l) => l.contactId === contactId)
+    const contact = contacts.find((c) => c.id === contactId)
+    expect(lead.pinId).toBe(pinId)
+    expect(lead.tip).toEqual({ x: contact.dx, y: contact.dy })
+    expect(lead.tip).toEqual({ x, y })
+    expect(lead.x).toBeCloseTo(x, 10) // axe de la patte = colonne du contact
+    expect(y === 21 ? lead.top : lead.bottom).toBeCloseTo(y, 10) // extrémité rendue = rangée du contact
+  })
+
+  it('COM3 et COM8 : deux pattes visuellement distinctes, même pin électrique COM', () => {
+    const leads = leadsOf(render(<SevenSegmentDisplayPart />).container).filter((l) => l.pinId === 'COM')
+    expect(leads.map((l) => [l.contactId, l.tip.x, l.tip.y])).toEqual([['COM3', 36, 93], ['COM8', 36, 21]])
+    expect(leads[0].el).not.toBe(leads[1].el)
+    expect(new Set(def.pins.map((p) => p.id)).has('COM3')).toBe(false)
+    expect(new Set(def.pins.map((p) => p.id)).has('COM8')).toBe(false)
+  })
+
+  it('les pattes sont de la présentation pure : aucun hit target, aucun handler, aucune géométrie redéclarée', () => {
+    const { container } = render(<SevenSegmentDisplayPart />)
+    const layer = container.querySelector('.part-seven-segment-display__leads')
+    expect(layer.style.pointerEvents).toBe('none')
+    expect(layer.getAttribute('aria-hidden')).toBe('true')
+    for (const { el } of leadsOf(container)) {
+      expect(el.style.pointerEvents).toBe('none')
+      expect(el.getAttributeNames().filter((n) => n.startsWith('on') || n === 'role' || n === 'tabindex')).toEqual([])
+    }
+    // Pointes lues dans le catalogue (resolveContacts), jamais recopiées en dur dans le renderer.
+    const source = src('components', 'parts', 'SevenSegmentDisplayPart.jsx')
+    expect(source).toMatch(/resolveContacts\(pin\)/)
+    expect(source).not.toMatch(/dy:\s*(21|93)\b|\b(21|93)\s*[,}]\s*\/\/\s*contact/)
+  })
+
+  it('anciennes pattes raster masquées : le corps est découpé à sa bande mesurée [16, 99.667]', () => {
+    const body = bodyOf(render(<SevenSegmentDisplayPart />).container)
+    expect(body.style.clipPath).toBe('inset(16px 0 14.333px 0)')
+    expect(body.querySelector('img')).not.toBeNull()
+    expect(body.style.pointerEvents).toBe('none')
+  })
+
+  it('corps présenté entre les rangées : chaque patte relie le bord du corps à son contact, visible hors du trou', () => {
+    const { container } = render(<SevenSegmentDisplayPart />)
+    const map = bodyMap(container)
+    const bodyTop = map(16)
+    const bodyBottom = map(99.667)
+    expect(bodyTop).toBeCloseTo(26, 3)
+    expect(bodyBottom).toBeCloseTo(88, 3)
+    const HOLE_VISUAL_RADIUS = 2.7 + 0.45 // Breadboard.css .breadboard__hole r + demi-trait
+    for (const lead of leadsOf(container)) {
+      if (lead.tip.y === 21) {
+        expect(lead.bottom).toBeGreaterThan(bodyTop) // racine sous le corps
+        expect(bodyTop - lead.tip.y).toBeGreaterThan(HOLE_VISUAL_RADIUS) // métal visible au-delà du trou
+      } else {
+        expect(lead.top).toBeLessThan(bodyBottom)
+        expect(lead.tip.y - bodyBottom).toBeGreaterThan(HOLE_VISUAL_RADIUS)
+      }
+    }
+    // Aucune déformation horizontale : largeur conservée, seule l'échelle verticale change.
+    expect(bodyOf(container).style.transform).not.toMatch(/scaleX|scale\(|rotate|skew/)
+    expect(bodyOf(container).style.width).toBe('72px')
+  })
+
+  it('segments et DP inchangés : mêmes formes d\'émission, portées par le même repère que le corps', () => {
+    const { container } = render(<SevenSegmentDisplayPart segments={Object.fromEntries(SEGMENTS.map((s) => [s, true]))} />)
+    const body = bodyOf(container)
+    const shapes = Object.fromEntries([...body.querySelectorAll('[data-segment]')].map((el) => [el.getAttribute('data-segment'), el.style.clipPath]))
+    expect(shapes).toEqual(SHAPES_13384DC)
+    expect(body.querySelector('.part-seven-segment-display__emission')).not.toBeNull()
+  })
+
+  it('insertion exactement alignée : origine + pointe visuelle == PhysicalContact == centre du trou, pour les 10', () => {
+    const bb = { id: 'bb', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' }
+    const origin = { x: 24, y: 39 }
+    const placement = computeBreadboardPlacement(bb, TYPE, origin, [])
+    expect(placement).toMatchObject({ compatible: true, valid: true, position: origin })
+    const { results } = resolveComponentContactHoles(bb, def.pins, origin)
+    expect(results).toHaveLength(10)
+    const leads = leadsOf(render(<SevenSegmentDisplayPart />).container)
+    for (const r of results) {
+      const hole = getBreadboardHolePosition(bb, r.hole.column, r.hole.row)
+      const contact = contacts.find((c) => c.id === r.contactId)
+      const lead = leads.find((l) => l.contactId === r.contactId)
+      expect({ x: origin.x + contact.dx, y: origin.y + contact.dy }, r.contactId).toEqual(hole)
+      expect({ x: origin.x + lead.tip.x, y: origin.y + lead.tip.y }, r.contactId).toEqual(hole)
+    }
+    expect(results.filter((r) => r.pinId === 'COM').map((r) => r.contactId).sort()).toEqual(['COM3', 'COM8'])
+  })
+
+  it('présentation locale uniquement : pas de profil d\'assemblage, BREADBOARD_PITCH inchangé', () => {
+    expect(getAssemblyProfile(TYPE)).toBeNull()
+    expect(resolveAssemblyGeometry(createComponent(TYPE, 24, 39), { id: 'bb', position: { x: 0, y: 0 }, layout: 'STANDARD_V1' }).contacts).toEqual([])
+    expect(BREADBOARD_PITCH).toBe(12)
   })
 })
 
