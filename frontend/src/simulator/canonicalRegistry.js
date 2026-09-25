@@ -156,9 +156,15 @@ const DECLARED_TYPES_PINS = {
   // A9-COUNTER1 : 74HC161 DIP-16, compteur binaire synchrone 4 bits (reset asynchrone) — 16 pins
   // ELECTRIQUES, ordre = broches physiques 1..16 (MR CP D0 D1 D2 D3 CEP GND PE CET Q3 Q2 Q1 Q0 TC VCC).
   BINARY_COUNTER_74HC161:[{id:'MR',role:'input'},{id:'CP',role:'input'},{id:'D0',role:'input'},{id:'D1',role:'input'},{id:'D2',role:'input'},{id:'D3',role:'input'},{id:'CEP',role:'input'},{id:'GND',role:'ground'},{id:'PE',role:'input'},{id:'CET',role:'input'},{id:'Q3',role:'output'},{id:'Q2',role:'output'},{id:'Q1',role:'output'},{id:'Q0',role:'output'},{id:'TC',role:'output'},{id:'VCC',role:'power'}],
+  // A10-DISP1 : Kingbright SC56-11EWA, 7 segments a cathode commune — 9 pins ELECTRIQUES, ordre =
+  // premiere occurrence des broches physiques 1..10 (1=e 2=d 3=COM 4=c 5=DP 6=b 7=a 8=COM 9=f 10=g).
+  // Les broches physiques 3 et 8 sont 2 PhysicalContacts du MEME pin COM (cf. componentDefinitions.js).
+  // Consommateur pur, meme vocabulaire de roles que RGB_LED (segments 'input', commun 'ground') ;
+  // aucun modele de simulation (comme LED/RGB_LED) : etat lu par simulator/segmentedDisplay.js.
+  SEVEN_SEGMENT_DISPLAY:[{id:'e',role:'input'},{id:'d',role:'input'},{id:'COM',role:'ground'},{id:'c',role:'input'},{id:'DP',role:'input'},{id:'b',role:'input'},{id:'a',role:'input'},{id:'f',role:'input'},{id:'g',role:'input'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY']
 
 const DECLARED_PARAMETER_SCHEMA = {
   AND_GATE:[],

@@ -49,6 +49,7 @@ import { JkFlipFlop74HC73Part } from '../components/parts/JkFlipFlop74HC73Part.j
 import { DFlipFlop74HC74Part } from '../components/parts/DFlipFlop74HC74Part.jsx'
 import { DLatch74HC75Part } from '../components/parts/DLatch74HC75Part.jsx'
 import { BinaryCounter74HC161Part } from '../components/parts/BinaryCounter74HC161Part.jsx'
+import { SevenSegmentDisplayPart } from '../components/parts/SevenSegmentDisplayPart.jsx'
 import { PmosPart } from '../components/parts/PmosPart.jsx'
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
@@ -200,6 +201,9 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'D_FLIP_FLOP_74HC74', component: DFlipFlop74HC74Part, visual: { backend: 'raster' } },
   { type: 'D_LATCH_74HC75', component: DLatch74HC75Part, visual: { backend: 'raster' } },
   { type: 'BINARY_COUNTER_74HC161', component: BinaryCounter74HC161Part, visual: { backend: 'raster' } },
+  // A10-DISP1 : corps raster FROZEN SC56-11EWA ; segments allumes superposes par le renderer
+  // d'apres le Visual State Registry (props `segments`) — aucun code central specifique.
+  { type: 'SEVEN_SEGMENT_DISPLAY', component: SevenSegmentDisplayPart, visual: { backend: 'raster' } },
   { type: 'PMOS', component: PmosPart, visual: { backend: 'raster' } },
   { type: 'RELAY', component: RelayPart, visual: { backend: 'raster' } },
   // SERVO : porté au backend raster (asset réaliste validé MB-VIS-COMP-035,

@@ -286,7 +286,9 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
   // n'est donc pas le nom du dossier) — exception déclarée à la dérivation.
   // A9-COUNTER1 : même situation — type canonique BINARY_COUNTER_74HC161, dossier
   // d'asset CSA LOCKED `counter-74hc161/` (pack FROZEN, jamais renommé).
-  const ASSET_DIR_BY_TYPE = { JK_FLIP_FLOP_74HC73: "jk-flip-flop", BINARY_COUNTER_74HC161: "counter-74hc161" }
+  // A10-DISP1 : même situation — type canonique SEVEN_SEGMENT_DISPLAY, dossier d'asset
+  // CSA LOCKED `seven-segment-sc56-11ewa/` (pack FROZEN, jamais renommé).
+  const ASSET_DIR_BY_TYPE = { JK_FLIP_FLOP_74HC73: "jk-flip-flop", BINARY_COUNTER_74HC161: "counter-74hc161", SEVEN_SEGMENT_DISPLAY: "seven-segment-sc56-11ewa" }
   const toKebab = (type) => ASSET_DIR_BY_TYPE[type] ?? type.toLowerCase().replace(/_/g, "-")
   // A9-DFF1 : le manifest CSA LOCKED du 74HC74 (FROZEN, jamais réécrit) suit un schéma
   // propre : `ticket` + `normalization.runtimeCanvas` + `runtime{png1x,png3x,webp1x,webp3x}`
@@ -321,6 +323,16 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       complexity: "complex",
       canonical: { width: m.canvasSize.width, height: m.canvasSize.height },
       assets: Object.values(m.images).flatMap((formats) => Object.values(formats)).map((file) => ({ file })),
+    }),
+    // A10-DISP1 : le manifest CSA LOCKED du SC56-11EWA (FROZEN) déclare `runtimeCanvasPx` et
+    // aucune liste de variantes. Les quatre dérivés runtime sont ceux du pack FROZEN (noms
+    // figés, hashes vérifiés contre SHA256SUMS.txt par SevenSegmentDisplayPart.raster.test.jsx).
+    SEVEN_SEGMENT_DISPLAY: (m) => ({
+      component: "SEVEN_SEGMENT_DISPLAY",
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.runtimeCanvasPx.width, height: m.runtimeCanvasPx.height },
+      assets: ["1x.webp", "3x.webp", "1x.png", "3x.png"].map((suffix) => ({ file: `${m.id}.default.${suffix}` })),
     }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")

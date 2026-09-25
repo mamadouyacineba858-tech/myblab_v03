@@ -263,10 +263,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR', 'PNP_TRANSISTOR', 'NMOS', 'PMOS', 'VOLTAGE_REGULATOR', 'RELAY',
     'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH', 'VIBRATION_MOTOR',
     'LIGHT_BULB', 'HOBBY_GEARMOTOR', 'TMP36', 'FORCE_SENSOR', 'FLEX_SENSOR', 'SOIL_MOISTURE_SENSOR',
-    'PIR_MOTION_SENSOR', 'TILT_SENSOR', 'IR_RECEIVER', 'HC_SR04', 'INDUCTOR', 'ZENER_DIODE', 'H_BRIDGE', 'AND_GATE', 'OR_GATE', 'NAND_GATE', 'NOR_GATE', 'XOR_GATE', 'NOT_GATE', 'JK_FLIP_FLOP_74HC73', 'D_FLIP_FLOP_74HC74', 'D_LATCH_74HC75', 'BINARY_COUNTER_74HC161',
+    'PIR_MOTION_SENSOR', 'TILT_SENSOR', 'IR_RECEIVER', 'HC_SR04', 'INDUCTOR', 'ZENER_DIODE', 'H_BRIDGE', 'AND_GATE', 'OR_GATE', 'NAND_GATE', 'NOR_GATE', 'XOR_GATE', 'NOT_GATE', 'JK_FLIP_FLOP_74HC73', 'D_FLIP_FLOP_74HC74', 'D_LATCH_74HC75', 'BINARY_COUNTER_74HC161', 'SEVEN_SEGMENT_DISPLAY',
   ]
 
-  it('le catalogue compte exactement 51 types', () => {
+  it('le catalogue compte exactement 52 types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
     // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
     // A7-C1 : 25 -> 26 (TMP36 ajouté). A7-C2 : 26 -> 28 (FORCE_SENSOR + FLEX_SENSOR ajoutés).
@@ -278,7 +278,8 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     // A9-NOT : 46 -> 47 (NOT_GATE ajouté). A9-JK1 : 47 -> 48 (JK_FLIP_FLOP_74HC73 ajouté).
     // A9-DFF1 : 48 -> 49 (D_FLIP_FLOP_74HC74 ajouté). A9-LATCH1 : 49 -> 50 (D_LATCH_74HC75 ajouté).
     // A9-COUNTER1 : 50 -> 51 (BINARY_COUNTER_74HC161 ajouté).
-    expect(new Set(CATALOGUE).size).toBe(51)
+    // A10-DISP1 : 51 -> 52 (SEVEN_SEGMENT_DISPLAY ajouté).
+    expect(new Set(CATALOGUE).size).toBe(52)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -318,11 +319,13 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     }
   })
 
-  it('Autres types : exactement 1 contact physique par pin (hors GND de H_BRIDGE)', () => {
+  it('Autres types : exactement 1 contact physique par pin (hors GND de H_BRIDGE, COM de SEVEN_SEGMENT_DISPLAY)', () => {
+    // A8-H-BRIDGE : L293D DIP-16, les 4 broches physiques GND sont 4 contacts du pin electrique GND.
+    // A10-DISP1 : SC56-11EWA, les broches physiques 3 et 8 sont 2 contacts du pin electrique COM.
+    const MULTI_CONTACT_PINS = { 'H_BRIDGE:GND': 4, 'SEVEN_SEGMENT_DISPLAY:COM': 2 }
     for (const type of CATALOGUE.filter((t) => t !== 'BUTTON' && t !== 'BUTTON_LATCHING')) {
       for (const pin of getComponentDef(type).pins) {
-        // A8-H-BRIDGE : L293D DIP-16, les 4 broches physiques GND sont 4 contacts du pin electrique GND.
-        const expected = type === 'H_BRIDGE' && pin.id === 'GND' ? 4 : 1
+        const expected = MULTI_CONTACT_PINS[`${type}:${pin.id}`] ?? 1
         expect(resolveContacts(pin)).toHaveLength(expected)
       }
     }
@@ -404,7 +407,11 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
       // A9-COUNTER1 : 74HC161 DIP-16, 16 PhysicalContacts CSA LOCKED NORMALISES au pas 12,
       // rangées écartées de 48 = 4×BREADBOARD_PITCH (cf. BinaryCounter74HC161Part.raster.test.jsx)
       // -> breadboardInsertable:true.
-      'BINARY_COUNTER_74HC161']
+      'BINARY_COUNTER_74HC161',
+      // A10-DISP1 : SC56-11EWA, 10 PhysicalContacts CSA LOCKED (9 pins, COM = COM3/COM8) au pas 12,
+      // rangées écartées de 72 = 6×BREADBOARD_PITCH (cf. SevenSegmentDisplayPart.raster.test.jsx)
+      // -> breadboardInsertable:true.
+      'SEVEN_SEGMENT_DISPLAY']
     // A6-OUT1-R1 : VIBRATION_MOTOR quitte NON_DIRECT (rejoint INSERTABLE ci-dessus).
     // A6-OUT3 : HOBBY_GEARMOTOR ajouté à NON_DIRECT — wire-only par contrat
     // produit (jamais de géométrie breadboard recherchée, cf.
