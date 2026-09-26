@@ -1,0 +1,11 @@
+{
+  "ticket": "A10-DISP2",
+  "manufacturer": "Winstar Display",
+  "reference": "WH1602B-TFH-JT#",
+  "status": "FOUNDER_PASS",
+  "frozen": true,
+  "approvedVisual": "multi-view asset sheet (top, bottom, sides, perspective, pins close-up, display area)",
+  "sourceFile": "lcd-wh1602b.founder-reference.png",
+  "sha256": "fae5f5b9e149f5fb81c85a2fbe85547edc2fcc7b3f40038214201f604ead1949",
+  "qualification": "Historical visual Founder approval only, kept bit-identical. Not geometry or runtime authority: the top view shows 13 header pads and the pins close-up shows 17 pads with DB3 duplicated. Dimensions and pinout are locked from the Winstar WH1602B datasheet; runtime raster is CSA RUNTIME-V2."
+}

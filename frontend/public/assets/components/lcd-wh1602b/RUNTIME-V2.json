@@ -1,0 +1,130 @@
+{
+  "ticket": "A10-DISP2",
+  "component": "Winstar Display WH1602B-TFH-JT#",
+  "status": "CSA_RUNTIME_V2_ELECTROMECHANICALLY_CORRECTED",
+  "runtimeCanvasPx": {
+    "1x": [
+      378,
+      170
+    ],
+    "3x": [
+      1134,
+      510
+    ]
+  },
+  "sourceAuthority": {
+    "geometry": "Winstar WH1602B manufacturer drawing / locked CSA hardware specification",
+    "visualFounder": "historical Founder sheet retained separately; not geometry authority",
+    "note": "V2 is rebuilt from locked manufacturer geometry because Founder sheet contains inconsistent 13/17-pad depictions."
+  },
+  "physicalContacts": {
+    "pixel_probed": false,
+    "pitch_px": 12,
+    "span_px": 180,
+    "electrical_width_px": 204,
+    "contacts": [
+      {
+        "pin": 1,
+        "name": "VSS",
+        "x": 12,
+        "y": 12
+      },
+      {
+        "pin": 2,
+        "name": "VDD",
+        "x": 24,
+        "y": 12
+      },
+      {
+        "pin": 3,
+        "name": "VO",
+        "x": 36,
+        "y": 12
+      },
+      {
+        "pin": 4,
+        "name": "RS",
+        "x": 48,
+        "y": 12
+      },
+      {
+        "pin": 5,
+        "name": "R/W",
+        "x": 60,
+        "y": 12
+      },
+      {
+        "pin": 6,
+        "name": "E",
+        "x": 72,
+        "y": 12
+      },
+      {
+        "pin": 7,
+        "name": "DB0",
+        "x": 84,
+        "y": 12
+      },
+      {
+        "pin": 8,
+        "name": "DB1",
+        "x": 96,
+        "y": 12
+      },
+      {
+        "pin": 9,
+        "name": "DB2",
+        "x": 108,
+        "y": 12
+      },
+      {
+        "pin": 10,
+        "name": "DB3",
+        "x": 120,
+        "y": 12
+      },
+      {
+        "pin": 11,
+        "name": "DB4",
+        "x": 132,
+        "y": 12
+      },
+      {
+        "pin": 12,
+        "name": "DB5",
+        "x": 144,
+        "y": 12
+      },
+      {
+        "pin": 13,
+        "name": "DB6",
+        "x": 156,
+        "y": 12
+      },
+      {
+        "pin": 14,
+        "name": "DB7",
+        "x": 168,
+        "y": 12
+      },
+      {
+        "pin": 15,
+        "name": "A",
+        "x": 180,
+        "y": 12
+      },
+      {
+        "pin": 16,
+        "name": "K",
+        "x": 192,
+        "y": 12
+      }
+    ]
+  },
+  "runtimeRules": {
+    "headerPads": 16,
+    "headerPadsAlignedToPhysicalContacts": true,
+    "charactersBakedIntoRaster": false,
+    "completeBoardEdges": true
+  }
+}

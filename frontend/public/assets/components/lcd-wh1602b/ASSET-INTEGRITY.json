@@ -1,0 +1,24 @@
+{
+  "ticket": "A10-DISP2",
+  "status": "CSA_LOCKED_ASSET_CANDIDATE",
+  "manufacturerReference": "Winstar Display WH1602B-TFH-JT#",
+  "assetFirst": true,
+  "physicalContactsLocked": true,
+  "pixelProbeClaim": false,
+  "runtimeDerivation": "CSA RUNTIME-V2 rebuilt from locked manufacturer geometry; 16 header pads aligned to PhysicalContacts; complete board edges",
+  "runtimeCanvasPx": {
+    "1x": [378, 170],
+    "3x": [1134, 510]
+  },
+  "contactValidation": "CONTACT-VALIDATION.json: all 16 contacts land on opaque pixels (alpha 255)",
+  "rejectedRuntime": "RUNTIME-DERIVATIVE-V1 (13 visible pads, contacts 1 and 3 on transparent pixels, right edge clipped); not shipped",
+  "nonAuthoritativeFounderPanels": [
+    "top view: 13 header pads",
+    "pins close-up: 17 pads with DB3 duplicated"
+  ],
+  "electricalGeometryAuthority": "Winstar WH1602B manufacturer drawing, normalized 2.54 mm -> 12 px (FINAL LOCK)",
+  "transportPacks": {
+    "A10-DISP2-ASSET-WH1602B-CSA-FROZEN.zip": "856f8485847a2536fdaeff21541910f4add52966acc75717ff1993f631e05f3b",
+    "A10-DISP2-WH1602B-RUNTIME-V2.zip": "bf88686fd6af0fdebbcb5c43fdf4ba6af2d7173f8fc1082a67640039ec9d88f4"
+  }
+}

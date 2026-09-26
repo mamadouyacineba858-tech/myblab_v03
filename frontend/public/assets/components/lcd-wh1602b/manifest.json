@@ -1,0 +1,108 @@
+{
+  "id": "lcd-wh1602b",
+  "ticket": "A10-DISP2",
+  "manufacturer": "Winstar Display",
+  "manufacturerReference": "WH1602B-TFH-JT#",
+  "family": "WH1602B",
+  "controller": "ST7066U",
+  "interface": "6800 parallel, 4-bit / 8-bit",
+  "display": {
+    "characters": 16,
+    "lines": 2,
+    "dotMatrix": "5x8"
+  },
+  "package": "1x16 PTH header, 2.54 mm pitch",
+  "bodyDimensionsMm": {
+    "width": 80.0,
+    "height": 36.0,
+    "depth": 13.5
+  },
+  "viewAreaMm": {
+    "width": 66.0,
+    "height": 16.0
+  },
+  "activeAreaMm": {
+    "width": 56.2,
+    "height": 11.5
+  },
+  "runtimeCanvasPx": {
+    "width": 378,
+    "height": 170
+  },
+  "runtimeCanvasPx3x": {
+    "width": 1134,
+    "height": 510
+  },
+  "breadboardPitchPx": 12,
+  "geometryBasis": {
+    "horizontalPitchMm": 2.54,
+    "pinSpanMm": 38.1,
+    "scale": "12 px per 2.54 mm",
+    "pitchPx": 12,
+    "spanPx": 180,
+    "electricalWidthPx": 204,
+    "pixelProbed": false,
+    "note": "Electrical contacts normalized from the Winstar WH1602B manufacturer drawing (FINAL LOCK); not pixel-probed from any raster."
+  },
+  "pinMap": {
+    "1": "VSS",
+    "2": "VDD",
+    "3": "VO",
+    "4": "RS",
+    "5": "R/W",
+    "6": "E",
+    "7": "DB0",
+    "8": "DB1",
+    "9": "DB2",
+    "10": "DB3",
+    "11": "DB4",
+    "12": "DB5",
+    "13": "DB6",
+    "14": "DB7",
+    "15": "A",
+    "16": "K"
+  },
+  "physicalContacts": [
+    { "pin": "1", "dx": 12, "dy": 12 },
+    { "pin": "2", "dx": 24, "dy": 12 },
+    { "pin": "3", "dx": 36, "dy": 12 },
+    { "pin": "4", "dx": 48, "dy": 12 },
+    { "pin": "5", "dx": 60, "dy": 12 },
+    { "pin": "6", "dx": 72, "dy": 12 },
+    { "pin": "7", "dx": 84, "dy": 12 },
+    { "pin": "8", "dx": 96, "dy": 12 },
+    { "pin": "9", "dx": 108, "dy": 12 },
+    { "pin": "10", "dx": 120, "dy": 12 },
+    { "pin": "11", "dx": 132, "dy": 12 },
+    { "pin": "12", "dx": 144, "dy": 12 },
+    { "pin": "13", "dx": 156, "dy": 12 },
+    { "pin": "14", "dx": 168, "dy": 12 },
+    { "pin": "15", "dx": 180, "dy": 12 },
+    { "pin": "16", "dx": 192, "dy": 12 }
+  ],
+  "physicalContactsStatus": "FINAL_LOCK",
+  "runtime": {
+    "source": "CSA RUNTIME-V2",
+    "files": {
+      "1x": ["lcd-wh1602b.default.1x.png", "lcd-wh1602b.default.1x.webp"],
+      "3x": ["lcd-wh1602b.default.3x.png", "lcd-wh1602b.default.3x.webp"]
+    },
+    "headerPads": 16,
+    "headerPadsAlignedToPhysicalContacts": true,
+    "completeBoardEdges": true,
+    "charactersBakedIntoRaster": false,
+    "note": "V2 rebuilt by CSA from locked manufacturer geometry. RUNTIME-DERIVATIVE-V1 (crop of Founder sheet) rejected and not shipped."
+  },
+  "founder": {
+    "status": "FOUNDER_PASS",
+    "source": "lcd-wh1602b.founder-reference.png",
+    "sha256": "fae5f5b9e149f5fb81c85a2fbe85547edc2fcc7b3f40038214201f604ead1949",
+    "note": "Historical Founder PASS sheet, kept bit-identical. Not geometry or runtime authority: its top view shows 13 header pads and its pins close-up panel shows 17 pads with DB3 duplicated. These panels are non-authoritative."
+  },
+  "authorities": {
+    "dimensionsAndPinout": "Winstar WH1602B manufacturer datasheet",
+    "electricalGeometry": "PhysicalContacts FINAL LOCK",
+    "runtimeRaster": "CSA RUNTIME-V2",
+    "founderHistory": "Founder reference FROZEN"
+  }
+}
