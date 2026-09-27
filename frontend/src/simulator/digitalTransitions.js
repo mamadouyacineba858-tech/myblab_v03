@@ -68,6 +68,40 @@ export function createDigitalTransitionStore() {
  */
 export function recordDigitalTransition(store, uid, transition) {
   assertKey(uid, "uid")
+  const { pinId, timeMs, signal } = validateTransition(transition, store.get(uid)?.get(transition?.pinId)?.lastTimeMs)
+  return commitTransition(store, uid, pinId, timeMs, signal)
+}
+
+/**
+ * A12-NEOPIXEL-PREQ-EVENT-CONSUMER-001 — enregistrement ATOMIQUE d'un lot de
+ * transitions du même composant `uid` : toutes sont validées (mêmes règles
+ * que `recordDigitalTransition`, monotonie par pin comprise, y compris entre
+ * transitions du lot) AVANT la première mutation. Un lot contenant une seule
+ * transition invalide laisse le store strictement inchangé.
+ *
+ * @param {ReturnType<typeof createDigitalTransitionStore>} store
+ * @param {string} uid
+ * @param {Array<{ pinId: string, timeMs: number, signal: string }>} transitions
+ * @returns {Array<Readonly<{ pinId: string, timeMs: number, signal: string }>>} les transitions enregistrées (gelées), dans l'ordre du lot
+ * @throws {InvalidDigitalTransitionError}
+ */
+export function recordDigitalTransitions(store, uid, transitions) {
+  assertKey(uid, "uid")
+  if (!Array.isArray(transitions)) {
+    throw new InvalidDigitalTransitionError("transitions must be an array", transitions)
+  }
+  const lastByPin = new Map()
+  const validated = transitions.map((transition) => {
+    const pinId = transition?.pinId
+    const last = lastByPin.has(pinId) ? lastByPin.get(pinId) : store.get(uid)?.get(pinId)?.lastTimeMs
+    const valid = validateTransition(transition, last)
+    lastByPin.set(valid.pinId, valid.timeMs)
+    return valid
+  })
+  return validated.map(({ pinId, timeMs, signal }) => commitTransition(store, uid, pinId, timeMs, signal))
+}
+
+function validateTransition(transition, lastTimeMs) {
   if (transition === null || typeof transition !== "object") {
     throw new InvalidDigitalTransitionError("transition must be an object", transition)
   }
@@ -79,14 +113,17 @@ export function recordDigitalTransition(store, uid, transition) {
   if (!CANONICAL_SIGNALS.has(signal)) {
     throw new InvalidDigitalTransitionError("signal must be a canonical Signal value", signal)
   }
-  const stream = store.get(uid)?.get(pinId)
-  if (stream && timeMs < stream.lastTimeMs) {
+  if (lastTimeMs !== undefined && timeMs < lastTimeMs) {
     throw new InvalidDigitalTransitionError(
-      `timeMs must be non-decreasing per pin (last ${stream.lastTimeMs} ms)`,
+      `timeMs must be non-decreasing per pin (last ${lastTimeMs} ms)`,
       timeMs
     )
   }
+  return { pinId, timeMs, signal }
+}
 
+function commitTransition(store, uid, pinId, timeMs, signal) {
+  const stream = store.get(uid)?.get(pinId)
   const recorded = Object.freeze({ pinId, timeMs, signal })
   let pins = store.get(uid)
   if (!pins) {

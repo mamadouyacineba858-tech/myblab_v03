@@ -30,7 +30,8 @@ import { resolveComponentParameters } from "./resolveComponentParameters.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
 import { getDcSource } from "./dcSourceRegistry.js"
 import { Signal } from "./signals.js"
-import { clearDigitalTransitions, createDigitalTransitionStore, retainDigitalTransitionUids } from "./digitalTransitions.js"
+import { clearDigitalTransitions, consumeDigitalTransitions, createDigitalTransitionStore, recordDigitalTransitions, retainDigitalTransitionUids } from "./digitalTransitions.js"
+import { getDigitalEventContribution as defaultGetDigitalEventContribution, hasDigitalEventContribution as defaultHasDigitalEventContribution } from "./digitalEventContributionRegistry.js"
 
 /**
  * MB-SIM-011 — Intégration Simulation ↔ Scheduler/Runtime (SIM3).
@@ -98,15 +99,24 @@ export function circuitRequiresRuntime(components) {
  * électriques transitoires n'en font pas partie : ils n'alimentent pas
  * `pinSignals` (voir `computeTransientElectricalContributions`).
  *
+ * A12-NEOPIXEL-PREQ-EVENT-CONSUMER-001 : un contributeur du Registry
+ * événementiel (`digitalEventContributionRegistry.js`) en fait aussi partie —
+ * ses transitions de sortie peuvent être dues à un temps simulé futur.
+ *
  * @param {Array<{ type }>} components
  * @param {{ hasTimedDigitalContribution: (type: string) => boolean }} [timedDigitalRegistry]
+ * @param {{ hasDigitalEventContribution: (type: string) => boolean }} [digitalEventRegistry]
  * @returns {boolean}
  */
 export function circuitRequiresContinuousStepping(components, timedDigitalRegistry = {
   hasTimedDigitalContribution: defaultHasTimedDigitalContribution,
+}, digitalEventRegistry = {
+  hasDigitalEventContribution: defaultHasDigitalEventContribution,
 }) {
   return Array.isArray(components) && components.some((c) => c
-    && (c.type === RUNTIME_COMPONENT_TYPE || timedDigitalRegistry.hasTimedDigitalContribution(c.type)))
+    && (c.type === RUNTIME_COMPONENT_TYPE
+      || timedDigitalRegistry.hasTimedDigitalContribution(c.type)
+      || digitalEventRegistry.hasDigitalEventContribution(c.type)))
 }
 
 /**
@@ -124,12 +134,18 @@ export function circuitRequiresContinuousStepping(components, timedDigitalRegist
  * (create / reset / retain). Aucun producteur par défaut ne l'alimente :
  * un circuit sans capacité événementielle le laisse vide.
  *
- * @returns {{ timedDigitalStates: Map<string, object>, electricalTransientStates: Map<string, object>, digitalTransitions: ReturnType<typeof createDigitalTransitionStore>, scheduler: import('./scheduler.js').Scheduler | null }}
+ * A12-NEOPIXEL-PREQ-EVENT-CONSUMER-001 : `digitalEventStates` (Map<uid, state>)
+ * porte l'état privé des contributeurs événementiels
+ * (`computeDigitalEventContributions`) — même cycle de vie create / reset /
+ * retain, jamais dans le Registry, le Document ou l'historique.
+ *
+ * @returns {{ timedDigitalStates: Map<string, object>, electricalTransientStates: Map<string, object>, digitalEventStates: Map<string, any>, digitalTransitions: ReturnType<typeof createDigitalTransitionStore>, scheduler: import('./scheduler.js').Scheduler | null }}
  */
 export function createSimulationRuntimeSession() {
   return {
     timedDigitalStates: new Map(),
     electricalTransientStates: new Map(),
+    digitalEventStates: new Map(),
     digitalTransitions: createDigitalTransitionStore(),
     scheduler: null,
   }
@@ -139,13 +155,14 @@ export function createSimulationRuntimeSession() {
 export function resetSimulationRuntimeSession(session) {
   session.timedDigitalStates.clear()
   session.electricalTransientStates.clear()
+  session.digitalEventStates.clear()
   clearDigitalTransitions(session.digitalTransitions)
   session.scheduler = null
 }
 
 /** Retire l'état runtime de tout uid absent de `liveUids` ; les autres sont conservés. */
 export function retainSimulationRuntimeSessionUids(session, liveUids) {
-  for (const states of [session.timedDigitalStates, session.electricalTransientStates]) {
+  for (const states of [session.timedDigitalStates, session.electricalTransientStates, session.digitalEventStates]) {
     for (const uid of Array.from(states.keys())) {
       if (!liveUids.has(uid)) states.delete(uid)
     }
@@ -483,6 +500,130 @@ export function computeTransientElectricalContributions(transientComponents, tra
 }
 
 /**
+ * A12-NEOPIXEL-PREQ-EVENT-CONSUMER-001 — Generic Timestamped Digital Event
+ * Consumer / Producer composition.
+ *
+ * Sibling de `computeTimedDigitalSignals` (même patron Open/Closed : Registry
+ * consulté uniquement via `hasDigitalEventContribution`/
+ * `getDigitalEventContribution`, jamais un `if (component.type === "...")`),
+ * mais sur le plan des ÉVÉNEMENTS : aucune lecture ni écriture de SignalMap,
+ * aucune résolution, aucune horloge. Transport : le store `DigitalTransition`
+ * existant (`digitalTransitions.js`), source unique ; état privé :
+ * `digitalEventStates` (Map<uid, state>) de la session runtime.
+ *
+ * Convention du store (héritée de A12-NEOPIXEL-PREQ-EVENT-TIMING-001) : un
+ * producteur enregistre ses transitions sur SA PROPRE pin (uid, pinId). Les
+ * pins déclarées `inputPins` d'un contributeur événementiel sont les pins de
+ * LIVRAISON (flux entrants, consommés par ce contributeur seul) ; toute autre
+ * pin du circuit porte un flux sortant.
+ *
+ * Routage (topologie existante, aucune seconde) : une transition due
+ * (`timeMs <= currentTimeMs`) d'un flux sortant est consommée puis copiée,
+ * via `recordDigitalTransitions` (validations canoniques), sur chaque pin
+ * d'entrée d'un contributeur appartenant au MÊME net physique
+ * (`prepared.uf`/`prepared.nets` de `prepareCircuit`, déjà construit pour ce
+ * step). Fan-out natif ; une transition due sans destination est consommée
+ * et abandonnée (événement sans écouteur). Les nets seuls sont traversés :
+ * aucune conduction passive (limite documentée).
+ *
+ * Ordonnancement, borné et déterministe (contributeurs par uid croissant) :
+ *   route ; round 0 : chaque contributeur est appelé une fois (même sans
+ *   transition entrante) ; puis, tant que le routage livre de nouvelles
+ *   transitions et au plus `contributeurs + 1` rounds, seuls les
+ *   contributeurs ayant reçu des transitions sont rappelés (A -> B -> C sur
+ *   le même axe temporel). Au-delà de la borne (cycle), les transitions
+ *   livrées restent en attente sur leurs pins d'entrée et sont consommées au
+ *   step suivant : aucune boucle infinie, aucun événement perdu.
+ *
+ * Sorties : uniquement sur `outputPins` (sinon erreur explicite), enregistrées
+ * ATOMIQUEMENT sous l'uid du contributeur ; l'état n'est commité qu'après
+ * enregistrement réussi des sorties. Une transition future (> currentTimeMs)
+ * reste en attente jusqu'au step qui l'atteint.
+ *
+ * @param {Array<{ uid, type, pins?, parameters? }>} effectiveComponents
+ * @param {{ hasDigitalEventContribution: (type: string) => boolean, getDigitalEventContribution: (type: string) => import('./digitalEventContributionRegistry.js').DigitalEventContribution | null }} digitalEventRegistry
+ * @param {{ uf: { find: (key: string) => string }, nets: Map<string, string[]> }} prepared
+ * @param {number} currentTimeMs Temps simulé courant, issu du Scheduler partagé.
+ * @param {ReturnType<typeof createDigitalTransitionStore>} transitionStore
+ * @param {Map<string, any>} digitalEventStates muté en place (uid -> state).
+ */
+export function computeDigitalEventContributions(effectiveComponents, digitalEventRegistry, prepared, currentTimeMs, transitionStore, digitalEventStates) {
+  const ordered = (effectiveComponents || [])
+    .filter((c) => c && typeof c.uid === "string")
+    .sort((a, b) => a.uid.localeCompare(b.uid))
+  const consumers = ordered.filter((c) => digitalEventRegistry.hasDigitalEventContribution(c.type))
+  if (consumers.length === 0) return
+
+  const entries = new Map(consumers.map((c) => [c.uid, digitalEventRegistry.getDigitalEventContribution(c.type)]))
+  const pinRefs = new Map()
+  for (const comp of ordered) {
+    for (const pin of getCanonicalEntry(comp.type)?.pins ?? []) pinRefs.set(`${comp.uid}:${pin.id}`, { uid: comp.uid, pinId: pin.id })
+  }
+  const inputKeys = new Set()
+  for (const comp of consumers) {
+    for (const pinId of entries.get(comp.uid).inputPins) inputKeys.add(`${comp.uid}:${pinId}`)
+  }
+
+  routeDueDigitalTransitions(pinRefs, inputKeys, prepared, currentTimeMs, transitionStore)
+  const maxRounds = consumers.length + 1
+  for (let round = 0; round < maxRounds; round++) {
+    for (const comp of consumers) {
+      const entry = entries.get(comp.uid)
+      const incoming = consumeDueInputTransitions(transitionStore, comp.uid, entry.inputPins, currentTimeMs)
+      if (round > 0 && incoming.length === 0) continue
+
+      const params = resolveComponentParameters(comp.type, comp.parameters)
+      const { state, transitions } = entry.contribute({
+        component: comp, pins: comp.pins, params, currentTimeMs, previousState: digitalEventStates.get(comp.uid), transitions: incoming,
+      })
+      const outgoing = transitions ?? []
+      for (const transition of outgoing) {
+        if (!entry.outputPins.includes(transition?.pinId)) {
+          throw new Error(
+            `computeDigitalEventContributions: component "${comp.uid}" (type "${comp.type}") emitted a transition on "${transition?.pinId}", which is not one of its declared outputPins`
+          )
+        }
+      }
+      recordDigitalTransitions(transitionStore, comp.uid, outgoing)
+      digitalEventStates.set(comp.uid, state)
+    }
+    if (routeDueDigitalTransitions(pinRefs, inputKeys, prepared, currentTimeMs, transitionStore) === 0) return
+  }
+}
+
+/** Transitions dues des pins d'entrée, triées par temps (égalité : ordre des pins puis de production). */
+function consumeDueInputTransitions(transitionStore, uid, inputPins, untilMs) {
+  const due = inputPins.flatMap((pinId) => consumeDigitalTransitions(transitionStore, uid, pinId, { untilMs }))
+  return due.sort((a, b) => a.timeMs - b.timeMs)
+}
+
+/**
+ * Consomme les transitions dues de chaque flux sortant et les copie sur les
+ * pins d'entrée du même net. Retourne le nombre de copies livrées.
+ */
+function routeDueDigitalTransitions(pinRefs, inputKeys, prepared, untilMs, transitionStore) {
+  const deliveries = new Map()
+  for (const [key, { uid, pinId }] of pinRefs) {
+    if (inputKeys.has(key)) continue
+    const due = consumeDigitalTransitions(transitionStore, uid, pinId, { untilMs })
+    if (due.length === 0) continue
+    for (const destination of prepared.nets.get(prepared.uf.find(key)) ?? []) {
+      if (destination === key || !inputKeys.has(destination)) continue
+      if (!deliveries.has(destination)) deliveries.set(destination, [])
+      deliveries.get(destination).push(...due)
+    }
+  }
+  let delivered = 0
+  for (const [destination, transitions] of deliveries) {
+    const { uid, pinId } = pinRefs.get(destination)
+    transitions.sort((a, b) => a.timeMs - b.timeMs)
+    recordDigitalTransitions(transitionStore, uid, transitions.map(({ timeMs, signal }) => ({ pinId, timeMs, signal })))
+    delivered += transitions.length
+  }
+  return delivered
+}
+
+/**
  * A7-C3-PREQ2 (§6 du ticket) : projection `{ pinId -> Signal }` des SEULES
  * pins canoniques du composant, lues depuis `sourceDrivenSignals` (Map
  * "uid:pinId" -> Signal produite par `resolveSourceDrivenPinSignals`,
@@ -705,6 +846,18 @@ function computeElectricalStep(components, wires, options = {}) {
     (c) => c && transientRegistry.hasTransientContribution(c.type)
   )
 
+  // A12-NEOPIXEL-PREQ-EVENT-CONSUMER-001 : Registry événementiel consulté pour
+  // TOUS les composants (jamais un nom de type). Sa présence active, comme
+  // timed/transient, le chemin temporel générique (Scheduler partagé) ; son
+  // absence laisse GATE 0 strictement historique.
+  const digitalEventRegistry = options.digitalEventContributionRegistry ?? {
+    hasDigitalEventContribution: defaultHasDigitalEventContribution,
+    getDigitalEventContribution: defaultGetDigitalEventContribution,
+  }
+  const digitalEventComponents = (effectiveComponents || []).filter(
+    (c) => c && digitalEventRegistry.hasDigitalEventContribution(c.type)
+  )
+
   // GATE 0 (§7/§15 du ticket A7-C5-PREQ, étendu §7 A4-D-PREQ1, non-régression
   // stricte) : pour un circuit sans ARDUINO, sans aucun composant enregistré
   // dans le Registry de sorties numériques calculées, sans aucun composant
@@ -731,6 +884,7 @@ function computeElectricalStep(components, wires, options = {}) {
     && !hasDigitalComponents
     && timedDigitalComponents.length === 0
     && transientComponents.length === 0
+    && digitalEventComponents.length === 0
   ) {
     const { pinSignals, dcAnalysis } = resolveElectricalSignals(effectiveComponents, prepared)
     return { pinSignals, electricalAnalysis: composeElectricalAnalysis(dcAnalysis) }
@@ -755,7 +909,7 @@ function computeElectricalStep(components, wires, options = {}) {
   // le composer avec `dcAnalysis` ci-dessous (§3 du ticket : "la
   // contribution est donc calculée mais non observable").
   let transientContributions = new Map()
-  if (runtimeComponents.length > 0 || timedDigitalComponents.length > 0 || transientComponents.length > 0) {
+  if (runtimeComponents.length > 0 || timedDigitalComponents.length > 0 || transientComponents.length > 0 || digitalEventComponents.length > 0) {
     const dt = options.dt ?? 0
     const orchestrators = options.orchestrators instanceof Map ? options.orchestrators : new Map()
 
@@ -864,6 +1018,22 @@ function computeElectricalStep(components, wires, options = {}) {
         timedDigitalStates
       )
       rememberHeldTimedDigitalSignals(timedDigitalComponents, timedDigitalStates, timedDigitalSignals)
+    }
+
+    if (digitalEventComponents.length > 0) {
+      // A12-NEOPIXEL-PREQ-EVENT-CONSUMER-001 : plan des ÉVÉNEMENTS, après les
+      // producteurs du step (Runtime, timed) et sur le même `currentTimeMs`.
+      // Store de transitions et états privés de la session runtime (nouveaux
+      // à chaque appel sans session : aucune persistance, déterministe).
+      // N'alimente pas `externalSignals` : SignalMap reste le plan du niveau.
+      computeDigitalEventContributions(
+        effectiveComponents,
+        digitalEventRegistry,
+        prepared,
+        currentTimeMs,
+        options.runtimeSession?.digitalTransitions ?? createDigitalTransitionStore(),
+        options.runtimeSession?.digitalEventStates ?? new Map()
+      )
     }
 
     if (transientComponents.length > 0) {
