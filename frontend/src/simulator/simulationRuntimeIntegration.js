@@ -30,6 +30,7 @@ import { resolveComponentParameters } from "./resolveComponentParameters.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
 import { getDcSource } from "./dcSourceRegistry.js"
 import { Signal } from "./signals.js"
+import { clearDigitalTransitions, createDigitalTransitionStore, retainDigitalTransitionUids } from "./digitalTransitions.js"
 
 /**
  * MB-SIM-011 — Intégration Simulation ↔ Scheduler/Runtime (SIM3).
@@ -117,16 +118,28 @@ export function circuitRequiresContinuousStepping(components, timedDigitalRegist
  * `computeElectricalStep`). Jamais dans le Document, jamais sérialisé,
  * jamais historisé.
  *
- * @returns {{ timedDigitalStates: Map<string, object>, electricalTransientStates: Map<string, object>, scheduler: import('./scheduler.js').Scheduler | null }}
+ * A12-NEOPIXEL-PREQ-EVENT-TIMING-001 : `digitalTransitions` porte les
+ * transitions numériques horodatées sur l'axe de ce même Scheduler (voir
+ * `digitalTransitions.js`) — même cycle de vie que les autres stores
+ * (create / reset / retain). Aucun producteur par défaut ne l'alimente :
+ * un circuit sans capacité événementielle le laisse vide.
+ *
+ * @returns {{ timedDigitalStates: Map<string, object>, electricalTransientStates: Map<string, object>, digitalTransitions: ReturnType<typeof createDigitalTransitionStore>, scheduler: import('./scheduler.js').Scheduler | null }}
  */
 export function createSimulationRuntimeSession() {
-  return { timedDigitalStates: new Map(), electricalTransientStates: new Map(), scheduler: null }
+  return {
+    timedDigitalStates: new Map(),
+    electricalTransientStates: new Map(),
+    digitalTransitions: createDigitalTransitionStore(),
+    scheduler: null,
+  }
 }
 
-/** Nouveau runtime : aucun état ni temps simulé du runtime précédent ne survit. */
+/** Nouveau runtime : aucun état, transition ni temps simulé du runtime précédent ne survit. */
 export function resetSimulationRuntimeSession(session) {
   session.timedDigitalStates.clear()
   session.electricalTransientStates.clear()
+  clearDigitalTransitions(session.digitalTransitions)
   session.scheduler = null
 }
 
@@ -137,6 +150,7 @@ export function retainSimulationRuntimeSessionUids(session, liveUids) {
       if (!liveUids.has(uid)) states.delete(uid)
     }
   }
+  retainDigitalTransitionUids(session.digitalTransitions, liveUids)
 }
 
 function deepFreeze(value) {

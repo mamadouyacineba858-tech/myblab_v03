@@ -3,3 +3,4 @@ export { SimulationModelUnavailableError } from './SimulationModelUnavailableErr
 export { InvalidSimulationModelError } from './InvalidSimulationModelError.js'
 export { UnsupportedSimulationCapabilityError } from './UnsupportedSimulationCapabilityError.js'
 export { InvalidTimeDeltaError } from './InvalidTimeDeltaError.js'
+export { InvalidDigitalTransitionError } from './InvalidDigitalTransitionError.js'
