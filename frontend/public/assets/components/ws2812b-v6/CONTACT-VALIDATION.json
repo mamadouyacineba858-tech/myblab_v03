@@ -1,0 +1,25 @@
+{
+  "ticket": "A12-NEOPIXEL",
+  "component": "WORLDSEMI WS2812B-V6",
+  "coordinateSpace": {
+    "width": 72,
+    "height": 72
+  },
+  "pixelProbed": false,
+  "source": "CSA normalized electrical geometry",
+  "note": "Contacts are normalized MYBlab electrical geometry, independent of the raster. They were NOT pixel-probed from any raster; no raster opacity claim is made.",
+  "contacts": [
+    { "pin": 1, "name": "VDD", "x": 0, "y": 18 },
+    { "pin": 2, "name": "DOUT", "x": 0, "y": 54 },
+    { "pin": 3, "name": "VSS", "x": 72, "y": 54 },
+    { "pin": 4, "name": "DIN", "x": 72, "y": 18 }
+  ],
+  "geometricChecks": {
+    "contactCount": 4,
+    "allWithinCoordinateSpaceInclusive": true,
+    "leftEdgeContacts": ["VDD", "DOUT"],
+    "rightEdgeContacts": ["DIN", "VSS"],
+    "verticalPitch": 36,
+    "status": "FROZEN"
+  }
+}

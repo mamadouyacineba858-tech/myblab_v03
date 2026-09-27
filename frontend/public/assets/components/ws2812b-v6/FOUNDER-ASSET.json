@@ -1,0 +1,13 @@
+{
+  "ticket": "A12-NEOPIXEL",
+  "manufacturer": "WORLDSEMI",
+  "reference": "WS2812B-V6",
+  "package": "5050 SMD",
+  "status": "FOUNDER_PASS",
+  "frozen": true,
+  "approvedVisual": "orthographic top view, transparent background, no baked glow, emitted color or pin labels",
+  "sourceFile": "ws2812b-v6.founder-reference.png",
+  "sha256": "ad19fe2c09e8e82502b41155415808fa09b1ed17c862732cd39b19a367ac45c1",
+  "dimensionsPx": [1274, 1235],
+  "qualification": "Founder-approved visual reference, kept bit-identical. Not geometry authority: electrical contacts are CSA normalized geometry in a 72x72 space, not pixel-probed. The manufacturer datasheet remains the authority for physical/electrical specifications."
+}

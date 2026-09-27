@@ -1,0 +1,49 @@
+{
+  "asset": "ws2812b-v6",
+  "ticket": "A12-NEOPIXEL",
+  "status": "CSA_FROZEN",
+  "manufacturerReference": "WORLDSEMI WS2812B-V6",
+  "assetFirst": true,
+  "physicalContactsLocked": true,
+  "pixelProbeClaim": false,
+  "runtimeDerivation": "CSA canonical repository derivatives (pack V2): isotropic Lanczos resize of the runtime master; PNG plus lossless WebP",
+  "runtimeCanvasPx": {
+    "1x": [72, 72],
+    "3x": [216, 216]
+  },
+  "contactValidation": "CONTACT-VALIDATION.json: 4 contacts in CSA normalized 72x72 electrical geometry; not pixel-probed",
+  "requiredFiles": [
+    "ASSET-INTEGRITY.json",
+    "CONTACT-VALIDATION.json",
+    "FOUNDER-ASSET.json",
+    "README.md",
+    "README.txt",
+    "SHA256SUMS.txt",
+    "manifest.json",
+    "ws2812b-v6.default.1x.png",
+    "ws2812b-v6.default.1x.webp",
+    "ws2812b-v6.default.3x.png",
+    "ws2812b-v6.default.3x.webp",
+    "ws2812b-v6.founder-reference.png",
+    "ws2812b-v6.runtime-master.png"
+  ],
+  "files": [
+    { "file": "ws2812b-v6.default.1x.png", "bytes": 6137, "sha256": "c2944c523f4951e282dcac61cfaaefa416b8a607c043b564459ec1de2ee75068" },
+    { "file": "ws2812b-v6.default.1x.webp", "bytes": 4406, "sha256": "da232f2816d83c35eb0dd4be0ec7782aae8e812ff5426f045fc4d731f95f9a65" },
+    { "file": "ws2812b-v6.default.3x.png", "bytes": 39948, "sha256": "992b2d05f2aae6e63f2d1b46e21c3513bc2b82e17eb02c7fdea0bf9ad791246a" },
+    { "file": "ws2812b-v6.default.3x.webp", "bytes": 26216, "sha256": "e7eb49ae861f72dfcfce795a0eb583c5e114c03fca1a81d7325e2ebf0aa2be55" },
+    { "file": "ws2812b-v6.founder-reference.png", "bytes": 1387170, "sha256": "ad19fe2c09e8e82502b41155415808fa09b1ed17c862732cd39b19a367ac45c1" },
+    { "file": "ws2812b-v6.runtime-master.png", "bytes": 1334965, "sha256": "0788e2bb013db597f4b4e29698d83315e1b7e9bee092ca75581bedb7eb94292c" }
+  ],
+  "notShipped": {
+    "note": "Pack runtime variants 288/576/864 px are superseded by the canonical 72/216 px derivatives and are not installed (not part of the repository 1x/3x convention).",
+    "files": {
+      "runtime/WS2812B-V6-runtime-1x.png": "cf4a095a4431169ecc91dd3b2108b88c8de10947bb4f48196d53a005763bc3d3",
+      "runtime/WS2812B-V6-runtime-2x.png": "359e27dea498ac24988b616d81010d14709238501e16ca54804fa572404f7288",
+      "runtime/WS2812B-V6-runtime-3x.png": "51a0c446c504397d8d5ad192a01ce9077d0762dd294b80d6e11ecbf8898a2393"
+    }
+  },
+  "transportPacks": {
+    "A12-NEOPIXEL-ASSET-WS2812B-V6-CSA-FROZEN-V2.zip": "1aaa600a0227c093411f574a644f0dbe615e8a67c9840fdca7db3bf76d2b774e"
+  }
+}
