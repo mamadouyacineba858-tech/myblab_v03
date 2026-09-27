@@ -350,6 +350,17 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       canonical: { width: m.runtimeCanvasPx.width, height: m.runtimeCanvasPx.height },
       assets: Object.values(m.runtime.files).flat().map((file) => ({ file })),
     }),
+    // A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 : le manifest CSA FROZEN du WS2812B-V6 (dossier
+    // `ws2812b-v6/` = dérivation kebab du type) déclare `runtimeCanvasPx` et `runtime.files{1x,3x}`
+    // (même schéma que WH1602B). Adaptateur déclaré, en lecture seule ; octets/sha256 vérifiés
+    // contre son ASSET-INTEGRITY.json `files[]` par ce même test.
+    WS2812B_V6: (m) => ({
+      component: "WS2812B_V6",
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.runtimeCanvasPx.width, height: m.runtimeCanvasPx.height },
+      assets: Object.values(m.runtime.files).flat().map((file) => ({ file })),
+    }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 

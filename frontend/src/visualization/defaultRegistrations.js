@@ -51,6 +51,7 @@ import { DLatch74HC75Part } from '../components/parts/DLatch74HC75Part.jsx'
 import { BinaryCounter74HC161Part } from '../components/parts/BinaryCounter74HC161Part.jsx'
 import { SevenSegmentDisplayPart } from '../components/parts/SevenSegmentDisplayPart.jsx'
 import { LcdWh1602bPart } from '../components/parts/LcdWh1602bPart.jsx'
+import { Ws2812bV6Part } from '../components/parts/Ws2812bV6Part.jsx'
 import { PmosPart } from '../components/parts/PmosPart.jsx'
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
@@ -208,6 +209,8 @@ export const DEFAULT_REGISTRATIONS = [
   // A10-DISP2 : corps raster CSA RUNTIME-V2 FROZEN du WH1602B ; caracteres projetes par le renderer
   // depuis le Visual State Registry (prop `lcd`, etat runtime ST7066U) — aucun code central specifique.
   { type: 'LCD_16X2_WH1602B', component: LcdWh1602bPart, visual: { backend: 'raster' } },
+  // A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 : raster CSA FROZEN WS2812B-V6, VISUAL-ONLY (aucun Visual State).
+  { type: 'WS2812B_V6', component: Ws2812bV6Part, visual: { backend: 'raster' } },
   { type: 'PMOS', component: PmosPart, visual: { backend: 'raster' } },
   { type: 'RELAY', component: RelayPart, visual: { backend: 'raster' } },
   // SERVO : porté au backend raster (asset réaliste validé MB-VIS-COMP-035,

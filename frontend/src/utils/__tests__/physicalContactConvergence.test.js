@@ -84,7 +84,9 @@ describe('FT-B-001-S4 — TEST S4-A : contactModel — héritage des drapeaux pi
     // breadboard (entraxe 12 = 1×BREADBOARD_PITCH), distincts des racines
     // mécaniques mesurées du raster (INCHANGÉES, cf. assemblyProfiles.js)
     // -> retirés de NON_INSERTABLE.
-    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR'])
+    // A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 : WS2812B_V6 (5050 CMS, contacts sur les bords x=0/x=72)
+    // est wire-only (breadboardInsertable:false) -> NON_INSERTABLE.
+    const NON_INSERTABLE = new Set(['POWER', 'ARDUINO', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR', 'WS2812B_V6'])
     for (const type of ALL_TYPES) {
       for (const pin of getComponentDef(type).pins) {
         for (const c of resolveContacts(pin)) {
@@ -263,10 +265,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR', 'PNP_TRANSISTOR', 'NMOS', 'PMOS', 'VOLTAGE_REGULATOR', 'RELAY',
     'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH', 'VIBRATION_MOTOR',
     'LIGHT_BULB', 'HOBBY_GEARMOTOR', 'TMP36', 'FORCE_SENSOR', 'FLEX_SENSOR', 'SOIL_MOISTURE_SENSOR',
-    'PIR_MOTION_SENSOR', 'TILT_SENSOR', 'IR_RECEIVER', 'HC_SR04', 'INDUCTOR', 'ZENER_DIODE', 'H_BRIDGE', 'AND_GATE', 'OR_GATE', 'NAND_GATE', 'NOR_GATE', 'XOR_GATE', 'NOT_GATE', 'JK_FLIP_FLOP_74HC73', 'D_FLIP_FLOP_74HC74', 'D_LATCH_74HC75', 'BINARY_COUNTER_74HC161', 'SEVEN_SEGMENT_DISPLAY', 'LCD_16X2_WH1602B',
+    'PIR_MOTION_SENSOR', 'TILT_SENSOR', 'IR_RECEIVER', 'HC_SR04', 'INDUCTOR', 'ZENER_DIODE', 'H_BRIDGE', 'AND_GATE', 'OR_GATE', 'NAND_GATE', 'NOR_GATE', 'XOR_GATE', 'NOT_GATE', 'JK_FLIP_FLOP_74HC73', 'D_FLIP_FLOP_74HC74', 'D_LATCH_74HC75', 'BINARY_COUNTER_74HC161', 'SEVEN_SEGMENT_DISPLAY', 'LCD_16X2_WH1602B', 'WS2812B_V6',
   ]
 
-  it('le catalogue compte exactement 53 types', () => {
+  it('le catalogue compte exactement 54 types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
     // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
     // A7-C1 : 25 -> 26 (TMP36 ajouté). A7-C2 : 26 -> 28 (FORCE_SENSOR + FLEX_SENSOR ajoutés).
@@ -279,7 +281,8 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     // A9-DFF1 : 48 -> 49 (D_FLIP_FLOP_74HC74 ajouté). A9-LATCH1 : 49 -> 50 (D_LATCH_74HC75 ajouté).
     // A9-COUNTER1 : 50 -> 51 (BINARY_COUNTER_74HC161 ajouté).
     // A10-DISP1 : 51 -> 52 (SEVEN_SEGMENT_DISPLAY ajouté). A10-DISP2 : 52 -> 53 (LCD_16X2_WH1602B ajouté).
-    expect(new Set(CATALOGUE).size).toBe(53)
+    // A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 : 53 -> 54 (WS2812B_V6 ajouté, visual-only).
+    expect(new Set(CATALOGUE).size).toBe(54)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -423,7 +426,8 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     // NON_DIRECT (wire-only, même précédent que HOBBY_GEARMOTOR) mais
     // A7-C2-R1 (FLEX_SENSOR) puis A7-C2-R2 (FORCE_SENSOR) les en ont
     // retirés tour à tour (rejoignent INSERTABLE ci-dessus).
-    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR']
+    // A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 : WS2812B_V6 wire-only (boitier CMS) -> NON_DIRECT.
+    const NON_DIRECT = ['ARDUINO', 'POWER', 'DC_MOTOR', 'SERVO', 'BATTERY_9V', 'BATTERY_AA', 'COIN_CELL_CR2032', 'HOBBY_GEARMOTOR', 'WS2812B_V6']
     expect([...INSERTABLE, ...NON_DIRECT].sort()).toEqual([...CATALOGUE].sort())
 
     const insertableContactCount = (type) =>
