@@ -48,6 +48,10 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     wires: state.wires,
     connectedPins: state.connectedPins,
     pinSignals: state.pinSignals,
+    // A10-DISP2 : projection lecture seule des états runtime timed, rafraîchie
+    // au même rythme que `pinSignals` (même contexte, même consommateur
+    // CircuitComponent.jsx -> PartRenderer -> Visual State Registry).
+    runtimeStates: state.runtimeStates,
     pendingPin: state.pendingPin,
     isWiringActive: state.isWiringActive,
     selection: state.selection,
@@ -148,7 +152,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     canRedo: state.canRedo,
     getUndoCount: state.getUndoCount,
   }), [
-    state.canvasRef, state.wires, state.connectedPins, state.pinSignals,
+    state.canvasRef, state.wires, state.connectedPins, state.pinSignals, state.runtimeStates,
     state.pendingPin, state.isWiringActive, state.selection, state.activeItem,
     state.selectedComponent, state.updateComponentProperties, state.updateComponentParameters, state.updateArduinoFirmware,
     state.firmwareDiagnostics, state.simulationActive, state.showGrid, state.theme,

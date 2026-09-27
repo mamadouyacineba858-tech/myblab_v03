@@ -587,6 +587,28 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "f", label: "f", dx: 24, dy: 21, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "f", dx: 24, dy: 21, wireConnectable: true, breadboardInsertable: true }] },
     { id: "g", label: "g", dx: 12, dy: 21, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "g", dx: 12, dy: 21, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A10-DISP2 : Winstar WH1602B-TFH-JT# 16x2 (ST7066U), runtime CSA RUNTIME-V2 378x170. Les 16
+  // PhysicalContacts sont la FINAL LOCK normalisee du plan constructeur (2.54 mm -> 12 px), jamais
+  // pixel-probes : une rangee y=12, broches 1..16 de x=12 a x=192 (pas 12, portee 180). Connecteur
+  // male 1x16 au pas du breadboard, comme les modules a header HC_SR04/PIR -> breadboardInsertable.
+  LCD_16X2_WH1602B: [
+    { id: "VSS", label: "VSS", dx: 12, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VSS", dx: 12, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VDD", label: "VDD", dx: 24, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VDD", dx: 24, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VO", label: "VO", dx: 36, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VO", dx: 36, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "RS", label: "RS", dx: 48, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "RS", dx: 48, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "RW", label: "R/W", dx: 60, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "RW", dx: 60, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "E", label: "E", dx: 72, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "E", dx: 72, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "DB0", label: "DB0", dx: 84, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DB0", dx: 84, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "DB1", label: "DB1", dx: 96, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DB1", dx: 96, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "DB2", label: "DB2", dx: 108, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DB2", dx: 108, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "DB3", label: "DB3", dx: 120, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DB3", dx: 120, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "DB4", label: "DB4", dx: 132, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DB4", dx: 132, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "DB5", label: "DB5", dx: 144, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DB5", dx: 144, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "DB6", label: "DB6", dx: 156, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DB6", dx: 156, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "DB7", label: "DB7", dx: 168, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DB7", dx: 168, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "A", label: "A", dx: 180, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "A", dx: 180, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "K", label: "K", dx: 192, dy: 12, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "K", dx: 192, dy: 12, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   // A5-ZENER_DIODE — asset Founder PASS FROZEN 144×72, pixel-probe réel
   // (alpha>=32, createImageBitmap/getImageData sur le fichier livré) :
   // bounding box opaque globale (1x) x∈[0,143] y∈[7,63] (== manifest.json
@@ -774,6 +796,7 @@ export const COMPONENT_TYPES = {
   BINARY_COUNTER_74HC161: { id: "BINARY_COUNTER_74HC161", label: "74HC161 4-bit Binary Counter", icon: "BINARY_COUNTER_74HC161", width: 120, height: 64, pins: buildPins("BINARY_COUNTER_74HC161") },
   // A10-DISP1 : afficheur 7 segments consommateur (etat par segment via le Visual State Registry).
   SEVEN_SEGMENT_DISPLAY: { id: "SEVEN_SEGMENT_DISPLAY", label: "7-Segment Display SC56-11EWA", icon: "SEVEN_SEGMENT_DISPLAY", width: 72, height: 114, pins: buildPins("SEVEN_SEGMENT_DISPLAY") },
+  LCD_16X2_WH1602B: { id: "LCD_16X2_WH1602B", label: "LCD 16x2 WH1602B", icon: "LCD_16X2_WH1602B", width: 378, height: 170, pins: buildPins("LCD_16X2_WH1602B") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -800,7 +823,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY, COMPONENT_TYPES.LCD_16X2_WH1602B]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

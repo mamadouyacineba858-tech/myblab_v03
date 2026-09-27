@@ -468,9 +468,12 @@ describe('A9-LATCH1 — architecture', () => {
   })
 
   it('the 74HC75 producer keeps no enable history (level-sensitive, not an edge detector)', () => {
-    const source = read('../timedDigitalContributionRegistry.js')
+    // A10-DISP2 : borne de fin = fin du producteur 74HC75 (et non plus le producteur suivant, le
+    // ST7066U, un détecteur de front par nature). Lecture normalisée LF (copie de travail CRLF).
+    const source = read('../timedDigitalContributionRegistry.js').replace(/\r\n/g, '\n')
     const start = source.indexOf('const LATCH_74HC75_CHANNELS')
-    const end = source.indexOf('export function createTimedDigitalContributionRegistry')
+    const end = source.indexOf('\n}\n', source.indexOf('function dLatch74HC75TimedDigital'))
+    expect(end).toBeGreaterThan(start)
     const code = source.slice(start, end).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
     expect(code).not.toMatch(/previous(Clock|Enable|LE)|edge/i)
     const imports = [...source.matchAll(/from\s+["']([^"']+)["']/g)].map(m => m[1])

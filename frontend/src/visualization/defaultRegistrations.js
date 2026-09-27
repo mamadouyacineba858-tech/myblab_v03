@@ -50,6 +50,7 @@ import { DFlipFlop74HC74Part } from '../components/parts/DFlipFlop74HC74Part.jsx
 import { DLatch74HC75Part } from '../components/parts/DLatch74HC75Part.jsx'
 import { BinaryCounter74HC161Part } from '../components/parts/BinaryCounter74HC161Part.jsx'
 import { SevenSegmentDisplayPart } from '../components/parts/SevenSegmentDisplayPart.jsx'
+import { LcdWh1602bPart } from '../components/parts/LcdWh1602bPart.jsx'
 import { PmosPart } from '../components/parts/PmosPart.jsx'
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
@@ -204,6 +205,9 @@ export const DEFAULT_REGISTRATIONS = [
   // A10-DISP1 : corps raster FROZEN SC56-11EWA ; segments allumes superposes par le renderer
   // d'apres le Visual State Registry (props `segments`) — aucun code central specifique.
   { type: 'SEVEN_SEGMENT_DISPLAY', component: SevenSegmentDisplayPart, visual: { backend: 'raster' } },
+  // A10-DISP2 : corps raster CSA RUNTIME-V2 FROZEN du WH1602B ; caracteres projetes par le renderer
+  // depuis le Visual State Registry (prop `lcd`, etat runtime ST7066U) — aucun code central specifique.
+  { type: 'LCD_16X2_WH1602B', component: LcdWh1602bPart, visual: { backend: 'raster' } },
   { type: 'PMOS', component: PmosPart, visual: { backend: 'raster' } },
   { type: 'RELAY', component: RelayPart, visual: { backend: 'raster' } },
   // SERVO : porté au backend raster (asset réaliste validé MB-VIS-COMP-035,

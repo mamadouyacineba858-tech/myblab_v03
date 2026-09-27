@@ -626,7 +626,10 @@ describe('A9-COUNTER1 — CTR-40 mutation resistance (direct contract table)', (
 })
 
 describe('A9-COUNTER1 — CTR-39 architecture', () => {
-  const read = path => readFileSync(new URL(path, import.meta.url), 'utf8')
+  // A10-DISP2 : lecture normalisée LF — le découpage du producteur ci-dessous cherche '\n}\n',
+  // absent d'une copie de travail CRLF (Windows core.autocrlf), ce qui étendait la tranche
+  // jusqu'à la fin du fichier (et donc aux producteurs suivants).
+  const read = path => readFileSync(new URL(path, import.meta.url), 'utf8').replace(/\r\n/g, '\n')
 
   it('generic engine / canvas / hook files carry no BINARY_COUNTER_74HC161 branch', () => {
     for (const file of ['../simulationRuntimeIntegration.js', '../resolution.js', '../scheduler.js', '../clock.js', '../engine.js', '../preparation.js',

@@ -288,7 +288,13 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
   // d'asset CSA LOCKED `counter-74hc161/` (pack FROZEN, jamais renommé).
   // A10-DISP1 : même situation — type canonique SEVEN_SEGMENT_DISPLAY, dossier d'asset
   // CSA LOCKED `seven-segment-sc56-11ewa/` (pack FROZEN, jamais renommé).
-  const ASSET_DIR_BY_TYPE = { JK_FLIP_FLOP_74HC73: "jk-flip-flop", BINARY_COUNTER_74HC161: "counter-74hc161", SEVEN_SEGMENT_DISPLAY: "seven-segment-sc56-11ewa" }
+  // A10-DISP2 : même situation — type canonique LCD_16X2_WH1602B, dossier d'asset CSA
+  // FROZEN `lcd-wh1602b/` (pack CSA RUNTIME-V2, jamais renommé).
+  const ASSET_DIR_BY_TYPE = { JK_FLIP_FLOP_74HC73: "jk-flip-flop", BINARY_COUNTER_74HC161: "counter-74hc161", SEVEN_SEGMENT_DISPLAY: "seven-segment-sc56-11ewa", LCD_16X2_WH1602B: "lcd-wh1602b" }
+  // A10-DISP2 : le module WH1602B mesure 80 mm ; à l'échelle canonique des contacts
+  // (12 px / 2.54 mm) son raster runtime FROZEN fait 378 px @1x, donc 1134 px @3x. Exception
+  // déclarée, EXACTE et limitée à ce pack — le budget global maxDimensionPx reste inchangé.
+  const FROZEN_MAX_DIMENSION_PX = { LCD_16X2_WH1602B: 1134 }
   const toKebab = (type) => ASSET_DIR_BY_TYPE[type] ?? type.toLowerCase().replace(/_/g, "-")
   // A9-DFF1 : le manifest CSA LOCKED du 74HC74 (FROZEN, jamais réécrit) suit un schéma
   // propre : `ticket` + `normalization.runtimeCanvas` + `runtime{png1x,png3x,webp1x,webp3x}`
@@ -333,6 +339,16 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       complexity: "complex",
       canonical: { width: m.runtimeCanvasPx.width, height: m.runtimeCanvasPx.height },
       assets: ["1x.webp", "3x.webp", "1x.png", "3x.png"].map((suffix) => ({ file: `${m.id}.default.${suffix}` })),
+    }),
+    // A10-DISP2 : le manifest CSA FROZEN du WH1602B déclare `runtimeCanvasPx` et
+    // `runtime.files{1x,3x}` (noms figés ; hashes vérifiés contre SHA256SUMS.txt par
+    // LcdWh1602bPart.raster.test.jsx). Adaptateur déclaré, en lecture seule.
+    LCD_16X2_WH1602B: (m) => ({
+      component: "LCD_16X2_WH1602B",
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.runtimeCanvasPx.width, height: m.runtimeCanvasPx.height },
+      assets: Object.values(m.runtime.files).flat().map((file) => ({ file })),
     }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
@@ -464,7 +480,7 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
         expect(
           Math.max(dims.w, dims.h),
           `${entry.file} (${dims.w}×${dims.h}) dépasse maxDimensionPx`
-        ).toBeLessThanOrEqual(RENDER_BUDGET.raster.maxDimensionPx)
+        ).toBeLessThanOrEqual(FROZEN_MAX_DIMENSION_PX[type] ?? RENDER_BUDGET.raster.maxDimensionPx)
       }
 
       // @3x ≈ 3 × @1x (± 1 px) sur chaque (état, format), quand les 2

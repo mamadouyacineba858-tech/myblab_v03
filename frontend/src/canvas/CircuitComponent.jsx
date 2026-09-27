@@ -54,6 +54,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
     isPinPending,
     isPinConnected,
     pinSignals,
+    runtimeStates,
     selectOnly,
     toggleSelection,
     isSelected,
@@ -399,6 +400,9 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
           type={type}
           uid={uid}
           pinSignals={pinSignals}
+          /* A10-DISP2 : état runtime timed de CE uid (projection lecture seule,
+             générique — `undefined` pour tout composant sans état timed). */
+          runtimeState={runtimeStates?.get(uid)}
           properties={component.properties}
           parameters={component.parameters}
           {...(isButton ? {

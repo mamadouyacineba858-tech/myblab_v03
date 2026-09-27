@@ -531,6 +531,192 @@ function dLatch74HC75TimedDigital({ pinSignals, previousState }) {
 }
 
 /**
+ * A10-DISP2 — Winstar WH1602B (16x2, 5x8) : contrôleur ST7066U, interface
+ * parallèle 6800 en écriture seule (V1). Même contrat A9-SEQ-PREQ/PREQ2 que
+ * les producteurs séquentiels ci-dessus, mais AUCUNE sortie : le bus
+ * DB0..DB7 n'est jamais piloté (lecture parallèle, busy flag sur DB7 et
+ * lecture de l'address counter hors scope). L'état privé retourné est
+ * l'UNIQUE vérité du contrôleur (DDRAM comprise) ; la Presentation n'en lit
+ * qu'une projection (voir `snapshotTimedDigitalStates`,
+ * simulationRuntimeIntegration.js).
+ *
+ * Temps d'exécution (fiche ST7066U, fosc = 270 kHz) : Clear Display et
+ * Return Home 1.52 ms ; toute autre instruction et l'écriture de donnée
+ * 37 µs. Mesurés exclusivement sur `currentTimeMs` (Scheduler partagé).
+ */
+const ST7066U_LONG_EXECUTION_MS = 1.52
+const ST7066U_SHORT_EXECUTION_MS = 0.037
+const ST7066U_DATA_BUS = Object.freeze(["DB0", "DB1", "DB2", "DB3", "DB4", "DB5", "DB6", "DB7"])
+const ST7066U_UPPER_NIBBLE = Object.freeze(["DB4", "DB5", "DB6", "DB7"])
+const ST7066U_BLANK = 0x20
+
+/**
+ * DDRAM indexée par l'adresse 7 bits (0x00..0x7F). En mode 2 lignes, seules
+ * 0x00..0x27 (ligne 1) et 0x40..0x67 (ligne 2) existent ; une écriture
+ * ailleurs n'est pas mémorisée. Initialisée à des espaces (0x20).
+ */
+const ST7066U_BLANK_DDRAM = Object.freeze(new Array(0x80).fill(ST7066U_BLANK))
+const isSt7066uDdramAddress = (address) => address <= 0x27 || (address >= 0x40 && address <= 0x67)
+
+/** Address counter après une écriture/un déplacement : ligne 1 et ligne 2 s'enchaînent (0x27 <-> 0x40, 0x67 <-> 0x00). */
+function st7066uNextAddress(address, increment) {
+  if (increment) return address === 0x27 ? 0x40 : address === 0x67 ? 0x00 : (address + 1) & 0x7f
+  return address === 0x40 ? 0x27 : address === 0x00 ? 0x67 : (address - 1) & 0x7f
+}
+
+/**
+ * État initial déterministe MYBlab : DDRAM en espaces, AC 0x00, incrément,
+ * affichage/curseur/clignotement éteints, bus 8 bits, aucun niveau E observé,
+ * aucun nibble en attente, contrôleur libre. `ramTarget` indique la RAM visée
+ * par les écritures de donnée (DDRAM, ou CGRAM après Set CGRAM Address — le
+ * contenu CGRAM n'est pas modélisé : ces écritures ne touchent jamais la DDRAM).
+ */
+const ST7066U_INITIAL_STATE = Object.freeze({
+  ddram: ST7066U_BLANK_DDRAM,
+  addressCounter: 0x00,
+  entryIncrement: true,
+  displayOn: false,
+  cursorOn: false,
+  blinkOn: false,
+  dataLength: 8,
+  ramTarget: "DDRAM",
+  previousE: Signal.UNKNOWN,
+  pendingNibble: null,
+  busyUntilMs: 0,
+})
+
+/**
+ * Décodage d'un octet complet (RS décisif) en opération. N/F du Function Set
+ * sont reçus mais ignorés (le matériel reste WH1602B 16x2 5x8) ; le bit S de
+ * l'Entry Mode (décalage automatique de l'affichage) et le Display Shift ne
+ * sont pas modélisés en V1 (opération acceptée, sans effet).
+ */
+function decodeSt7066uOperation(rs, byte) {
+  if (rs === Signal.HIGH) return { kind: "WRITE_DATA", code: byte }
+  if (byte & 0x80) return { kind: "SET_DDRAM_ADDRESS", address: byte & 0x7f }
+  if (byte & 0x40) return { kind: "SET_CGRAM_ADDRESS" }
+  if (byte & 0x20) return { kind: "FUNCTION_SET", dataLength: byte & 0x10 ? 8 : 4 }
+  if (byte & 0x10) return byte & 0x08 ? { kind: "DISPLAY_SHIFT" } : { kind: "CURSOR_SHIFT", right: (byte & 0x04) !== 0 }
+  if (byte & 0x08) return { kind: "DISPLAY_CONTROL", displayOn: (byte & 0x04) !== 0, cursorOn: (byte & 0x02) !== 0, blinkOn: (byte & 0x01) !== 0 }
+  if (byte & 0x04) return { kind: "ENTRY_MODE", entryIncrement: (byte & 0x02) !== 0 }
+  if (byte & 0x02) return { kind: "RETURN_HOME" }
+  if (byte & 0x01) return { kind: "CLEAR_DISPLAY" }
+  return { kind: "NONE" }
+}
+
+/** Champs d'état modifiés par une opération (jamais de mutation de `state`). */
+function executeSt7066uOperation(state, op) {
+  switch (op.kind) {
+    case "CLEAR_DISPLAY":
+      return { ddram: ST7066U_BLANK_DDRAM, addressCounter: 0x00, entryIncrement: true, ramTarget: "DDRAM" }
+    case "RETURN_HOME":
+      return { addressCounter: 0x00, ramTarget: "DDRAM" }
+    case "ENTRY_MODE":
+      return { entryIncrement: op.entryIncrement }
+    case "DISPLAY_CONTROL":
+      return { displayOn: op.displayOn, cursorOn: op.cursorOn, blinkOn: op.blinkOn }
+    case "CURSOR_SHIFT":
+      return { addressCounter: st7066uNextAddress(state.addressCounter, op.right) }
+    case "FUNCTION_SET":
+      return { dataLength: op.dataLength }
+    case "SET_CGRAM_ADDRESS":
+      return { ramTarget: "CGRAM" }
+    case "SET_DDRAM_ADDRESS":
+      return { addressCounter: op.address, ramTarget: "DDRAM" }
+    case "WRITE_DATA": {
+      if (state.ramTarget !== "DDRAM") return {}
+      const address = state.addressCounter
+      let ddram = state.ddram
+      if (isSt7066uDdramAddress(address)) {
+        ddram = [...state.ddram]
+        ddram[address] = op.code
+        ddram = Object.freeze(ddram)
+      }
+      return { ddram, addressCounter: st7066uNextAddress(address, state.entryIncrement) }
+    }
+    default:
+      return {}
+  }
+}
+
+const st7066uExecutionMs = (op) =>
+  op.kind === "CLEAR_DISPLAY" || op.kind === "RETURN_HOME" ? ST7066U_LONG_EXECUTION_MS : ST7066U_SHORT_EXECUTION_MS
+
+/**
+ * Octet complet : DB bits indéterminés jamais convertis — chaque octet
+ * possible est décodé et l'opération n'est exécutée que si TOUTES les
+ * interprétations donnent la même opération (ex. Function Set 8 bits reçu
+ * avec DB0..DB3 flottants). Sinon la transaction est indéterminée : aucune
+ * commande, aucune donnée, contrôleur non occupé.
+ */
+function st7066uCompleteTransaction(state, rs, bytes, currentTimeMs) {
+  const operations = new Map(bytes.map((byte) => {
+    const op = decodeSt7066uOperation(rs, byte)
+    return [JSON.stringify(op), op]
+  }))
+  if (operations.size !== 1) return {}
+  const [op] = operations.values()
+  return { ...executeSt7066uOperation(state, op), busyUntilMs: currentTimeMs + st7066uExecutionMs(op) }
+}
+
+/**
+ * Une transaction d'écriture acceptée au front descendant de E. R/W HIGH
+ * (lecture, hors scope V1) n'écrit rien ; R/W ou RS indéterminés ne
+ * produisent aucune transaction. Dans les deux cas une séquence 4 bits en
+ * cours est rompue (aucun octet fabriqué). En 4 bits, le premier front
+ * mémorise le nibble haut (DB7..DB4) avec son RS ; le second, avec le même
+ * RS, fournit le nibble bas — un RS incohérent abandonne la séquence.
+ */
+function st7066uTransaction(state, pinSignals, currentTimeMs) {
+  const rs = pinSignals.RS
+  if (pinSignals.RW !== Signal.LOW || !isDecisive(rs)) return { pendingNibble: null }
+  if (state.dataLength === 8) {
+    return st7066uCompleteTransaction(state, rs, possibleWords(ST7066U_DATA_BUS.map((pin) => pinSignals[pin])), currentTimeMs)
+  }
+  const nibbles = possibleWords(ST7066U_UPPER_NIBBLE.map((pin) => pinSignals[pin]))
+  if (state.pendingNibble === null) return { pendingNibble: Object.freeze({ rs, highNibbles: Object.freeze(nibbles) }) }
+  if (state.pendingNibble.rs !== rs) return { pendingNibble: null }
+  const bytes = state.pendingNibble.highNibbles.flatMap((high) => nibbles.map((low) => (high << 4) | low))
+  return { ...st7066uCompleteTransaction(state, rs, bytes, currentTimeMs), pendingNibble: null }
+}
+
+/**
+ * A10-DISP2 — ST7066U : contribution timed/stateful, sans sortie.
+ *
+ * Garde d'alimentation (même patron que les A9) : sans VDD HIGH et VSS LOW,
+ * `outputs = null`, aucune transaction, et l'état revient à l'état initial —
+ * une remise sous tension ne restitue jamais une DDRAM fantôme. VO, A et K
+ * sont des broches physiques sans modèle analogique (contraste,
+ * rétroéclairage) en V1.
+ *
+ * Transaction UNIQUEMENT sur le front descendant strict previousE HIGH ->
+ * E LOW ; E stable, LOW -> HIGH ou UNKNOWN/FLOATING ne sont jamais un front.
+ * Un front reçu pendant que le contrôleur est occupé
+ * (`currentTimeMs < busyUntilMs`) est ignoré.
+ *
+ * État privé (volatile, store runtime PREQ2 uniquement, jamais le Document),
+ * gelé : { ddram, addressCounter, entryIncrement, displayOn, cursorOn,
+ * blinkOn, dataLength, ramTarget, previousE, pendingNibble, busyUntilMs }.
+ */
+function st7066uTimedDigital({ pinSignals, currentTimeMs, previousState }) {
+  if (pinSignals.VDD !== Signal.HIGH || pinSignals.VSS !== Signal.LOW) {
+    return { state: ST7066U_INITIAL_STATE, outputs: null }
+  }
+
+  const previous = previousState ?? ST7066U_INITIAL_STATE
+  const e = pinSignals.E
+  const fallingEdge = previous.previousE === Signal.HIGH && e === Signal.LOW
+  if (!fallingEdge || currentTimeMs < previous.busyUntilMs) {
+    const state = previous.previousE === e ? previous : Object.freeze({ ...previous, previousE: e })
+    return { state, outputs: null }
+  }
+  return {
+    state: Object.freeze({ ...previous, ...st7066uTransaction(previous, pinSignals, currentTimeMs), previousE: e }),
+    outputs: null,
+  }
+}
+
+/**
  * Fabrique un Registry isolé — même patron que
  * `createDigitalContributionRegistry` (`digitalContributionRegistry.js`) :
  * permet à un test d'injecter une table de contributions FIXTURE, sans
@@ -577,6 +763,8 @@ const defaultRegistry = createTimedDigitalContributionRegistry({
     ["D_LATCH_74HC75", dLatch74HC75TimedDigital],
     // A9-COUNTER1 : compteur binaire synchrone 4 bits (même contrat séquentiel, front montant).
     ["BINARY_COUNTER_74HC161", binaryCounter74HC161TimedDigital],
+    // A10-DISP2 : contrôleur ST7066U du LCD WH1602B (état DDRAM runtime, front descendant de E, aucune sortie).
+    ["LCD_16X2_WH1602B", st7066uTimedDigital],
   ]),
 })
 

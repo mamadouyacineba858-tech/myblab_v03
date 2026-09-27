@@ -26,6 +26,7 @@ import { JkFlipFlop74HC73Model } from './models/JkFlipFlop74HC73Model.js'
 import { DFlipFlop74HC74Model } from './models/DFlipFlop74HC74Model.js'
 import { DLatch74HC75Model } from './models/DLatch74HC75Model.js'
 import { BinaryCounter74HC161Model } from './models/BinaryCounter74HC161Model.js'
+import { Lcd16x2WH1602BModel } from './models/Lcd16x2WH1602BModel.js'
 import { HBridgeModel } from './models/HBridgeModel.js'
 import { PmosModel } from './models/PmosModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
@@ -149,6 +150,7 @@ const defaultRegistry = createSimulationRegistry({
     DFlipFlop74HC74Model,
     DLatch74HC75Model,
     BinaryCounter74HC161Model,
+    Lcd16x2WH1602BModel,
     RelayModel,
     Tmp36Model,
     ForceSensorModel,

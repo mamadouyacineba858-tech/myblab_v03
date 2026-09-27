@@ -25,6 +25,7 @@ export function PartRenderer({
   type,
   uid,
   pinSignals,
+  runtimeState,
   state,
   properties,
   parameters,
@@ -71,7 +72,9 @@ export function PartRenderer({
 
   // Enrichissement des props via le Visual State Registry (comportement
   // strictement conservé pour LED/RGB_LED ; {} pour tout autre type).
-  rendererProps = { ...rendererProps, ...getVisualState(type, { uid, pinSignals: signals }) };
+  // A10-DISP2 : `runtimeState` (état runtime timed de ce uid, projection gelée
+  // en lecture seule) est remis au SEUL resolver — jamais aux renderers.
+  rendererProps = { ...rendererProps, ...getVisualState(type, { uid, pinSignals: signals, runtimeState }) };
 
   // Délégation complète au VisualizationManager
   return manager.render(type, rendererProps);

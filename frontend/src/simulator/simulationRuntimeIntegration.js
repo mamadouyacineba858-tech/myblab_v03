@@ -139,6 +139,37 @@ export function retainSimulationRuntimeSessionUids(session, liveUids) {
   }
 }
 
+function deepFreeze(value) {
+  if (value === null || typeof value !== "object" || Object.isFrozen(value)) return value
+  Object.freeze(value)
+  for (const nested of Object.values(value)) deepFreeze(nested)
+  return value
+}
+
+/**
+ * A10-DISP2 — projection LECTURE SEULE des états privés timed pour la
+ * Presentation (Visual State Registry). Nouvelle Map uid -> état à chaque
+ * appel (une nouvelle référence après chaque step, pour que React observe le
+ * changement), dont les états sont gelés : aucun consommateur ne peut
+ * modifier le runtime au travers. Générique (aucun type) ; jamais
+ * sérialisée, jamais historisée, jamais relue par le moteur — le store
+ * `timedDigitalStates` reste l'unique vérité. `liveUids` (optionnel) limite la
+ * projection aux composants du step qui vient d'être résolu : un uid supprimé
+ * n'y apparaît jamais, même avant la purge de la session.
+ *
+ * @param {{ timedDigitalStates: Map<string, object> }} session
+ * @param {Iterable<string>} [liveUids]
+ * @returns {Map<string, object>}
+ */
+export function snapshotTimedDigitalStates(session, liveUids) {
+  const live = liveUids ? new Set(liveUids) : null
+  const snapshot = new Map()
+  for (const [uid, state] of session.timedDigitalStates) {
+    if (!live || live.has(uid)) snapshot.set(uid, deepFreeze(state))
+  }
+  return snapshot
+}
+
 /**
  * A7-C3-PREQ — Generic Computed Digital Output composition (§2/§5 du
  * ticket).

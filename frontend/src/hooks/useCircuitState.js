@@ -59,6 +59,7 @@ import {
   createSimulationRuntimeSession,
   resetSimulationRuntimeSession,
   retainSimulationRuntimeSessionUids,
+  snapshotTimedDigitalStates,
 } from "../simulator/simulationRuntimeIntegration.js"
 // MB-L1-ENV-001 (CSA GO) : `isValidLightStimulus` est la SEULE frontière de
 // validation consultée ici — ce hook ne réimplémente jamais la règle
@@ -454,6 +455,12 @@ export function useCircuitState(canvasRef, injectedOrchestrators) {
   // `orchestrators` (start/stop/clear/import/unmount), jamais exposé au
   // Contexte, jamais dans le Document/History.
   const [runtimeSession] = useState(() => createSimulationRuntimeSession())
+  // A10-DISP2 : projection LECTURE SEULE (uid -> état timed gelé) des états
+  // privés de la session, rafraîchie après chaque step comme `pinSignals` —
+  // uniquement pour la Presentation (Visual State Registry). Jamais relue par
+  // le moteur, jamais dans le Document/History/export ; la session reste
+  // l'unique vérité.
+  const [runtimeStates, setRuntimeStates] = useState(EMPTY_MAP)
   // =========================================================================
   // FIN MB-ARDUINO-BRIDGE-001 (container)
   // =========================================================================
@@ -592,6 +599,7 @@ const getUndoCount = useCallback(() => {
   useEffect(() => {
     if (!simulationActive) {
       setPinSignals(EMPTY_MAP)
+      setRuntimeStates(EMPTY_MAP)
       return
     }
     let cancelled = false
@@ -603,11 +611,13 @@ const getUndoCount = useCallback(() => {
         setPinSignals(runSimulationWithRuntime(adapted.components, adapted.wires, {
           orchestrators, firmwareSessions, firmwareComponents: safeComponents, dt, environmentalStimuli, runtimeSession,
         }) ?? EMPTY_MAP)
+        setRuntimeStates(snapshotTimedDigitalStates(runtimeSession, adapted.components.map((c) => c.uid)))
         const diagnostics = Object.fromEntries([...firmwareSessions].map(([uid, session]) => [uid, session.diagnostics]))
         setFirmwareDiagnostics(previous => JSON.stringify(previous) === JSON.stringify(diagnostics) ? previous : diagnostics)
       } catch (error) {
         console.error("MYBlab simulation error:", error)
         setPinSignals(EMPTY_MAP)
+        setRuntimeStates(EMPTY_MAP)
       }
     }
     solve(0)
@@ -2753,6 +2763,8 @@ if (import.meta.env.DEV) {
   wirePaths,
   connectedPins,
   pinSignals,
+  // A10-DISP2 : projection lecture seule des états runtime timed (voir plus haut).
+  runtimeStates,
 
   pendingPin,
   isWiringActive,
@@ -2886,6 +2898,7 @@ if (import.meta.env.DEV) {
   wirePaths,
   connectedPins,
   pinSignals,
+  runtimeStates,
 
   pendingPin,
   isWiringActive,

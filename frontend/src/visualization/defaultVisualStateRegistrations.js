@@ -14,6 +14,7 @@
  */
 import { getLedState, getRgbLedState } from '../simulator/engine.js'
 import { getSegmentedDisplayState } from '../simulator/segmentedDisplay.js'
+import { projectSt7066uDisplay } from './st7066uDisplayProjection.js'
 import { registerVisualState } from './visualStateRegistry.js'
 
 registerVisualState('LED', ({ uid, pinSignals }) => {
@@ -30,4 +31,10 @@ registerVisualState('RGB_LED', ({ uid, pinSignals }) => {
 // (simulator/segmentedDisplay.js) — aucun chiffre, seulement { a..g, DP }.
 registerVisualState('SEVEN_SEGMENT_DISPLAY', ({ uid, pinSignals }) => ({
   segments: getSegmentedDisplayState('SEVEN_SEGMENT_DISPLAY', uid ?? "", pinSignals),
+}))
+
+// A10-DISP2 : projection 16x2 de l'état runtime ST7066U (lecture seule) —
+// aucune DDRAM ni logique de contrôleur côté Presentation.
+registerVisualState('LCD_16X2_WH1602B', ({ runtimeState }) => ({
+  lcd: projectSt7066uDisplay(runtimeState),
 }))

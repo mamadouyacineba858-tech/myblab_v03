@@ -162,9 +162,13 @@ const DECLARED_TYPES_PINS = {
   // Consommateur pur, meme vocabulaire de roles que RGB_LED (segments 'input', commun 'ground') ;
   // aucun modele de simulation (comme LED/RGB_LED) : etat lu par simulator/segmentedDisplay.js.
   SEVEN_SEGMENT_DISPLAY:[{id:'e',role:'input'},{id:'d',role:'input'},{id:'COM',role:'ground'},{id:'c',role:'input'},{id:'DP',role:'input'},{id:'b',role:'input'},{id:'a',role:'input'},{id:'f',role:'input'},{id:'g',role:'input'}],
+  // A10-DISP2 : Winstar WH1602B-TFH-JT# (controleur ST7066U), connecteur 1x16 - 16 pins ELECTRIQUES,
+  // ordre = broches physiques 1..16 (VSS VDD VO RS R/W E DB0..DB7 A K). R/W a pour id 'RW' (ids
+  // alphanumeriques du catalogue ; libelle 'R/W'). Ecriture seule en V1 : DB0..DB7 restent 'input'.
+  LCD_16X2_WH1602B:[{id:'VSS',role:'ground'},{id:'VDD',role:'power'},{id:'VO',role:'input'},{id:'RS',role:'input'},{id:'RW',role:'input'},{id:'E',role:'input'},{id:'DB0',role:'input'},{id:'DB1',role:'input'},{id:'DB2',role:'input'},{id:'DB3',role:'input'},{id:'DB4',role:'input'},{id:'DB5',role:'input'},{id:'DB6',role:'input'},{id:'DB7',role:'input'},{id:'A',role:'input'},{id:'K',role:'ground'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY','LCD_16X2_WH1602B']
 
 const DECLARED_PARAMETER_SCHEMA = {
   AND_GATE:[],
@@ -178,6 +182,7 @@ const DECLARED_PARAMETER_SCHEMA = {
   D_FLIP_FLOP_74HC74:[],
   D_LATCH_74HC75:[],
   BINARY_COUNTER_74HC161:[],
+  LCD_16X2_WH1602B:[],
   VOLTAGE_REGULATOR:[{key:'outputVoltage',parameterType:'voltage',unit:'V',minimum:0.001,maximum:1000,defaultValue:5,description:'Tension de sortie DC idéale Level-1, disponible si la tension IN est au moins égale à cette valeur.'}],
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
   COIN_CELL_CR2032:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:3,maximum:3,defaultValue:3,description:'Tension nominale fixe de la pile'}],
@@ -389,6 +394,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   D_FLIP_FLOP_74HC74:{},
   D_LATCH_74HC75:{},
   BINARY_COUNTER_74HC161:{},
+  LCD_16X2_WH1602B:{},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -467,6 +473,8 @@ const DECLARED_CAPABILITIES = {
   D_LATCH_74HC75:['digital'],
   // A9-COUNTER1 : sequentiel pur, sorties via le registre timed/stateful (aucune contribution DC).
   BINARY_COUNTER_74HC161:['digital'],
+  // A10-DISP2 : controleur ST7066U, etat DDRAM via le registre timed/stateful (aucune sortie, aucune contribution DC).
+  LCD_16X2_WH1602B:['digital'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -512,6 +520,7 @@ const DECLARED_MODEL_AVAILABLE = {
   D_FLIP_FLOP_74HC74:true,
   D_LATCH_74HC75:true,
   BINARY_COUNTER_74HC161:true,
+  LCD_16X2_WH1602B:true,
 }
 
 /**
