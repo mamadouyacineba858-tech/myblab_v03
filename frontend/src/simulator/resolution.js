@@ -1,5 +1,6 @@
 import { Signal } from "./signals.js"
 import { getDcVoltageDomainContribution } from "./dcVoltageDomainRegistry.js"
+import { getAnalogConditionalConduction } from "./analogConditionalConductionRegistry.js"
 import { getDcSource } from "./dcSourceRegistry.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
 import { getDcContribution, getUnconditionalConductionPinPair } from "./dcContributionRegistry.js"
@@ -73,17 +74,23 @@ export function resolveSignals(components, prepared, externalSignals = null) {
     .map((comp) => ({ comp, contract: getDcVoltageDomainContribution(comp.type) }))
     .filter(({ contract }) => contract !== null)
     .map(({ comp, contract }) => ({ comp, contract: controlledDomainContract(contract) }))
+  const analogConductors = [...components]
+    .sort((a, b) => a.uid.localeCompare(b.uid))
+    .map((comp) => ({ comp, contract: getAnalogConditionalConduction(comp.type) }))
+    .filter(({ contract }) => contract !== null)
   const dcControlSignals = sources.length > 1
     ? resolveDcControlSignals(prepared, externalSignals) : new Map()
   const dcTopologySignals = new Map([...pinSignals, ...dcControlSignals])
-  const dcVoltageDomains = resolveDcVoltageDomains(components, prepared, sources, domainContributors, dcTopologySignals)
+  const dcVoltageDomains = resolveDcVoltageDomains(components, prepared, sources, domainContributors,
+    dcTopologySignals, analogConductors)
   // Numeric facts carry their own voltage and physical reference. Multiple
   // primaries therefore use the same local authority checks as derived domains;
   // a conflict on one net does not erase evidence on independent nets. Digital
   // source-conflict refusal remains unchanged, independently of DC analysis.
   const dcAnalysis = sources.length > 0
     ? computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains,
-      sources.length === 1 && domainContributors.length === 0 ? sources[0].source.voltage : null,
+      sources.length === 1 && domainContributors.length === 0 && analogConductors.length === 0
+        ? sources[0].source.voltage : null,
       dcControlSignals)
     : new Map()
   return { pinSignals, dcAnalysis, dcVoltageDomains }
@@ -449,14 +456,46 @@ function sameDcVoltage(a, b) {
 }
 
 /**
+ * Nets joined by ideal derived conduction share one fact: agreeing facts are
+ * kept, disagreeing facts (or a null) make the whole group null, and a group
+ * without any fact stays absent. Mutates only the local `facts` candidate.
+ */
+function joinEquipotential(facts, pairs) {
+  const root = new Map()
+  const find = (net) => {
+    while (root.has(net) && root.get(net) !== net) net = root.get(net)
+    return net
+  }
+  for (const [a, b] of pairs) {
+    const [ra, rb] = [find(a), find(b)].sort()
+    if (ra !== rb) root.set(rb, ra)
+  }
+  const groups = new Map()
+  for (const net of new Set(pairs.flat())) {
+    const id = find(net)
+    groups.set(id, [...(groups.get(id) ?? []), net])
+  }
+  for (const members of groups.values()) {
+    const known = members.filter((net) => facts.has(net)).map((net) => facts.get(net))
+    if (known.length === 0) continue
+    const value = known.every((fact) => sameDcVoltage(fact, known[0])) ? known[0] : null
+    for (const net of members) facts.set(net, value)
+  }
+}
+
+/**
  * Read-only derived net facts. undefined = absent; null = unresolved/conflict.
  * Each round rebuilds from authorities, so invalidated inputs retract outputs
  * and all their passive consequences. Repeated states or a bound return no
  * electrical evidence, rather than retaining a transient derived voltage.
  * This is domain propagation for the existing DC analysis, not nodal solving:
  * passive pairs extend a domain only onto nets without a direct authority.
+ * A11-ANALOG-PREQ2: analog-selected pairs are ideal derived conduction (a
+ * derived wire): the nets they join share one fact, merged with the same
+ * conflict rule, before passive extension. They are reselected every round
+ * from the previous facts, so a pair that becomes invalid is retracted.
  */
-function resolveDcVoltageDomains(components, prepared, sources, contributors, pinSignals) {
+function resolveDcVoltageDomains(components, prepared, sources, contributors, pinSignals, analogConductors = []) {
   const { uf, nets, allKeys } = prepared
   const netByKey = new Map()
   for (const keys of nets.values()) {
@@ -478,31 +517,42 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
   }
   const expand = (facts) => new Map([...allKeys].sort().map((key) => [key, facts.get(netByKey.get(key))]))
   const signature = (facts) => JSON.stringify([...facts].sort(([a], [b]) => a.localeCompare(b)))
+  // These contracts support common-reference, non-negative DC only: every
+  // observed input must be a numeric fact of the referencePin domain.
+  const observe = (facts, comp, { inputPins, referencePin }) => {
+    const reference = facts.get(netOf(comp, referencePin))
+    const inputs = inputPins.map((pin) => facts.get(netOf(comp, pin)))
+    if (!reference || reference.voltage !== 0 || !inputs.every((input) => input
+      && input.reference === reference.reference && Number.isFinite(input.voltage) && input.voltage >= 0)) return null
+    return {
+      reference: reference.reference,
+      inputVoltages: Object.fromEntries(inputPins.map((pin, i) => [pin, inputs[i].voltage])),
+      params: resolveComponentParameters(comp.type, comp.parameters),
+    }
+  }
   let previous = primary
   const seen = new Set()
-  for (let round = 0; round <= allKeys.length + contributors.length; round++) {
+  for (let round = 0; round <= allKeys.length + contributors.length + analogConductors.length; round++) {
     const candidate = new Map(primary)
     for (const { comp, contract } of contributors) {
-      const { inputPins, referencePin, outputPins, contribute } = contract
-      const reference = previous.get(netOf(comp, referencePin))
-      const inputs = inputPins.map((pin) => previous.get(netOf(comp, pin)))
-      let outputs = null
-      // This contract supports common-reference, non-negative DC only: every
-      // observed input must be a numeric fact of the referencePin domain.
-      if (reference && reference.voltage === 0 && inputs.every((input) => input
-        && input.reference === reference.reference && Number.isFinite(input.voltage) && input.voltage >= 0)) {
-        outputs = contribute({
-          inputVoltages: Object.fromEntries(inputPins.map((pin, i) => [pin, inputs[i].voltage])),
-          params: resolveComponentParameters(comp.type, comp.parameters),
-        })
-      }
-      for (const pin of outputPins) {
+      const observed = observe(previous, comp, contract)
+      const outputs = observed && contract.contribute({ inputVoltages: observed.inputVoltages, params: observed.params })
+      for (const pin of contract.outputPins) {
         const voltage = outputs?.[pin]
         // Reserve inactive outputs too: a load cannot back-power its producer.
         merge(candidate, netOf(comp, pin), typeof voltage === 'number' && Number.isFinite(voltage)
-          && voltage >= 0 ? { voltage, reference: reference.reference } : null)
+          && voltage >= 0 ? { voltage, reference: observed.reference } : null)
       }
     }
+    const analogPairs = analogConductors.flatMap(({ comp, contract }) => {
+      const observed = observe(previous, comp, contract)
+      const selected = observed ? contract.contribute({ inputVoltages: observed.inputVoltages, params: observed.params }) : []
+      return (Array.isArray(selected) ? selected : [])
+        .filter((pair) => Array.isArray(pair) && pair.length === 2 && pair[0] !== pair[1])
+        .map(([a, b]) => [netOf(comp, a), netOf(comp, b)])
+        .filter(([a, b]) => a !== undefined && b !== undefined)
+    })
+    joinEquipotential(candidate, analogPairs)
     const authorities = new Set(candidate.keys())
     const topologySignals = new Map(pinSignals)
     for (const [key, value] of expand(previous)) {
@@ -511,6 +561,7 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
     }
     const pairs = selectConductionPairs(components, uf, topologySignals, getConditionalConduction)
       .flatMap(({ comp, pairs: selected }) => selected.map(([a, b]) => [netOf(comp, a), netOf(comp, b)]))
+      .concat(analogPairs)
     // Synchronous proposals detect competing paths independently of iteration order.
     for (let pass = 0; pass <= allKeys.length; pass++) {
       const next = new Map(candidate)
