@@ -59,7 +59,7 @@ import {
   createSimulationRuntimeSession,
   resetSimulationRuntimeSession,
   retainSimulationRuntimeSessionUids,
-  snapshotTimedDigitalStates,
+  snapshotRuntimeComponentStates,
 } from "../simulator/simulationRuntimeIntegration.js"
 // MB-L1-ENV-001 (CSA GO) : `isValidLightStimulus` est la SEULE frontière de
 // validation consultée ici — ce hook ne réimplémente jamais la règle
@@ -611,7 +611,8 @@ const getUndoCount = useCallback(() => {
         setPinSignals(runSimulationWithRuntime(adapted.components, adapted.wires, {
           orchestrators, firmwareSessions, firmwareComponents: safeComponents, dt, environmentalStimuli, runtimeSession,
         }) ?? EMPTY_MAP)
-        setRuntimeStates(snapshotTimedDigitalStates(runtimeSession, adapted.components.map((c) => c.uid)))
+        // A12-NEOPIXEL-FUNC-WS2812B-V6-001 : états timed ET événementiels (lecture seule).
+        setRuntimeStates(snapshotRuntimeComponentStates(runtimeSession, adapted.components.map((c) => c.uid)))
         const diagnostics = Object.fromEntries([...firmwareSessions].map(([uid, session]) => [uid, session.diagnostics]))
         setFirmwareDiagnostics(previous => JSON.stringify(previous) === JSON.stringify(diagnostics) ? previous : diagnostics)
       } catch (error) {

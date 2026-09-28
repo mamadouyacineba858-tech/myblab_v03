@@ -31,11 +31,10 @@ const t = (pinId, timeMs, signal) => ({ pinId, timeMs, signal })
 const fixture = { inputPins: ["base"], outputPins: ["emitter"], contribute: () => ({ state: undefined, transitions: [] }) }
 
 describe("A12-PREQ-EC — Registry événementiel", () => {
-  it("EC-01 — la table de production est vide", () => {
-    expect(getAllDigitalEventContributionTypes()).toEqual([])
+  it("EC-01 — table de production : vide au PREQ, seul WS2812B_V6 depuis A12-NEOPIXEL-FUNC-WS2812B-V6-001 ; Registry neuf vide", () => {
+    expect(getAllDigitalEventContributionTypes()).toEqual(["WS2812B_V6"])
     expect(hasDigitalEventContribution("NPN_TRANSISTOR")).toBe(false)
-    expect(hasDigitalEventContribution("WS2812B_V6")).toBe(false)
-    expect(getDigitalEventContribution("WS2812B_V6")).toBeNull()
+    expect(getDigitalEventContribution("NPN_TRANSISTOR")).toBeNull()
     expect(createDigitalEventContributionRegistry().getAllDigitalEventContributionTypes()).toEqual([])
   })
 
@@ -120,11 +119,14 @@ describe("A12-PREQ-EC — gardes structurelles du Registry", () => {
   })
 
   it("EC-22/EC-23 — aucune connaissance de protocole ni de type dans le code générique", () => {
-    for (const name of ["digitalEventContributionRegistry.js", "digitalTransitions.js", "simulationRuntimeIntegration.js", "engine.js", "resolution.js", "preparation.js", "scheduler.js", "clock.js"]) {
+    // A12-NEOPIXEL-FUNC-WS2812B-V6-001 : la TABLE de ce Registry porte désormais
+    // l'unique association type -> contributeur (WS2812B_V6) ; le protocole
+    // vit dans ws2812bV6Protocol.js. Le moteur générique reste sans protocole.
+    for (const name of ["digitalTransitions.js", "simulationRuntimeIntegration.js", "engine.js", "resolution.js", "preparation.js", "scheduler.js", "clock.js"]) {
       const code = readSourceWithoutComments(name)
       expect(code, name).not.toMatch(/WS2812|NEOPIXEL|NeoPixel|\bGRB\b|T0H|T1H|T0L|T1L/i)
     }
-    expect(source).not.toMatch(/\.type\s*===|["'][A-Z][A-Z0-9_]{2,}["']/)
-    expect(source).not.toMatch(/import\s/)
+    expect(source).not.toMatch(/\.type\s*===|T0H|T1H|\bGRB\b|timeMs/)
+    expect([...source.matchAll(/import\s[^\n]*from\s+["']([^"']+)["']/g)].map((m) => m[1])).toEqual(["./ws2812bV6Protocol.js"])
   })
 })

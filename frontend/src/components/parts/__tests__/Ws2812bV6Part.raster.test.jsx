@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { existsSync, readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
+import { Buffer } from 'node:buffer'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Ws2812bV6Part } from '../Ws2812bV6Part.jsx'
@@ -17,6 +18,7 @@ import { getCanonicalEntry } from '../../../simulator/canonicalRegistry.js'
 import { isSimulationModelAvailable, getSimulationModel } from '../../../simulator/simulationRegistry.js'
 import { hasTimedDigitalContribution } from '../../../simulator/timedDigitalContributionRegistry.js'
 import { hasDcContribution } from '../../../simulator/dcContributionRegistry.js'
+import { hasDigitalEventContribution } from '../../../simulator/digitalEventContributionRegistry.js'
 import { toEngineInput } from '../../../simulator/engineAdapter.js'
 import { createSimulationRuntimeSession, runSimulationWithRuntime, SIMULATION_STEP_MS } from '../../../simulator/simulationRuntimeIntegration.js'
 import { Signal } from '../../../simulator/signals.js'
@@ -144,16 +146,35 @@ describe('A12-NEOPIXEL — frozen raster renderer', () => {
   })
 })
 
-describe('A12-NEOPIXEL — no WS2812B simulation (visual gate only)', () => {
-  it('no simulation model, no timed/DC contribution, no Visual State resolver', () => {
+describe('A12-NEOPIXEL — FROZEN asset pack untouched (P35)', () => {
+  it('every file of SHA256SUMS.txt (Founder, master, 1x/3x, metadata) still matches its CSA hash', () => {
+    const sums = readFileSync(asset('SHA256SUMS.txt'), 'utf8').trim().split(/\r?\n/).map((line) => line.split('  '))
+    expect(sums).toHaveLength(12)
+    for (const [sha, file] of sums) {
+      const raw = readFileSync(asset(file), 'utf8').includes('\r') && !/\.(png|webp)$/.test(file)
+        ? Buffer.from(readFileSync(asset(file), 'utf8').replace(/\r\n/g, '\n'))
+        : readFileSync(asset(file))
+      expect(hash(raw), file).toBe(sha)
+    }
+    expect(sums.find(([, f]) => f === 'ws2812b-v6.founder-reference.png')[0]).toBe('ad19fe2c09e8e82502b41155415808fa09b1ed17c862732cd39b19a367ac45c1')
+    expect(sums.find(([, f]) => f === 'ws2812b-v6.runtime-master.png')[0]).toBe('0788e2bb013db597f4b4e29698d83315e1b7e9bee092ca75581bedb7eb94292c')
+  })
+})
+
+// A12-NEOPIXEL-FUNC-WS2812B-V6-001 : le pixel n'est plus visual-only. Son comportement est
+// UNIQUEMENT événementiel (digitalEventContributionRegistry + ws2812bV6Protocol) : toujours ni
+// modèle DC/simulation, ni producteur timed ; la Presentation ne fait que projeter la couleur.
+describe('A12-NEOPIXEL — WS2812B behaviour lives only in the event contributor', () => {
+  it('event contributor + Visual State projection ; no simulation model, no timed/DC contribution', () => {
+    expect(hasDigitalEventContribution(TYPE)).toBe(true)
+    expect(hasVisualStateResolver(TYPE)).toBe(true)
     expect(isSimulationModelAvailable(TYPE)).toBe(false)
     expect(() => getSimulationModel(TYPE)).toThrow()
     expect(hasTimedDigitalContribution(TYPE)).toBe(false)
     expect(hasDcContribution(TYPE)).toBe(false)
-    expect(hasVisualStateResolver(TYPE)).toBe(false)
   })
 
-  it('powered on the canvas: simulation runs, DOUT is never driven, no runtime state is created', () => {
+  it('powered on the canvas without data: DOUT is never driven at level, no timed state, no colour', () => {
     const doc = {
       components: [
         { id: 'p', type: 'POWER', position: { x: 0, y: 0 } },
@@ -171,16 +192,17 @@ describe('A12-NEOPIXEL — no WS2812B simulation (visual gate only)', () => {
     expect(pinSignals.get('px:VSS')).toBe(Signal.LOW)
     expect([Signal.HIGH, Signal.LOW]).not.toContain(pinSignals.get('px:DOUT'))
     expect(runtimeSession.timedDigitalStates.has('px')).toBe(false)
+    expect(runtimeSession.digitalEventStates.get('px')?.color).toBeNull()
   })
 
   it('no WS2812B / NeoPixel branch in the temporal engine, runtime, scheduler, clock or generic canvas', () => {
     for (const path of [['simulator', 'digitalTransitions.js'], ['simulator', 'scheduler.js'], ['simulator', 'clock.js'],
       ['simulator', 'engine.js'], ['simulator', 'resolution.js'], ['simulator', 'simulationRuntimeIntegration.js'],
       ['simulator', 'timedDigitalContributionRegistry.js'], ['simulator', 'dcContributionRegistry.js'], ['hooks', 'useCircuitState.js'],
-      ['components', 'parts', 'PartRenderer.jsx'], ['canvas', 'CircuitComponent.jsx'], ['canvas', 'Pin.jsx'],
-      ['visualization', 'defaultVisualStateRegistrations.js']]) {
-      // (the prerequisite ticket id A12-NEOPIXEL-PREQ-EVENT-TIMING-001 legitimately appears in comments)
-      expect(src(...path), path.join('/')).not.toMatch(/WS2812|Adafruit_NeoPixel|NEOPIXEL-CANVAS/i)
+      ['components', 'parts', 'PartRenderer.jsx'], ['canvas', 'CircuitComponent.jsx'], ['canvas', 'Pin.jsx']]) {
+      // ticket ids (A12-NEOPIXEL-...) legitimately appear in comments: code only is checked
+      const code = src(...path).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      expect(code, path.join('/')).not.toMatch(/WS2812|Adafruit_NeoPixel|NeoPixel/i)
     }
   })
 })

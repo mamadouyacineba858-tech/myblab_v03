@@ -25,8 +25,14 @@
  *     contribute(ctx) -> { state, transitions }
  *   }
  *
- * avec ctx = { component, pins, params, currentTimeMs, previousState, transitions }.
+ * avec ctx = { component, pins, params, pinSignals, currentTimeMs, previousState, transitions }.
  *
+ * - `pinSignals` (A12-NEOPIXEL-FUNC-WS2812B-V6-001) : niveaux { pinId -> Signal }
+ *   des pins canoniques du composant dans le contexte pré-résolution des
+ *   sources DC (`resolveSourceDrivenPinSignals`, déjà calculé par le step —
+ *   même primitive que les contributeurs transitoires) ; UNKNOWN sinon. Sert
+ *   aux conditions d'alimentation, jamais aux données (portées par les
+ *   transitions).
  * - `currentTimeMs` : temps simulé du Scheduler partagé du step (jamais une
  *   horloge propre au contributeur).
  * - `previousState` : état privé runtime de CE uid (undefined au premier
@@ -40,8 +46,10 @@
  *   enregistrées atomiquement par le runtime via `recordDigitalTransitions`.
  *
  * Ce module ne contient ni temps, ni topologie, ni résolution : uniquement la
- * table. La table de production est VIDE (aucun type n'y est enregistré).
+ * table. A12-NEOPIXEL-FUNC-WS2812B-V6-001 : première entrée de production,
+ * WS2812B_V6 (protocole dans `ws2812bV6Protocol.js`).
  */
+import { WS2812B_V6_DIGITAL_EVENT_CONTRIBUTION } from "./ws2812bV6Protocol.js"
 
 /**
  * @typedef {{
@@ -104,8 +112,17 @@ export function createDigitalEventContributionRegistry({ contributions = new Map
   return { getDigitalEventContribution, hasDigitalEventContribution, getAllDigitalEventContributionTypes }
 }
 
-/** Registry de production — VIDE (A12-NEOPIXEL-PREQ-EVENT-CONSUMER-001 : aucun type enregistré). */
-const defaultRegistry = createDigitalEventContributionRegistry()
+/**
+ * Registry de production — vide en A12-NEOPIXEL-PREQ-EVENT-CONSUMER-001 ;
+ * A12-NEOPIXEL-FUNC-WS2812B-V6-001 ajoute le pixel élémentaire WS2812B_V6
+ * (une chaîne de N pixels = N entrées de ce même contributeur reliées
+ * DOUT -> DIN, composées par le runtime générique).
+ */
+const defaultRegistry = createDigitalEventContributionRegistry({
+  contributions: new Map([
+    ["WS2812B_V6", WS2812B_V6_DIGITAL_EVENT_CONTRIBUTION],
+  ]),
+})
 
 export const getDigitalEventContribution = defaultRegistry.getDigitalEventContribution
 export const hasDigitalEventContribution = defaultRegistry.hasDigitalEventContribution

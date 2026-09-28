@@ -102,7 +102,9 @@ describe("A12-PREQ-EC — consommation / état / temps", () => {
     const a = node("a")
     step([a], [], session, registry)
     step([a], [], session, registry)
-    expect(Object.keys(seen[0]).sort()).toEqual(["component", "currentTimeMs", "params", "pins", "previousState", "transitions"])
+    // A12-NEOPIXEL-FUNC-WS2812B-V6-001 : + `pinSignals` (contexte pré-résolution des sources DC).
+    expect(Object.keys(seen[0]).sort()).toEqual(["component", "currentTimeMs", "params", "pinSignals", "pins", "previousState", "transitions"])
+    expect(seen[0].pinSignals).toEqual({ collector: Signal.UNKNOWN, base: Signal.UNKNOWN, emitter: Signal.UNKNOWN })
     expect(seen[0].component).toBe(a)
     expect(typeof seen[0].params).toBe("object")
     expect(seen.map((c) => c.currentTimeMs)).toEqual([16, 32])

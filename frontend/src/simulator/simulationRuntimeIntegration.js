@@ -202,6 +202,31 @@ export function snapshotTimedDigitalStates(session, liveUids) {
 }
 
 /**
+ * A12-NEOPIXEL-FUNC-WS2812B-V6-001 — même projection lecture seule que
+ * `snapshotTimedDigitalStates`, étendue aux états privés des contributeurs
+ * événementiels (`digitalEventStates`) : la Presentation reçoit un unique
+ * `runtimeState` par uid, quelle que soit la famille de runtime qui le porte.
+ * Générique (aucun type). Un même uid ne peut appartenir qu'à une famille :
+ * une collision est une erreur explicite, jamais un écrasement silencieux.
+ *
+ * @param {{ timedDigitalStates: Map<string, object>, digitalEventStates: Map<string, any> }} session
+ * @param {Iterable<string>} [liveUids]
+ * @returns {Map<string, object>}
+ */
+export function snapshotRuntimeComponentStates(session, liveUids) {
+  const snapshot = snapshotTimedDigitalStates(session, liveUids)
+  const live = liveUids ? new Set(liveUids) : null
+  for (const [uid, state] of session.digitalEventStates) {
+    if (live && !live.has(uid)) continue
+    if (snapshot.has(uid)) {
+      throw new Error(`snapshotRuntimeComponentStates: uid "${uid}" has both a timed and an event runtime state`)
+    }
+    snapshot.set(uid, deepFreeze(state))
+  }
+  return snapshot
+}
+
+/**
  * A7-C3-PREQ — Generic Computed Digital Output composition (§2/§5 du
  * ticket).
  *
@@ -546,8 +571,13 @@ export function computeTransientElectricalContributions(transientComponents, tra
  * @param {number} currentTimeMs Temps simulé courant, issu du Scheduler partagé.
  * @param {ReturnType<typeof createDigitalTransitionStore>} transitionStore
  * @param {Map<string, any>} digitalEventStates muté en place (uid -> state).
+ * @param {Map<string, string>} [sourceDrivenSignals] A12-NEOPIXEL-FUNC-WS2812B-V6-001 :
+ *   contexte pré-résolution des sources DC du step (déjà calculé, aucune
+ *   résolution supplémentaire), projeté par composant en `pinSignals` —
+ *   même primitive que les contributeurs transitoires. Défaut : Map vide
+ *   (toutes les pins UNKNOWN).
  */
-export function computeDigitalEventContributions(effectiveComponents, digitalEventRegistry, prepared, currentTimeMs, transitionStore, digitalEventStates) {
+export function computeDigitalEventContributions(effectiveComponents, digitalEventRegistry, prepared, currentTimeMs, transitionStore, digitalEventStates, sourceDrivenSignals = NO_SOURCE_DRIVEN_SIGNALS) {
   const ordered = (effectiveComponents || [])
     .filter((c) => c && typeof c.uid === "string")
     .sort((a, b) => a.uid.localeCompare(b.uid))
@@ -573,8 +603,9 @@ export function computeDigitalEventContributions(effectiveComponents, digitalEve
       if (round > 0 && incoming.length === 0) continue
 
       const params = resolveComponentParameters(comp.type, comp.parameters)
+      const pinSignals = buildComponentSourceDrivenPinSignals(comp, sourceDrivenSignals)
       const { state, transitions } = entry.contribute({
-        component: comp, pins: comp.pins, params, currentTimeMs, previousState: digitalEventStates.get(comp.uid), transitions: incoming,
+        component: comp, pins: comp.pins, params, pinSignals, currentTimeMs, previousState: digitalEventStates.get(comp.uid), transitions: incoming,
       })
       const outgoing = transitions ?? []
       for (const transition of outgoing) {
@@ -590,6 +621,9 @@ export function computeDigitalEventContributions(effectiveComponents, digitalEve
     if (routeDueDigitalTransitions(pinRefs, inputKeys, prepared, currentTimeMs, transitionStore) === 0) return
   }
 }
+
+/** Contexte pré-résolution vide par défaut (lecture seule) : toutes les pins UNKNOWN. */
+const NO_SOURCE_DRIVEN_SIGNALS = Object.freeze(new Map())
 
 /** Transitions dues des pins d'entrée, triées par temps (égalité : ordre des pins puis de production). */
 function consumeDueInputTransitions(transitionStore, uid, inputPins, untilMs) {
@@ -1032,7 +1066,8 @@ function computeElectricalStep(components, wires, options = {}) {
         prepared,
         currentTimeMs,
         options.runtimeSession?.digitalTransitions ?? createDigitalTransitionStore(),
-        options.runtimeSession?.digitalEventStates ?? new Map()
+        options.runtimeSession?.digitalEventStates ?? new Map(),
+        sourceDrivenSignals
       )
     }
 

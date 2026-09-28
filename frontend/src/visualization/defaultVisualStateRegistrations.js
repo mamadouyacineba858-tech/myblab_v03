@@ -15,6 +15,7 @@
 import { getLedState, getRgbLedState } from '../simulator/engine.js'
 import { getSegmentedDisplayState } from '../simulator/segmentedDisplay.js'
 import { projectSt7066uDisplay } from './st7066uDisplayProjection.js'
+import { projectWs2812bV6 } from './ws2812bV6Projection.js'
 import { registerVisualState } from './visualStateRegistry.js'
 
 registerVisualState('LED', ({ uid, pinSignals }) => {
@@ -38,3 +39,7 @@ registerVisualState('SEVEN_SEGMENT_DISPLAY', ({ uid, pinSignals }) => ({
 registerVisualState('LCD_16X2_WH1602B', ({ runtimeState }) => ({
   lcd: projectSt7066uDisplay(runtimeState),
 }))
+
+// A12-NEOPIXEL-FUNC-WS2812B-V6-001 : couleur latchée du pixel (état runtime
+// événementiel, lecture seule) — aucun protocole côté Presentation.
+registerVisualState('WS2812B_V6', ({ runtimeState }) => projectWs2812bV6(runtimeState))
