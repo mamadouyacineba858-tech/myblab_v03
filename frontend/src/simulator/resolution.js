@@ -83,6 +83,8 @@ export function resolveSignals(components, prepared, externalSignals = null) {
   const dcTopologySignals = new Map([...pinSignals, ...dcControlSignals])
   const dcVoltageDomains = resolveDcVoltageDomains(components, prepared, sources, domainContributors,
     dcTopologySignals, analogConductors)
+  // Final output only: computed after convergence, never fed back into it.
+  projectFinalElectricalSignals(prepared, pinSignals, dcVoltageDomains, analogConductors)
   // Numeric facts carry their own voltage and physical reference. Multiple
   // primaries therefore use the same local authority checks as derived domains;
   // a conflict on one net does not erase evidence on independent nets. Digital
@@ -447,6 +449,30 @@ function controlledDomainContract(contract) {
       const voltage = contribute({ inputVoltage, params })
       return { [outputPin]: typeof voltage === 'number' && voltage > 0 ? voltage : null }
     },
+  }
+}
+
+/**
+ * A11-ANALOG-PREQ2-CORR-001 — one final projection of converged DC facts onto
+ * the physical nets of explicitly declared digitalProjectionPins only, using
+ * the historical numeric-to-Signal rule (voltage > 0 → HIGH, else LOW). A null
+ * conflict becomes UNKNOWN; an absent fact keeps the historical signal. Reads
+ * prepared and dcVoltageDomains; writes only the local pinSignals output.
+ */
+function projectFinalElectricalSignals(prepared, pinSignals, dcVoltageDomains, analogConductors) {
+  const { uf, nets } = prepared
+  const netByKey = new Map([...nets.values()].flatMap((keys) => keys.map((key) => [key, keys])))
+  for (const { comp, contract } of analogConductors) {
+    const pins = Array.isArray(contract.digitalProjectionPins) ? contract.digitalProjectionPins : []
+    for (const pin of pins) {
+      const key = uf.key(comp.uid, pin)
+      const fact = dcVoltageDomains.get(key)
+      if (fact === undefined || !pinSignals.has(key)) continue
+      const signal = fact === null ? Signal.UNKNOWN : fact.voltage > 0 ? Signal.HIGH : Signal.LOW
+      for (const netKey of netByKey.get(key) ?? [key]) {
+        if (pinSignals.has(netKey)) pinSignals.set(netKey, signal)
+      }
+    }
   }
 }
 

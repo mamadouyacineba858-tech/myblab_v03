@@ -7,7 +7,10 @@ import { resolveSignals } from '../resolution.js'
 import { Signal } from '../signals.js'
 
 // A11-ANALOG-PREQ2 — test-only open-collector comparator. Not a production type.
+// It declares digitalProjectionPins (CORR-001); the PLAIN variant does not.
 const FIXTURE = 'OC_COMPARE_FIXTURE'
+const PLAIN = 'OC_PLAIN_FIXTURE'
+const FIXTURES = [FIXTURE, PLAIN]
 // Plain recorder: the official vitest config resets vi.fn implementations.
 const calls = []
 function contribute(args) {
@@ -19,15 +22,16 @@ function contribute(args) {
 
 vi.mock('../canonicalRegistry.js', async (original) => {
   const actual = await original()
-  return { ...actual, getCanonicalEntry: (type) => type === FIXTURE ? {
+  return { ...actual, getCanonicalEntry: (type) => FIXTURES.includes(type) ? {
     pins: ['plus', 'minus', 'reference', 'output'].map(id => ({ id })), modelAvailable: true, defaultParameters: {},
   } : actual.getCanonicalEntry(type) }
 })
 vi.mock('../analogConditionalConductionRegistry.js', async (original) => {
   const actual = await original()
+  const base = { inputPins: ['plus', 'minus'], referencePin: 'reference', contribute }
   return { ...actual, getAnalogConditionalConduction: (type) => type === FIXTURE
-    ? { inputPins: ['plus', 'minus'], referencePin: 'reference', contribute }
-    : actual.getAnalogConditionalConduction(type) }
+    ? { ...base, digitalProjectionPins: ['output'] }
+    : type === PLAIN ? base : actual.getAnalogConditionalConduction(type) }
 })
 
 beforeEach(() => { calls.length = 0 })
@@ -248,9 +252,11 @@ describe('A11-ANALOG-PREQ2 analog-controlled conditional conduction', () => {
   it('T25 fixture types are absent from production registries', async () => {
     const analog = await vi.importActual('../analogConditionalConductionRegistry.js')
     const canonical = await vi.importActual('../canonicalRegistry.js')
-    expect(analog.hasAnalogConditionalConduction(FIXTURE)).toBe(false)
-    expect(analog.getAnalogConditionalConduction(FIXTURE)).toBeNull()
-    expect(canonical.getCanonicalEntry(FIXTURE)).toBeFalsy()
+    for (const type of FIXTURES) {
+      expect(analog.hasAnalogConditionalConduction(type)).toBe(false)
+      expect(analog.getAnalogConditionalConduction(type)).toBeNull()
+      expect(canonical.getCanonicalEntry(type)).toBeFalsy()
+    }
   })
   it('T26 leaves the prepared topology, components and wires untouched', () => {
     const c = chain(3, 2)
@@ -275,5 +281,133 @@ describe('A11-ANALOG-PREQ2 analog-controlled conditional conduction', () => {
       expect(code).not.toMatch(/\b(?:React|document|window|canvas|getContext)\b/)
       expect(code).not.toMatch(/Date\.now|new Date|performance\.now|setTimeout|setInterval|requestAnimationFrame/)
     }
+  })
+})
+
+describe('A11-ANALOG-PREQ2-CORR-001 final electrical-to-digital projection', () => {
+  const withConsumer = (c) => {
+    c.components.push({ uid: 'uno', type: 'ARDUINO' })
+    c.wires.push(wire('cmp', 'output', 'uno', 'D2'))
+    return c
+  }
+  const asType = (c, type) => ({ ...c, components: c.components.map(comp => comp.uid === 'cmp' ? { ...comp, type } : comp) })
+  const states = () => [circuit({ plus: 3, minus: 2 }), circuit({ plus: 2, minus: 3 }), circuit({ plus: 2, minus: 3, pullUp: false })]
+  const conflict = () => {
+    const c = circuit({ plus: 3, minus: 2, pullUp: false })
+    c.wires.push(wire('vcc', '5V', 'cmp', 'output'))
+    return c
+  }
+
+  it('C1 active sink + pull-up: DC 0 V and digital LOW on the whole net', () => {
+    const result = run(circuit({ plus: 3, minus: 2 }))
+    expect(fact(result, 'cmp:output').voltage).toBe(0)
+    expect(result.pinSignals.get('cmp:output')).toBe(Signal.LOW)
+    expect(result.pinSignals.get('pu:B')).toBe(Signal.LOW)
+  })
+  it('C2 inactive + pull-up: DC 5 V and digital HIGH', () => {
+    const result = run(circuit({ plus: 2, minus: 3 }))
+    expect(fact(result, 'cmp:output').voltage).toBe(5)
+    expect(result.pinSignals.get('cmp:output')).toBe(Signal.HIGH)
+  })
+  it('C3 inactive without pull-up: no DC fact and digital UNKNOWN', () => {
+    const result = run(circuit({ plus: 2, minus: 3, pullUp: false }))
+    expect(fact(result, 'cmp:output')).toBeUndefined()
+    expect(result.pinSignals.get('cmp:output')).toBe(Signal.UNKNOWN)
+  })
+  it('C4/C5 a digital consumer on the same physical net sees LOW when sinking, HIGH with the pull-up alone', () => {
+    const sinking = run(withConsumer(circuit({ plus: 3, minus: 2 })))
+    expect(fact(sinking, 'uno:D2').voltage).toBe(0)
+    expect(sinking.pinSignals.get('uno:D2')).toBe(Signal.LOW)
+    const idle = run(withConsumer(circuit({ plus: 2, minus: 3 })))
+    expect(fact(idle, 'uno:D2').voltage).toBe(5)
+    expect(idle.pinSignals.get('uno:D2')).toBe(Signal.HIGH)
+    // High-Z without pull-up keeps the historical conservative consumer state.
+    const floating = run(withConsumer(circuit({ plus: 2, minus: 3, pullUp: false })))
+    expect([Signal.HIGH, Signal.LOW]).not.toContain(floating.pinSignals.get('uno:D2'))
+  })
+  it('C6 a null (conflict) fact projects UNKNOWN on every pin of the net, in any order', () => {
+    const c = conflict()
+    for (const [components, wires] of [[c.components, c.wires], [[...c.components].reverse(), [...c.wires].reverse()]]) {
+      const result = run({ components, wires })
+      expect(fact(result, 'cmp:output')).toBeNull()
+      expect(result.pinSignals.get('cmp:output')).toBe(Signal.UNKNOWN)
+      expect(result.pinSignals.get('vcc:5V')).toBe(Signal.UNKNOWN)
+    }
+  })
+  it('C7 incompatible references invent no decision: pull-up HIGH, otherwise UNKNOWN', () => {
+    expect(run(circuit({ plus: 3, minus: 2, sharedGround: false })).pinSignals.get('cmp:output')).toBe(Signal.HIGH)
+    const bare = run(circuit({ plus: 3, minus: 2, sharedGround: false, pullUp: false }))
+    expect(fact(bare, 'cmp:output')).toBeUndefined()
+    expect(bare.pinSignals.get('cmp:output')).toBe(Signal.UNKNOWN)
+  })
+  it('C8 projection is limited to declared digitalProjectionPins', () => {
+    const result = run(asType(circuit({ plus: 3, minus: 2 }), PLAIN))
+    expect(fact(result, 'cmp:output').voltage).toBe(0)
+    // Historical pre-resolution signal kept: the undeclared output is not projected.
+    expect(result.pinSignals.get('cmp:output')).toBe(Signal.HIGH)
+  })
+  it('C9 an undeclared pin with a numeric domain keeps its historical signal', () => {
+    const c = circuit({ plus: 3, minus: 2, pullUp: false })
+    c.components.push({ uid: 'r1', type: 'RESISTOR' }, { uid: 'r2', type: 'RESISTOR' })
+    c.wires.push(wire('vcc', '5V', 'r1', 'A'), wire('r1', 'B', 'r2', 'A'), wire('r2', 'B', 'cmp', 'output'))
+    const result = run(c)
+    expect(fact(result, 'r1:B')).toBeNull()
+    expect(result.pinSignals.get('r1:B')).toBe(Signal.HIGH)
+    expect(fact(result, 'cmp:plus').voltage).toBe(3)
+    expect(result.pinSignals.get('cmp:plus')).toBe(Signal.HIGH)
+    expect(result.pinSignals.get('cmp:output')).toBe(Signal.LOW)
+  })
+  it('C10/C11 keeps Signal and number channels pure', () => {
+    for (const c of [...states(), conflict(), chain(3, 2), withConsumer(circuit())]) {
+      const result = run(c)
+      expect([...result.pinSignals.values()].every(v => Object.values(Signal).includes(v))).toBe(true)
+      for (const v of result.dcVoltageDomains.values()) {
+        if (v === undefined || v === null) continue
+        expect(typeof v.voltage).toBe('number')
+        expect(Object.values(Signal)).not.toContain(v)
+      }
+    }
+  })
+  it('C12/C13 the three output states are independent of component and wire ordering', () => {
+    for (const c of states().map(withConsumer)) {
+      const expected = normalized(run(c))
+      for (let i = 0; i < c.components.length; i++) {
+        const components = [...c.components.slice(i), ...c.components.slice(0, i)]
+        const wires = [...c.wires.slice(i % c.wires.length), ...c.wires.slice(0, i % c.wires.length)]
+        expect(normalized(run({ components, wires }))).toEqual(expected)
+        expect(normalized(run({ components: [...components].reverse(), wires: [...wires].reverse() }))).toEqual(expected)
+      }
+    }
+  })
+  it('C14 PREQ2 retraction projects the final state only', () => {
+    const c = chain(3, 2)
+    c.wires = c.wires.map(w => w.toUid === 'cmp' && w.toPin === 'plus' ? wire('vp', '5V', 'rin', 'A') : w)
+    c.components.push({ uid: 'rin', type: 'RESISTOR' })
+    c.wires.push(wire('rin', 'B', 'cmp', 'plus'))
+    const result = run(c)
+    expect(result.pinSignals.get('cmp:output')).toBe(Signal.LOW)
+    expect(result.pinSignals.get('cmp2:plus')).toBe(Signal.LOW)
+    expect(result.pinSignals.get('cmp2:output')).toBe(Signal.HIGH)
+  })
+  it('C15 PREQ2 oscillation stays conservative: UNKNOWN', () => {
+    const c = circuit({ plus: 3, minus: 2 })
+    c.wires = c.wires.map(w => w.toUid === 'cmp' && w.toPin === 'plus' ? wire('cmp', 'output', 'cmp', 'plus') : w)
+    const result = run(c)
+    expect(fact(result, 'cmp:output')).toBeNull()
+    expect(result.pinSignals.get('cmp:output')).toBe(Signal.UNKNOWN)
+  })
+  it('C19/C20 projects once after convergence, without re-resolution or recursion', () => {
+    const code = executable(src('resolution.js'))
+    expect(code.match(/resolveDcVoltageDomains\(/g)).toHaveLength(2)
+    expect(code.match(/resolveSignals\(/g)).toHaveLength(1)
+    expect(code.match(/projectFinalElectricalSignals\(/g)).toHaveLength(2)
+    const body = code.slice(code.indexOf('export function resolveSignals('), code.indexOf('export function resolveSourceDrivenPinSignals('))
+    expect(body.indexOf('projectFinalElectricalSignals(')).toBeGreaterThan(body.indexOf('resolveDcVoltageDomains('))
+    expect(body.indexOf('projectFinalElectricalSignals(')).toBeLessThan(body.indexOf('computeDcAnalysis('))
+    const projection = code.slice(code.indexOf('function projectFinalElectricalSignals('), code.indexOf('function sameDcVoltage('))
+    expect(projection).not.toMatch(/resolveDcVoltageDomains|resolveSignals|selectConductionPairs|contribute\(/)
+    // The only write target is the local pinSignals output.
+    expect([...new Set([...projection.matchAll(/(\w+)\.set\(/g)].map(m => m[1]))]).toEqual(['pinSignals'])
+    expect(projection).not.toMatch(/prepared\.\w+\s*=|uf\.union|\.delete\(|\.clear\(/)
   })
 })
