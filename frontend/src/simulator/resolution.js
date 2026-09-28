@@ -72,6 +72,7 @@ export function resolveSignals(components, prepared, externalSignals = null) {
     .sort((a, b) => a.uid.localeCompare(b.uid))
     .map((comp) => ({ comp, contract: getDcVoltageDomainContribution(comp.type) }))
     .filter(({ contract }) => contract !== null)
+    .map(({ comp, contract }) => ({ comp, contract: controlledDomainContract(contract) }))
   const dcControlSignals = sources.length > 1
     ? resolveDcControlSignals(prepared, externalSignals) : new Map()
   const dcTopologySignals = new Map([...pinSignals, ...dcControlSignals])
@@ -423,6 +424,25 @@ function computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains, l
   return dcAnalysis
 }
 
+/**
+ * A11-ANALOG-PREQ1 — explicit adaptation of the historical single-input
+ * contract to the controlled multi-input form. It keeps the historical
+ * semantics: strictly positive input and strictly positive output.
+ */
+function controlledDomainContract(contract) {
+  if (Array.isArray(contract.inputPins)) return contract
+  const { inputPin, referencePin, outputPin, contribute } = contract
+  return {
+    inputPins: [inputPin], referencePin, outputPins: [outputPin],
+    contribute({ inputVoltages, params }) {
+      const inputVoltage = inputVoltages[inputPin]
+      if (!(inputVoltage > 0)) return null
+      const voltage = contribute({ inputVoltage, params })
+      return { [outputPin]: typeof voltage === 'number' && voltage > 0 ? voltage : null }
+    },
+  }
+}
+
 /** Numeric domain identity includes the physical reference net, not HIGH/LOW. */
 function sameDcVoltage(a, b) {
   return a === b || (!!a && !!b && a.voltage === b.voltage && a.reference === b.reference)
@@ -463,21 +483,25 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
   for (let round = 0; round <= allKeys.length + contributors.length; round++) {
     const candidate = new Map(primary)
     for (const { comp, contract } of contributors) {
-      const { inputPin, referencePin, outputPin, contribute } = contract
-      const input = previous.get(netOf(comp, inputPin))
+      const { inputPins, referencePin, outputPins, contribute } = contract
       const reference = previous.get(netOf(comp, referencePin))
-      let output = null
-      // This minimal contract supports common-reference, non-negative DC only.
-      if (input && reference && reference.voltage === 0
-        && input.reference === reference.reference && input.voltage > 0) {
-        const voltage = contribute({ inputVoltage: input.voltage,
-          params: resolveComponentParameters(comp.type, comp.parameters) })
-        if (typeof voltage === 'number' && Number.isFinite(voltage) && voltage > 0) {
-          output = { voltage, reference: reference.reference }
-        }
+      const inputs = inputPins.map((pin) => previous.get(netOf(comp, pin)))
+      let outputs = null
+      // This contract supports common-reference, non-negative DC only: every
+      // observed input must be a numeric fact of the referencePin domain.
+      if (reference && reference.voltage === 0 && inputs.every((input) => input
+        && input.reference === reference.reference && Number.isFinite(input.voltage) && input.voltage >= 0)) {
+        outputs = contribute({
+          inputVoltages: Object.fromEntries(inputPins.map((pin, i) => [pin, inputs[i].voltage])),
+          params: resolveComponentParameters(comp.type, comp.parameters),
+        })
       }
-      // Reserve inactive outputs too: a load cannot back-power its producer.
-      merge(candidate, netOf(comp, outputPin), output)
+      for (const pin of outputPins) {
+        const voltage = outputs?.[pin]
+        // Reserve inactive outputs too: a load cannot back-power its producer.
+        merge(candidate, netOf(comp, pin), typeof voltage === 'number' && Number.isFinite(voltage)
+          && voltage >= 0 ? { voltage, reference: reference.reference } : null)
+      }
     }
     const authorities = new Set(candidate.keys())
     const topologySignals = new Map(pinSignals)

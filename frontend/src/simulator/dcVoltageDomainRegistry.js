@@ -5,6 +5,14 @@
  * or null. The resolver calls it only with a resolved positive input relative
  * to referencePin, and keeps the output in that same reference domain.
  * Pin IDs must be distinct canonical pins. Production entries use the same generic PREQ contract.
+ *
+ * A11-ANALOG-PREQ1 — controlled analog form, observing several numeric pins:
+ * { inputPins, referencePin, outputPins, contribute }. The pure
+ * contribute({ inputVoltages, params }) receives { [inputPin]: volts } (finite,
+ * >= 0, relative to referencePin) and returns { [outputPin]: volts | null };
+ * an omitted or invalid pin is unresolved. The resolver calls it only when
+ * EVERY input shares the resolved referencePin domain, never from HIGH/LOW.
+ * The single-input form above is the one-input, one-output case of this form.
  */
 const contributions = new Map([
   ['VOLTAGE_REGULATOR', {
