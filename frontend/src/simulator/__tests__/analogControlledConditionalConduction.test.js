@@ -245,9 +245,9 @@ describe('A11-ANALOG-PREQ2 analog-controlled conditional conduction', () => {
     expect(code.match(/(?:comp|component)\.type\s*(?:===|!==)\s*['"][^'"]+['"]/g)).toEqual(['comp.type !== "ARDUINO"'])
     expect(code).not.toMatch(/switch\s*\([^)]*\.type/)
     expect(code.match(/resolveSignals\(/g)).toHaveLength(1)
-    for (const name of ['resolution.js', 'analogConditionalConductionRegistry.js']) {
-      expect(src(name)).not.toMatch(/555|556|LM339|LM393|LM358|OP_?AMP|4N35|OPTOCOUPLER|COMPARATOR|FIXTURE/i)
-    }
+    expect(src('resolution.js')).not.toMatch(/555|556|LM339|LM393|LM358|OP_?AMP|4N35|OPTOCOUPLER|COMPARATOR|FIXTURE/i)
+    // A11-COMP1: the registry is where production A11 types belong; it never holds test fixtures.
+    expect(src('analogConditionalConductionRegistry.js')).not.toMatch(/FIXTURE/i)
   })
   it('T25 fixture types are absent from production registries', async () => {
     const analog = await vi.importActual('../analogConditionalConductionRegistry.js')

@@ -349,6 +349,28 @@ const ASSEMBLY_PROFILES = {
       "4Q": { root: { dx: 103, dy: 8 }, style: "metallic-wire" },
     },
   },
+  // A11-COMP1 : TI LM339NE4 N / PDIP-14 (raster CSA FROZEN 120x64). Geometrie electrique
+  // NORMALISEE CSA (manifest.json geometryBasis.pixelProbed = false) : aucune mesure mecanique ni
+  // pixel-probe ; roots = PhysicalContacts FROZEN (rangees y=16 / y=48, pas 12). Aucun bodyClip.
+  LM339NE4: {
+    kind: "through-hole",
+    leads: {
+      "1OUT": { root: { dx: 24, dy: 48 }, style: "metallic-wire" },
+      "2OUT": { root: { dx: 36, dy: 48 }, style: "metallic-wire" },
+      VCC: { root: { dx: 48, dy: 48 }, style: "metallic-wire" },
+      "2IN-": { root: { dx: 60, dy: 48 }, style: "metallic-wire" },
+      "2IN+": { root: { dx: 72, dy: 48 }, style: "metallic-wire" },
+      "1IN-": { root: { dx: 84, dy: 48 }, style: "metallic-wire" },
+      "1IN+": { root: { dx: 96, dy: 48 }, style: "metallic-wire" },
+      "3IN-": { root: { dx: 96, dy: 16 }, style: "metallic-wire" },
+      "3IN+": { root: { dx: 84, dy: 16 }, style: "metallic-wire" },
+      "4IN-": { root: { dx: 72, dy: 16 }, style: "metallic-wire" },
+      "4IN+": { root: { dx: 60, dy: 16 }, style: "metallic-wire" },
+      GND: { root: { dx: 48, dy: 16 }, style: "metallic-wire" },
+      "4OUT": { root: { dx: 36, dy: 16 }, style: "metallic-wire" },
+      "3OUT": { root: { dx: 24, dy: 16 }, style: "metallic-wire" },
+    },
+  },
   // A9-COUNTER1 : 74HC161 DIP-16 (raster Founder PASS/FROZEN, derive isotrope 120x64, pack CSA
   // LOCKED). Le Founder est une photographie EN PERSPECTIVE : ses pattes ne sont pas des
   // probes electriques fiables. Apparence (raster) et geometrie electrique sont donc

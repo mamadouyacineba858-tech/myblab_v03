@@ -619,6 +619,26 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "VSS", label: "VSS", dx: 72, dy: 54, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "VSS", dx: 72, dy: 54, wireConnectable: true, breadboardInsertable: false }] },
     { id: "DIN", label: "DIN", dx: 72, dy: 18, wireConnectable: true, breadboardInsertable: false, contacts: [{ id: "DIN", dx: 72, dy: 18, wireConnectable: true, breadboardInsertable: false }] },
   ],
+  // A11-COMP1 : TI LM339NE4 N / PDIP-14, raster CSA FROZEN 120x64. 14 pins ELECTRIQUES = 14
+  // PhysicalContacts FROZEN (manifest.json physicalContacts) = geometrie electrique NORMALISEE CSA,
+  // jamais pixel-probee : rangee basse y=48 (broches 1..7, gauche -> droite), rangee haute y=16
+  // (broches 14..8, gauche -> droite), pas 12, ecartement 32.
+  LM339NE4: [
+    { id: "1OUT", label: "1OUT", dx: 24, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1OUT", dx: 24, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2OUT", label: "2OUT", dx: 36, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2OUT", dx: 36, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC", label: "VCC", dx: 48, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 48, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2IN-", label: "2IN-", dx: 60, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2IN-", dx: 60, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2IN+", label: "2IN+", dx: 72, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2IN+", dx: 72, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1IN-", label: "1IN-", dx: 84, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1IN-", dx: 84, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1IN+", label: "1IN+", dx: 96, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1IN+", dx: 96, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3IN-", label: "3IN-", dx: 96, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3IN-", dx: 96, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3IN+", label: "3IN+", dx: 84, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3IN+", dx: 84, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4IN-", label: "4IN-", dx: 72, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4IN-", dx: 72, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4IN+", label: "4IN+", dx: 60, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4IN+", dx: 60, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 48, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 48, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "4OUT", label: "4OUT", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "4OUT", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "3OUT", label: "3OUT", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "3OUT", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   // A5-ZENER_DIODE — asset Founder PASS FROZEN 144×72, pixel-probe réel
   // (alpha>=32, createImageBitmap/getImageData sur le fichier livré) :
   // bounding box opaque globale (1x) x∈[0,143] y∈[7,63] (== manifest.json
@@ -809,6 +829,8 @@ export const COMPONENT_TYPES = {
   LCD_16X2_WH1602B: { id: "LCD_16X2_WH1602B", label: "LCD 16x2 WH1602B", icon: "LCD_16X2_WH1602B", width: 378, height: 170, pins: buildPins("LCD_16X2_WH1602B") },
   // A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 : VISUAL-ONLY (Founder Canvas Visual Gate), aucune simulation NeoPixel.
   WS2812B_V6: { id: "WS2812B_V6", label: "NeoPixel — WS2812B-V6", manufacturer: "WORLDSEMI", icon: "WS2812B_V6", width: 72, height: 72, pins: buildPins("WS2812B_V6") },
+  // A11-COMP1 : quad comparateur open-collector (conduction analogique PREQ2, aucun HIGH produit).
+  LM339NE4: { id: "LM339NE4", label: "LM339 Quad Comparator", manufacturer: "Texas Instruments", icon: "LM339NE4", width: 120, height: 64, pins: buildPins("LM339NE4") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -835,7 +857,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY, COMPONENT_TYPES.LCD_16X2_WH1602B, COMPONENT_TYPES.WS2812B_V6]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY, COMPONENT_TYPES.LCD_16X2_WH1602B, COMPONENT_TYPES.WS2812B_V6, COMPONENT_TYPES.LM339NE4]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

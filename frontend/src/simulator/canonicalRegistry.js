@@ -170,9 +170,13 @@ const DECLARED_TYPES_PINS = {
   // broches physiques 1..4 (VDD DOUT VSS DIN). VISUAL-ONLY : absent de DECLARED_MODEL_AVAILABLE
   // (modelAvailable false, comme LED/RGB_LED) ; aucun protocole NeoPixel dans ce ticket.
   WS2812B_V6:[{id:'VDD',role:'power'},{id:'DOUT',role:'output'},{id:'VSS',role:'ground'},{id:'DIN',role:'input'}],
+  // A11-COMP1 : Texas Instruments LM339NE4, N / PDIP-14, quad comparateur differentiel a sorties
+  // open-collector - 14 pins ELECTRIQUES, ordre = broches physiques 1..14 (top view, pinout TI).
+  // Level-1 porte exclusivement par analogConditionalConductionRegistry (A11-ANALOG-PREQ2).
+  LM339NE4:[{id:'1OUT',role:'output'},{id:'2OUT',role:'output'},{id:'VCC',role:'power'},{id:'2IN-',role:'input'},{id:'2IN+',role:'input'},{id:'1IN-',role:'input'},{id:'1IN+',role:'input'},{id:'3IN-',role:'input'},{id:'3IN+',role:'input'},{id:'4IN-',role:'input'},{id:'4IN+',role:'input'},{id:'GND',role:'ground'},{id:'4OUT',role:'output'},{id:'3OUT',role:'output'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY','LCD_16X2_WH1602B','WS2812B_V6']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY','LCD_16X2_WH1602B','WS2812B_V6','LM339NE4']
 
 const DECLARED_PARAMETER_SCHEMA = {
   AND_GATE:[],
@@ -187,6 +191,7 @@ const DECLARED_PARAMETER_SCHEMA = {
   D_LATCH_74HC75:[],
   BINARY_COUNTER_74HC161:[],
   LCD_16X2_WH1602B:[],
+  LM339NE4:[],
   VOLTAGE_REGULATOR:[{key:'outputVoltage',parameterType:'voltage',unit:'V',minimum:0.001,maximum:1000,defaultValue:5,description:'Tension de sortie DC idéale Level-1, disponible si la tension IN est au moins égale à cette valeur.'}],
   BATTERY_AA:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:1.5,maximum:1.5,defaultValue:1.5,description:'Tension nominale fixe de la pile'}],
   COIN_CELL_CR2032:[{key:'voltage',parameterType:'voltage',unit:'V',minimum:3,maximum:3,defaultValue:3,description:'Tension nominale fixe de la pile'}],
@@ -399,6 +404,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   D_LATCH_74HC75:{},
   BINARY_COUNTER_74HC161:{},
   LCD_16X2_WH1602B:{},
+  LM339NE4:{},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -479,6 +485,9 @@ const DECLARED_CAPABILITIES = {
   BINARY_COUNTER_74HC161:['digital'],
   // A10-DISP2 : controleur ST7066U, etat DDRAM via le registre timed/stateful (aucune sortie, aucune contribution DC).
   LCD_16X2_WH1602B:['digital'],
+  // A11-COMP1 : aucune capability historique (ruling CSA) - ni modele logique 'digital', ni
+  // contribution 'dc' propre ; comportement porte par la conduction analogique PREQ2.
+  LM339NE4:[],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -525,6 +534,7 @@ const DECLARED_MODEL_AVAILABLE = {
   D_LATCH_74HC75:true,
   BINARY_COUNTER_74HC161:true,
   LCD_16X2_WH1602B:true,
+  LM339NE4:true,
 }
 
 /**

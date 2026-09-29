@@ -16,7 +16,31 @@
  * conflict null → UNKNOWN; no fact → historical signal kept). Pins not listed
  * are never projected. The projection never feeds back into this step.
  */
-const contributions = new Map()
+/**
+ * Independent open-collector comparator channels: while V(plus) < V(minus) the
+ * channel output conducts to referencePin, otherwise it is high-Z (no pair).
+ * Equality is high-Z. No voltage and no HIGH is ever produced here.
+ */
+export function createOpenCollectorComparators({ channels, referencePin }) {
+  return {
+    inputPins: channels.flatMap(({ plus, minus }) => [plus, minus]),
+    referencePin,
+    digitalProjectionPins: channels.map(({ output }) => output),
+    contribute({ inputVoltages }) {
+      return channels
+        .filter(({ plus, minus }) => inputVoltages[plus] < inputVoltages[minus])
+        .map(({ output }) => [output, referencePin])
+    },
+  }
+}
+
+const contributions = new Map([
+  // A11-COMP1 : TI LM339NE4 quad comparator, Level-1 (no offset, hysteresis, delay or saturation model).
+  ['LM339NE4', createOpenCollectorComparators({
+    referencePin: 'GND',
+    channels: [1, 2, 3, 4].map((n) => ({ plus: `${n}IN+`, minus: `${n}IN-`, output: `${n}OUT` })),
+  })],
+])
 
 export function getAnalogConditionalConduction(type) {
   return contributions.get(type) ?? null

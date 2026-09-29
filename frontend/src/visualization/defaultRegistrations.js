@@ -52,6 +52,7 @@ import { BinaryCounter74HC161Part } from '../components/parts/BinaryCounter74HC1
 import { SevenSegmentDisplayPart } from '../components/parts/SevenSegmentDisplayPart.jsx'
 import { LcdWh1602bPart } from '../components/parts/LcdWh1602bPart.jsx'
 import { Ws2812bV6Part } from '../components/parts/Ws2812bV6Part.jsx'
+import { Lm339ne4Part } from '../components/parts/Lm339ne4Part.jsx'
 import { PmosPart } from '../components/parts/PmosPart.jsx'
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
@@ -211,6 +212,8 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'LCD_16X2_WH1602B', component: LcdWh1602bPart, visual: { backend: 'raster' } },
   // A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 : raster CSA FROZEN WS2812B-V6, VISUAL-ONLY (aucun Visual State).
   { type: 'WS2812B_V6', component: Ws2812bV6Part, visual: { backend: 'raster' } },
+  // A11-COMP1 : raster CSA FROZEN TI LM339NE4 ; renderer purement visuel (logique dans le registre PREQ2).
+  { type: 'LM339NE4', component: Lm339ne4Part, visual: { backend: 'raster' } },
   { type: 'PMOS', component: PmosPart, visual: { backend: 'raster' } },
   { type: 'RELAY', component: RelayPart, visual: { backend: 'raster' } },
   // SERVO : porté au backend raster (asset réaliste validé MB-VIS-COMP-035,

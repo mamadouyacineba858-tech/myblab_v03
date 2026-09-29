@@ -361,6 +361,16 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       canonical: { width: m.runtimeCanvasPx.width, height: m.runtimeCanvasPx.height },
       assets: Object.values(m.runtime.files).flat().map((file) => ({ file })),
     }),
+    // A11-COMP1 : le manifest CSA FROZEN du TI LM339NE4 (dossier `lm339ne4/` = dérivation kebab du
+    // type) suit le même schéma `runtimeCanvasPx` + `runtime.files{1x,3x}` que WS2812B-V6.
+    // Adaptateur déclaré, en lecture seule ; octets/sha256 vérifiés contre ASSET-INTEGRITY.json.
+    LM339NE4: (m) => ({
+      component: "LM339NE4",
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.runtimeCanvasPx.width, height: m.runtimeCanvasPx.height },
+      assets: Object.values(m.runtime.files).flat().map((file) => ({ file })),
+    }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 

@@ -28,6 +28,7 @@ import { DLatch74HC75Model } from './models/DLatch74HC75Model.js'
 import { BinaryCounter74HC161Model } from './models/BinaryCounter74HC161Model.js'
 import { Lcd16x2WH1602BModel } from './models/Lcd16x2WH1602BModel.js'
 import { HBridgeModel } from './models/HBridgeModel.js'
+import { Lm339ne4Model } from './models/Lm339ne4Model.js'
 import { PmosModel } from './models/PmosModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
 import { Tmp36Model } from './models/Tmp36Model.js'
@@ -151,6 +152,7 @@ const defaultRegistry = createSimulationRegistry({
     DLatch74HC75Model,
     BinaryCounter74HC161Model,
     Lcd16x2WH1602BModel,
+    Lm339ne4Model,
     RelayModel,
     Tmp36Model,
     ForceSensorModel,
