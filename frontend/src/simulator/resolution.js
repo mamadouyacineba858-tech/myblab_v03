@@ -439,7 +439,7 @@ function computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains, l
  * semantics: strictly positive input and strictly positive output.
  */
 function controlledDomainContract(contract) {
-  if (Array.isArray(contract.inputPins)) return contract
+  if (Array.isArray(contract.inputPins) || Array.isArray(contract.groups)) return contract
   const { inputPin, referencePin, outputPin, contribute } = contract
   return {
     inputPins: [inputPin], referencePin, outputPins: [outputPin],
@@ -489,6 +489,16 @@ function analogConductionGroups(contract) {
   const groups = Array.isArray(contract.groups) ? contract.groups
     : [{ inputPins: contract.inputPins, contribute: contract.contribute }]
   return groups.filter((group) => group && Array.isArray(group.inputPins) && typeof group.contribute === 'function')
+}
+
+/**
+ * A11-COMP3-PREQ1 — independent groups of a controlled DC-domain contract.
+ * A contract without `groups` is its own single group.
+ */
+function controlledDomainGroups(contract) {
+  const groups = Array.isArray(contract.groups) ? contract.groups
+    : [{ inputPins: contract.inputPins, outputPins: contract.outputPins, contribute: contract.contribute }]
+  return groups.filter((group) => group && Array.isArray(group.inputPins) && Array.isArray(group.outputPins))
 }
 
 /**
@@ -580,13 +590,19 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
   for (let round = 0; round <= allKeys.length + contributors.length + analogConductors.length; round++) {
     const candidate = new Map(primary)
     for (const { comp, contract } of contributors) {
-      const observed = observe(previous, comp, contract)
-      const outputs = observed && contract.contribute({ inputVoltages: observed.inputVoltages, params: observed.params })
-      for (const pin of contract.outputPins) {
-        const voltage = outputs?.[pin]
-        // Reserve inactive outputs too: a load cannot back-power its producer.
-        merge(candidate, netOf(comp, pin), typeof voltage === 'number' && Number.isFinite(voltage)
-          && voltage >= 0 ? { voltage, reference: observed.reference } : null)
+      // Activation is component-wide; each group is observed on its own inputs, so an
+      // unresolved group reserves only its own outputs, never those of the other groups.
+      const active = powered(previous, comp, contract)
+      for (const { inputPins, outputPins, contribute } of controlledDomainGroups(contract)) {
+        const observed = active && typeof contribute === 'function'
+          && observe(previous, comp, { inputPins, referencePin: contract.referencePin })
+        const outputs = observed && contribute({ inputVoltages: observed.inputVoltages, params: observed.params })
+        for (const pin of outputPins) {
+          const voltage = outputs?.[pin]
+          // Reserve inactive outputs too: a load cannot back-power its producer.
+          merge(candidate, netOf(comp, pin), typeof voltage === 'number' && Number.isFinite(voltage)
+            && voltage >= 0 ? { voltage, reference: observed.reference } : null)
+        }
       }
     }
     // Each observation group is evaluated on its own inputs: an unresolved group selects

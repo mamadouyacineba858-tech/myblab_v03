@@ -13,6 +13,15 @@
  * an omitted or invalid pin is unresolved. The resolver calls it only when
  * EVERY input shares the resolved referencePin domain, never from HIGH/LOW.
  * The single-input form above is the one-input, one-output case of this form.
+ *
+ * A11-COMP3-PREQ1 — grouped form, additive to both forms above:
+ * { referencePin, requiredPositivePins?, groups: [{ inputPins, outputPins, contribute }] }.
+ * Each group is observed on its own inputPins with the same rules and its
+ * contribute({ inputVoltages, params }) drives only its own outputPins; an
+ * unresolved group reserves its outputs as unresolved without affecting the
+ * other groups. Optional requiredPositivePins is component-wide activation:
+ * each pin must be a finite > 0 V fact of the referencePin domain, otherwise
+ * no group contributes and every group output is reserved as unresolved.
  */
 const contributions = new Map([
   ['VOLTAGE_REGULATOR', {

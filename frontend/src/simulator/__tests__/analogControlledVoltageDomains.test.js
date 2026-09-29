@@ -31,7 +31,28 @@ const FIXTURES = {
       contribute: ({ inputVoltages }) => ({ out: inputVoltages.in }),
     },
   },
+  // A11-COMP3-PREQ1 — two independent groups under one component-wide supply.
+  // A: aPlus - aMinus (0 below; equal inputs omit aOut). B: mean (equal inputs return NaN).
+  GROUPED_ANALOG_FIXTURE: {
+    pins: ['aPlus', 'aMinus', 'aOut', 'bPlus', 'bMinus', 'bOut', 'reference', 'supply'],
+    contract: {
+      referencePin: 'reference', requiredPositivePins: ['supply'],
+      groups: [
+        { inputPins: ['aPlus', 'aMinus'], outputPins: ['aOut'],
+          contribute: ({ inputVoltages: { aPlus, aMinus } }) => {
+            groupCalls.A++
+            return aPlus === aMinus ? {} : { aOut: Math.max(aPlus - aMinus, 0) }
+          } },
+        { inputPins: ['bPlus', 'bMinus'], outputPins: ['bOut'],
+          contribute: ({ inputVoltages: { bPlus, bMinus } }) => {
+            groupCalls.B++
+            return { bOut: bPlus === bMinus ? NaN : (bPlus + bMinus) / 2 }
+          } },
+      ],
+    },
+  },
 }
+const groupCalls = { A: 0, B: 0 }
 
 vi.mock('../canonicalRegistry.js', async (original) => {
   const actual = await original()
@@ -251,6 +272,171 @@ describe('A11-ANALOG-PREQ1 controlled analog voltage domains', () => {
       const code = executable(text)
       expect(code).not.toMatch(/\b(?:React|document|window|canvas|getContext)\b/)
       expect(code).not.toMatch(/Date\.now|new Date|performance\.now|setTimeout|setInterval|requestAnimationFrame/)
+    }
+  })
+})
+
+/**
+ * Grouped fixture driven by one adjustable primary per input/supply pin. Every
+ * primary ground joins `reference` unless isolated; a floating pin is unwired.
+ */
+function grouped({ levels = {}, floating = [], isolated = [], groundSupply = false, loads = false, chain = false } = {}) {
+  const drive = { aPlus: 3, aMinus: 1, bPlus: 4, bMinus: 2, supply: 5, ...levels }
+  const components = [{ uid: 'g', type: 'GROUPED_ANALOG_FIXTURE' }, power('gnd', 5)]
+  const wires = [wire('gnd', 'GND', 'g', 'reference')]
+  for (const [pin, voltage] of Object.entries(drive)) {
+    if (floating.includes(pin) || (pin === 'supply' && groundSupply) || (pin === 'bPlus' && chain)) continue
+    components.push(power(`v_${pin}`, voltage))
+    wires.push(wire(`v_${pin}`, '5V', 'g', pin))
+    if (!isolated.includes(pin)) wires.push(wire(`v_${pin}`, 'GND', 'g', 'reference'))
+  }
+  if (groundSupply) wires.push(wire('gnd', 'GND', 'g', 'supply'))
+  if (loads) {
+    components.push({ uid: 'loadA', type: 'RESISTOR' }, { uid: 'loadB', type: 'RESISTOR' })
+    wires.push(wire('g', 'aOut', 'loadA', 'A'), wire('gnd', 'GND', 'loadA', 'B'),
+      wire('g', 'bOut', 'loadB', 'A'), wire('gnd', 'GND', 'loadB', 'B'))
+  }
+  if (chain) {
+    // aOut feeds group B of the same component and a downstream controlled follower.
+    components.push({ uid: 'f', type: 'ANALOG_FOLLOW_FIXTURE' })
+    wires.push(wire('g', 'aOut', 'g', 'bPlus'), wire('g', 'aOut', 'f', 'in'), wire('gnd', 'GND', 'f', 'reference'))
+  }
+  return { components, wires }
+}
+const runCounted = (c) => {
+  groupCalls.A = 0
+  groupCalls.B = 0
+  return run(c)
+}
+const volts = (result, key) => domain(result, key)?.voltage
+const sharesReference = (result, key) => domain(result, key).reference === domain(result, 'g:reference').reference
+
+describe('A11-COMP3-PREQ1 independent controlled analog groups', () => {
+  it('G1 produces both outputs when both groups are resolved', () => {
+    const result = runCounted(grouped())
+    expect(volts(result, 'g:aOut')).toBe(2)
+    expect(volts(result, 'g:bOut')).toBe(3)
+    expect(sharesReference(result, 'g:aOut') && sharesReference(result, 'g:bOut')).toBe(true)
+    expect(groupCalls.A).toBeGreaterThan(0)
+    expect(groupCalls.B).toBeGreaterThan(0)
+  })
+  it('G2 an unresolved input of group A reserves only aOut', () => {
+    const result = runCounted(grouped({ floating: ['aMinus'] }))
+    expect(domain(result, 'g:aOut')).toBeNull()
+    expect(volts(result, 'g:bOut')).toBe(3)
+    expect(groupCalls.A).toBe(0)
+  })
+  it('G3 an unresolved input of group B reserves only bOut', () => {
+    const result = runCounted(grouped({ floating: ['bPlus'] }))
+    expect(domain(result, 'g:bOut')).toBeNull()
+    expect(volts(result, 'g:aOut')).toBe(2)
+    expect(groupCalls.B).toBe(0)
+  })
+  it('G4 an input of another reference domain invalidates only its own group', () => {
+    const a = run(grouped({ isolated: ['aMinus'] }))
+    expect(domain(a, 'g:aMinus').reference).not.toBe(domain(a, 'g:reference').reference)
+    expect(domain(a, 'g:aOut')).toBeNull()
+    expect(volts(a, 'g:bOut')).toBe(3)
+    const b = run(grouped({ isolated: ['bPlus'] }))
+    expect(domain(b, 'g:bOut')).toBeNull()
+    expect(volts(b, 'g:aOut')).toBe(2)
+  })
+  it('G5 a floating required positive pin disables every group without calling contribute', () => {
+    const result = runCounted(grouped({ floating: ['supply'] }))
+    expect(domain(result, 'g:aOut')).toBeNull()
+    expect(domain(result, 'g:bOut')).toBeNull()
+    expect(groupCalls).toEqual({ A: 0, B: 0 })
+  })
+  it('G6 a 0 V required positive pin disables every group', () => {
+    const result = runCounted(grouped({ groundSupply: true }))
+    expect(domain(result, 'g:supply')).toMatchObject({ voltage: 0 })
+    expect(domain(result, 'g:aOut')).toBeNull()
+    expect(domain(result, 'g:bOut')).toBeNull()
+    expect(groupCalls).toEqual({ A: 0, B: 0 })
+  })
+  it('G7 a required positive pin of an isolated domain disables every group', () => {
+    const result = runCounted(grouped({ isolated: ['supply'] }))
+    expect(volts(result, 'g:supply')).toBe(5)
+    expect(sharesReference(result, 'g:supply')).toBe(false)
+    expect(domain(result, 'g:aOut')).toBeNull()
+    expect(domain(result, 'g:bOut')).toBeNull()
+    expect(groupCalls).toEqual({ A: 0, B: 0 })
+  })
+  it('G8 a missing or invalid output of one group reserves only that output', () => {
+    const missing = run(grouped({ levels: { aPlus: 2, aMinus: 2 } }))
+    expect(domain(missing, 'g:aOut')).toBeNull()
+    expect(volts(missing, 'g:bOut')).toBe(3)
+    const invalid = run(grouped({ levels: { bPlus: 2, bMinus: 2 } }))
+    expect(domain(invalid, 'g:bOut')).toBeNull()
+    expect(volts(invalid, 'g:aOut')).toBe(2)
+  })
+  it('G9 groups produce distinct numeric outputs simultaneously', () => {
+    const result = run(grouped({ levels: { aPlus: 5, aMinus: 1, bPlus: 1, bMinus: 2 } }))
+    expect(volts(result, 'g:aOut')).toBe(4)
+    expect(volts(result, 'g:bOut')).toBe(1.5)
+    const low = run(grouped({ levels: { aPlus: 1, aMinus: 3 } }))
+    expect(volts(low, 'g:aOut')).toBe(0)
+    expect(volts(low, 'g:bOut')).toBe(3)
+  })
+  it('G10 valid outputs feed downstream loads; a load never back-powers an inactive group', () => {
+    const result = run(grouped({ loads: true }))
+    expect(result.dcAnalysis.get('loadA')).toEqual({ voltage: 2, current: 2 / 220 })
+    expect(result.dcAnalysis.get('loadB')).toEqual({ voltage: 3, current: 3 / 220 })
+    const partial = run(grouped({ loads: true, floating: ['aMinus'] }))
+    expect(domain(partial, 'g:aOut')).toBeNull()
+    expect(partial.dcAnalysis.has('loadA')).toBe(false)
+    expect(partial.dcAnalysis.get('loadB')).toEqual({ voltage: 3, current: 3 / 220 })
+  })
+  it('G11 a grouped output converges as the input of controlled contributors', () => {
+    const result = run(grouped({ chain: true, levels: { bMinus: 4 } }))
+    expect(volts(result, 'g:aOut')).toBe(2)
+    expect(volts(result, 'g:bPlus')).toBe(2)
+    expect(volts(result, 'g:bOut')).toBe(3)
+    expect(volts(result, 'f:out')).toBe(2)
+    const unresolved = run(grouped({ chain: true, levels: { bMinus: 4 }, floating: ['aMinus'] }))
+    expect(domain(unresolved, 'g:bOut')).toBeNull()
+    expect(domain(unresolved, 'f:out')).toBeNull()
+  })
+  it('G12 is independent of component ordering', () => {
+    const c = grouped({ chain: true, loads: true, levels: { bMinus: 4 } })
+    const expected = normalized(run(c))
+    for (let i = 0; i < c.components.length; i++) {
+      const components = [...c.components.slice(i), ...c.components.slice(0, i)]
+      expect(normalized(run({ components, wires: c.wires }))).toEqual(expected)
+      expect(normalized(run({ components: [...components].reverse(), wires: c.wires }))).toEqual(expected)
+    }
+  })
+  it('G13 is independent of wire ordering', () => {
+    const c = grouped({ chain: true, loads: true, levels: { bMinus: 4 } })
+    const expected = normalized(run(c))
+    for (let i = 0; i < c.wires.length; i++) {
+      const wires = [...c.wires.slice(i), ...c.wires.slice(0, i)]
+      expect(normalized(run({ components: c.components, wires }))).toEqual(expected)
+      expect(normalized(run({ components: c.components, wires: [...wires].reverse() }))).toEqual(expected)
+    }
+  })
+  it('G14 repeated executions give identical results', () => {
+    const c = grouped({ chain: true, loads: true, levels: { bMinus: 4 } })
+    const first = normalized(run(c))
+    for (let i = 0; i < 3; i++) expect(normalized(run(c))).toEqual(first)
+  })
+  const scenarios = () => [grouped(), grouped({ floating: ['aMinus'] }), grouped({ floating: ['supply'] }),
+    grouped({ isolated: ['bPlus'] }), grouped({ levels: { bPlus: 2, bMinus: 2 } }),
+    grouped({ chain: true, loads: true, levels: { bMinus: 4 } })]
+  it('G15 keeps pinSignals exclusively Signal.*', () => {
+    for (const c of scenarios()) {
+      const result = run(c)
+      expect(onlySignals(result)).toBe(true)
+      expect([...result.pinSignals.values()].some(v => typeof v === 'number')).toBe(false)
+    }
+  })
+  it('G16 keeps numeric voltages only in dcVoltageDomains', () => {
+    for (const c of scenarios()) {
+      for (const fact of run(c).dcVoltageDomains.values()) {
+        if (fact === null || fact === undefined) continue
+        expect(Number.isFinite(fact.voltage) && fact.voltage >= 0).toBe(true)
+        expect(typeof fact.reference).toBe('string')
+      }
     }
   })
 })
