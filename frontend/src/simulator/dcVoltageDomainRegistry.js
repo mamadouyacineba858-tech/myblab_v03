@@ -22,6 +22,18 @@
  * other groups. Optional requiredPositivePins is component-wide activation:
  * each pin must be a finite > 0 V fact of the referencePin domain, otherwise
  * no group contributes and every group output is reserved as unresolved.
+ *
+ * A11-COMP3-PREQ2 — explicit, opt-in scalar feedback of ONE group (or of the
+ * non-grouped form): feedback: { mode: 'scalar-bounded', characteristic:
+ * 'single-root', variableOutputPin, bounds({ supplyVoltages, params }) =>
+ * { min, max } }. supplyVoltages holds the resolved requiredPositivePins
+ * volts. When the group's only output (variableOutputPin) is wired directly
+ * (same net, never through a passive part) to some of its own inputPins, and
+ * at least one input stays external, the resolver solves x = F(x) with the
+ * SAME contribute() law, x substituted on those feedback pins, by bounded
+ * bisection within [min, max] (see controlledAnalogFeedbackSolver.js). Any
+ * other dependency cycle, or any failed solve, leaves the outputs unresolved.
+ * A contributor without `feedback` is never solved, whatever its wiring.
  */
 const contributions = new Map([
   ['VOLTAGE_REGULATOR', {

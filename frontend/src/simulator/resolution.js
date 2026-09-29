@@ -6,6 +6,7 @@ import { getCanonicalEntry } from "./canonicalRegistry.js"
 import { getDcContribution, getUnconditionalConductionPinPair } from "./dcContributionRegistry.js"
 import { getConditionalConduction } from "./conditionalConductionRegistry.js"
 import { resolveComponentParameters } from "./resolveComponentParameters.js"
+import { solveScalarFeedback, stronglyConnectedComponents } from "./controlledAnalogFeedbackSolver.js"
 
 /**
  * MB-SIM-006 : Résolution (ADR-004).
@@ -497,8 +498,59 @@ function analogConductionGroups(contract) {
  */
 function controlledDomainGroups(contract) {
   const groups = Array.isArray(contract.groups) ? contract.groups
-    : [{ inputPins: contract.inputPins, outputPins: contract.outputPins, contribute: contract.contribute }]
+    : [{ inputPins: contract.inputPins, outputPins: contract.outputPins, contribute: contract.contribute,
+      feedback: contract.feedback }]
   return groups.filter((group) => group && Array.isArray(group.inputPins) && Array.isArray(group.outputPins))
+}
+
+const pinList = (pins) => Array.isArray(pins) ? pins : []
+
+/**
+ * A11-COMP3-PREQ2 — static controlled-analog dependency plan. Nodes are
+ * controlled groups plus analog conductors; an edge u → v exists when a net u
+ * drives (by direct physical net identity only, never through a passive part)
+ * is a net v reads. Acyclic groups keep the historical path ('forward'), as
+ * does any cycle through an analog conductor (solution-dependent topology is
+ * never solved here). Other cycles are 'unsupported' (outputs reserved null,
+ * as the historical rounds already deadlock them) unless the cycle is ONE
+ * group whose explicit scalar feedback contract closes through its own input
+ * pins on the net of its single variable output, with at least one external
+ * input and no other authority, producer or conductor on that net.
+ */
+function planControlledFeedback(controlled, analogConductors, netOf, primary) {
+  const nets = (comp, pins) => new Set(pins.map((pin) => netOf(comp, pin)).filter((net) => net !== undefined))
+  const nodes = [
+    ...controlled.map(({ comp, contract, group }) => ({
+      reads: nets(comp, [...group.inputPins, ...pinList(contract.requiredPositivePins)]),
+      drives: nets(comp, group.outputPins),
+    })),
+    ...analogConductors.map(({ comp, contract }) => {
+      const observed = [...pinList(contract.inputPins), ...analogConductionGroups(contract).flatMap((g) => g.inputPins),
+        ...pinList(contract.requiredPositivePins), contract.referencePin]
+      const pins = (getCanonicalEntry(comp.type)?.pins ?? []).map((pin) => pin.id)
+      return { reads: nets(comp, observed), drives: nets(comp, pins.filter((pin) => !observed.includes(pin))), conductor: true }
+    }),
+  ]
+  const adjacency = nodes.map((from) => nodes.flatMap((to, index) =>
+    [...from.drives].some((net) => to.reads.has(net)) ? [index] : []))
+  const { component, cyclic } = stronglyConnectedComponents(adjacency)
+  return controlled.map(({ comp, contract, group }, index) => {
+    const members = nodes.filter((_, other) => component[other] === component[index])
+    if (!cyclic[component[index]] || members.some((node) => node.conductor)) return { kind: 'forward' }
+    const feedback = group.feedback
+    const variable = feedback?.variableOutputPin
+    const unknown = netOf(comp, variable)
+    const feedbackPins = group.inputPins.filter((pin) => netOf(comp, pin) === unknown)
+    const supported = members.length === 1 && feedback?.mode === 'scalar-bounded'
+      && feedback.characteristic === 'single-root' && typeof feedback.bounds === 'function'
+      && group.outputPins.length === 1 && group.outputPins[0] === variable && unknown !== undefined
+      && feedbackPins.length > 0 && feedbackPins.length < group.inputPins.length
+      && ![...pinList(contract.requiredPositivePins), contract.referencePin].some((pin) => netOf(comp, pin) === unknown)
+      && !primary.has(unknown) && !nodes.some((node, other) => other !== index && node.drives.has(unknown))
+    return supported
+      ? { kind: 'feedback', variable, feedbackPins, externalPins: group.inputPins.filter((pin) => !feedbackPins.includes(pin)) }
+      : { kind: 'unsupported' }
+  })
 }
 
 /**
@@ -585,26 +637,41 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
         && Number.isFinite(fact.voltage) && fact.voltage > 0
     })
   }
+  const controlled = contributors.flatMap(({ comp, contract }) =>
+    controlledDomainGroups(contract).map((group) => ({ comp, contract, group })))
+  const plans = planControlledFeedback(controlled, analogConductors, netOf, primary)
+  // A11-COMP3-PREQ2 — the same pure law F evaluated with a private candidate x on the
+  // feedback pins; x becomes an electrical fact only once validated by the solver.
+  const solveFeedback = (facts, comp, contract, group, plan, observed) => {
+    const supplyVoltages = Object.fromEntries(pinList(contract.requiredPositivePins)
+      .map((pin) => [pin, facts.get(netOf(comp, pin)).voltage]))
+    const transfer = (x) => group.contribute({
+      inputVoltages: { ...observed.inputVoltages, ...Object.fromEntries(plan.feedbackPins.map((pin) => [pin, x])) },
+      params: observed.params,
+    })?.[plan.variable]
+    return { [plan.variable]: solveScalarFeedback(transfer, group.feedback.bounds({ supplyVoltages, params: observed.params })) }
+  }
   let previous = primary
   const seen = new Set()
   for (let round = 0; round <= allKeys.length + contributors.length + analogConductors.length; round++) {
     const candidate = new Map(primary)
-    for (const { comp, contract } of contributors) {
+    controlled.forEach(({ comp, contract, group }, index) => {
       // Activation is component-wide; each group is observed on its own inputs, so an
       // unresolved group reserves only its own outputs, never those of the other groups.
-      const active = powered(previous, comp, contract)
-      for (const { inputPins, outputPins, contribute } of controlledDomainGroups(contract)) {
-        const observed = active && typeof contribute === 'function'
-          && observe(previous, comp, { inputPins, referencePin: contract.referencePin })
-        const outputs = observed && contribute({ inputVoltages: observed.inputVoltages, params: observed.params })
-        for (const pin of outputPins) {
-          const voltage = outputs?.[pin]
-          // Reserve inactive outputs too: a load cannot back-power its producer.
-          merge(candidate, netOf(comp, pin), typeof voltage === 'number' && Number.isFinite(voltage)
-            && voltage >= 0 ? { voltage, reference: observed.reference } : null)
-        }
+      const plan = plans[index]
+      const observed = plan.kind !== 'unsupported' && typeof group.contribute === 'function'
+        && powered(previous, comp, contract) && observe(previous, comp,
+        { inputPins: plan.kind === 'feedback' ? plan.externalPins : group.inputPins, referencePin: contract.referencePin })
+      const outputs = !observed ? null : plan.kind === 'feedback'
+        ? solveFeedback(previous, comp, contract, group, plan, observed)
+        : group.contribute({ inputVoltages: observed.inputVoltages, params: observed.params })
+      for (const pin of group.outputPins) {
+        const voltage = outputs?.[pin]
+        // Reserve inactive outputs too: a load cannot back-power its producer.
+        merge(candidate, netOf(comp, pin), typeof voltage === 'number' && Number.isFinite(voltage)
+          && voltage >= 0 ? { voltage, reference: observed.reference } : null)
       }
-    }
+    })
     // Each observation group is evaluated on its own inputs: an unresolved group selects
     // nothing without suppressing the other groups of the same powered component.
     const analogPairs = analogConductors.flatMap(({ comp, contract }) => !powered(previous, comp, contract) ? []
