@@ -1,0 +1,14 @@
+A11-COMP2-ASSET-FINALIZE — EXEC-004
+======================================
+Component: Texas Instruments LM393P
+Package: P / PDIP-8
+Founder gate: PASS
+Contact qualification: PASS
+Runtime 1x: 84x64
+Runtime 3x: 252x192
+Breadboard pitch: 12 px
+PhysicalContacts: 8
+Max measured horizontal contact error: 0.530 px
+Hash verification: PASS
+Pack consistency: PASS
+CSA_FROZEN: PASS

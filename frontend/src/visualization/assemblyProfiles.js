@@ -371,6 +371,22 @@ const ASSEMBLY_PROFILES = {
       "3OUT": { root: { dx: 24, dy: 16 }, style: "metallic-wire" },
     },
   },
+  // A11-COMP2 : TI LM393P P / PDIP-8 (raster CSA FROZEN 84x64). Geometrie electrique qualifiee
+  // CSA (pixel-probe du pack, ecart horizontal max 0.530 px) ; roots = PhysicalContacts CSA
+  // LOCKED (rangees y=16 / y=48, pas 12). Aucun bodyClip.
+  LM393P: {
+    kind: "through-hole",
+    leads: {
+      "1OUT": { root: { dx: 24, dy: 48 }, style: "metallic-wire" },
+      "1IN-": { root: { dx: 36, dy: 48 }, style: "metallic-wire" },
+      "1IN+": { root: { dx: 48, dy: 48 }, style: "metallic-wire" },
+      GND: { root: { dx: 60, dy: 48 }, style: "metallic-wire" },
+      VCC: { root: { dx: 24, dy: 16 }, style: "metallic-wire" },
+      "2OUT": { root: { dx: 36, dy: 16 }, style: "metallic-wire" },
+      "2IN-": { root: { dx: 48, dy: 16 }, style: "metallic-wire" },
+      "2IN+": { root: { dx: 60, dy: 16 }, style: "metallic-wire" },
+    },
+  },
   // A9-COUNTER1 : 74HC161 DIP-16 (raster Founder PASS/FROZEN, derive isotrope 120x64, pack CSA
   // LOCKED). Le Founder est une photographie EN PERSPECTIVE : ses pattes ne sont pas des
   // probes electriques fiables. Apparence (raster) et geometrie electrique sont donc

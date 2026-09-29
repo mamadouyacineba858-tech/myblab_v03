@@ -1,0 +1,86 @@
+{
+  "ticket": "A11-COMP2-ASSET-PROBE",
+  "status": "PASS",
+  "coordinateSpace": "84x64",
+  "breadboardPitchPx": 12,
+  "rowSpacingPx": 32,
+  "contacts": [
+    {
+      "pin": 1,
+      "name": "1OUT",
+      "x": 24,
+      "y": 48
+    },
+    {
+      "pin": 2,
+      "name": "1IN-",
+      "x": 36,
+      "y": 48
+    },
+    {
+      "pin": 3,
+      "name": "1IN+",
+      "x": 48,
+      "y": 48
+    },
+    {
+      "pin": 4,
+      "name": "GND",
+      "x": 60,
+      "y": 48
+    },
+    {
+      "pin": 8,
+      "name": "VCC",
+      "x": 24,
+      "y": 16
+    },
+    {
+      "pin": 7,
+      "name": "2OUT",
+      "x": 36,
+      "y": 16
+    },
+    {
+      "pin": 6,
+      "name": "2IN-",
+      "x": 48,
+      "y": 16
+    },
+    {
+      "pin": 5,
+      "name": "2IN+",
+      "x": 60,
+      "y": 16
+    }
+  ],
+  "probe": {
+    "runtimeMeasuredXCenters": [
+      23.827404887101764,
+      35.46984225177853,
+      48.05258274048871,
+      59.6331580575317
+    ],
+    "exactCandidateXGrid": [
+      24,
+      36,
+      48,
+      60
+    ],
+    "horizontalErrorsPx": [
+      -0.17259511289823593,
+      -0.5301577482214697,
+      0.05258274048870959,
+      -0.36684194246829804
+    ],
+    "maxAbsHorizontalErrorPx": 0.5301577482214697,
+    "visibleLeadSupportAll8": true,
+    "eightLeadsAccountedFor": "PASS"
+  },
+  "geometryRules": {
+    "perspectiveCorrection": false,
+    "anisotropicScaling": false,
+    "redraw": false,
+    "runtimeDerivation": "alpha-bound crop + isotropic Lanczos resize + transparent padding"
+  }
+}

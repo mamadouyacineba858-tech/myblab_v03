@@ -29,6 +29,7 @@ import { BinaryCounter74HC161Model } from './models/BinaryCounter74HC161Model.js
 import { Lcd16x2WH1602BModel } from './models/Lcd16x2WH1602BModel.js'
 import { HBridgeModel } from './models/HBridgeModel.js'
 import { Lm339ne4Model } from './models/Lm339ne4Model.js'
+import { Lm393pModel } from './models/Lm393pModel.js'
 import { PmosModel } from './models/PmosModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
 import { Tmp36Model } from './models/Tmp36Model.js'
@@ -153,6 +154,7 @@ const defaultRegistry = createSimulationRegistry({
     BinaryCounter74HC161Model,
     Lcd16x2WH1602BModel,
     Lm339ne4Model,
+    Lm393pModel,
     RelayModel,
     Tmp36Model,
     ForceSensorModel,

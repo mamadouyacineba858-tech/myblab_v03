@@ -501,3 +501,36 @@ describe('A11-COMP1-CORR-001 generic activation pins and independent observation
     }
   })
 })
+describe('A11-COMP2 createOpenCollectorComparators is generic in its channel count', () => {
+  const channels = (n) => Array.from({ length: n }, (_, i) => ({ plus: `p${i}`, minus: `m${i}`, output: `o${i}` }))
+  const evaluate = (contract, volts) => contract.groups.flatMap(({ inputPins, contribute }) =>
+    contribute({ inputVoltages: Object.fromEntries(inputPins.map(pin => [pin, volts[pin]])), params: {} }))
+
+  it.each([2, 4])('%i channels: one independent group per channel, supply activation, outputs projected', async (n) => {
+    const { createOpenCollectorComparators } = await vi.importActual('../analogConditionalConductionRegistry.js')
+    const contract = createOpenCollectorComparators({ channels: channels(n), referencePin: 'ref', supplyPin: 'sup' })
+    expect(contract.referencePin).toBe('ref')
+    expect(contract.requiredPositivePins).toEqual(['sup'])
+    expect(contract.inputPins).toBeUndefined()
+    expect(contract.groups.map(g => g.inputPins)).toEqual(channels(n).map(({ plus, minus }) => [plus, minus]))
+    expect(contract.digitalProjectionPins).toEqual(channels(n).map(({ output }) => output))
+    // V+ < V- sinks, V+ > V- and equality are high-Z, each channel on its own inputs.
+    const volts = Object.fromEntries(channels(n).flatMap(({ plus, minus }, i) => [[plus, 2], [minus, [3, 1, 2][i % 3]]]))
+    expect(evaluate(contract, volts)).toEqual(channels(n).filter((_, i) => i % 3 === 0).map(({ output }) => [output, 'ref']))
+  })
+  it('production LM339NE4 (4 channels) and LM393P (2 channels) share the same factory contract', async () => {
+    const actual = await vi.importActual('../analogConditionalConductionRegistry.js')
+    const shape = (type) => {
+      const { groups, ...rest } = actual.getAnalogConditionalConduction(type)
+      return { ...rest, groups: groups.map(g => g.inputPins) }
+    }
+    const expected = (n) => actual.createOpenCollectorComparators({
+      referencePin: 'GND', supplyPin: 'VCC',
+      channels: Array.from({ length: n }, (_, i) => ({ plus: `${i + 1}IN+`, minus: `${i + 1}IN-`, output: `${i + 1}OUT` })),
+    })
+    const expectedShape = (n) => { const { groups, ...rest } = expected(n); return { ...rest, groups: groups.map(g => g.inputPins) } }
+    expect(shape('LM339NE4')).toEqual(expectedShape(4))
+    expect(shape('LM393P')).toEqual(expectedShape(2))
+    expect(actual.createOpenCollectorComparators.toString()).not.toMatch(/LM339|LM393|length\s*===?\s*\d/)
+  })
+})

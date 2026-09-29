@@ -50,6 +50,12 @@ const contributions = new Map([
     supplyPin: 'VCC',
     channels: [1, 2, 3, 4].map((n) => ({ plus: `${n}IN+`, minus: `${n}IN-`, output: `${n}OUT` })),
   })],
+  // A11-COMP2 : TI LM393P dual comparator, same Level-1 open-collector contract (two channels).
+  ['LM393P', createOpenCollectorComparators({
+    referencePin: 'GND',
+    supplyPin: 'VCC',
+    channels: [1, 2].map((n) => ({ plus: `${n}IN+`, minus: `${n}IN-`, output: `${n}OUT` })),
+  })],
 ])
 
 export function getAnalogConditionalConduction(type) {

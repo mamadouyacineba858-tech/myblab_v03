@@ -1,0 +1,106 @@
+{
+  "id": "lm393p",
+  "ticket": "A11-COMP2-ASSET",
+  "manufacturer": "Texas Instruments",
+  "manufacturerReference": "LM393P",
+  "family": "LM393",
+  "package": "P / PDIP-8",
+  "pins": 8,
+  "backend": "raster",
+  "runtimeView": "top",
+  "canvasSize": {
+    "width": 84,
+    "height": 64
+  },
+  "breadboardPitchPx": 12,
+  "founderReference": {
+    "file": "lm393p.founder-reference.png",
+    "status": "FOUNDER_PASS",
+    "sha256": "01078db124ec5b953db958eb884916e86f6fb22a4e0368b567f9997468dbdd59"
+  },
+  "runtimeMaster": {
+    "file": "lm393p.runtime-master.png",
+    "sha256": "e0a75a50c0e04948a4d3419db0c3721c6e83f16d7c8a0afc2e053715df244321"
+  },
+  "images": {
+    "1x": {
+      "png": "lm393p.default.1x.png",
+      "webp": "lm393p.default.1x.webp"
+    },
+    "3x": {
+      "png": "lm393p.default.3x.png",
+      "webp": "lm393p.default.3x.webp"
+    }
+  },
+  "physicalContacts": {
+    "coordinateSpace": "84x64",
+    "pitchPx": 12,
+    "count": 8,
+    "status": "CSA_LOCKED",
+    "contacts": [
+      {
+        "pin": 1,
+        "name": "1OUT",
+        "x": 24,
+        "y": 48
+      },
+      {
+        "pin": 2,
+        "name": "1IN-",
+        "x": 36,
+        "y": 48
+      },
+      {
+        "pin": 3,
+        "name": "1IN+",
+        "x": 48,
+        "y": 48
+      },
+      {
+        "pin": 4,
+        "name": "GND",
+        "x": 60,
+        "y": 48
+      },
+      {
+        "pin": 8,
+        "name": "VCC",
+        "x": 24,
+        "y": 16
+      },
+      {
+        "pin": 7,
+        "name": "2OUT",
+        "x": 36,
+        "y": 16
+      },
+      {
+        "pin": 6,
+        "name": "2IN-",
+        "x": 48,
+        "y": 16
+      },
+      {
+        "pin": 5,
+        "name": "2IN+",
+        "x": 60,
+        "y": 16
+      }
+    ]
+  },
+  "pinout": {
+    "1": "1OUT",
+    "2": "1IN-",
+    "3": "1IN+",
+    "4": "GND",
+    "5": "2IN+",
+    "6": "2IN-",
+    "7": "2OUT",
+    "8": "VCC"
+  },
+  "derivation": {
+    "method": "Alpha-bound crop from Founder source; isotropic Lanczos resize; transparent padding only.",
+    "pixelProbe": true,
+    "maxHorizontalDeltaPx": 0.5301577482214697
+  }
+}

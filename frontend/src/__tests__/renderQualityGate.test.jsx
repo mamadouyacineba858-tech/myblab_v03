@@ -371,6 +371,16 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       canonical: { width: m.runtimeCanvasPx.width, height: m.runtimeCanvasPx.height },
       assets: Object.values(m.runtime.files).flat().map((file) => ({ file })),
     }),
+    // A11-COMP2 : le manifest CSA FROZEN du TI LM393P (dossier `lm393p/` = dérivation kebab du
+    // type) déclare `backend`, `canvasSize` et `images{1x,3x}{png,webp}` (même schéma que 74HC161).
+    // Adaptateur déclaré, en lecture seule ; octets/sha256 vérifiés contre ASSET-INTEGRITY.json.
+    LM393P: (m) => ({
+      component: "LM393P",
+      backend: m.backend,
+      complexity: "complex",
+      canonical: { width: m.canvasSize.width, height: m.canvasSize.height },
+      assets: Object.values(m.images).flatMap((formats) => Object.values(formats)).map((file) => ({ file })),
+    }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 

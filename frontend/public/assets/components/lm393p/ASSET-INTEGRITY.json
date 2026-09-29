@@ -1,0 +1,71 @@
+{
+  "asset": "lm393p",
+  "ticket": "A11-COMP2-ASSET",
+  "status": "CSA_LOCKED",
+  "requiredFiles": [
+    "ASSET-INTEGRITY.json",
+    "CONTACT-VALIDATION.json",
+    "FOUNDER-ASSET.json",
+    "README.md",
+    "README.txt",
+    "SHA256SUMS.txt",
+    "lm393p.default.1x.png",
+    "lm393p.default.1x.webp",
+    "lm393p.default.3x.png",
+    "lm393p.default.3x.webp",
+    "lm393p.founder-reference.png",
+    "lm393p.runtime-master.png",
+    "manifest.json"
+  ],
+  "physicalContactCount": 8,
+  "pinPitchPx": 12,
+  "runtimeCanvas": "84x64",
+  "founderSha256": "01078db124ec5b953db958eb884916e86f6fb22a4e0368b567f9997468dbdd59",
+  "runtime1xSha256": "e0a75a50c0e04948a4d3419db0c3721c6e83f16d7c8a0afc2e053715df244321",
+  "files": {
+    "CONTACT-VALIDATION.json": {
+      "sha256": "e5fb196c23a711392e576d1d4a70b9062cc70dc628a6598fb25b1fc2a87c425c",
+      "bytes": 1505
+    },
+    "FOUNDER-ASSET.json": {
+      "sha256": "44aa8d51decd9fc3a62669009dea9f7fbb99a07673e6cc5938163d3fcf481835",
+      "bytes": 373
+    },
+    "README.md": {
+      "sha256": "b20106cdbe787172fe4fcabfb24bab6fea03d304b0457a796b6e3b74cc25d975",
+      "bytes": 656
+    },
+    "README.txt": {
+      "sha256": "b20106cdbe787172fe4fcabfb24bab6fea03d304b0457a796b6e3b74cc25d975",
+      "bytes": 656
+    },
+    "lm393p.default.1x.png": {
+      "sha256": "e0a75a50c0e04948a4d3419db0c3721c6e83f16d7c8a0afc2e053715df244321",
+      "bytes": 5483
+    },
+    "lm393p.default.1x.webp": {
+      "sha256": "c6735e5a212bf4716db24c3b33db7c2e3d5d863dcddd2b9e879a383b57a0a22f",
+      "bytes": 3786
+    },
+    "lm393p.default.3x.png": {
+      "sha256": "d18afb29cb5da4e52a2ae66cdf7232188fa52de7f0d3e377a1474626a04cc27b",
+      "bytes": 33638
+    },
+    "lm393p.default.3x.webp": {
+      "sha256": "1fe6c6dc752308f5b263615d983fbb87b4c77099602cab6329e712b9984dc082",
+      "bytes": 22348
+    },
+    "lm393p.founder-reference.png": {
+      "sha256": "01078db124ec5b953db958eb884916e86f6fb22a4e0368b567f9997468dbdd59",
+      "bytes": 1283626
+    },
+    "lm393p.runtime-master.png": {
+      "sha256": "e0a75a50c0e04948a4d3419db0c3721c6e83f16d7c8a0afc2e053715df244321",
+      "bytes": 5483
+    },
+    "manifest.json": {
+      "sha256": "e095ca8b3b68068986cff91041b8d7709006c9fd47979a25fd5e8c68b4c8267a",
+      "bytes": 2095
+    }
+  }
+}

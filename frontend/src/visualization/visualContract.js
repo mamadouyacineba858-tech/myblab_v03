@@ -146,6 +146,7 @@ export const SCALE_REFERENCE = Object.freeze([
   { type: 'LCD_16X2_WH1602B', box: [378, 170], physicalMm: [80, 36], ref: 'Winstar WH1602B-TFH-JT# module 80.0 x 36.0 mm (CSA RUNTIME-V2); contacts normalized 12 px per 2.54 mm', impliedUnitsPerMm: 12 / 2.54 },
   { type: 'WS2812B_V6', box: [72, 72], physicalMm: null, ref: 'WORLDSEMI WS2812B-V6 5050 SMD, CSA frozen raster; CSA normalized 72x72 electrical geometry; physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'LM339NE4', box: [120, 64], physicalMm: null, ref: 'Texas Instruments LM339NE4, N / PDIP-14, CSA frozen raster; CSA normalized electrical geometry; physical scale uncalibrated', impliedUnitsPerMm: null },
+  { type: 'LM393P', box: [84, 64], physicalMm: null, ref: 'Texas Instruments LM393P, P / PDIP-8, CSA frozen raster; CSA qualified electrical geometry (pixel-probed, max 0.530 px); physical scale uncalibrated', impliedUnitsPerMm: null },
   { type: 'PMOS', box: [144, 288], physicalMm: [10.54, 29.33], ref: 'IRF9540N TO-220AB width/body/lead maxima, body+leads; Infineon datasheet p8', impliedUnitsPerMm: 288 / 29.33 },
   { type: 'NPN_TRANSISTOR', box: [90, 60],   physicalMm: [4.5, 4.5],  ref: '2N2222 TO-92 (pattes comprises ~15 mm)',          impliedUnitsPerMm: 6.0 },
   { type: 'RGB_LED',        box: [90, 56],   physicalMm: [5, 8.7],    ref: 'RGB 5 mm 4 pattes',                               impliedUnitsPerMm: 6.4 },

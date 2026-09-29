@@ -1,0 +1,9 @@
+{
+  "ticket": "A11-COMP2-ASSET",
+  "reference": "Texas Instruments LM393P",
+  "package": "P / PDIP-8",
+  "status": "FOUNDER_PASS",
+  "sourceFile": "lm393p.founder-reference.png",
+  "sha256": "01078db124ec5b953db958eb884916e86f6fb22a4e0368b567f9997468dbdd59",
+  "note": "Founder-approved strict top-down visual reference. Preserved byte-for-byte from the approved source."
+}
