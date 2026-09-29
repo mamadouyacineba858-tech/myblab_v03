@@ -1,0 +1,11 @@
+{
+  "ticket": "A11-COMP1",
+  "manufacturer": "Texas Instruments",
+  "reference": "LM339NE4",
+  "package": "N / PDIP-14",
+  "status": "FOUNDER_PASS",
+  "frozen": true,
+  "sourceFile": "lm339ne4.founder-reference.png",
+  "sha256": "912389032e9e4db63499a52fb3ad42f037a6f3821bba7f85983c6a613c1ae547",
+  "qualification": "Founder-approved visual reference. Not geometry authority; TI datasheet and CSA normalized geometry are authoritative."
+}

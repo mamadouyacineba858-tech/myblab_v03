@@ -1,0 +1,165 @@
+{
+  "id": "lm339ne4",
+  "ticket": "A11-COMP1",
+  "manufacturer": "Texas Instruments",
+  "manufacturerReference": "LM339NE4",
+  "family": "LM339",
+  "function": "Quad differential comparator",
+  "package": "N / PDIP-14",
+  "pins": 14,
+  "runtimeCanvasPx": {
+    "width": 120,
+    "height": 64
+  },
+  "runtimeCanvasPx3x": {
+    "width": 360,
+    "height": 192
+  },
+  "breadboardPitchPx": 12,
+  "geometryBasis": {
+    "horizontalPitchMm": 2.54,
+    "scale": "12 px per 2.54 mm",
+    "pitchPx": 12,
+    "coordinateSpace": "120x64",
+    "pixelProbed": false,
+    "source": "CSA normalized electrical geometry from TI PDIP-14 package/pinout",
+    "note": "Electrical contacts are normalized MYBlab geometry independent of raster pixels; no pixel-probe claim."
+  },
+  "pinMap": {
+    "1": "1OUT",
+    "2": "2OUT",
+    "3": "VCC",
+    "4": "2IN-",
+    "5": "2IN+",
+    "6": "1IN-",
+    "7": "1IN+",
+    "8": "3IN-",
+    "9": "3IN+",
+    "10": "4IN-",
+    "11": "4IN+",
+    "12": "GND",
+    "13": "4OUT",
+    "14": "3OUT"
+  },
+  "physicalContacts": [
+    {
+      "pin": "1",
+      "name": "1OUT",
+      "dx": 24,
+      "dy": 48
+    },
+    {
+      "pin": "2",
+      "name": "2OUT",
+      "dx": 36,
+      "dy": 48
+    },
+    {
+      "pin": "3",
+      "name": "VCC",
+      "dx": 48,
+      "dy": 48
+    },
+    {
+      "pin": "4",
+      "name": "2IN-",
+      "dx": 60,
+      "dy": 48
+    },
+    {
+      "pin": "5",
+      "name": "2IN+",
+      "dx": 72,
+      "dy": 48
+    },
+    {
+      "pin": "6",
+      "name": "1IN-",
+      "dx": 84,
+      "dy": 48
+    },
+    {
+      "pin": "7",
+      "name": "1IN+",
+      "dx": 96,
+      "dy": 48
+    },
+    {
+      "pin": "8",
+      "name": "3IN-",
+      "dx": 96,
+      "dy": 16
+    },
+    {
+      "pin": "9",
+      "name": "3IN+",
+      "dx": 84,
+      "dy": 16
+    },
+    {
+      "pin": "10",
+      "name": "4IN-",
+      "dx": 72,
+      "dy": 16
+    },
+    {
+      "pin": "11",
+      "name": "4IN+",
+      "dx": 60,
+      "dy": 16
+    },
+    {
+      "pin": "12",
+      "name": "GND",
+      "dx": 48,
+      "dy": 16
+    },
+    {
+      "pin": "13",
+      "name": "4OUT",
+      "dx": 36,
+      "dy": 16
+    },
+    {
+      "pin": "14",
+      "name": "3OUT",
+      "dx": 24,
+      "dy": 16
+    }
+  ],
+  "physicalContactsStatus": "FROZEN",
+  "runtime": {
+    "source": "CSA runtime master",
+    "transformation": "isotropic Lanczos resize only; centered; PNG plus lossless WebP",
+    "files": {
+      "1x": [
+        "lm339ne4.default.1x.png",
+        "lm339ne4.default.1x.webp"
+      ],
+      "3x": [
+        "lm339ne4.default.3x.png",
+        "lm339ne4.default.3x.webp"
+      ]
+    },
+    "master": {
+      "file": "lm339ne4.runtime-master.png",
+      "dimensionsPx": [
+        1024,
+        410
+      ],
+      "sha256": "df9672c6c20d3178132431f4a826c8528b8cdec3f596c8edc844896d7cca43ea"
+    }
+  },
+  "founder": {
+    "status": "FOUNDER_PASS",
+    "source": "lm339ne4.founder-reference.png",
+    "sha256": "912389032e9e4db63499a52fb3ad42f037a6f3821bba7f85983c6a613c1ae547",
+    "note": "Founder-approved visual reference; manufacturer datasheet and normalized electrical geometry remain authoritative."
+  },
+  "authorities": {
+    "physicalAndElectricalSpecification": "Texas Instruments LM339 / package N datasheet",
+    "electricalGeometry": "CSA normalized PhysicalContacts FROZEN",
+    "runtimeRaster": "CSA canonical derivatives",
+    "founderHistory": "Founder reference FROZEN"
+  }
+}

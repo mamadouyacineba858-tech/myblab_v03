@@ -1,0 +1,68 @@
+{
+  "asset": "lm339ne4",
+  "ticket": "A11-COMP1",
+  "status": "CSA_FROZEN",
+  "manufacturerReference": "Texas Instruments LM339NE4",
+  "assetFirst": true,
+  "physicalContactsLocked": true,
+  "pixelProbeClaim": false,
+  "runtimeDerivation": "isotropic Lanczos resize of CSA runtime master; centered; PNG plus lossless WebP",
+  "runtimeCanvasPx": {
+    "1x": [
+      120,
+      64
+    ],
+    "3x": [
+      360,
+      192
+    ]
+  },
+  "contactValidation": "CONTACT-VALIDATION.json: 14 contacts in CSA normalized 120x64 electrical geometry; not pixel-probed",
+  "requiredFiles": [
+    "ASSET-INTEGRITY.json",
+    "CONTACT-VALIDATION.json",
+    "FOUNDER-ASSET.json",
+    "README.md",
+    "README.txt",
+    "SHA256SUMS.txt",
+    "manifest.json",
+    "lm339ne4.default.1x.png",
+    "lm339ne4.default.1x.webp",
+    "lm339ne4.default.3x.png",
+    "lm339ne4.default.3x.webp",
+    "lm339ne4.founder-reference.png",
+    "lm339ne4.runtime-master.png"
+  ],
+  "files": [
+    {
+      "file": "lm339ne4.default.1x.png",
+      "bytes": 9118,
+      "sha256": "ff6b725805bbfafe39fb850bdb48dc8fe3e760ce1757098afd965e080f8f6333"
+    },
+    {
+      "file": "lm339ne4.default.1x.webp",
+      "bytes": 6524,
+      "sha256": "fb684d67e886096ce1eef5e09a7e80ee4ea7fba8e241cb13df99dc36cd47352d"
+    },
+    {
+      "file": "lm339ne4.default.3x.png",
+      "bytes": 64111,
+      "sha256": "cd970ba822eebecf5ee123423d36de7956469976d95947c120a068eb495abfc6"
+    },
+    {
+      "file": "lm339ne4.default.3x.webp",
+      "bytes": 44266,
+      "sha256": "2590dd6ba209a2014e17e703c4b8b125b7bc80659b052103a5d054bc0ca540b1"
+    },
+    {
+      "file": "lm339ne4.founder-reference.png",
+      "bytes": 2484488,
+      "sha256": "912389032e9e4db63499a52fb3ad42f037a6f3821bba7f85983c6a613c1ae547"
+    },
+    {
+      "file": "lm339ne4.runtime-master.png",
+      "bytes": 356319,
+      "sha256": "df9672c6c20d3178132431f4a826c8528b8cdec3f596c8edc844896d7cca43ea"
+    }
+  ]
+}

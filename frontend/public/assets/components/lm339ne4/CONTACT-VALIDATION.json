@@ -1,0 +1,120 @@
+{
+  "ticket": "A11-COMP1",
+  "component": "Texas Instruments LM339NE4",
+  "coordinateSpace": {
+    "width": 120,
+    "height": 64
+  },
+  "pixelProbed": false,
+  "source": "CSA normalized electrical geometry",
+  "note": "Contacts are normalized from TI PDIP-14 pin order and 2.54 mm pitch; not pixel-probed from raster.",
+  "contacts": [
+    {
+      "pin": 1,
+      "name": "1OUT",
+      "x": 24,
+      "y": 48
+    },
+    {
+      "pin": 2,
+      "name": "2OUT",
+      "x": 36,
+      "y": 48
+    },
+    {
+      "pin": 3,
+      "name": "VCC",
+      "x": 48,
+      "y": 48
+    },
+    {
+      "pin": 4,
+      "name": "2IN-",
+      "x": 60,
+      "y": 48
+    },
+    {
+      "pin": 5,
+      "name": "2IN+",
+      "x": 72,
+      "y": 48
+    },
+    {
+      "pin": 6,
+      "name": "1IN-",
+      "x": 84,
+      "y": 48
+    },
+    {
+      "pin": 7,
+      "name": "1IN+",
+      "x": 96,
+      "y": 48
+    },
+    {
+      "pin": 8,
+      "name": "3IN-",
+      "x": 96,
+      "y": 16
+    },
+    {
+      "pin": 9,
+      "name": "3IN+",
+      "x": 84,
+      "y": 16
+    },
+    {
+      "pin": 10,
+      "name": "4IN-",
+      "x": 72,
+      "y": 16
+    },
+    {
+      "pin": 11,
+      "name": "4IN+",
+      "x": 60,
+      "y": 16
+    },
+    {
+      "pin": 12,
+      "name": "GND",
+      "x": 48,
+      "y": 16
+    },
+    {
+      "pin": 13,
+      "name": "4OUT",
+      "x": 36,
+      "y": 16
+    },
+    {
+      "pin": 14,
+      "name": "3OUT",
+      "x": 24,
+      "y": 16
+    }
+  ],
+  "geometricChecks": {
+    "contactCount": 14,
+    "pitchPx": 12,
+    "topPins": [
+      14,
+      13,
+      12,
+      11,
+      10,
+      9,
+      8
+    ],
+    "bottomPins": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "status": "FROZEN"
+  }
+}
