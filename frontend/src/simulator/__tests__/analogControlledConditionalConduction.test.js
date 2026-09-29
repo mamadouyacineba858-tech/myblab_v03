@@ -10,7 +10,22 @@ import { Signal } from '../signals.js'
 // It declares digitalProjectionPins (CORR-001); the PLAIN variant does not.
 const FIXTURE = 'OC_COMPARE_FIXTURE'
 const PLAIN = 'OC_PLAIN_FIXTURE'
-const FIXTURES = [FIXTURE, PLAIN]
+// A11-COMP1-CORR-001 — two independent groups sharing a powered `supply` activation pin.
+const GROUPS = 'OC_GROUPS_FIXTURE'
+const GROUP_PINS = ['aPlus', 'aMinus', 'aOut', 'bPlus', 'bMinus', 'bOut', 'reference', 'supply']
+const FIXTURES = [FIXTURE, PLAIN, GROUPS]
+const groupCalls = []
+// Function declaration: vi.mock factories are hoisted above const initialisers.
+function group(plus, minus, output) {
+  return {
+    inputPins: [plus, minus],
+    contribute(args) {
+      const value = args.inputVoltages[plus] > args.inputVoltages[minus] ? [[output, 'reference']] : []
+      groupCalls.push({ args, value })
+      return value
+    },
+  }
+}
 // Plain recorder: the official vitest config resets vi.fn implementations.
 const calls = []
 function contribute(args) {
@@ -23,18 +38,23 @@ function contribute(args) {
 vi.mock('../canonicalRegistry.js', async (original) => {
   const actual = await original()
   return { ...actual, getCanonicalEntry: (type) => FIXTURES.includes(type) ? {
-    pins: ['plus', 'minus', 'reference', 'output'].map(id => ({ id })), modelAvailable: true, defaultParameters: {},
+    pins: (type === GROUPS ? GROUP_PINS : ['plus', 'minus', 'reference', 'output']).map(id => ({ id })),
+    modelAvailable: true, defaultParameters: {},
   } : actual.getCanonicalEntry(type) }
 })
 vi.mock('../analogConditionalConductionRegistry.js', async (original) => {
   const actual = await original()
   const base = { inputPins: ['plus', 'minus'], referencePin: 'reference', contribute }
+  const groups = {
+    referencePin: 'reference', requiredPositivePins: ['supply'],
+    groups: [group('aPlus', 'aMinus', 'aOut'), group('bPlus', 'bMinus', 'bOut')], digitalProjectionPins: ['aOut', 'bOut'],
+  }
   return { ...actual, getAnalogConditionalConduction: (type) => type === FIXTURE
     ? { ...base, digitalProjectionPins: ['output'] }
-    : type === PLAIN ? base : actual.getAnalogConditionalConduction(type) }
+    : type === PLAIN ? base : type === GROUPS ? groups : actual.getAnalogConditionalConduction(type) }
 })
 
-beforeEach(() => { calls.length = 0 })
+beforeEach(() => { calls.length = 0; groupCalls.length = 0 })
 
 const here = dirname(fileURLToPath(import.meta.url))
 const src = (name) => readFileSync(resolvePath(here, '..', name), 'utf8')
@@ -409,5 +429,75 @@ describe('A11-ANALOG-PREQ2-CORR-001 final electrical-to-digital projection', () 
     // The only write target is the local pinSignals output.
     expect([...new Set([...projection.matchAll(/(\w+)\.set\(/g)].map(m => m[1]))]).toEqual(['pinSignals'])
     expect(projection).not.toMatch(/prepared\.\w+\s*=|uf\.union|\.delete\(|\.clear\(/)
+  })
+})
+describe('A11-COMP1-CORR-001 generic activation pins and independent observation groups', () => {
+  /** va = 3 V, vb = 2 V, vcc = 5 V (supply + pull-ups); common ground. */
+  const grouped = ({ supply = true } = {}) => {
+    const components = [power('vcc', 5), power('va', 3), power('vb', 2), { uid: 'g', type: GROUPS },
+      { uid: 'ra', type: 'RESISTOR' }, { uid: 'rb', type: 'RESISTOR' }]
+    const wires = [wire('va', 'GND', 'vcc', 'GND'), wire('vb', 'GND', 'vcc', 'GND'), wire('vcc', 'GND', 'g', 'reference'),
+      wire('va', '5V', 'g', 'aPlus'), wire('vb', '5V', 'g', 'aMinus'), wire('vb', '5V', 'g', 'bPlus'), wire('va', '5V', 'g', 'bMinus'),
+      wire('vcc', '5V', 'ra', 'A'), wire('ra', 'B', 'g', 'aOut'), wire('vcc', '5V', 'rb', 'A'), wire('rb', 'B', 'g', 'bOut')]
+    if (supply) wires.push(wire('vcc', '5V', 'g', 'supply'))
+    return { components, wires }
+  }
+  const outs = (result) => ['aOut', 'bOut'].map(pin => fact(result, `g:${pin}`)?.voltage)
+  const without = (c, pin) => ({ ...c, wires: c.wires.filter(w => !(w.toUid === 'g' && w.toPin === pin)) })
+
+  it('each group observes only its own inputs', () => {
+    const result = run(grouped())
+    expect(outs(result)).toEqual([0, 5])
+    expect(result.pinSignals.get('g:aOut')).toBe(Signal.LOW)
+    expect(result.pinSignals.get('g:bOut')).toBe(Signal.HIGH)
+    for (const { args } of groupCalls) {
+      expect([['aMinus', 'aPlus'], ['bMinus', 'bPlus']]).toContainEqual(Object.keys(args.inputVoltages).sort())
+    }
+  })
+  it('an unresolved group never suppresses another group', () => {
+    const result = run(without(grouped(), 'bMinus'))
+    expect(outs(result)).toEqual([0, 5])
+    expect(groupCalls.every(({ args }) => 'aPlus' in args.inputVoltages)).toBe(true)
+    const other = run(without(grouped(), 'aPlus'))
+    expect(outs(other)).toEqual([5, 5])
+    expect(groupCalls.some(({ args }) => 'bPlus' in args.inputVoltages)).toBe(true)
+  })
+  it('an unpowered activation pin (floating) selects no pair in any group', () => {
+    const result = run(grouped({ supply: false }))
+    expect(fact(result, 'g:supply')).toBeUndefined()
+    expect(groupCalls).toEqual([])
+    expect(outs(result)).toEqual([5, 5])
+  })
+  it('an activation pin at 0 V relative to the reference selects no pair', () => {
+    const c = grouped({ supply: false })
+    c.wires.push(wire('vcc', 'GND', 'g', 'supply'))
+    const result = run(c)
+    expect(fact(result, 'g:supply').voltage).toBe(0)
+    expect(groupCalls).toEqual([])
+    expect(outs(result)).toEqual([5, 5])
+  })
+  it('an activation pin from an isolated reference domain selects no pair', () => {
+    const c = grouped({ supply: false })
+    c.components.push(power('iso', 5))
+    c.wires.push(wire('iso', '5V', 'g', 'supply'))
+    const result = run(c)
+    expect(fact(result, 'g:supply').reference).not.toBe(fact(result, 'g:reference').reference)
+    expect(groupCalls).toEqual([])
+    expect(outs(result)).toEqual([5, 5])
+  })
+  it('T-M the historical single-group contract (no groups, no activation pins) is unchanged', () => {
+    expect(fact(run(circuit({ plus: 3, minus: 2 })), 'cmp:output').voltage).toBe(0)
+    expect(calls.map(({ args }) => args.inputVoltages)).toContainEqual({ plus: 3, minus: 2 })
+    expect(fact(run(circuit({ plus: 2, minus: 3 })), 'cmp:output').voltage).toBe(5)
+  })
+  it('grouped results are independent of component and wire ordering', () => {
+    for (const c of [grouped(), without(grouped(), 'bMinus'), grouped({ supply: false })]) {
+      const expected = normalized(run(c))
+      for (let i = 0; i < c.components.length; i++) {
+        const components = [...c.components.slice(i), ...c.components.slice(0, i)]
+        const wires = [...c.wires.slice(i), ...c.wires.slice(0, i)]
+        expect(normalized(run({ components: [...components].reverse(), wires: [...wires].reverse() }))).toEqual(expected)
+      }
+    }
   })
 })

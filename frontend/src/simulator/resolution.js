@@ -482,6 +482,16 @@ function sameDcVoltage(a, b) {
 }
 
 /**
+ * A11-COMP1-CORR-001 — independent observation groups of an analog conditional
+ * conduction contract. A contract without `groups` is its own single group.
+ */
+function analogConductionGroups(contract) {
+  const groups = Array.isArray(contract.groups) ? contract.groups
+    : [{ inputPins: contract.inputPins, contribute: contract.contribute }]
+  return groups.filter((group) => group && Array.isArray(group.inputPins) && typeof group.contribute === 'function')
+}
+
+/**
  * Nets joined by ideal derived conduction share one fact: agreeing facts are
  * kept, disagreeing facts (or a null) make the whole group null, and a group
  * without any fact stays absent. Mutates only the local `facts` candidate.
@@ -556,6 +566,15 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
       params: resolveComponentParameters(comp.type, comp.parameters),
     }
   }
+  // Component-level activation: every required pin is a positive fact of the referencePin domain.
+  const powered = (facts, comp, { referencePin, requiredPositivePins }) => {
+    const reference = facts.get(netOf(comp, referencePin))
+    return (Array.isArray(requiredPositivePins) ? requiredPositivePins : []).every((pin) => {
+      const fact = facts.get(netOf(comp, pin))
+      return !!reference && reference.voltage === 0 && !!fact && fact.reference === reference.reference
+        && Number.isFinite(fact.voltage) && fact.voltage > 0
+    })
+  }
   let previous = primary
   const seen = new Set()
   for (let round = 0; round <= allKeys.length + contributors.length + analogConductors.length; round++) {
@@ -570,14 +589,17 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
           && voltage >= 0 ? { voltage, reference: observed.reference } : null)
       }
     }
-    const analogPairs = analogConductors.flatMap(({ comp, contract }) => {
-      const observed = observe(previous, comp, contract)
-      const selected = observed ? contract.contribute({ inputVoltages: observed.inputVoltages, params: observed.params }) : []
-      return (Array.isArray(selected) ? selected : [])
-        .filter((pair) => Array.isArray(pair) && pair.length === 2 && pair[0] !== pair[1])
-        .map(([a, b]) => [netOf(comp, a), netOf(comp, b)])
-        .filter(([a, b]) => a !== undefined && b !== undefined)
-    })
+    // Each observation group is evaluated on its own inputs: an unresolved group selects
+    // nothing without suppressing the other groups of the same powered component.
+    const analogPairs = analogConductors.flatMap(({ comp, contract }) => !powered(previous, comp, contract) ? []
+      : analogConductionGroups(contract).flatMap(({ inputPins, contribute }) => {
+        const observed = observe(previous, comp, { inputPins, referencePin: contract.referencePin })
+        const selected = observed ? contribute({ inputVoltages: observed.inputVoltages, params: observed.params }) : []
+        return (Array.isArray(selected) ? selected : [])
+          .filter((pair) => Array.isArray(pair) && pair.length === 2 && pair[0] !== pair[1])
+          .map(([a, b]) => [netOf(comp, a), netOf(comp, b)])
+          .filter(([a, b]) => a !== undefined && b !== undefined)
+      }))
     joinEquipotential(candidate, analogPairs)
     const authorities = new Set(candidate.keys())
     const topologySignals = new Map(pinSignals)
