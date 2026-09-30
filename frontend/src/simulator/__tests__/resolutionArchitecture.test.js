@@ -80,6 +80,7 @@ describe('MB-SIM-012 — GATE 1 : resolution.js reste indépendant du Runtime', 
 
   it("resolveSignals accepte un 3e paramètre externalSignals, purement structurel (Map), sans référence au Runtime", () => {
     const source = fs.readFileSync(sourcePath, 'utf-8')
-    expect(source).toMatch(/resolveSignals\(components,\s*prepared,\s*externalSignals\s*=\s*null\)/)
+    // A11-COMP4-PREQ3 : an optional, purely structural 4th parameter (step authorities, `= null`) is allowed.
+    expect(source).toMatch(/resolveSignals\(components,\s*prepared,\s*externalSignals\s*=\s*null(?:,\s*\w+\s*=\s*null)?\)/)
   })
 })

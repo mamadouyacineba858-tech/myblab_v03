@@ -50,8 +50,19 @@ import { solveScalarFeedback, stronglyConnectedComponents } from "./controlledAn
  *   ne correspond à aucune pin réelle du circuit préparé (absente de
  *   allKeys) est ignorée silencieusement — aucune clé fantôme n'est créée
  *   dans pinSignals.
+ * @param {{ voltageOutputs?: Array<{ uid: string, pinId: string, referencePin: string, voltage: number | null }>, conductionPairs?: Array<{ uid: string, pinA: string, pinB: string }> }|null} [stepAuthorities]
+ *   A11-COMP4-PREQ3 — optional PURE electrical authorities of the step, already
+ *   computed by the caller (plain data, no producer type, no time, no state).
+ *   `voltageOutputs` : numeric authorities on the net of (uid, pinId), relative
+ *   to the net of (uid, referencePin), which must carry a 0 V DC-source fact ;
+ *   otherwise, or for a null/non-finite/negative voltage, the net is reserved
+ *   unresolved (null). They join the primary facts with the same conflict rule
+ *   and never become HIGH/LOW in pinSignals. `conductionPairs` : ideal derived
+ *   conduction joining the nets of (uid, pinA) and (uid, pinB) for this call
+ *   only (same semantics as analog-selected pairs), never a topology change.
+ *   Absent/empty : historical behaviour, strictly unchanged.
  */
-export function resolveSignals(components, prepared, externalSignals = null) {
+export function resolveSignals(components, prepared, externalSignals = null, stepAuthorities = null) {
   const { uf } = prepared
   const { pinSignals: seededSignals, sources, conflictingNet } = seedSourceDrivenPinSignals(components, prepared)
   const pinSignals = projectDigitalPinSignals(prepared, seededSignals, conflictingNet ? null : externalSignals)
@@ -82,8 +93,10 @@ export function resolveSignals(components, prepared, externalSignals = null) {
   const dcControlSignals = sources.length > 1
     ? resolveDcControlSignals(prepared, externalSignals) : new Map()
   const dcTopologySignals = new Map([...pinSignals, ...dcControlSignals])
+  const authorities = normalizeStepAuthorities(stepAuthorities)
+  const hasStepAuthorities = authorities.voltageOutputs.length > 0 || authorities.conductionPairs.length > 0
   const dcVoltageDomains = resolveDcVoltageDomains(components, prepared, sources, domainContributors,
-    dcTopologySignals, analogConductors)
+    dcTopologySignals, analogConductors, authorities)
   // Final output only: computed after convergence, never fed back into it.
   projectFinalElectricalSignals(prepared, pinSignals, dcVoltageDomains, analogConductors)
   // Numeric facts carry their own voltage and physical reference. Multiple
@@ -92,7 +105,7 @@ export function resolveSignals(components, prepared, externalSignals = null) {
   // source-conflict refusal remains unchanged, independently of DC analysis.
   const dcAnalysis = sources.length > 0
     ? computeDcAnalysis(components, prepared, pinSignals, dcVoltageDomains,
-      sources.length === 1 && domainContributors.length === 0 && analogConductors.length === 0
+      sources.length === 1 && domainContributors.length === 0 && analogConductors.length === 0 && !hasStepAuthorities
         ? sources[0].source.voltage : null,
       dcControlSignals)
     : new Map()
@@ -139,6 +152,76 @@ export function resolveSourceDrivenPinSignals(components, prepared, externalSign
   if (conflictingNet) return pinSignals
 
   return projectDigitalPinSignals(prepared, pinSignals, externalSignals)
+}
+
+/**
+ * A11-COMP4-PREQ3 — numeric sibling of resolveSourceDrivenPinSignals() : the
+ * pre-resolution voltage facts that the DC sources alone establish on their
+ * physical nets (the same primary seeding as resolveDcVoltageDomains(), shared
+ * through seedPrimaryVoltageFacts()). No passive conduction, no derived or
+ * controlled domain, no contributor, no resolveSignals() : only facts that
+ * exist BEFORE any step producer.
+ *
+ * PURE, synchronous : never mutates `components`/`prepared`.
+ *
+ * @param {Array<{ uid, type }>} components
+ * @param {{ uf, nets, allKeys }} prepared
+ * @returns {Map<string, { voltage: number, reference: string } | null>} key
+ *   "uid:pinId" -> fact (volts relative to the `reference` net identity), or
+ *   null when the net carries conflicting source facts. A key without any
+ *   source fact is absent (never an invented voltage, never HIGH/LOW).
+ */
+export function resolveSourceDrivenVoltageFacts(components, prepared) {
+  const sources = components.map((comp) => ({ comp, source: getDcSource(comp) }))
+    .filter(({ source }) => source !== null)
+  const netByKey = netIdentities(prepared.nets)
+  const primary = seedPrimaryVoltageFacts(sources, (comp, pin) => netByKey.get(prepared.uf.key(comp.uid, pin)))
+  const facts = new Map()
+  for (const key of prepared.allKeys) {
+    const fact = primary.get(netByKey.get(key))
+    if (fact !== undefined) facts.set(key, fact && { voltage: fact.voltage, reference: fact.reference })
+  }
+  return facts
+}
+
+/** Net identity of every pin key : the smallest key of its physical net. */
+function netIdentities(nets) {
+  const netByKey = new Map()
+  for (const keys of nets.values()) {
+    const id = [...keys].sort()[0]
+    for (const key of keys) netByKey.set(key, id)
+  }
+  return netByKey
+}
+
+/** Merge a net fact : a disagreeing (or null) fact makes the net null (conflict). */
+function mergeNetFact(map, net, value) {
+  if (net === undefined) return
+  if (!map.has(net)) map.set(net, value)
+  else if (!sameDcVoltage(map.get(net), value)) map.set(net, null)
+}
+
+/** Primary DC-source facts by physical net : negative terminal 0 V, positive terminal its voltage. */
+function seedPrimaryVoltageFacts(sources, netOf) {
+  const primary = new Map()
+  for (const { comp, source } of sources) {
+    const reference = netOf(comp, source.negativePin)
+    if (reference === undefined) continue
+    mergeNetFact(primary, reference, { voltage: 0, reference })
+    mergeNetFact(primary, netOf(comp, source.positivePin), { voltage: source.voltage, reference })
+  }
+  return primary
+}
+
+const NO_STEP_AUTHORITIES = Object.freeze({ voltageOutputs: Object.freeze([]), conductionPairs: Object.freeze([]) })
+
+/** A11-COMP4-PREQ3 — read-only view of the optional step authorities (absent = none). */
+function normalizeStepAuthorities(stepAuthorities) {
+  if (!stepAuthorities) return NO_STEP_AUTHORITIES
+  return {
+    voltageOutputs: Array.isArray(stepAuthorities.voltageOutputs) ? stepAuthorities.voltageOutputs : [],
+    conductionPairs: Array.isArray(stepAuthorities.conductionPairs) ? stepAuthorities.conductionPairs : [],
+  }
 }
 
 /**
@@ -593,26 +676,28 @@ function joinEquipotential(facts, pairs) {
  * conflict rule, before passive extension. They are reselected every round
  * from the previous facts, so a pair that becomes invalid is retracted.
  */
-function resolveDcVoltageDomains(components, prepared, sources, contributors, pinSignals, analogConductors = []) {
+function resolveDcVoltageDomains(components, prepared, sources, contributors, pinSignals, analogConductors = [],
+  stepAuthorities = NO_STEP_AUTHORITIES) {
   const { uf, nets, allKeys } = prepared
-  const netByKey = new Map()
-  for (const keys of nets.values()) {
-    const id = [...keys].sort()[0]
-    for (const key of keys) netByKey.set(key, id)
-  }
+  const netByKey = netIdentities(nets)
   const netOf = (comp, pin) => netByKey.get(uf.key(comp.uid, pin))
-  const merge = (map, net, value) => {
-    if (net === undefined) return
-    if (!map.has(net)) map.set(net, value)
-    else if (!sameDcVoltage(map.get(net), value)) map.set(net, null)
+  const merge = mergeNetFact
+  const sourceFacts = seedPrimaryVoltageFacts(sources, netOf)
+  const primary = new Map(sourceFacts)
+  // A11-COMP4-PREQ3 — step voltage authorities join the primary facts. Their
+  // reference is read from the DC-source facts only (never from another step
+  // output), so the merge is order-independent; an invalid reference or value
+  // reserves the output net as unresolved.
+  for (const { uid, pinId, referencePin, voltage } of stepAuthorities.voltageOutputs) {
+    const reference = sourceFacts.get(netOf({ uid }, referencePin))
+    const valid = !!reference && reference.voltage === 0
+      && typeof voltage === 'number' && Number.isFinite(voltage) && voltage >= 0
+    merge(primary, netOf({ uid }, pinId), valid ? { voltage, reference: reference.reference } : null)
   }
-  const primary = new Map()
-  for (const { comp, source } of sources) {
-    const reference = netOf(comp, source.negativePin)
-    if (reference === undefined) continue
-    merge(primary, reference, { voltage: 0, reference })
-    merge(primary, netOf(comp, source.positivePin), { voltage: source.voltage, reference })
-  }
+  // Step conduction joins nets for this call only, like analog-selected pairs.
+  const stepPairs = stepAuthorities.conductionPairs
+    .map(({ uid, pinA, pinB }) => [netOf({ uid }, pinA), netOf({ uid }, pinB)])
+    .filter(([a, b]) => a !== undefined && b !== undefined && a !== b)
   const expand = (facts) => new Map([...allKeys].sort().map((key) => [key, facts.get(netByKey.get(key))]))
   const signature = (facts) => JSON.stringify([...facts].sort(([a], [b]) => a.localeCompare(b)))
   // These contracts support common-reference, non-negative DC only: every
@@ -689,7 +774,7 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
           .map(([a, b]) => [netOf(comp, a), netOf(comp, b)])
           .filter(([a, b]) => a !== undefined && b !== undefined)
       }))
-    joinEquipotential(candidate, analogPairs)
+    joinEquipotential(candidate, analogPairs.concat(stepPairs))
     const authorities = new Set(candidate.keys())
     const topologySignals = new Map(pinSignals)
     for (const [key, value] of expand(previous)) {
@@ -698,7 +783,7 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
     }
     const pairs = selectConductionPairs(components, uf, topologySignals, getConditionalConduction)
       .flatMap(({ comp, pairs: selected }) => selected.map(([a, b]) => [netOf(comp, a), netOf(comp, b)]))
-      .concat(analogPairs)
+      .concat(analogPairs, stepPairs)
     // Synchronous proposals detect competing paths independently of iteration order.
     for (let pass = 0; pass <= allKeys.length; pass++) {
       const next = new Map(candidate)

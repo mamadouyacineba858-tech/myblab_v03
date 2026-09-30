@@ -18,7 +18,7 @@ export const SIMULATION_STEP_MS = 16
 // eslint-disable-next-line no-unused-vars
 import { runSimulation } from "./engine.js"
 import { prepareCircuit } from "./preparation.js"
-import { resolveSignals, resolveSourceDrivenPinSignals, signalMapsEqual, signalMapSignature } from "./resolution.js"
+import { resolveSignals, resolveSourceDrivenPinSignals, resolveSourceDrivenVoltageFacts, signalMapsEqual, signalMapSignature } from "./resolution.js"
 import { createRuntimeOrchestrator } from "./runtimeOrchestrator.js"
 import { createScheduler } from "./scheduler.js"
 import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
@@ -32,6 +32,7 @@ import { getDcSource } from "./dcSourceRegistry.js"
 import { Signal } from "./signals.js"
 import { clearDigitalTransitions, consumeDigitalTransitions, createDigitalTransitionStore, recordDigitalTransitions, retainDigitalTransitionUids } from "./digitalTransitions.js"
 import { getDigitalEventContribution as defaultGetDigitalEventContribution, hasDigitalEventContribution as defaultHasDigitalEventContribution } from "./digitalEventContributionRegistry.js"
+import { getMixedSignalContribution as defaultGetMixedSignalContribution, hasMixedSignalContribution as defaultHasMixedSignalContribution } from "./mixedSignalContributionRegistry.js"
 
 /**
  * MB-SIM-011 — Intégration Simulation ↔ Scheduler/Runtime (SIM3).
@@ -103,20 +104,28 @@ export function circuitRequiresRuntime(components) {
  * événementiel (`digitalEventContributionRegistry.js`) en fait aussi partie —
  * ses transitions de sortie peuvent être dues à un temps simulé futur.
  *
+ * A11-COMP4-PREQ3 : a stateful mixed-signal contributor
+ * (`mixedSignalContributionRegistry.js`) is part of it as well — its state and
+ * effects evolve with simulated time.
+ *
  * @param {Array<{ type }>} components
  * @param {{ hasTimedDigitalContribution: (type: string) => boolean }} [timedDigitalRegistry]
  * @param {{ hasDigitalEventContribution: (type: string) => boolean }} [digitalEventRegistry]
+ * @param {{ hasMixedSignalContribution: (type: string) => boolean }} [mixedSignalRegistry]
  * @returns {boolean}
  */
 export function circuitRequiresContinuousStepping(components, timedDigitalRegistry = {
   hasTimedDigitalContribution: defaultHasTimedDigitalContribution,
 }, digitalEventRegistry = {
   hasDigitalEventContribution: defaultHasDigitalEventContribution,
+}, mixedSignalRegistry = {
+  hasMixedSignalContribution: defaultHasMixedSignalContribution,
 }) {
   return Array.isArray(components) && components.some((c) => c
     && (c.type === RUNTIME_COMPONENT_TYPE
       || timedDigitalRegistry.hasTimedDigitalContribution(c.type)
-      || digitalEventRegistry.hasDigitalEventContribution(c.type)))
+      || digitalEventRegistry.hasDigitalEventContribution(c.type)
+      || mixedSignalRegistry.hasMixedSignalContribution(c.type)))
 }
 
 /**
@@ -139,13 +148,19 @@ export function circuitRequiresContinuousStepping(components, timedDigitalRegist
  * (`computeDigitalEventContributions`) — même cycle de vie create / reset /
  * retain, jamais dans le Registry, le Document ou l'historique.
  *
- * @returns {{ timedDigitalStates: Map<string, object>, electricalTransientStates: Map<string, object>, digitalEventStates: Map<string, any>, digitalTransitions: ReturnType<typeof createDigitalTransitionStore>, scheduler: import('./scheduler.js').Scheduler | null }}
+ * A11-COMP4-PREQ3 : `mixedSignalStates` (Map<uid, state>) is the single private
+ * state store of the stateful mixed-signal contributors
+ * (`computeMixedSignalContributions`) — same create / reset / retain life
+ * cycle, never in the Registry, the Document or the history.
+ *
+ * @returns {{ timedDigitalStates: Map<string, object>, electricalTransientStates: Map<string, object>, digitalEventStates: Map<string, any>, mixedSignalStates: Map<string, any>, digitalTransitions: ReturnType<typeof createDigitalTransitionStore>, scheduler: import('./scheduler.js').Scheduler | null }}
  */
 export function createSimulationRuntimeSession() {
   return {
     timedDigitalStates: new Map(),
     electricalTransientStates: new Map(),
     digitalEventStates: new Map(),
+    mixedSignalStates: new Map(),
     digitalTransitions: createDigitalTransitionStore(),
     scheduler: null,
   }
@@ -156,13 +171,15 @@ export function resetSimulationRuntimeSession(session) {
   session.timedDigitalStates.clear()
   session.electricalTransientStates.clear()
   session.digitalEventStates.clear()
+  session.mixedSignalStates?.clear()
   clearDigitalTransitions(session.digitalTransitions)
   session.scheduler = null
 }
 
 /** Retire l'état runtime de tout uid absent de `liveUids` ; les autres sont conservés. */
 export function retainSimulationRuntimeSessionUids(session, liveUids) {
-  for (const states of [session.timedDigitalStates, session.electricalTransientStates, session.digitalEventStates]) {
+  const stores = [session.timedDigitalStates, session.electricalTransientStates, session.digitalEventStates, session.mixedSignalStates]
+  for (const states of stores.filter(Boolean)) {
     for (const uid of Array.from(states.keys())) {
       if (!liveUids.has(uid)) states.delete(uid)
     }
@@ -525,6 +542,124 @@ export function computeTransientElectricalContributions(transientComponents, tra
 }
 
 /**
+ * A11-COMP4-PREQ3 — Generic stateful mixed-signal step contract : SAMPLE.
+ *
+ * Same Open/Closed pattern as the other families (Registry consulted only via
+ * `hasMixedSignalContribution` / `getMixedSignalContribution`, never a type
+ * name). Every contributor of the step, in increasing uid order, observes the
+ * SAME pre-commit snapshot : the digital context `sampleContext.pinSignals`,
+ * the numeric context `sampleContext.voltageFacts`
+ * (`resolveSourceDrivenVoltageFacts`), the same `dt` / `currentTimeMs` and the
+ * state committed for its own uid by the previous step. Nothing produced here
+ * is visible to another contributor of the same step, so the result does not
+ * depend on the evaluation order.
+ *
+ * PURE with respect to `mixedSignalStates` : new states are only COLLECTED
+ * (`states`) and published later by `commitMixedSignalStates`, once every
+ * effect of the step has been validated and composed. Any contract violation
+ * throws before anything is committed (no partially committed step).
+ *
+ * Effects are validated against the Registry declaration and the canonical
+ * pins of the component (explicit error, never a silent drop) :
+ * - digitalOutputs -> `digitalSignals` (Map "uid:pinId" -> Signal) ;
+ * - voltageOutputs -> `electricalAuthorities.voltageOutputs` (volts relative to
+ *   the declared reference pin ; an invalid number becomes null = unresolved) ;
+ * - conductionPairs -> `electricalAuthorities.conductionPairs`.
+ * `electricalAuthorities` is frozen plain data, the only thing resolution.js
+ * receives : no time, no state, no Registry, no producer type.
+ *
+ * @param {Array<{ uid, type, parameters? }>} mixedSignalComponents
+ * @param {{ hasMixedSignalContribution: (type: string) => boolean, getMixedSignalContribution: (type: string) => import('./mixedSignalContributionRegistry.js').MixedSignalContribution | null }} mixedSignalRegistry
+ * @param {{ pinSignals: Map<string, string>, voltageFacts: Map<string, { voltage: number, reference: string } | null> }} sampleContext
+ * @param {number} dt
+ * @param {number} currentTimeMs
+ * @param {Map<string, any>} mixedSignalStates read only here.
+ * @returns {{ states: Map<string, any>, digitalSignals: Map<string, string>, electricalAuthorities: { voltageOutputs: Array<object>, conductionPairs: Array<object> } }}
+ */
+export function computeMixedSignalContributions(mixedSignalComponents, mixedSignalRegistry, sampleContext, dt, currentTimeMs, mixedSignalStates) {
+  const states = new Map()
+  const digitalSignals = new Map()
+  const voltageOutputs = []
+  const conductionPairs = []
+  const ordered = (mixedSignalComponents || [])
+    .filter((c) => c && typeof c.uid === "string" && mixedSignalRegistry.hasMixedSignalContribution(c.type))
+    .sort((a, b) => a.uid.localeCompare(b.uid))
+
+  for (const comp of ordered) {
+    const entry = mixedSignalRegistry.getMixedSignalContribution(comp.type)
+    const fail = (reason) => new Error(`computeMixedSignalContributions: component "${comp.uid}" (type "${comp.type}") ${reason}`)
+    const canonicalPins = new Set((getCanonicalEntry(comp.type)?.pins ?? []).map((pin) => pin.id))
+    const declared = [...entry.digitalOutputPins, ...entry.voltageOutputPins, ...(entry.voltageReferencePin === null ? [] : [entry.voltageReferencePin])]
+    for (const pinId of declared) {
+      if (!canonicalPins.has(pinId)) throw fail(`declares "${pinId}", which is not one of its canonical pins`)
+    }
+
+    const result = entry.contribute({
+      component: comp,
+      params: resolveComponentParameters(comp.type, comp.parameters),
+      pinSignals: buildComponentSourceDrivenPinSignals(comp, sampleContext.pinSignals),
+      pinVoltages: buildComponentVoltageFacts(comp, sampleContext.voltageFacts),
+      dt,
+      currentTimeMs,
+      previousState: mixedSignalStates.get(comp.uid),
+    })
+    if (!result || typeof result !== "object") throw fail("returned no { state, effects } result")
+    const effects = result.effects ?? {}
+    const entriesOf = (value, name) => {
+      if (value === undefined || value === null) return []
+      if (value instanceof Map) return [...value]
+      if (typeof value === "object" && !Array.isArray(value)) return Object.entries(value)
+      throw fail(`returned an invalid ${name} effect`)
+    }
+
+    for (const [pinId, signal] of entriesOf(effects.digitalOutputs, "digitalOutputs")) {
+      if (!entry.digitalOutputPins.includes(pinId)) throw fail(`drove "${pinId}", which is not one of its declared digitalOutputPins`)
+      if (signal !== Signal.HIGH && signal !== Signal.LOW) throw fail(`drove "${pinId}" with an invalid digital level`)
+      digitalSignals.set(`${comp.uid}:${pinId}`, signal)
+    }
+    for (const [pinId, voltage] of entriesOf(effects.voltageOutputs, "voltageOutputs")) {
+      if (!entry.voltageOutputPins.includes(pinId)) throw fail(`drove "${pinId}", which is not one of its declared voltageOutputPins`)
+      const valid = typeof voltage === "number" && Number.isFinite(voltage) && voltage >= 0
+      voltageOutputs.push({ uid: comp.uid, pinId, referencePin: entry.voltageReferencePin, voltage: valid ? voltage : null })
+    }
+    const pairs = effects.conductionPairs ?? []
+    if (!Array.isArray(pairs)) throw fail("returned an invalid conductionPairs effect")
+    for (const pair of pairs) {
+      if (!Array.isArray(pair) || pair.length !== 2 || pair[0] === pair[1] || !pair.every((pinId) => canonicalPins.has(pinId))) {
+        throw fail("returned a conduction pair that is not two distinct canonical pins")
+      }
+      conductionPairs.push({ uid: comp.uid, pinA: pair[0], pinB: pair[1] })
+    }
+    states.set(comp.uid, result.state)
+  }
+
+  return { states, digitalSignals, electricalAuthorities: deepFreeze({ voltageOutputs, conductionPairs }) }
+}
+
+/**
+ * A11-COMP4-PREQ3 — COMMIT : publishes, all at once, the states collected by
+ * `computeMixedSignalContributions`. A committed state is frozen : the next
+ * step's contributor receives it read-only as `previousState`.
+ */
+export function commitMixedSignalStates(mixedSignalStates, pendingStates) {
+  for (const [uid, state] of pendingStates) mixedSignalStates.set(uid, deepFreeze(state))
+}
+
+/**
+ * Projection { pinId -> fact | null } of the component's canonical pins from
+ * the numeric pre-resolution facts ; a pin without any fact is left out. Fresh
+ * objects per call : no contributor can alter what another one observes.
+ */
+function buildComponentVoltageFacts(comp, voltageFacts) {
+  const pinVoltages = {}
+  for (const pin of getCanonicalEntry(comp.type)?.pins ?? []) {
+    const fact = voltageFacts.get(`${comp.uid}:${pin.id}`)
+    if (fact !== undefined) pinVoltages[pin.id] = fact && { voltage: fact.voltage, reference: fact.reference }
+  }
+  return pinVoltages
+}
+
+/**
  * A12-NEOPIXEL-PREQ-EVENT-CONSUMER-001 — Generic Timestamped Digital Event
  * Consumer / Producer composition.
  *
@@ -804,8 +939,8 @@ export function mergeExternalSignals(signalMaps) {
  * `timedDigitalRuntimeIntegration.test.js` (TD-37) : "simulationRuntimeIntegration.js
  * appelle resolveSignals(...) exactement une fois (hors commentaires/JSDoc)".
  */
-function resolveElectricalSignals(effectiveComponents, prepared, externalSignals = null) {
-  return resolveSignals(effectiveComponents, prepared, externalSignals)
+function resolveElectricalSignals(effectiveComponents, prepared, externalSignals = null, stepAuthorities = null) {
+  return resolveSignals(effectiveComponents, prepared, externalSignals, stepAuthorities)
 }
 
 function computeElectricalStep(components, wires, options = {}) {
@@ -892,6 +1027,17 @@ function computeElectricalStep(components, wires, options = {}) {
     (c) => c && digitalEventRegistry.hasDigitalEventContribution(c.type)
   )
 
+  // A11-COMP4-PREQ3 : stateful mixed-signal Registry, consulted for EVERY
+  // component (never a type name). Its presence activates the generic timed
+  // path (shared Scheduler) ; its absence leaves GATE 0 strictly historical.
+  const mixedSignalRegistry = options.mixedSignalContributionRegistry ?? {
+    hasMixedSignalContribution: defaultHasMixedSignalContribution,
+    getMixedSignalContribution: defaultGetMixedSignalContribution,
+  }
+  const mixedSignalComponents = (effectiveComponents || []).filter(
+    (c) => c && mixedSignalRegistry.hasMixedSignalContribution(c.type)
+  )
+
   // GATE 0 (§7/§15 du ticket A7-C5-PREQ, étendu §7 A4-D-PREQ1, non-régression
   // stricte) : pour un circuit sans ARDUINO, sans aucun composant enregistré
   // dans le Registry de sorties numériques calculées, sans aucun composant
@@ -919,6 +1065,7 @@ function computeElectricalStep(components, wires, options = {}) {
     && timedDigitalComponents.length === 0
     && transientComponents.length === 0
     && digitalEventComponents.length === 0
+    && mixedSignalComponents.length === 0
   ) {
     const { pinSignals, dcAnalysis } = resolveElectricalSignals(effectiveComponents, prepared)
     return { pinSignals, electricalAnalysis: composeElectricalAnalysis(dcAnalysis) }
@@ -943,7 +1090,11 @@ function computeElectricalStep(components, wires, options = {}) {
   // le composer avec `dcAnalysis` ci-dessous (§3 du ticket : "la
   // contribution est donc calculée mais non observable").
   let transientContributions = new Map()
-  if (runtimeComponents.length > 0 || timedDigitalComponents.length > 0 || transientComponents.length > 0 || digitalEventComponents.length > 0) {
+  // A11-COMP4-PREQ3 : sampled mixed-signal step (pending states + effects),
+  // committed only once every authority of the step has been composed.
+  let mixedSignalStep = null
+  let mixedSignalStates = null
+  if (runtimeComponents.length > 0 || timedDigitalComponents.length > 0 || transientComponents.length > 0 || digitalEventComponents.length > 0 || mixedSignalComponents.length > 0) {
     const dt = options.dt ?? 0
     const orchestrators = options.orchestrators instanceof Map ? options.orchestrators : new Map()
 
@@ -1023,6 +1174,28 @@ function computeElectricalStep(components, wires, options = {}) {
         const signalMap = orchestrators.get(comp.uid).getRuntime().tick(currentTimeMs)
         for (const [pinId, signal] of signalMap) runtimeSignals.set(`${comp.uid}:${pinId}`, signal)
       }
+    }
+
+    if (mixedSignalComponents.length > 0) {
+      // A11-COMP4-PREQ3 : SAMPLE. ONE snapshot built before the first
+      // contributor : digital pre-resolution context (DC sources + Runtime
+      // authorities of this step) and numeric DC-source facts. No step output
+      // (timed, combinational or mixed-signal) exists yet, and no resolution
+      // is run to obtain it.
+      mixedSignalStates = options.mixedSignalStates instanceof Map
+        ? options.mixedSignalStates
+        : options.runtimeSession?.mixedSignalStates ?? new Map()
+      mixedSignalStep = computeMixedSignalContributions(
+        mixedSignalComponents,
+        mixedSignalRegistry,
+        {
+          pinSignals: resolveSourceDrivenPinSignals(effectiveComponents, prepared, runtimeSignals),
+          voltageFacts: resolveSourceDrivenVoltageFacts(effectiveComponents, prepared),
+        },
+        dt,
+        currentTimeMs,
+        mixedSignalStates
+      )
     }
 
     if (timedDigitalComponents.length > 0) {
@@ -1112,12 +1285,19 @@ function computeElectricalStep(components, wires, options = {}) {
   // que `runtimeSignals`/`computedDigitalSignals`, avec la même politique de
   // collision explicite (`mergeExternalSignals`, aucun last-write-wins
   // silencieux).
-  const baseExternalSignals = mergeExternalSignals([runtimeSignals, timedDigitalSignals])
+  // A11-COMP4-PREQ3 : mixed-signal digital outputs compose as step
+  // authorities too, under the same explicit collision refusal.
+  const baseExternalSignals = mergeExternalSignals([runtimeSignals, timedDigitalSignals, mixedSignalStep?.digitalSignals])
   const computedDigitalSignals = hasDigitalComponents
     ? computeCombinationalDigitalSignals(effectiveComponents, prepared, digitalRegistry, baseExternalSignals)
     : new Map()
   const externalSignals = mergeExternalSignals([baseExternalSignals, computedDigitalSignals])
-  const { pinSignals, dcAnalysis } = resolveElectricalSignals(effectiveComponents, prepared, externalSignals)
+  // A11-COMP4-PREQ3 : COMMIT, once every authority of the step is composed
+  // (a refused composition leaves no new mixed-signal state), then the ONE
+  // resolution consumes the pure electrical authorities of the step.
+  if (mixedSignalStep) commitMixedSignalStates(mixedSignalStates, mixedSignalStep.states)
+  const { pinSignals, dcAnalysis } = resolveElectricalSignals(effectiveComponents, prepared, externalSignals,
+    mixedSignalStep?.electricalAuthorities ?? null)
   // A4-D-PREQ2 (§4 du ticket) : `electricalAnalysis` compose `dcAnalysis`
   // (steady-state, cette MÊME résolution — I-A4-17) avec
   // `transientContributions` (step courant, I-A4-13 : transient > DC pour un
