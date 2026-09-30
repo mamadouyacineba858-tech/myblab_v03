@@ -62,9 +62,11 @@
  * arbitrary same-step feedback is out of scope of this contract (V1).
  *
  * This module contains neither time, nor topology, nor resolution : only the
- * table. A11-COMP4-PREQ3 builds ONLY the generic mechanism : the production
- * table is intentionally empty.
+ * table. A11-COMP4-PREQ3 built ONLY the generic mechanism ; A11-COMP4 registers
+ * its first production entry, the TI NE555P timer (see `ne555pTimer` below).
  */
+
+import { Signal } from "./signals.js"
 
 /**
  * @typedef {{
@@ -141,8 +143,85 @@ export function createMixedSignalContributionRegistry({ contributions = new Map(
   return { getMixedSignalContribution, hasMixedSignalContribution, getAllMixedSignalContributionTypes }
 }
 
-/** Production Registry — intentionally empty in A11-COMP4-PREQ3. */
-const defaultRegistry = createMixedSignalContributionRegistry()
+/**
+ * A11-COMP4 — Texas Instruments NE555P precision timer, Level-1.
+ *
+ * One private runtime state, `{ latch: "SET" | "RESET" }` : no counter, no
+ * deadline, no period, no internal capacitor. Timing emerges only from the
+ * EXTERNAL circuit (resistors and capacitor, PREQ4/PREQ5) observed at each
+ * SAMPLE ; this entry knows no R, no C and no time constant.
+ *
+ * Observation (all relative to GND, from `pinVoltages` only — never a Signal
+ * turned into volts) :
+ * - supply = V(VCC) - V(GND), both finite facts of the same reference ; the
+ *   device is powered only inside the TI NE555P recommended supply range
+ *   (4.5 V .. 16 V, TI datasheet SLFS022 "Recommended Operating Conditions").
+ * - CONT absent : nominal comparator levels, trigger = supply / 3 and
+ *   threshold = 2 × supply / 3. CONT valid : Level-1 controlled levels,
+ *   threshold = V(CONT), trigger = V(CONT) / 2. CONT null or of a foreign
+ *   reference : levels unresolved (never a nominal fallback) — neither
+ *   comparator may act.
+ * - TRIG / THRES : numeric facts, each usable independently of the other.
+ * - RESET : digital observation (`pinSignals`) ; only Signal.HIGH releases it,
+ *   LOW and UNKNOWN assert it (conservative, deterministic).
+ *
+ * Priority : RESET > TRIG (V(TRIG) < trigger -> SET) > THRES
+ * (V(THRES) > threshold -> RESET) > HOLD. Equality never switches.
+ * previousState undefined -> latch RESET (MYBlab deterministic start-up
+ * convention, not a guaranteed silicon power-up behaviour). Unpowered or out
+ * of range : latch RESET and no effect at all (OUT not driven, DISCH open).
+ *
+ * Effects : SET -> OUT HIGH, DISCH open ; RESET -> OUT LOW and the step
+ * conduction pair DISCH-GND (discharge transistor), never a digital DISCH.
+ */
+const NE555P_SUPPLY_MIN_VOLTS = 4.5
+const NE555P_SUPPLY_MAX_VOLTS = 16
+const LATCH_SET = "SET"
+const LATCH_RESET = "RESET"
+
+/** Volts of `fact` relative to the ground fact : number, undefined (absent) or null (conflict / foreign reference). */
+function relativeToGround(fact, ground) {
+  if (fact === undefined) return undefined
+  if (!fact || fact.reference !== ground.reference || !Number.isFinite(fact.voltage)) return null
+  return fact.voltage - ground.voltage
+}
+
+function ne555pLatch({ pinSignals, pinVoltages, previousState }) {
+  const ground = pinVoltages.GND
+  if (!ground || !Number.isFinite(ground.voltage)) return null
+  const supply = relativeToGround(pinVoltages.VCC, ground)
+  if (typeof supply !== "number" || supply < NE555P_SUPPLY_MIN_VOLTS || supply > NE555P_SUPPLY_MAX_VOLTS) return null
+
+  if (pinSignals.RESET !== Signal.HIGH) return LATCH_RESET
+  const control = relativeToGround(pinVoltages.CONT, ground)
+  if (control !== null) {
+    const thresholdLevel = control === undefined ? (2 * supply) / 3 : control
+    const triggerLevel = control === undefined ? supply / 3 : control / 2
+    const trigger = relativeToGround(pinVoltages.TRIG, ground)
+    if (typeof trigger === "number" && trigger < triggerLevel) return LATCH_SET
+    const threshold = relativeToGround(pinVoltages.THRES, ground)
+    if (typeof threshold === "number" && threshold > thresholdLevel) return LATCH_RESET
+  }
+  return previousState?.latch === LATCH_SET ? LATCH_SET : LATCH_RESET
+}
+
+export const ne555pTimer = Object.freeze({
+  digitalOutputPins: Object.freeze(["OUT"]),
+  contribute(ctx) {
+    const latch = ne555pLatch(ctx)
+    if (latch === null) return { state: { latch: LATCH_RESET }, effects: {} }
+    return latch === LATCH_SET
+      ? { state: { latch }, effects: { digitalOutputs: { OUT: Signal.HIGH } } }
+      : { state: { latch }, effects: { digitalOutputs: { OUT: Signal.LOW }, conductionPairs: [["DISCH", "GND"]] } }
+  },
+})
+
+/** Production Registry — A11-COMP4 : NE555P is its first entry. */
+const defaultRegistry = createMixedSignalContributionRegistry({
+  contributions: new Map([
+    ["NE555P", ne555pTimer],
+  ]),
+})
 
 export const getMixedSignalContribution = defaultRegistry.getMixedSignalContribution
 export const hasMixedSignalContribution = defaultRegistry.hasMixedSignalContribution

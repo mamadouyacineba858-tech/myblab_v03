@@ -391,6 +391,17 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       canonical: { width: m.canvasSize.width, height: m.canvasSize.height },
       assets: Object.values(m.images).flatMap((formats) => Object.values(formats)).map((file) => ({ file })),
     }),
+    // A11-COMP4 : le manifest CSA FROZEN V2 du TI NE555P (dossier `ne555p/` = dérivation kebab du type)
+    // déclare `canvasSize` et `images{1x,3x}{png,webp}` (plus `founderReference`/`runtimeMaster`, hors
+    // paquet runtime) et aucun champ `backend`. Adaptateur déclaré, en lecture seule ; sha256 vérifiés
+    // contre SHA256SUMS.txt par Ne555pPart.raster.test.jsx.
+    NE555P: (m) => ({
+      component: "NE555P",
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.canvasSize.width, height: m.canvasSize.height },
+      assets: [m.images["1x"], m.images["3x"]].flatMap((formats) => Object.values(formats)).map((file) => ({ file })),
+    }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 

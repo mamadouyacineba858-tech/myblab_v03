@@ -1,0 +1,108 @@
+{
+  "id": "ne555p",
+  "ticket": "A11-COMP4-NE555P-ASSET",
+  "status": "CSA_FROZEN",
+  "manufacturer": "Texas Instruments",
+  "manufacturerReference": "NE555P",
+  "package": "P / PDIP-8",
+  "view": "top",
+  "canvasSize": {
+    "width": 84,
+    "height": 64
+  },
+  "canvasSize3x": {
+    "width": 252,
+    "height": 192
+  },
+  "breadboardPitchPx": 12,
+  "geometryBasis": {
+    "coordinateSpace": "84x64",
+    "pitchPx": 12,
+    "rowSpacingPx": 32,
+    "pixelProbed": false,
+    "authority": "CSA_NORMALIZED",
+    "note": "Electrical contacts are normalized MYBlab geometry independent of raster pixels; no pixel-probe claim."
+  },
+  "physicalContacts": [
+    {
+      "pin": 1,
+      "name": "GND",
+      "x": 24,
+      "y": 48
+    },
+    {
+      "pin": 2,
+      "name": "TRIG",
+      "x": 36,
+      "y": 48
+    },
+    {
+      "pin": 3,
+      "name": "OUT",
+      "x": 48,
+      "y": 48
+    },
+    {
+      "pin": 4,
+      "name": "RESET",
+      "x": 60,
+      "y": 48
+    },
+    {
+      "pin": 5,
+      "name": "CONT",
+      "x": 60,
+      "y": 16
+    },
+    {
+      "pin": 6,
+      "name": "THRES",
+      "x": 48,
+      "y": 16
+    },
+    {
+      "pin": 7,
+      "name": "DISCH",
+      "x": 36,
+      "y": 16
+    },
+    {
+      "pin": 8,
+      "name": "VCC",
+      "x": 24,
+      "y": 16
+    }
+  ],
+  "pinout": {
+    "1": "GND",
+    "2": "TRIG",
+    "3": "OUT",
+    "4": "RESET",
+    "5": "CONT",
+    "6": "THRES",
+    "7": "DISCH",
+    "8": "VCC"
+  },
+  "images": {
+    "founderReference": "ne555p.founder-reference.png",
+    "runtimeMaster": "ne555p.runtime-master.png",
+    "1x": {
+      "png": "ne555p.default.1x.png",
+      "webp": "ne555p.default.1x.webp"
+    },
+    "3x": {
+      "png": "ne555p.default.3x.png",
+      "webp": "ne555p.default.3x.webp"
+    }
+  },
+  "derivation": {
+    "source": "Founder-approved transparent candidate",
+    "background": "transparent",
+    "isotropicScaling": true,
+    "transparentPadding": true,
+    "anisotropicScaling": false,
+    "perLeadRelocation": false,
+    "syntheticLeadRecomposition": false,
+    "pixelProbeClaim": false
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "asset": "ne555p",
+  "status": "CSA_LOCKED",
+  "validation": "NORMALIZED_ELECTRICAL_GEOMETRY",
+  "pixelProbed": false,
+  "coordinateSpace": "84x64",
+  "pitchPx": 12,
+  "rowSpacingPx": 32,
+  "contacts": [
+    {
+      "pin": 1,
+      "name": "GND",
+      "x": 24,
+      "y": 48
+    },
+    {
+      "pin": 2,
+      "name": "TRIG",
+      "x": 36,
+      "y": 48
+    },
+    {
+      "pin": 3,
+      "name": "OUT",
+      "x": 48,
+      "y": 48
+    },
+    {
+      "pin": 4,
+      "name": "RESET",
+      "x": 60,
+      "y": 48
+    },
+    {
+      "pin": 5,
+      "name": "CONT",
+      "x": 60,
+      "y": 16
+    },
+    {
+      "pin": 6,
+      "name": "THRES",
+      "x": 48,
+      "y": 16
+    },
+    {
+      "pin": 7,
+      "name": "DISCH",
+      "x": 36,
+      "y": 16
+    },
+    {
+      "pin": 8,
+      "name": "VCC",
+      "x": 24,
+      "y": 16
+    }
+  ]
+}

@@ -403,6 +403,22 @@ const ASSEMBLY_PROFILES = {
       "2IN+": { root: { dx: 60, dy: 16 }, style: "metallic-wire" },
     },
   },
+  // A11-COMP4 : TI NE555P P / PDIP-8 (raster CSA FROZEN V2 84x64). Geometrie electrique NORMALISEE
+  // CSA (pixelProbed: false, independante des pixels du raster) ; roots = PhysicalContacts CSA LOCKED
+  // (rangees y=16 / y=48, pas 12). Aucun bodyClip.
+  NE555P: {
+    kind: "through-hole",
+    leads: {
+      GND: { root: { dx: 24, dy: 48 }, style: "metallic-wire" },
+      TRIG: { root: { dx: 36, dy: 48 }, style: "metallic-wire" },
+      OUT: { root: { dx: 48, dy: 48 }, style: "metallic-wire" },
+      RESET: { root: { dx: 60, dy: 48 }, style: "metallic-wire" },
+      VCC: { root: { dx: 24, dy: 16 }, style: "metallic-wire" },
+      DISCH: { root: { dx: 36, dy: 16 }, style: "metallic-wire" },
+      THRES: { root: { dx: 48, dy: 16 }, style: "metallic-wire" },
+      CONT: { root: { dx: 60, dy: 16 }, style: "metallic-wire" },
+    },
+  },
   // A9-COUNTER1 : 74HC161 DIP-16 (raster Founder PASS/FROZEN, derive isotrope 120x64, pack CSA
   // LOCKED). Le Founder est une photographie EN PERSPECTIVE : ses pattes ne sont pas des
   // probes electriques fiables. Apparence (raster) et geometrie electrique sont donc

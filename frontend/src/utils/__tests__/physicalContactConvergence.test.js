@@ -265,10 +265,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     'BUZZER', 'POTENTIOMETER', 'LDR', 'THERMISTOR', 'DIODE', 'RGB_LED', 'NPN_TRANSISTOR', 'PNP_TRANSISTOR', 'NMOS', 'PMOS', 'VOLTAGE_REGULATOR', 'RELAY',
     'SERVO', 'DC_MOTOR', 'POLARIZED_CAPACITOR', 'SLIDE_SWITCH', 'DIP_SWITCH', 'VIBRATION_MOTOR',
     'LIGHT_BULB', 'HOBBY_GEARMOTOR', 'TMP36', 'FORCE_SENSOR', 'FLEX_SENSOR', 'SOIL_MOISTURE_SENSOR',
-    'PIR_MOTION_SENSOR', 'TILT_SENSOR', 'IR_RECEIVER', 'HC_SR04', 'INDUCTOR', 'ZENER_DIODE', 'H_BRIDGE', 'AND_GATE', 'OR_GATE', 'NAND_GATE', 'NOR_GATE', 'XOR_GATE', 'NOT_GATE', 'JK_FLIP_FLOP_74HC73', 'D_FLIP_FLOP_74HC74', 'D_LATCH_74HC75', 'BINARY_COUNTER_74HC161', 'SEVEN_SEGMENT_DISPLAY', 'LCD_16X2_WH1602B', 'WS2812B_V6', 'LM339NE4', 'LM393P', 'LM358P',
+    'PIR_MOTION_SENSOR', 'TILT_SENSOR', 'IR_RECEIVER', 'HC_SR04', 'INDUCTOR', 'ZENER_DIODE', 'H_BRIDGE', 'AND_GATE', 'OR_GATE', 'NAND_GATE', 'NOR_GATE', 'XOR_GATE', 'NOT_GATE', 'JK_FLIP_FLOP_74HC73', 'D_FLIP_FLOP_74HC74', 'D_LATCH_74HC75', 'BINARY_COUNTER_74HC161', 'SEVEN_SEGMENT_DISPLAY', 'LCD_16X2_WH1602B', 'WS2812B_V6', 'LM339NE4', 'LM393P', 'LM358P', 'NE555P',
   ]
 
-  it('le catalogue compte exactement 57 types', () => {
+  it('le catalogue compte exactement 58 types', () => {
     // A3-SW2 : 21 -> 22 (DIP_SWITCH ajouté). A6-OUT1 : 22 -> 23 (VIBRATION_MOTOR ajouté).
     // A6-OUT2 : 23 -> 24 (LIGHT_BULB ajouté). A6-OUT3 : 24 -> 25 (HOBBY_GEARMOTOR ajouté).
     // A7-C1 : 25 -> 26 (TMP36 ajouté). A7-C2 : 26 -> 28 (FORCE_SENSOR + FLEX_SENSOR ajoutés).
@@ -283,8 +283,8 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     // A10-DISP1 : 51 -> 52 (SEVEN_SEGMENT_DISPLAY ajouté). A10-DISP2 : 52 -> 53 (LCD_16X2_WH1602B ajouté).
     // A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 : 53 -> 54 (WS2812B_V6 ajouté, visual-only).
     // A11-COMP1 : 54 -> 55 (LM339NE4 ajouté). A11-COMP2 : 55 -> 56 (LM393P ajouté).
-    // A11-COMP3 : 56 -> 57 (LM358P ajouté).
-    expect(new Set(CATALOGUE).size).toBe(57)
+    // A11-COMP3 : 56 -> 57 (LM358P ajouté). A11-COMP4 : 57 -> 58 (NE555P ajouté).
+    expect(new Set(CATALOGUE).size).toBe(58)
     expect(new Set(ALL_TYPES)).toEqual(new Set(CATALOGUE))
   })
 
@@ -431,7 +431,11 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
       // A11-COMP3 : TI LM358P PDIP-8, 8 PhysicalContacts FROZEN normalisés au pas 12 horizontal ;
       // rangées écartées de 32 (même précédent que LM339NE4/LM393P) : 8 bandes distinctes à cheval
       // sur la rainure (cf. Lm358pPart.raster.test.jsx) -> breadboardInsertable:true.
-      'LM358P']
+      'LM358P',
+      // A11-COMP4 : TI NE555P PDIP-8, 8 PhysicalContacts CSA LOCKED normalisés au pas 12 horizontal ;
+      // rangées écartées de 32 (même précédent que LM393P/LM358P) : 8 bandes distinctes à cheval
+      // sur la rainure (cf. Ne555pPart.raster.test.jsx) -> breadboardInsertable:true.
+      'NE555P']
     // A6-OUT1-R1 : VIBRATION_MOTOR quitte NON_DIRECT (rejoint INSERTABLE ci-dessus).
     // A6-OUT3 : HOBBY_GEARMOTOR ajouté à NON_DIRECT — wire-only par contrat
     // produit (jamais de géométrie breadboard recherchée, cf.

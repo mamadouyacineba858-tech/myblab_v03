@@ -83,12 +83,13 @@ const domain = (key) => lastResolution().result.dcVoltageDomains.get(key)
 beforeEach(() => { resolutions.length = 0 })
 
 describe('A11-COMP4-PREQ3 — registry, state, time', () => {
-  it('T1 an injected fake contributor is discovered through the Registry (Open/Closed); production table is empty', () => {
+  it('T1 an injected fake contributor is discovered through the Registry (Open/Closed); no FIXTURE in the production table', () => {
     const log = []
     step(powered(), registryOf({ MS_FIXTURE_A: counter(log) }))
     expect(log).toHaveLength(1)
     expect(log[0].component.uid).toBe('ms')
-    expect(getAllMixedSignalContributionTypes()).toEqual([])
+    // A11-COMP4 : the production table gains its first real entry (NE555P) ; never a fixture type.
+    expect(getAllMixedSignalContributionTypes()).toEqual(['NE555P'])
     expect(hasMixedSignalContribution('MS_FIXTURE_A')).toBe(false)
     expect(circuitRequiresContinuousStepping([fixture('ms')])).toBe(false)
     expect(circuitRequiresContinuousStepping([fixture('ms')], undefined, undefined, registryOf({ MS_FIXTURE_A: counter() }))).toBe(true)

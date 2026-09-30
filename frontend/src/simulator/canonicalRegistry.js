@@ -182,9 +182,14 @@ const DECLARED_TYPES_PINS = {
   // 8 pins ELECTRIQUES, ordre = broches physiques 1..8 (top view, pinout TI). Level-1 simple
   // alimentation (VCC- = reference) porte exclusivement par dcVoltageDomainRegistry (PREQ1-3).
   LM358P:[{id:'1OUT',role:'output'},{id:'1IN-',role:'input'},{id:'1IN+',role:'input'},{id:'VCC-',role:'ground'},{id:'2IN+',role:'input'},{id:'2IN-',role:'input'},{id:'2OUT',role:'output'},{id:'VCC+',role:'power'}],
+  // A11-COMP4 : Texas Instruments NE555P, P / PDIP-8, timer de precision - 8 pins ELECTRIQUES,
+  // ordre = broches physiques 1..8 (top view, pinout TI). Level-1 porte exclusivement par
+  // mixedSignalContributionRegistry (A11-COMP4-PREQ3). CONT (I/O TI) : role passif, un CONT non
+  // pilote est un cas Level-1 legitime (seuils nominaux), jamais une entree flottante a signaler.
+  NE555P:[{id:'GND',role:'ground'},{id:'TRIG',role:'input'},{id:'OUT',role:'output'},{id:'RESET',role:'input'},{id:'CONT',role:'passive'},{id:'THRES',role:'input'},{id:'DISCH',role:'output'},{id:'VCC',role:'power'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY','LCD_16X2_WH1602B','WS2812B_V6','LM339NE4','LM393P','LM358P']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY','LCD_16X2_WH1602B','WS2812B_V6','LM339NE4','LM393P','LM358P','NE555P']
 
 const DECLARED_PARAMETER_SCHEMA = {
   AND_GATE:[],
@@ -201,6 +206,8 @@ const DECLARED_PARAMETER_SCHEMA = {
   LCD_16X2_WH1602B:[],
   LM339NE4:[],
   LM393P:[],
+  // A11-COMP4 : aucun parametre - le timing emerge exclusivement du circuit externe (R, C).
+  NE555P:[],
   // A11-COMP3 : constantes pedagogiques Level-1 FIXES (minimum = maximum = defaut, meme convention
   // que les tensions nominales fixes des piles) - jamais presentees comme lois physiques du LM358 reel.
   LM358P:[
@@ -422,6 +429,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   LM339NE4:{},
   LM393P:{},
   LM358P:{openLoopGain:100000,outputHighHeadroom:1.5},
+  NE555P:{},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -509,6 +517,9 @@ const DECLARED_CAPABILITIES = {
   LM393P:[],
   // A11-COMP3 : producteur de domaine DC derive (comme VOLTAGE_REGULATOR) via dcVoltageDomainRegistry.
   LM358P:['dc'],
+  // A11-COMP4 : OUT est une autorite numerique (digitalOutputPins) ; DISCH reste une paire de
+  // conduction de step (mixedSignalContributionRegistry) - aucune contribution DC requise.
+  NE555P:['digital'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -558,6 +569,7 @@ const DECLARED_MODEL_AVAILABLE = {
   LM339NE4:true,
   LM393P:true,
   LM358P:true,
+  NE555P:true,
 }
 
 /**
