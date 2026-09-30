@@ -640,16 +640,21 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
   const controlled = contributors.flatMap(({ comp, contract }) =>
     controlledDomainGroups(contract).map((group) => ({ comp, contract, group })))
   const plans = planControlledFeedback(controlled, analogConductors, netOf, primary)
+  // A11-COMP3-PREQ3 — component-wide supply context: the already resolved requiredPositivePins
+  // facts (volts relative to referencePin, validated by powered()), {} without such pins. Never
+  // merged into inputVoltages. A fresh object per law call, so no call can alter another's view.
+  const supplyContext = (facts, comp, contract) => Object.fromEntries(pinList(contract.requiredPositivePins)
+    .map((pin) => [pin, facts.get(netOf(comp, pin)).voltage]))
   // A11-COMP3-PREQ2 — the same pure law F evaluated with a private candidate x on the
   // feedback pins; x becomes an electrical fact only once validated by the solver.
   const solveFeedback = (facts, comp, contract, group, plan, observed) => {
-    const supplyVoltages = Object.fromEntries(pinList(contract.requiredPositivePins)
-      .map((pin) => [pin, facts.get(netOf(comp, pin)).voltage]))
     const transfer = (x) => group.contribute({
       inputVoltages: { ...observed.inputVoltages, ...Object.fromEntries(plan.feedbackPins.map((pin) => [pin, x])) },
+      supplyVoltages: supplyContext(facts, comp, contract),
       params: observed.params,
     })?.[plan.variable]
-    return { [plan.variable]: solveScalarFeedback(transfer, group.feedback.bounds({ supplyVoltages, params: observed.params })) }
+    const bounds = group.feedback.bounds({ supplyVoltages: supplyContext(facts, comp, contract), params: observed.params })
+    return { [plan.variable]: solveScalarFeedback(transfer, bounds) }
   }
   let previous = primary
   const seen = new Set()
@@ -664,7 +669,8 @@ function resolveDcVoltageDomains(components, prepared, sources, contributors, pi
         { inputPins: plan.kind === 'feedback' ? plan.externalPins : group.inputPins, referencePin: contract.referencePin })
       const outputs = !observed ? null : plan.kind === 'feedback'
         ? solveFeedback(previous, comp, contract, group, plan, observed)
-        : group.contribute({ inputVoltages: observed.inputVoltages, params: observed.params })
+        : group.contribute({ inputVoltages: observed.inputVoltages, supplyVoltages: supplyContext(previous, comp, contract),
+          params: observed.params })
       for (const pin of group.outputPins) {
         const voltage = outputs?.[pin]
         // Reserve inactive outputs too: a load cannot back-power its producer.

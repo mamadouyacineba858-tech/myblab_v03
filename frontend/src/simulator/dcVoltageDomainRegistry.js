@@ -34,6 +34,15 @@
  * bisection within [min, max] (see controlledAnalogFeedbackSolver.js). Any
  * other dependency cycle, or any failed solve, leaves the outputs unresolved.
  * A contributor without `feedback` is never solved, whatever its wiring.
+ *
+ * A11-COMP3-PREQ3 — supply context, additive: the controlled forms' contribute
+ * is called as contribute({ inputVoltages, supplyVoltages, params }), in the
+ * feed-forward path and in the feedback transfer alike. supplyVoltages is the
+ * same component-wide object bounds() receives: { [requiredPositivePin]: volts }
+ * relative to referencePin (already resolved and validated by the activation
+ * rule), {} without requiredPositivePins. Supply pins never enter inputVoltages
+ * nor the observed inputs; a law may ignore supplyVoltages. Each call receives
+ * its own object.
  */
 const contributions = new Map([
   ['VOLTAGE_REGULATOR', {
