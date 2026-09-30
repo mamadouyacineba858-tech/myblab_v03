@@ -131,16 +131,59 @@ function polarizedCapacitorTransient({ pins, params, supplyVoltage, dt, previous
 }
 
 /**
+ * A11-COMP4-PREQ4 — OPTIONAL observation contract (additive; a contributor
+ * without an observer behaves exactly as before). Only the OWNER of a
+ * transient model knows the structure of its private state, so only its
+ * observer may translate the state ALREADY COMMITTED by the previous step into
+ * observable electrical facts :
+ *
+ *   ({ component, params, previousState }) => { voltageFacts?: [{ positivePin, referencePin, voltage }] } | null
+ *
+ * - `voltage` : volts of `positivePin` relative to `referencePin` (two
+ *   distinct canonical pins of the component) ; never a Signal.
+ * - an observer never computes a new state (no second model law) and never
+ *   invents a fact without a committed state.
+ *
+ * The runtime never reads `previousState` itself : it only consumes these
+ * facts (see `transientVoltageFactBridge.js`).
+ *
+ * @typedef {(ctx: { component: object, params: Record<string, number>, previousState: object | undefined })
+ *   => { voltageFacts?: Array<{ positivePin: string, referencePin: string, voltage: number }> } | null} TransientObservationFn
+ */
+
+/**
+ * CAPACITOR / POLARIZED_CAPACITOR : the committed charge-model state
+ * `{ voltage }` is the voltage between the two terminals, oriented by the
+ * owner (CSA ruling : pinA over pinB, plus over minus). Observation only —
+ * `capacitorChargeStep` is never re-evaluated here.
+ */
+function capacitorVoltageObservation(positivePin, referencePin) {
+  return ({ previousState }) => previousState === undefined || previousState === null
+    ? null
+    : { voltageFacts: [{ positivePin, referencePin, voltage: previousState.voltage }] }
+}
+
+/**
  * Fabrique un Registry isolé — même patron que
  * `createTimedDigitalContributionRegistry` (`timedDigitalContributionRegistry.js`) :
  * permet à un test d'injecter une table de contributions FIXTURE, sans
  * jamais enregistrer de faux type de production dans la table par défaut ni
  * dans `canonicalRegistry.js`.
  *
- * @param {{ contributions?: Map<string, TransientContributionFn> }} [options]
+ * A11-COMP4-PREQ4 : `observations` (optionnel, Map type -> TransientObservationFn)
+ * déclare l'observateur facultatif d'un type ; un type sans entrée n'expose
+ * aucun fait (`getTransientObservation` -> null).
+ *
+ * @param {{ contributions?: Map<string, TransientContributionFn>, observations?: Map<string, TransientObservationFn> }} [options]
  */
-export function createTransientContributionRegistry({ contributions = new Map() } = {}) {
+export function createTransientContributionRegistry({ contributions = new Map(), observations = new Map() } = {}) {
   const store = contributions instanceof Map ? contributions : new Map(Object.entries(contributions))
+  const observers = observations instanceof Map ? observations : new Map(Object.entries(observations))
+  for (const [type, observe] of observers) {
+    if (typeof observe !== "function" || !store.has(type)) {
+      throw new Error(`transientContributionRegistry: invalid observation for type "${type}" (expected a function of a registered contributor)`)
+    }
+  }
 
   /** @param {string} type @returns {TransientContributionFn | null} */
   function getTransientContribution(type) {
@@ -157,7 +200,12 @@ export function createTransientContributionRegistry({ contributions = new Map() 
     return Object.freeze([...store.keys()])
   }
 
-  return { getTransientContribution, hasTransientContribution, getAllTransientContributionTypes }
+  /** @param {string} type @returns {TransientObservationFn | null} */
+  function getTransientObservation(type) {
+    return observers.get(type) ?? null
+  }
+
+  return { getTransientContribution, hasTransientContribution, getAllTransientContributionTypes, getTransientObservation }
 }
 
 /**
@@ -221,8 +269,15 @@ const defaultRegistry = createTransientContributionRegistry({
     ["POLARIZED_CAPACITOR", polarizedCapacitorTransient],
     ["INDUCTOR", inductorTransient],
   ]),
+  // A11-COMP4-PREQ4 : INDUCTOR keeps no observer — its state is a current,
+  // from which no persistent node voltage is invented.
+  observations: new Map([
+    ["CAPACITOR", capacitorVoltageObservation("pinA", "pinB")],
+    ["POLARIZED_CAPACITOR", capacitorVoltageObservation("plus", "minus")],
+  ]),
 })
 
 export const getTransientContribution = defaultRegistry.getTransientContribution
 export const hasTransientContribution = defaultRegistry.hasTransientContribution
 export const getAllTransientContributionTypes = defaultRegistry.getAllTransientContributionTypes
+export const getTransientObservation = defaultRegistry.getTransientObservation

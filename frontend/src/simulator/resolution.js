@@ -184,8 +184,12 @@ export function resolveSourceDrivenVoltageFacts(components, prepared) {
   return facts
 }
 
-/** Net identity of every pin key : the smallest key of its physical net. */
-function netIdentities(nets) {
+/**
+ * Net identity of every pin key : the smallest key of its physical net.
+ * A11-COMP4-PREQ4 : exported (read-only helper) so every numeric fact uses the
+ * same `reference` identity.
+ */
+export function netIdentities(nets) {
   const netByKey = new Map()
   for (const keys of nets.values()) {
     const id = [...keys].sort()[0]

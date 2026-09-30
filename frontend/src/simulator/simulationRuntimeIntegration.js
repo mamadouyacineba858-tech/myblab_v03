@@ -24,7 +24,7 @@ import { createScheduler } from "./scheduler.js"
 import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
 import { getDigitalContribution as defaultGetDigitalContribution, hasDigitalContribution as defaultHasDigitalContribution } from "./digitalContributionRegistry.js"
 import { getTimedDigitalContribution as defaultGetTimedDigitalContribution, hasTimedDigitalContribution as defaultHasTimedDigitalContribution } from "./timedDigitalContributionRegistry.js"
-import { getTransientContribution as defaultGetTransientContribution, hasTransientContribution as defaultHasTransientContribution } from "./transientContributionRegistry.js"
+import { getTransientContribution as defaultGetTransientContribution, hasTransientContribution as defaultHasTransientContribution, getTransientObservation as defaultGetTransientObservation } from "./transientContributionRegistry.js"
 import { composeElectricalAnalysis } from "./electricalAnalysis.js"
 import { resolveComponentParameters } from "./resolveComponentParameters.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
@@ -33,6 +33,7 @@ import { Signal } from "./signals.js"
 import { clearDigitalTransitions, consumeDigitalTransitions, createDigitalTransitionStore, recordDigitalTransitions, retainDigitalTransitionUids } from "./digitalTransitions.js"
 import { getDigitalEventContribution as defaultGetDigitalEventContribution, hasDigitalEventContribution as defaultHasDigitalEventContribution } from "./digitalEventContributionRegistry.js"
 import { getMixedSignalContribution as defaultGetMixedSignalContribution, hasMixedSignalContribution as defaultHasMixedSignalContribution } from "./mixedSignalContributionRegistry.js"
+import { composeSampleVoltageFacts, observeTransientVoltageFacts } from "./transientVoltageFactBridge.js"
 
 /**
  * MB-SIM-011 — Intégration Simulation ↔ Scheduler/Runtime (SIM3).
@@ -1010,6 +1011,7 @@ function computeElectricalStep(components, wires, options = {}) {
   const transientRegistry = options.transientContributionRegistry ?? {
     hasTransientContribution: defaultHasTransientContribution,
     getTransientContribution: defaultGetTransientContribution,
+    getTransientObservation: defaultGetTransientObservation,
   }
   const transientComponents = (effectiveComponents || []).filter(
     (c) => c && transientRegistry.hasTransientContribution(c.type)
@@ -1166,6 +1168,16 @@ function computeElectricalStep(components, wires, options = {}) {
     sharedScheduler.advance(dt)
     const currentTimeMs = sharedScheduler.getCurrentTime()
 
+    // A4-D-PREQ1 : store d'état électrique runtime volatile, fourni par
+    // l'appelant pour persister entre plusieurs appels successifs (même
+    // convention exacte que `options.timedDigitalStates`/`options.orchestrators`)
+    // — une nouvelle Map par défaut si omise (reset déterministe). Résolu une
+    // seule fois ici (A11-COMP4-PREQ4) : l'observation du SAMPLE mixed-signal
+    // et la mise à jour transitoire du step lisent/écrivent le MÊME store.
+    const electricalTransientStates = options.electricalTransientStates instanceof Map
+      ? options.electricalTransientStates
+      : options.runtimeSession?.electricalTransientStates ?? new Map()
+
     if (runtimeComponents.length > 0) {
       for (const comp of runtimeComponents) {
         options.firmwareSessions?.get(comp.uid)?.controller?.resumeAtCurrentTime()
@@ -1185,12 +1197,18 @@ function computeElectricalStep(components, wires, options = {}) {
       mixedSignalStates = options.mixedSignalStates instanceof Map
         ? options.mixedSignalStates
         : options.runtimeSession?.mixedSignalStates ?? new Map()
+      // A11-COMP4-PREQ4 : the numeric snapshot also carries the transient
+      // facts OBSERVED from the states committed by step n-1 (this step's
+      // transient update runs later, after SAMPLE). Only the Registry
+      // observers read the private transient store ; contributors receive
+      // composed facts, whatever their origin.
+      const transientFacts = observeTransientVoltageFacts(transientComponents, transientRegistry, electricalTransientStates)
       mixedSignalStep = computeMixedSignalContributions(
         mixedSignalComponents,
         mixedSignalRegistry,
         {
           pinSignals: resolveSourceDrivenPinSignals(effectiveComponents, prepared, runtimeSignals),
-          voltageFacts: resolveSourceDrivenVoltageFacts(effectiveComponents, prepared),
+          voltageFacts: composeSampleVoltageFacts(resolveSourceDrivenVoltageFacts(effectiveComponents, prepared), transientFacts, prepared),
         },
         dt,
         currentTimeMs,
@@ -1261,9 +1279,6 @@ function computeElectricalStep(components, wires, options = {}) {
       const dcSources = effectiveComponents.map((c) => getDcSource(c)).filter((source) => source !== null)
       const supplyVoltage = dcSources.length === 1 ? dcSources[0].voltage : null
 
-      const electricalTransientStates = options.electricalTransientStates instanceof Map
-        ? options.electricalTransientStates
-        : options.runtimeSession?.electricalTransientStates ?? new Map()
       transientContributions = computeTransientElectricalContributions(
         transientComponents,
         transientRegistry,
