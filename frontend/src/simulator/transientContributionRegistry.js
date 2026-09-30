@@ -63,7 +63,12 @@ import { Signal } from "./signals.js"
  *   dt: number,
  *   currentTimeMs: number,
  *   previousState: object | undefined,
+ *   driveContext?: { targetVoltage: number, equivalentResistance: number, reference: string },
  * }) => { state: object | undefined, contribution: {voltage:number, current:number} | null }} TransientContributionFn
+ *
+ * - `driveContext` (A11-COMP4-PREQ5, optionnel, additif) : voir
+ *   `driveTerminals` dans `createTransientContributionRegistry` ci-dessous.
+ *   Un contributeur qui l'ignore fonctionne exactement comme avant.
  */
 
 function isSimplePoweredLoop(pinA, pinB) {
@@ -101,7 +106,8 @@ function initialCapacitorState() {
   return { voltage: 0 }
 }
 
-function capacitorChargeStep(termA, termB, capacitance, supplyVoltage, dt, previousState) {
+function capacitorChargeStep(termA, termB, capacitance, supplyVoltage, dt, previousState, drive = null) {
+  if (drive) return capacitorDrivenStep(capacitance, drive, dt, previousState)
   if (!isSimplePoweredLoop(termA, termB) || typeof supplyVoltage !== "number" || !Number.isFinite(supplyVoltage)) {
     return { state: previousState, contribution: null }
   }
@@ -116,18 +122,59 @@ function capacitorChargeStep(termA, termB, capacitance, supplyVoltage, dt, previ
 }
 
 /**
+ * A11-COMP4-PREQ5 — external resistive drive (additive). When the runtime
+ * provides a valid `driveContext` (`resistiveDriveContext.js` : the unique
+ * series chain seen from the capacitor terminals), the REAL circuit resistance
+ * replaces the pedagogical constant above. Units : `dt` in simulated ms
+ * (Scheduler), R in Ω, C in F, so tau = R × C is in seconds :
+ *
+ *   dtSeconds = dt / 1000
+ *   alpha = 1 - e^(-dtSeconds / (R × C))
+ *   V(t+dt) = V(t) + (Vtarget - V(t)) × alpha
+ *   I(t+dt) = C × (V(t+dt) - V(t)) / dtSeconds     (A, dt > 0 uniquement)
+ *
+ * Signed convention (CSA) : `state.voltage` = V(pinA) - V(pinB) (CAPACITOR),
+ * V(plus) - V(minus) (POLARIZED_CAPACITOR) ; `targetVoltage` is already
+ * expressed in that orientation. No valid context -> historical path, unchanged.
+ * A POLARIZED_CAPACITOR driven towards a negative voltage has no safe
+ * semantics in this model (no reverse-polarity physics) : the context is
+ * refused and the historical path applies.
+ */
+function admissibleDrive(driveContext, capacitance, { refuseNegative }) {
+  if (!driveContext || typeof driveContext !== "object") return null
+  const { targetVoltage, equivalentResistance } = driveContext
+  const valid = typeof targetVoltage === "number" && Number.isFinite(targetVoltage)
+    && typeof equivalentResistance === "number" && Number.isFinite(equivalentResistance) && equivalentResistance > 0
+    && typeof capacitance === "number" && Number.isFinite(capacitance) && capacitance > 0
+  if (!valid || (refuseNegative && targetVoltage < 0)) return null
+  return { targetVoltage, equivalentResistance }
+}
+
+function capacitorDrivenStep(capacitance, { targetVoltage, equivalentResistance }, dt, previousState) {
+  const { voltage: previousVoltage } = previousState ?? initialCapacitorState()
+  const dtSeconds = dt / 1000
+  const alpha = dtSeconds > 0 ? 1 - Math.exp(-dtSeconds / (equivalentResistance * capacitance)) : 0
+  const voltage = previousVoltage + (targetVoltage - previousVoltage) * alpha
+  const current = dtSeconds > 0 ? capacitance * (voltage - previousVoltage) / dtSeconds : 0
+
+  return { state: { voltage }, contribution: { voltage, current } }
+}
+
+/**
  * FT-C-COMP-002 : POLARIZED_CAPACITOR réutilise LA MÊME fonction moteur
  * (`capacitorChargeStep`) que CAPACITOR — jamais une seconde implémentation
  * du modèle de charge — seules les bornes nommées diffèrent (`plus`/`minus`
  * au lieu de `pinA`/`pinB`), même patron exact que `capacitorDc`/
  * `polarizedCapacitorDc` dans `dcContributionRegistry.js`.
  */
-function capacitorTransient({ pins, params, supplyVoltage, dt, previousState }) {
-  return capacitorChargeStep(pins.pinA, pins.pinB, params.capacitance, supplyVoltage, dt, previousState)
+function capacitorTransient({ pins, params, supplyVoltage, dt, previousState, driveContext }) {
+  return capacitorChargeStep(pins.pinA, pins.pinB, params.capacitance, supplyVoltage, dt, previousState,
+    admissibleDrive(driveContext, params.capacitance, { refuseNegative: false }))
 }
 
-function polarizedCapacitorTransient({ pins, params, supplyVoltage, dt, previousState }) {
-  return capacitorChargeStep(pins.plus, pins.minus, params.capacitance, supplyVoltage, dt, previousState)
+function polarizedCapacitorTransient({ pins, params, supplyVoltage, dt, previousState, driveContext }) {
+  return capacitorChargeStep(pins.plus, pins.minus, params.capacitance, supplyVoltage, dt, previousState,
+    admissibleDrive(driveContext, params.capacitance, { refuseNegative: true }))
 }
 
 /**
@@ -174,14 +221,30 @@ function capacitorVoltageObservation(positivePin, referencePin) {
  * déclare l'observateur facultatif d'un type ; un type sans entrée n'expose
  * aucun fait (`getTransientObservation` -> null).
  *
- * @param {{ contributions?: Map<string, TransientContributionFn>, observations?: Map<string, TransientObservationFn> }} [options]
+ * A11-COMP4-PREQ5 : `driveTerminals` (optionnel, Map type -> { positivePin,
+ * referencePin }) déclare la paire de bornes d'un stockage transitoire pour
+ * laquelle le runtime peut calculer un contexte de drive résistif
+ * (`resistiveDriveContext.js`), transmis ADDITIVEMENT au contributeur :
+ * `ctx.driveContext = { targetVoltage, equivalentResistance, reference }`
+ * (volts de positivePin relativement à referencePin, ohms, referencePin) —
+ * clé absente lorsqu'aucun contexte admissible n'existe. Un type sans entrée
+ * ne reçoit jamais de contexte (`getTransientDriveTerminals` -> null).
+ *
+ * @param {{ contributions?: Map<string, TransientContributionFn>, observations?: Map<string, TransientObservationFn>, driveTerminals?: Map<string, { positivePin: string, referencePin: string }> }} [options]
  */
-export function createTransientContributionRegistry({ contributions = new Map(), observations = new Map() } = {}) {
+export function createTransientContributionRegistry({ contributions = new Map(), observations = new Map(), driveTerminals = new Map() } = {}) {
   const store = contributions instanceof Map ? contributions : new Map(Object.entries(contributions))
   const observers = observations instanceof Map ? observations : new Map(Object.entries(observations))
+  const drives = driveTerminals instanceof Map ? driveTerminals : new Map(Object.entries(driveTerminals))
   for (const [type, observe] of observers) {
     if (typeof observe !== "function" || !store.has(type)) {
       throw new Error(`transientContributionRegistry: invalid observation for type "${type}" (expected a function of a registered contributor)`)
+    }
+  }
+  for (const [type, terminals] of drives) {
+    const { positivePin, referencePin } = terminals ?? {}
+    if (!store.has(type) || typeof positivePin !== "string" || typeof referencePin !== "string" || positivePin === referencePin) {
+      throw new Error(`transientContributionRegistry: invalid drive terminals for type "${type}" (expected two distinct pins of a registered contributor)`)
     }
   }
 
@@ -205,7 +268,13 @@ export function createTransientContributionRegistry({ contributions = new Map(),
     return observers.get(type) ?? null
   }
 
-  return { getTransientContribution, hasTransientContribution, getAllTransientContributionTypes, getTransientObservation }
+  /** @param {string} type @returns {Readonly<{ positivePin: string, referencePin: string }> | null} */
+  function getTransientDriveTerminals(type) {
+    const terminals = drives.get(type)
+    return terminals ? Object.freeze({ positivePin: terminals.positivePin, referencePin: terminals.referencePin }) : null
+  }
+
+  return { getTransientContribution, hasTransientContribution, getAllTransientContributionTypes, getTransientObservation, getTransientDriveTerminals }
 }
 
 /**
@@ -275,9 +344,16 @@ const defaultRegistry = createTransientContributionRegistry({
     ["CAPACITOR", capacitorVoltageObservation("pinA", "pinB")],
     ["POLARIZED_CAPACITOR", capacitorVoltageObservation("plus", "minus")],
   ]),
+  // A11-COMP4-PREQ5 : same orientation as the state and its observation.
+  // INDUCTOR declares none (a voltage drive context is not its state variable).
+  driveTerminals: new Map([
+    ["CAPACITOR", { positivePin: "pinA", referencePin: "pinB" }],
+    ["POLARIZED_CAPACITOR", { positivePin: "plus", referencePin: "minus" }],
+  ]),
 })
 
 export const getTransientContribution = defaultRegistry.getTransientContribution
 export const hasTransientContribution = defaultRegistry.hasTransientContribution
 export const getAllTransientContributionTypes = defaultRegistry.getAllTransientContributionTypes
 export const getTransientObservation = defaultRegistry.getTransientObservation
+export const getTransientDriveTerminals = defaultRegistry.getTransientDriveTerminals

@@ -24,7 +24,7 @@ import { createScheduler } from "./scheduler.js"
 import { applyEnvironmentalStimuli } from "./environmentalStimulus.js"
 import { getDigitalContribution as defaultGetDigitalContribution, hasDigitalContribution as defaultHasDigitalContribution } from "./digitalContributionRegistry.js"
 import { getTimedDigitalContribution as defaultGetTimedDigitalContribution, hasTimedDigitalContribution as defaultHasTimedDigitalContribution } from "./timedDigitalContributionRegistry.js"
-import { getTransientContribution as defaultGetTransientContribution, hasTransientContribution as defaultHasTransientContribution, getTransientObservation as defaultGetTransientObservation } from "./transientContributionRegistry.js"
+import { getTransientContribution as defaultGetTransientContribution, hasTransientContribution as defaultHasTransientContribution, getTransientObservation as defaultGetTransientObservation, getTransientDriveTerminals as defaultGetTransientDriveTerminals } from "./transientContributionRegistry.js"
 import { composeElectricalAnalysis } from "./electricalAnalysis.js"
 import { resolveComponentParameters } from "./resolveComponentParameters.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
@@ -34,6 +34,8 @@ import { clearDigitalTransitions, consumeDigitalTransitions, createDigitalTransi
 import { getDigitalEventContribution as defaultGetDigitalEventContribution, hasDigitalEventContribution as defaultHasDigitalEventContribution } from "./digitalEventContributionRegistry.js"
 import { getMixedSignalContribution as defaultGetMixedSignalContribution, hasMixedSignalContribution as defaultHasMixedSignalContribution } from "./mixedSignalContributionRegistry.js"
 import { composeSampleVoltageFacts, observeTransientVoltageFacts } from "./transientVoltageFactBridge.js"
+import { getResistiveEdge as defaultGetResistiveEdge } from "./dcContributionRegistry.js"
+import { collectResistiveEdges, composeDriveVoltageFacts, createResistiveDriveNetwork, resolveResistiveDriveContext } from "./resistiveDriveContext.js"
 
 /**
  * MB-SIM-011 — Intégration Simulation ↔ Scheduler/Runtime (SIM3).
@@ -519,11 +521,15 @@ function rememberHeldTimedDigitalSignals(timedDigitalComponents, timedDigitalSta
  * @param {Map<string, object>} electricalTransientStates Store d'état
  *   électrique runtime (uid -> state), muté en place par cette fonction —
  *   jamais lu/écrit ailleurs que par cette fonction et son appelant.
+ * @param {Map<string, { targetVoltage: number, equivalentResistance: number, reference: string }>} [driveContexts]
+ *   A11-COMP4-PREQ5 (optionnel) : contexte de drive résistif du step par uid
+ *   (`computeTransientDriveContexts`) ; transmis au contributeur sous
+ *   `driveContext` uniquement lorsqu'il existe (clé absente sinon).
  * @returns {Map<string, {voltage:number, current:number}>} clé uid ->
  *   contribution électrique (composants sans contribution pour ce step
  *   absents de la Map, même convention que `dcContributionRegistry.js`).
  */
-export function computeTransientElectricalContributions(transientComponents, transientRegistry, sourceDrivenSignals, supplyVoltage, dt, currentTimeMs, electricalTransientStates) {
+export function computeTransientElectricalContributions(transientComponents, transientRegistry, sourceDrivenSignals, supplyVoltage, dt, currentTimeMs, electricalTransientStates, driveContexts = null) {
   const produced = new Map()
   if (!Array.isArray(transientComponents)) return produced
 
@@ -534,12 +540,70 @@ export function computeTransientElectricalContributions(transientComponents, tra
     const params = resolveComponentParameters(comp.type, comp.parameters)
     const pins = buildComponentSourceDrivenPinSignals(comp, sourceDrivenSignals)
     const previousState = electricalTransientStates.get(comp.uid)
-    const { state, contribution } = contribute({ pins, params, supplyVoltage, dt, currentTimeMs, previousState })
+    const driveContext = driveContexts?.get(comp.uid)
+    const { state, contribution } = contribute({ pins, params, supplyVoltage, dt, currentTimeMs, previousState,
+      ...(driveContext ? { driveContext } : {}) })
     electricalTransientStates.set(comp.uid, state)
     if (contribution) produced.set(comp.uid, contribution)
   }
 
   return produced
+}
+
+/**
+ * A11-COMP4-PREQ5 — resistive drive contexts of step n, computed AFTER the
+ * mixed-signal SAMPLE[n] (its conduction pairs and voltage outputs are step
+ * authorities) and BEFORE the transient update[n] / COMMIT[n] / the ONE
+ * resolution. Not a resolution : `resistiveDriveContext.js` only reduces the
+ * unique series chain seen from each storage terminal pair declared by the
+ * transient Registry (`getTransientDriveTerminals`), never a type name here.
+ *
+ * Authorities : the DC-source facts and the step voltage outputs (never a
+ * HIGH/LOW level, never a transient observation). Pins of mixed-signal
+ * contributors are high impedance, except the digital outputs they drive in
+ * this step (a driver without numeric value makes the chain ambiguous).
+ *
+ * @param {{
+ *   transientComponents: Array<{ uid, type, parameters? }>,
+ *   transientRegistry: { getTransientDriveTerminals?: (type: string) => { positivePin: string, referencePin: string } | null },
+ *   components: Array<{ uid, type, parameters? }>,
+ *   prepared: { uf, nets, allKeys },
+ *   sourceVoltageFacts: Map<string, { voltage: number, reference: string } | null>,
+ *   mixedSignalComponents?: Array<{ uid, type }>,
+ *   mixedSignalStep?: { digitalSignals: Map<string, string>, electricalAuthorities: { voltageOutputs: Array<object>, conductionPairs: Array<object> } } | null,
+ *   getResistiveEdge?: (type: string) => object | null,
+ * }} input
+ * @returns {Map<string, Readonly<{ targetVoltage: number, equivalentResistance: number, reference: string }>>} uid -> context
+ */
+export function computeTransientDriveContexts({ transientComponents, transientRegistry, components, prepared, sourceVoltageFacts,
+  mixedSignalComponents = [], mixedSignalStep = null, getResistiveEdge = defaultGetResistiveEdge }) {
+  const contexts = new Map()
+  const storages = (transientComponents || [])
+    .map((comp) => ({ comp, terminals: comp ? transientRegistry.getTransientDriveTerminals?.(comp.type) ?? null : null }))
+    .filter(({ comp, terminals }) => terminals && typeof comp.uid === "string")
+  if (storages.length === 0) return contexts
+
+  const authorities = mixedSignalStep?.electricalAuthorities ?? { voltageOutputs: [], conductionPairs: [] }
+  const highImpedanceKeys = new Set()
+  for (const comp of mixedSignalComponents || []) {
+    for (const pin of getCanonicalEntry(comp.type)?.pins ?? []) {
+      const key = prepared.uf.key(comp.uid, pin.id)
+      if (!mixedSignalStep?.digitalSignals.has(key)) highImpedanceKeys.add(key)
+    }
+  }
+  const network = createResistiveDriveNetwork({
+    prepared,
+    voltageFacts: composeDriveVoltageFacts(sourceVoltageFacts, authorities.voltageOutputs, prepared),
+    resistiveEdges: collectResistiveEdges(components, prepared, getResistiveEdge),
+    conductionPairs: authorities.conductionPairs,
+    highImpedanceKeys,
+  })
+  for (const { comp, terminals } of storages) {
+    const context = resolveResistiveDriveContext(network,
+      prepared.uf.key(comp.uid, terminals.positivePin), prepared.uf.key(comp.uid, terminals.referencePin))
+    if (context) contexts.set(comp.uid, Object.freeze({ ...context, reference: terminals.referencePin }))
+  }
+  return contexts
 }
 
 /**
@@ -1012,6 +1076,7 @@ function computeElectricalStep(components, wires, options = {}) {
     hasTransientContribution: defaultHasTransientContribution,
     getTransientContribution: defaultGetTransientContribution,
     getTransientObservation: defaultGetTransientObservation,
+    getTransientDriveTerminals: defaultGetTransientDriveTerminals,
   }
   const transientComponents = (effectiveComponents || []).filter(
     (c) => c && transientRegistry.hasTransientContribution(c.type)
@@ -1096,6 +1161,9 @@ function computeElectricalStep(components, wires, options = {}) {
   // committed only once every authority of the step has been composed.
   let mixedSignalStep = null
   let mixedSignalStates = null
+  // A11-COMP4-PREQ5 : numeric DC-source facts of the step, computed at most
+  // once and shared by the mixed-signal SAMPLE and the transient drive contexts.
+  let sourceVoltageFacts = null
   if (runtimeComponents.length > 0 || timedDigitalComponents.length > 0 || transientComponents.length > 0 || digitalEventComponents.length > 0 || mixedSignalComponents.length > 0) {
     const dt = options.dt ?? 0
     const orchestrators = options.orchestrators instanceof Map ? options.orchestrators : new Map()
@@ -1203,12 +1271,13 @@ function computeElectricalStep(components, wires, options = {}) {
       // observers read the private transient store ; contributors receive
       // composed facts, whatever their origin.
       const transientFacts = observeTransientVoltageFacts(transientComponents, transientRegistry, electricalTransientStates)
+      sourceVoltageFacts = resolveSourceDrivenVoltageFacts(effectiveComponents, prepared)
       mixedSignalStep = computeMixedSignalContributions(
         mixedSignalComponents,
         mixedSignalRegistry,
         {
           pinSignals: resolveSourceDrivenPinSignals(effectiveComponents, prepared, runtimeSignals),
-          voltageFacts: composeSampleVoltageFacts(resolveSourceDrivenVoltageFacts(effectiveComponents, prepared), transientFacts, prepared),
+          voltageFacts: composeSampleVoltageFacts(sourceVoltageFacts, transientFacts, prepared),
         },
         dt,
         currentTimeMs,
@@ -1279,6 +1348,18 @@ function computeElectricalStep(components, wires, options = {}) {
       const dcSources = effectiveComponents.map((c) => getDcSource(c)).filter((source) => source !== null)
       const supplyVoltage = dcSources.length === 1 ? dcSources[0].voltage : null
 
+      // A11-COMP4-PREQ5 : drive contexts of step n, after the mixed effects[n]
+      // (conduction pairs, voltage outputs) and before the transient update[n].
+      const driveContexts = computeTransientDriveContexts({
+        transientComponents,
+        transientRegistry,
+        components: effectiveComponents,
+        prepared,
+        sourceVoltageFacts: sourceVoltageFacts ?? resolveSourceDrivenVoltageFacts(effectiveComponents, prepared),
+        mixedSignalComponents,
+        mixedSignalStep,
+      })
+
       transientContributions = computeTransientElectricalContributions(
         transientComponents,
         transientRegistry,
@@ -1286,7 +1367,8 @@ function computeElectricalStep(components, wires, options = {}) {
         supplyVoltage,
         dt,
         currentTimeMs,
-        electricalTransientStates
+        electricalTransientStates,
+        driveContexts
       )
     }
   }

@@ -265,7 +265,8 @@ describe("createDiodeDcContribution — factory générique (A5-D-PREQ)", () => 
 
   it("T5 — aucun second Registry de breakdown n'est exporté par ce module (surface d'export inchangée + factory)", async () => {
     expect(Object.keys(await import("../dcContributionRegistry.js")).sort()).toEqual(
-      ["createControlledDcSwitchContribution", "createDiodeDcContribution", "createResistiveDcContribution", "getAllDcContributionTypes", "getDcContribution", "getUnconditionalConductionPinPair", "hasDcContribution"].sort()
+      // A11-COMP4-PREQ5 : + getResistiveEdge (resistive-edge capability of the transient drive analysis).
+      ["createControlledDcSwitchContribution", "createDiodeDcContribution", "createResistiveDcContribution", "getAllDcContributionTypes", "getDcContribution", "getResistiveEdge", "getUnconditionalConductionPinPair", "hasDcContribution"].sort()
     )
   })
 

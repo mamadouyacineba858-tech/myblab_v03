@@ -449,3 +449,26 @@ const UNCONDITIONAL_CONDUCTION_PIN_PAIRS = new Map([
 export function getUnconditionalConductionPinPair(type) {
   return UNCONDITIONAL_CONDUCTION_PIN_PAIRS.get(type) ?? null
 }
+
+/**
+ * A11-COMP4-PREQ5 — resistive-edge capability, consumed ONLY by the transient
+ * resistive drive analysis (`resistiveDriveContext.js`), never by the
+ * historical HIGH/LOW passive propagation above (which keeps using
+ * `getUnconditionalConductionPinPair`, unchanged). A declared type is a
+ * two-terminal linear resistance between `terminalAPinId` and
+ * `terminalBPinId`, whose value is the EFFECTIVE instance parameter
+ * `resistanceParameter` (`resolveComponentParameters`). Same Open/Closed rule :
+ * the drive engine asks `getResistiveEdge(type)`, never compares a type name.
+ * RESISTOR only (CSA PREQ5 scope).
+ */
+const RESISTIVE_EDGES = new Map([
+  ["RESISTOR", Object.freeze({ terminalAPinId: "A", terminalBPinId: "B", resistanceParameter: "resistance" })],
+])
+
+/**
+ * @param {string} type
+ * @returns {Readonly<{ terminalAPinId: string, terminalBPinId: string, resistanceParameter: string }> | null}
+ */
+export function getResistiveEdge(type) {
+  return RESISTIVE_EDGES.get(type) ?? null
+}
