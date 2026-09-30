@@ -30,6 +30,7 @@ import { Lcd16x2WH1602BModel } from './models/Lcd16x2WH1602BModel.js'
 import { HBridgeModel } from './models/HBridgeModel.js'
 import { Lm339ne4Model } from './models/Lm339ne4Model.js'
 import { Lm393pModel } from './models/Lm393pModel.js'
+import { Lm358pModel } from './models/Lm358pModel.js'
 import { PmosModel } from './models/PmosModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
 import { Tmp36Model } from './models/Tmp36Model.js'
@@ -155,6 +156,7 @@ const defaultRegistry = createSimulationRegistry({
     Lcd16x2WH1602BModel,
     Lm339ne4Model,
     Lm393pModel,
+    Lm358pModel,
     RelayModel,
     Tmp36Model,
     ForceSensorModel,

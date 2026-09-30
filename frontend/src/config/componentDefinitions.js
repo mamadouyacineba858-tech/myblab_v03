@@ -653,6 +653,20 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "2OUT", label: "2OUT", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2OUT", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
     { id: "VCC", label: "VCC", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A11-COMP3 : TI LM358P P / PDIP-8, raster CSA FROZEN 84x64. 8 pins ELECTRIQUES = 8
+  // PhysicalContacts FROZEN (manifest.json physicalContacts) = geometrie electrique NORMALISEE CSA,
+  // jamais pixel-probee (pixelProbed: false) : rangee basse y=48 (broches 1..4, gauche -> droite),
+  // rangee haute y=16 (broches 8..5, gauche -> droite), pas 12, ecartement 32.
+  LM358P: [
+    { id: "1OUT", label: "1OUT", dx: 24, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1OUT", dx: 24, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1IN-", label: "1IN-", dx: 36, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1IN-", dx: 36, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1IN+", label: "1IN+", dx: 48, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1IN+", dx: 48, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC-", label: "VCC-", dx: 60, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC-", dx: 60, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2IN+", label: "2IN+", dx: 60, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2IN+", dx: 60, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2IN-", label: "2IN-", dx: 48, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2IN-", dx: 48, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2OUT", label: "2OUT", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2OUT", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC+", label: "VCC+", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC+", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   // A5-ZENER_DIODE — asset Founder PASS FROZEN 144×72, pixel-probe réel
   // (alpha>=32, createImageBitmap/getImageData sur le fichier livré) :
   // bounding box opaque globale (1x) x∈[0,143] y∈[7,63] (== manifest.json
@@ -847,6 +861,8 @@ export const COMPONENT_TYPES = {
   LM339NE4: { id: "LM339NE4", label: "LM339 Quad Comparator", manufacturer: "Texas Instruments", icon: "LM339NE4", width: 120, height: 64, pins: buildPins("LM339NE4") },
   // A11-COMP2 : double comparateur open-collector (meme conduction analogique PREQ2, aucun HIGH produit).
   LM393P: { id: "LM393P", label: "LM393 Dual Comparator", manufacturer: "Texas Instruments", icon: "LM393P", width: 84, height: 64, pins: buildPins("LM393P") },
+  // A11-COMP3 : double ampli-op simple alimentation (domaine DC controle PREQ1 + feedback PREQ2 + supply PREQ3).
+  LM358P: { id: "LM358P", label: "LM358 Dual Operational Amplifier", manufacturer: "Texas Instruments", icon: "LM358P", width: 84, height: 64, pins: buildPins("LM358P") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -873,7 +889,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY, COMPONENT_TYPES.LCD_16X2_WH1602B, COMPONENT_TYPES.WS2812B_V6, COMPONENT_TYPES.LM339NE4, COMPONENT_TYPES.LM393P]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY, COMPONENT_TYPES.LCD_16X2_WH1602B, COMPONENT_TYPES.WS2812B_V6, COMPONENT_TYPES.LM339NE4, COMPONENT_TYPES.LM393P, COMPONENT_TYPES.LM358P]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

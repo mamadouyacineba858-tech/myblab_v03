@@ -1,0 +1,10 @@
+{
+  "ticket": "A11-COMP3-LM358P-ASSET",
+  "reference": "Texas Instruments LM358P",
+  "package": "P / PDIP-8",
+  "status": "FOUNDER_PASS",
+  "sourceFile": "lm358p.founder-reference.png",
+  "sha256": "cb1f1e02157a43a00ffe39e1a655839d69b0e4218c6c0a64d543dfe78aef8477",
+  "provenance": "AI-generated studio candidate explicitly approved by Founder; not a manufacturer photograph.",
+  "note": "Founder-approved Candidate 5 preserved byte-for-byte."
+}

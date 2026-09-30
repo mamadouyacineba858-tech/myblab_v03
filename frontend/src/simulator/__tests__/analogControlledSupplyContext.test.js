@@ -245,9 +245,11 @@ describe('A11-COMP3-PREQ3 controlled analog supply context', () => {
     const code = executable(src('resolution.js'))
     expect(code.match(/(?:comp|component)\.type\s*(?:===|!==)\s*['"][^'"]+['"]/g)).toEqual(['comp.type !== "ARDUINO"'])
     expect(code).not.toMatch(/switch\s*\([^)]*\.type/)
-    for (const name of ['resolution.js', 'controlledAnalogFeedbackSolver.js', 'dcVoltageDomainRegistry.js']) {
+    for (const name of ['resolution.js', 'controlledAnalogFeedbackSolver.js']) {
       expect(src(name)).not.toMatch(/LM358|OP_?AMP|555|556|4N35|FIXTURE|COMPARATOR/i)
     }
+    // A11-COMP3 (CSA R2): the registry may declare production types, never test fixtures.
+    expect(src('dcVoltageDomainRegistry.js')).not.toMatch(/FIXTURE/i)
     // Both law call sites and bounds pass the one supply context helper.
     expect(code.match(/supplyVoltages: supplyContext\(/g)).toHaveLength(3)
     const registry = await vi.importActual('../dcVoltageDomainRegistry.js')

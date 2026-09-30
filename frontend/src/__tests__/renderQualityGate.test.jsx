@@ -381,6 +381,16 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       canonical: { width: m.canvasSize.width, height: m.canvasSize.height },
       assets: Object.values(m.images).flatMap((formats) => Object.values(formats)).map((file) => ({ file })),
     }),
+    // A11-COMP3 : le manifest CSA FROZEN du TI LM358P (dossier `lm358p/` = dérivation kebab du
+    // type) suit le même schéma `backend` + `canvasSize` + `images{1x,3x}{png,webp}` que LM393P.
+    // Adaptateur déclaré, en lecture seule ; sha256 vérifiés contre SHA256SUMS.txt par Lm358pPart.raster.test.jsx.
+    LM358P: (m) => ({
+      component: "LM358P",
+      backend: m.backend,
+      complexity: "complex",
+      canonical: { width: m.canvasSize.width, height: m.canvasSize.height },
+      assets: Object.values(m.images).flatMap((formats) => Object.values(formats)).map((file) => ({ file })),
+    }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 

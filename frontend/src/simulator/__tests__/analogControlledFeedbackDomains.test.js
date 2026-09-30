@@ -415,7 +415,8 @@ describe('A11-COMP3-PREQ2 generic controlled-analog feedback solver', () => {
   })
   it('T28 Open/Closed: no type-specific branch in the resolver, solver or registry', async () => {
     for (const name of ['resolution.js', 'controlledAnalogFeedbackSolver.js', 'dcVoltageDomainRegistry.js']) {
-      expect(src(name)).not.toMatch(/LM358|OP_?AMP|555|556|4N35|FIXTURE|COMPARATOR/i)
+      // A11-COMP3 (CSA R2): only the registry may name production types (declarative LM358P entry).
+      expect(src(name)).not.toMatch(name === 'dcVoltageDomainRegistry.js' ? /FIXTURE/i : /LM358|OP_?AMP|555|556|4N35|FIXTURE|COMPARATOR/i)
       const code = executable(src(name))
       expect(code).not.toMatch(/switch\s*\([^)]*\.type/)
       expect(code).not.toMatch(/Date\.now|new Date|performance\.now|Math\.random|setTimeout|setInterval/)

@@ -1,0 +1,127 @@
+{
+  "id": "lm358p",
+  "ticket": "A11-COMP3-LM358P-ASSET",
+  "manufacturer": "Texas Instruments",
+  "manufacturerReference": "LM358P",
+  "family": "LM358",
+  "function": "Dual operational amplifier",
+  "package": "P / PDIP-8",
+  "pins": 8,
+  "backend": "raster",
+  "runtimeView": "top",
+  "canvasSize": {
+    "width": 84,
+    "height": 64
+  },
+  "canvasSize3x": {
+    "width": 252,
+    "height": 192
+  },
+  "breadboardPitchPx": 12,
+  "founderReference": {
+    "file": "lm358p.founder-reference.png",
+    "status": "FOUNDER_PASS",
+    "sha256": "cb1f1e02157a43a00ffe39e1a655839d69b0e4218c6c0a64d543dfe78aef8477"
+  },
+  "runtimeMaster": {
+    "file": "lm358p.runtime-master.png",
+    "dimensionsPx": [
+      252,
+      192
+    ],
+    "sha256": "79af8e13b57d5fbb060598ae28ae712a02d532f2528d6df538abc5e4d24c339f"
+  },
+  "images": {
+    "1x": {
+      "png": "lm358p.default.1x.png",
+      "webp": "lm358p.default.1x.webp"
+    },
+    "3x": {
+      "png": "lm358p.default.3x.png",
+      "webp": "lm358p.default.3x.webp"
+    }
+  },
+  "geometryBasis": {
+    "horizontalPitchMm": 2.54,
+    "scale": "12 px per 2.54 mm",
+    "pitchPx": 12,
+    "rowSpacingPx": 32,
+    "coordinateSpace": "84x64",
+    "pixelProbed": false,
+    "source": "CSA normalized electrical geometry from TI LM358P P/PDIP-8 package/pinout",
+    "note": "Electrical contacts are normalized MYBlab geometry independent of raster pixels; no pixel-probe claim."
+  },
+  "physicalContacts": [
+    {
+      "pin": 1,
+      "name": "1OUT",
+      "x": 24,
+      "y": 48
+    },
+    {
+      "pin": 2,
+      "name": "1IN-",
+      "x": 36,
+      "y": 48
+    },
+    {
+      "pin": 3,
+      "name": "1IN+",
+      "x": 48,
+      "y": 48
+    },
+    {
+      "pin": 4,
+      "name": "VCC-",
+      "x": 60,
+      "y": 48
+    },
+    {
+      "pin": 8,
+      "name": "VCC+",
+      "x": 24,
+      "y": 16
+    },
+    {
+      "pin": 7,
+      "name": "2OUT",
+      "x": 36,
+      "y": 16
+    },
+    {
+      "pin": 6,
+      "name": "2IN-",
+      "x": 48,
+      "y": 16
+    },
+    {
+      "pin": 5,
+      "name": "2IN+",
+      "x": 60,
+      "y": 16
+    }
+  ],
+  "physicalContactsStatus": "FROZEN",
+  "pinout": {
+    "1": "1OUT",
+    "2": "1IN-",
+    "3": "1IN+",
+    "4": "VCC-",
+    "5": "2IN+",
+    "6": "2IN-",
+    "7": "2OUT",
+    "8": "VCC+"
+  },
+  "derivation": {
+    "method": "Founder-approved Candidate 5; complete raster preserved; isotropic Lanczos resize only; centered transparent padding.",
+    "anisotropicScaling": false,
+    "perLeadRelocation": false,
+    "syntheticLeadRecomposition": false,
+    "pixelProbeClaim": false
+  },
+  "provenance": {
+    "founderSource": "AI-generated studio candidate; not a manufacturer photograph.",
+    "physicalAndElectricalReference": "Texas Instruments LM358P P/PDIP-8 package/pinout",
+    "electricalGeometry": "CSA normalized PhysicalContacts FROZEN"
+  }
+}

@@ -255,9 +255,11 @@ describe('A11-ANALOG-PREQ1 controlled analog voltage domains', () => {
     expect(code.match(/(?:comp|component)\.type\s*(?:===|!==)\s*['"][^'"]+['"]/g)).toEqual(['comp.type !== "ARDUINO"'])
     expect(code).not.toMatch(/switch\s*\([^)]*\.type/)
     expect(code.match(/resolveSignals\(/g)).toHaveLength(1)
-    for (const name of ['resolution.js', 'dcVoltageDomainRegistry.js']) {
-      expect(src(name)).not.toMatch(/555|LM358|LM393|OPTO|COMPARATOR|OP_AMP|FIXTURE/i)
-    }
+    expect(src('resolution.js')).not.toMatch(/555|LM358|LM393|OPTO|COMPARATOR|OP_AMP|FIXTURE/i)
+    // A11-COMP3 (CSA R2): the registry is the Open/Closed point where production A11 types
+    // (LM358P) are declared; it never holds test fixtures nor type branches.
+    expect(src('dcVoltageDomainRegistry.js')).not.toMatch(/FIXTURE/i)
+    expect(executable(src('dcVoltageDomainRegistry.js'))).not.toMatch(/\.type\s*(?:===|!==)|switch\s*\(/)
     const registry = await vi.importActual('../dcVoltageDomainRegistry.js')
     const canonical = await vi.importActual('../canonicalRegistry.js')
     for (const type of Object.keys(FIXTURES)) {

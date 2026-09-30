@@ -1,0 +1,14 @@
+A11-COMP3-LM358P-ASSET — FINAL REPORT
+
+Founder Candidate 5: PASS
+Founder Runtime Visual Gate: PASS
+Runtime 1x: 84x64
+Runtime 3x: 252x192
+Transform: isotropic Lanczos resize + centered transparent padding only
+Normalized electrical geometry: FROZEN
+Pixel-probe claim: false
+Anisotropic scaling: forbidden / not used
+Per-lead relocation: forbidden / not used
+Synthetic lead recomposition: forbidden / not used
+Final asset status: CSA_FROZEN
+Canonical repository destination: frontend/public/assets/components/lm358p/

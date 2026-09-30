@@ -1,0 +1,77 @@
+{
+  "ticket": "A11-COMP3-LM358P-ASSET-R1",
+  "status": "FROZEN",
+  "coordinateSpace": "84x64",
+  "breadboardPitchPx": 12,
+  "rowSpacingPx": 32,
+  "pixelProbed": false,
+  "source": "CSA normalized electrical geometry from TI LM358P P/PDIP-8 package/pinout",
+  "note": "Electrical contacts are normalized MYBlab geometry independent of raster pixels; no pixel-probe claim.",
+  "contacts": [
+    {
+      "pin": 1,
+      "name": "1OUT",
+      "x": 24,
+      "y": 48
+    },
+    {
+      "pin": 2,
+      "name": "1IN-",
+      "x": 36,
+      "y": 48
+    },
+    {
+      "pin": 3,
+      "name": "1IN+",
+      "x": 48,
+      "y": 48
+    },
+    {
+      "pin": 4,
+      "name": "VCC-",
+      "x": 60,
+      "y": 48
+    },
+    {
+      "pin": 8,
+      "name": "VCC+",
+      "x": 24,
+      "y": 16
+    },
+    {
+      "pin": 7,
+      "name": "2OUT",
+      "x": 36,
+      "y": 16
+    },
+    {
+      "pin": 6,
+      "name": "2IN-",
+      "x": 48,
+      "y": 16
+    },
+    {
+      "pin": 5,
+      "name": "2IN+",
+      "x": 60,
+      "y": 16
+    }
+  ],
+  "geometricChecks": {
+    "contactCount": 8,
+    "pitchPx": 12,
+    "topPins": [
+      8,
+      7,
+      6,
+      5
+    ],
+    "bottomPins": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "status": "FROZEN"
+  }
+}

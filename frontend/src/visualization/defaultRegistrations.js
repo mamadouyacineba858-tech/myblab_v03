@@ -54,6 +54,7 @@ import { LcdWh1602bPart } from '../components/parts/LcdWh1602bPart.jsx'
 import { Ws2812bV6Part } from '../components/parts/Ws2812bV6Part.jsx'
 import { Lm339ne4Part } from '../components/parts/Lm339ne4Part.jsx'
 import { Lm393pPart } from '../components/parts/Lm393pPart.jsx'
+import { Lm358pPart } from '../components/parts/Lm358pPart.jsx'
 import { PmosPart } from '../components/parts/PmosPart.jsx'
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
@@ -217,6 +218,8 @@ export const DEFAULT_REGISTRATIONS = [
   { type: 'LM339NE4', component: Lm339ne4Part, visual: { backend: 'raster' } },
   // A11-COMP2 : raster CSA FROZEN TI LM393P ; renderer purement visuel (logique dans le registre PREQ2).
   { type: 'LM393P', component: Lm393pPart, visual: { backend: 'raster' } },
+  // A11-COMP3 : raster CSA FROZEN TI LM358P ; renderer purement visuel (loi dans le registre des domaines DC).
+  { type: 'LM358P', component: Lm358pPart, visual: { backend: 'raster' } },
   { type: 'PMOS', component: PmosPart, visual: { backend: 'raster' } },
   { type: 'RELAY', component: RelayPart, visual: { backend: 'raster' } },
   // SERVO : porté au backend raster (asset réaliste validé MB-VIS-COMP-035,

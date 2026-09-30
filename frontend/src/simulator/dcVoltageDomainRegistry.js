@@ -44,6 +44,38 @@
  * nor the observed inputs; a law may ignore supplyVoltages. Each call receives
  * its own object.
  */
+/**
+ * Independent single-supply operational amplifier channels, Level-1 pedagogical
+ * abstraction (no transistor, SPICE or nodal model). Per channel, volts relative
+ * to referencePin:
+ *   out = clamp(openLoopGain * (V(plus) - V(minus)), 0, max(0, V(supply) - outputHighHeadroom))
+ * V(supply) comes from supplyVoltages (PREQ3), never from the channel inputs;
+ * openLoopGain and outputHighHeadroom come from params. The SAME law serves
+ * feed-forward and the opt-in scalar feedback (PREQ2), whose bounds are that same
+ * output range. An unpowered component drives no channel (PREQ1 activation).
+ */
+export function createSingleSupplyOpAmps({ channels, referencePin, supplyPin }) {
+  const high = (supplyVoltages, params) => Math.max(0, supplyVoltages[supplyPin] - params.outputHighHeadroom)
+  return {
+    referencePin,
+    requiredPositivePins: [supplyPin],
+    groups: channels.map(({ plus, minus, output }) => ({
+      inputPins: [plus, minus],
+      outputPins: [output],
+      contribute: ({ inputVoltages, supplyVoltages, params }) => ({
+        [output]: Math.min(Math.max(params.openLoopGain * (inputVoltages[plus] - inputVoltages[minus]), 0),
+          high(supplyVoltages, params)),
+      }),
+      feedback: {
+        mode: 'scalar-bounded',
+        characteristic: 'single-root',
+        variableOutputPin: output,
+        bounds: ({ supplyVoltages, params }) => ({ min: 0, max: high(supplyVoltages, params) }),
+      },
+    })),
+  }
+}
+
 const contributions = new Map([
   ['VOLTAGE_REGULATOR', {
     inputPin: 'IN',
@@ -57,6 +89,12 @@ const contributions = new Map([
         ? target : null
     },
   }],
+  // A11-COMP3 : TI LM358P dual op amp, single supply VCC+ referenced to VCC- (two channels).
+  ['LM358P', createSingleSupplyOpAmps({
+    referencePin: 'VCC-',
+    supplyPin: 'VCC+',
+    channels: [1, 2].map((n) => ({ plus: `${n}IN+`, minus: `${n}IN-`, output: `${n}OUT` })),
+  })],
 ])
 
 export function getDcVoltageDomainContribution(type) {
