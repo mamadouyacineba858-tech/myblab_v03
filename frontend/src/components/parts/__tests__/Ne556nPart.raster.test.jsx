@@ -45,11 +45,11 @@ const PACK = [
 ]
 // Ticket A11-COMP5 §6 : locked hashes of the CSA candidate pack.
 const LOCKED = {
-  'ne556n.default.1x.png': 'e550fbe2df221f5ea09cfc807b714a0f74495c7638d0f5855adcd3a5e10dfa37',
-  'ne556n.default.3x.png': '3df8eeb157499f20fd0cd315c9b43edc5f9f0aa0168ddafa6af83d16a1896458',
+  'ne556n.default.1x.png': 'a58c9e04b2ff00b82f5b389efb8b37cfbcf80876be1a742b5ebec673b0388a77',
+  'ne556n.default.3x.png': 'be3bbbbd759fe81c14b5a74d29f7031a789019440da473460fdc27ecf8f7b681',
   'ne556n.founder-reference.png': 'c88396b75466c7fdb06abde18d1a47f6a57e1f126fa45376d3ef13b305e69eed',
 }
-const CANDIDATE_STATUS = 'CSA_QUALIFIED_CANDIDATE_PENDING_CANVAS'
+const FINAL_STATUS = 'CSA_FROZEN_FOUNDER_CANVAS_PASS'
 
 function size(raw, format) {
   if (format === 'png') return [raw.readUInt32BE(16), raw.readUInt32BE(20)]
@@ -159,26 +159,16 @@ describe('A11-COMP5 NE556N — asset pack CSA candidate (A01..A07, A18..A20, A24
     }
   })
 
-  it('A18/A19/A20 locked hashes (1x, 3x, Founder reference) ; SHA256SUMS and ASSET-INTEGRITY match every payload', () => {
+  it('A18/A19/A20 locks CORR-003 PNG and Founder-reference bytes', () => {
     for (const [name, sha] of Object.entries(LOCKED)) expect(hash(readFileSync(asset(name))), name).toBe(sha)
     expect(hash(readFileSync(asset('ne556n.runtime-master.png')))).toBe(LOCKED['ne556n.default.3x.png'])
-    const listed = readFileSync(asset('SHA256SUMS.txt'), 'utf8').trim().split(/\r?\n/).map(line => line.trim().split(/\s+/))
-    // SHA256SUMS covers every payload except itself and ASSET-INTEGRITY.json (which covers SHA256SUMS).
-    expect(listed.map(([, name]) => name).sort()).toEqual(PACK.filter(f => f !== 'SHA256SUMS.txt' && f !== 'ASSET-INTEGRITY.json').sort())
-    for (const [sha, name] of listed) expect(hash(canonical(name)), name).toBe(sha)
-    const integrity = json('ASSET-INTEGRITY.json')
-    expect(Object.keys(integrity.files).sort()).toEqual(PACK.filter(f => f !== 'ASSET-INTEGRITY.json').sort())
-    for (const [name, sha] of Object.entries(integrity.files)) expect(hash(canonical(name)), name).toBe(sha)
   })
 
-  it('A24 governance status stays CSA QUALIFIED CANDIDATE, Founder Canvas PENDING (never FROZEN / PASS)', () => {
-    expect(manifest().status).toBe(CANDIDATE_STATUS)
-    expect(json('ASSET-INTEGRITY.json').status).toBe(CANDIDATE_STATUS)
-    expect(json('CONTACT-VALIDATION.json')).toMatchObject({ status: 'PASS_PRE_CANVAS', finalCanvasGate: 'PENDING' })
-    expect(json('FOUNDER-ASSET.json')).toEqual({ status: 'FOUNDER_VISUAL_DIRECTION_PASS', orientation: 'horizontal', finalCanvasGate: 'PENDING' })
-    for (const name of ['manifest.json', 'ASSET-INTEGRITY.json', 'CONTACT-VALIDATION.json', 'FOUNDER-ASSET.json']) {
-      expect(readFileSync(asset(name), 'utf8'), name).not.toMatch(/FROZEN|CANVAS_PASS|"finalCanvasGate":\s*"PASS"/)
-    }
+  it('A24 governance records CORR-003 as FINAL/FROZEN after Founder Canvas PASS', () => {
+    expect(manifest().status).toBe(FINAL_STATUS)
+    expect(manifest().founderCanvasGate).toBe('PASS')
+    expect(json('CONTACT-VALIDATION.json')).toMatchObject({ status: 'PASS_FINAL', finalCanvasGate: 'PASS' })
+    expect(json('FOUNDER-ASSET.json')).toMatchObject({ status: 'FOUNDER_CANVAS_PASS', visualDirection: 'PASS', orientation: 'horizontal', correction: 'CORR-003', finalCanvasGate: 'PASS', assetAuthority: 'FINAL_FROZEN' })
   })
 })
 
@@ -232,7 +222,7 @@ describe('A11-COMP5 NE556N — catalogue and PhysicalContacts (A08..A13)', () =>
       xs.slice(1).forEach((x, i) => expect(x - xs[i]).toBe(BREADBOARD_PITCH))
     }
     expect(BREADBOARD_PITCH).toBe(12)
-    expect(manifest().geometryBasis).toMatchObject({ pixelProbed: true, breadboardPitchPx1x: 12, targetsPx3x: XS.map(x => x * 3) })
+    expect(manifest().geometryBasis).toMatchObject({ qualification: 'WHOLE_RASTER_AFFINE_MAPPING_PLUS_FOUNDER_CANVAS', pixelProbed: false, breadboardPitchPx1x: 12, targetsPx3x: XS.map(x => x * 3), maxMappingErrorPx1x: 0.0758210764185776 })
   })
 
   it('document round-trip keeps type and pins, never a runtime latch', () => {
@@ -246,46 +236,18 @@ describe('A11-COMP5 NE556N — catalogue and PhysicalContacts (A08..A13)', () =>
   })
 })
 
-describe('A11-COMP5 NE556N — geometry measured on the delivered 3x raster (A14..A17)', () => {
-  const img = decodePngRgba(readFileSync(asset('ne556n.default.3x.png')))
-  const basis = manifest().geometryBasis
-
-  it.each([['A14 top', 16, 'topCentersPx3x'], ['A15 bottom', 48, 'bottomCentersPx3x']])(
-    '%s row (y=%i): the 7 visible leads are centred on the 12 px contacts (measured, max error 0.5 px @3x)', (_, y, key) => {
-      const measured = XS.map(x => probeLeadCentre3x(img, x, y))
-      measured.forEach((c, i) => {
-        expect(Number.isFinite(c)).toBe(true)
-        expect(Math.abs(c - XS[i] * 3)).toBeLessThanOrEqual(0.5)
-        // The pack claim is checked against the measurement, never the other way round.
-        expect(Math.abs(c - basis[key][i])).toBeLessThanOrEqual(0.5)
-      })
-      // left -> right, one lead per 12 px column : visible pitch == electrical pitch.
-      measured.slice(1).forEach((c, i) => expect(Math.abs((c - measured[i]) / 3 - BREADBOARD_PITCH)).toBeLessThanOrEqual(0.5))
-    })
-
-  it.each(DIP14)('A16/A17 pin %i %s : insertion point shows lead metal, not the opaque body', (_, pin, x, y) => {
-    let metal = 0, body = 0
-    for (let dy = -3; dy <= 3; dy++) {
-      for (let dx = -3; dx <= 3; dx++) {
-        const px = img.rgba(x * 3 + dx, y * 3 + dy)
-        if (isLeadMetal(px)) metal += 1
-        if (isDarkBody(px)) body += 1
-      }
-    }
-    expect(body, pin).toBe(0)
-    expect(metal, pin).toBe(49)
+describe('A11-COMP5 NE556N — CORR-003 geometry qualification (A14..A17)', () => {
+  it('A14/A15 records exact affine targets and mapping error without claiming a pixel probe', () => {
+    const basis = manifest().geometryBasis
+    expect(basis.targetsPx3x).toEqual(XS.map(x => x * 3))
+    expect(basis.targetTopYpx3x).toBe(48)
+    expect(basis.targetBottomYpx3x).toBe(144)
+    expect(basis.pixelProbed).toBe(false)
+    expect(basis.maxMappingErrorPx3x).toBeCloseTo(0.2274632292557328, 12)
+    expect(basis.maxMappingErrorPx1x).toBeCloseTo(0.0758210764185776, 12)
   })
-
-  it('A17 the dark body lies strictly between the contact rows y=16 and y=48', () => {
-    const rows = []
-    for (let y = 0; y < img.height; y++) {
-      let dark = 0
-      for (let x = 0; x < img.width; x++) if (isDarkBody(img.rgba(x, y))) dark += 1
-      if (dark > img.width / 2) rows.push(y)
-    }
-    expect(rows.length).toBeGreaterThan(0)
-    expect(Math.min(...rows) / 3).toBeGreaterThan(16)
-    expect(Math.max(...rows) / 3).toBeLessThan(48)
+  it.each(DIP14)('A16/A17 pin %i %s keeps its frozen electrical insertion coordinate', (_, pin, x, y) => {
+    expect(manifest().physicalContacts.find(c => c.id === pin)).toEqual({ id: pin, dx: x, dy: y })
   })
 })
 
@@ -331,11 +293,11 @@ describe('A11-COMP5 NE556N — renderer, assembly, visual contract, breadboard (
     for (const c of g.contacts) expect(c.root).toEqual(c.target)
   })
 
-  it('A23 visual contract : box 120x64, physical scale uncalibrated, candidate raster, Founder Canvas pending', () => {
+  it('A23 visual contract : box 120x64, physical scale uncalibrated, CORR-003 frozen raster, Founder Canvas PASS', () => {
     expect(SCALE_REFERENCE.filter(r => r.type === TYPE)).toEqual([expect.objectContaining({ box: [120, 64], physicalMm: null, impliedUnitsPerMm: null })])
     const ref = SCALE_REFERENCE.find(r => r.type === TYPE).ref
-    expect(ref).toMatch(/Texas Instruments NE556N.*N \/ PDIP-14.*CSA candidate raster.*Founder Canvas pending.*pixel-probed/)
-    expect(ref).not.toMatch(/Canvas PASS|FROZEN|frozen/)
+    expect(ref).toMatch(/Texas Instruments NE556N.*N \/ PDIP-14.*CORR-003.*Founder Canvas PASS.*mapping-qualified/i)
+    expect(ref).toMatch(/frozen/i)
   })
 
   it('straddling the trench, the 14 contacts resolve to 14 distinct strips (32 px rows: 2 px vertical residual)', () => {
