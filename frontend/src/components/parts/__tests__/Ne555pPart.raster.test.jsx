@@ -137,7 +137,9 @@ describe('A11-COMP4 — catalogue, palette, PhysicalContacts and document round-
     expect(def.label).toBe('NE555 Precision Timer')
     expect(def.manufacturer).toBe('Texas Instruments')
     expect(SCALE_REFERENCE.filter(r => r.type === TYPE)).toEqual([expect.objectContaining({ box: [84, 64], physicalMm: null, impliedUnitsPerMm: null })])
-    expect(SCALE_REFERENCE.find(r => r.type === TYPE).ref).toMatch(/Texas Instruments NE555P.*P \/ PDIP-8.*CSA frozen raster V2.*CSA normalized electrical geometry \(not pixel-probed\)/)
+    const ref = SCALE_REFERENCE.find(r => r.type === TYPE).ref
+    expect(ref).toMatch(/Texas Instruments NE555P.*P \/ PDIP-8.*CSA raster V3 \(Founder Canvas PASS\).*CSA qualified electrical geometry \(pixel-probed, max 0\.144 px\)/)
+    expect(ref).not.toMatch(/V2|not pixel-probed/)
     expect(PALETTE_ITEMS.filter(p => p.id === TYPE)).toHaveLength(1)
     const component = createComponent(TYPE, 40, 80)
     expect(component).toMatchObject({ type: TYPE, x: 40, y: 80 })
