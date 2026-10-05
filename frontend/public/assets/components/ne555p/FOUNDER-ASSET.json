@@ -1,8 +1,5 @@
 {
-  "asset": "ne555p",
-  "status": "FOUNDER_PASS",
-  "gate": "FOUNDER_TRANSPARENCY_GATE",
-  "reference": "ne555p.founder-reference.png",
-  "provenance": "AI-generated transparent studio candidate approved by Founder; not a manufacturer photograph.",
-  "sha256": "4251427db916bdc72363b17faa924ed84f6ca7b9d79b39a7c1b772055356b53f"
+  "status": "FOUNDER_VISUAL_DIRECTION_PASS",
+  "referenceFile": "ne555p.founder-reference.png",
+  "note": "V3 runtime geometry is a deterministic normalized derivative; founder reference is preserved unchanged."
 }

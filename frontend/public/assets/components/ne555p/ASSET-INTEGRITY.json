@@ -1,28 +1,5 @@
 {
-  "asset": "ne555p",
-  "status": "CSA_FROZEN",
-  "founderTransparencyGate": "PASS",
-  "revokedZipSha256": "6c8645cf5946215ce0bb1f61bfe63aa07ddb4e9bbc3bcee33c0647cff9d085e3",
-  "requiredFiles": [
-    "ASSET-INTEGRITY.json",
-    "CONTACT-VALIDATION.json",
-    "FOUNDER-ASSET.json",
-    "README.md",
-    "README.txt",
-    "SHA256SUMS.txt",
-    "manifest.json",
-    "ne555p.default.1x.png",
-    "ne555p.default.1x.webp",
-    "ne555p.default.3x.png",
-    "ne555p.default.3x.webp",
-    "ne555p.founder-reference.png",
-    "ne555p.runtime-master.png"
-  ],
-  "physicalContactCount": 8,
-  "runtimeCanvas": "84x64",
-  "transparency": {
-    "founderHasAlpha": true,
-    "runtime1xHasAlpha": true,
-    "runtime3xHasAlpha": true
-  }
+  "v2CanonicalZipSha256": "bcabcdf2ea69ea27927c6cffca7ea051477f4069888afee722bdb96d5801f15d",
+  "v2Disposition": "PRESERVED_HISTORICAL_EVIDENCE_SUPERSEDED_FOR_RUNTIME_GEOMETRY",
+  "v3Generation": "deterministic local image processing; no Claude Code; no additional image generation used for runtime bytes"
 }

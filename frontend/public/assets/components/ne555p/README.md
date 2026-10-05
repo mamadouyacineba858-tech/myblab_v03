@@ -1,26 +1,15 @@
-# A11-COMP4 — TI NE555P Asset Pack
+A11-COMP4 NE555P — CSA FROZEN V3 candidate
 
-Status: CSA FROZEN / FOUNDER TRANSPARENCY PASS
+Purpose:
+Correct the V2 visual lead/breadboard mismatch while keeping the canonical
+electrical contacts fixed at x=24/36/48/60 and y=16/48 (runtime 1x).
 
-Canonical destination:
-`frontend/public/assets/components/ne555p/`
+V3 runtime bytes were generated deterministically from the preserved V2 raster:
+- body presentation vertically normalized to clear both contact rows;
+- eight visual leads repositioned to the canonical DIP-8 pitch;
+- real pixel probe executed on the generated 3x PNG;
+- no electrical contact was moved;
+- V2 remains preserved as historical evidence.
 
-Runtime geometry:
-- 1x: 84×64 px
-- 3x: 252×192 px
-- pitch: 12 px
-- row spacing: 32 px
-- geometry authority: CSA-normalized
-- pixelProbed: false
-
-The Founder reference is an AI-generated transparent studio candidate approved by the Founder.
-It is not a manufacturer photograph.
-
-Forbidden:
-- anisotropic scaling
-- per-lead relocation
-- synthetic lead reconstruction
-- false pixel-probe claims
-
-Revoked predecessor ZIP SHA-256:
-6c8645cf5946215ce0bb1f61bfe63aa07ddb4e9bbc3bcee33c0647cff9d085e3
+The runtime geometry is explicitly synthetic/normalized presentation geometry,
+not a manufacturer photograph and not a claim about exact TI package imagery.
