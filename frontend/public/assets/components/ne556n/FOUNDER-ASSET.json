@@ -1,5 +1,7 @@
 {
-  "status": "FOUNDER_VISUAL_DIRECTION_PASS",
+  "visualDirection": "PASS",
   "orientation": "horizontal",
-  "finalCanvasGate": "PENDING"
+  "correction": "CORR-003",
+  "finalCanvasGate": "PENDING",
+  "note": "Body and all 14 original metallic leads transformed together."
 }

@@ -1,122 +1,45 @@
 {
-  "id": "NE556N",
-  "manufacturer": "Texas Instruments",
-  "reference": "NE556N",
+  "component": "Texas Instruments NE556N",
   "package": "N / PDIP-14",
+  "assetRevision": "CORR-003",
+  "status": "CSA_QUALIFIED_CANDIDATE_PENDING_CANVAS",
+  "visualSource": "Founder-approved NE556N visual",
+  "leadPolicy": "Original photographic lead morphology retained; no rectangular lead reconstruction.",
   "runtime": {
-    "width": 120,
-    "height": 64,
-    "width3x": 360,
-    "height3x": 192
+    "size1x": [
+      120,
+      64
+    ],
+    "size3x": [
+      360,
+      192
+    ]
   },
-  "physicalContacts": [
-    {
-      "id": "1DISCH",
-      "dx": 18,
-      "dy": 48
+  "contacts3x": {
+    "pitch": 36,
+    "top": {
+      "y": 48,
+      "x": [
+        54,
+        90,
+        126,
+        162,
+        198,
+        234,
+        270
+      ]
     },
-    {
-      "id": "1THRES",
-      "dx": 30,
-      "dy": 48
-    },
-    {
-      "id": "1CONT",
-      "dx": 42,
-      "dy": 48
-    },
-    {
-      "id": "1RESET",
-      "dx": 54,
-      "dy": 48
-    },
-    {
-      "id": "1OUT",
-      "dx": 66,
-      "dy": 48
-    },
-    {
-      "id": "1TRIG",
-      "dx": 78,
-      "dy": 48
-    },
-    {
-      "id": "GND",
-      "dx": 90,
-      "dy": 48
-    },
-    {
-      "id": "VCC",
-      "dx": 18,
-      "dy": 16
-    },
-    {
-      "id": "2DISCH",
-      "dx": 30,
-      "dy": 16
-    },
-    {
-      "id": "2THRES",
-      "dx": 42,
-      "dy": 16
-    },
-    {
-      "id": "2CONT",
-      "dx": 54,
-      "dy": 16
-    },
-    {
-      "id": "2RESET",
-      "dx": 66,
-      "dy": 16
-    },
-    {
-      "id": "2OUT",
-      "dx": 78,
-      "dy": 16
-    },
-    {
-      "id": "2TRIG",
-      "dx": 90,
-      "dy": 16
+    "bottom": {
+      "y": 144,
+      "x": [
+        54,
+        90,
+        126,
+        162,
+        198,
+        234,
+        270
+      ]
     }
-  ],
-  "geometryBasis": {
-    "pixelProbed": true,
-    "breadboardPitchPx1x": 12,
-    "targetsPx3x": [
-      54,
-      90,
-      126,
-      162,
-      198,
-      234,
-      270
-    ],
-    "topCentersPx3x": [
-      54.0,
-      90.0,
-      126.0,
-      162.0,
-      198.0,
-      234.0,
-      270.0
-    ],
-    "bottomCentersPx3x": [
-      54.0,
-      90.0,
-      126.0,
-      162.0,
-      198.0,
-      234.0,
-      270.0
-    ],
-    "maxAbsErrorPx3x": 0.0,
-    "maxAbsErrorPx1x": 0.0
-  },
-  "provenance": {
-    "founderReference": "AI-generated Founder-approved horizontal NE556N visual",
-    "runtimeDerivative": "deterministic per-lead normalization to canonical MYBlab DIP-14 geometry"
-  },
-  "status": "CSA_QUALIFIED_CANDIDATE_PENDING_CANVAS"
+  }
 }
