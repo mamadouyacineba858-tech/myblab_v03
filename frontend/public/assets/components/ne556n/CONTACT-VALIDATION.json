@@ -2,46 +2,15 @@
   "ticket": "A11-COMP5-NE556N-ASSET-CORR-003",
   "method": "whole-raster affine normalization; no reconstructed/synthetic leads",
   "referencePrecedent": "NE555P V3 morphology-preservation principle",
-  "canvas": {
-    "width3x": 360,
-    "height3x": 192,
-    "width1x": 120,
-    "height1x": 64
-  },
-  "sourceLeadCentersX": [
-    302,
-    470,
-    640,
-    810,
-    980,
-    1150,
-    1320
-  ],
-  "targetLeadCentersX3x": [
-    54,
-    90,
-    126,
-    162,
-    198,
-    234,
-    270
-  ],
-  "sourceContactRowsY": [
-    180,
-    779
-  ],
-  "targetContactRowsY3x": [
-    48,
-    144
-  ],
-  "affine": {
-    "sx": 0.21203141017290883,
-    "tx": -9.806022642962734,
-    "sy": 0.16026711185308848,
-    "ty": 19.151919866444075
-  },
+  "canvas": {"width3x": 360, "height3x": 192, "width1x": 120, "height1x": 64},
+  "sourceLeadCentersX": [302, 470, 640, 810, 980, 1150, 1320],
+  "targetLeadCentersX3x": [54, 90, 126, 162, 198, 234, 270],
+  "sourceContactRowsY": [180, 779],
+  "targetContactRowsY3x": [48, 144],
+  "affine": {"sx": 0.21203141017290883, "tx": -9.806022642962734, "sy": 0.16026711185308848, "ty": 19.151919866444075},
   "maxMappingErrorPx3x": 0.2274632292557328,
   "maxMappingErrorPx1x": 0.0758210764185776,
-  "status": "PASS_PRE_CANVAS",
-  "finalCanvasGate": "PENDING"
+  "status": "PASS_FINAL",
+  "finalCanvasGate": "PASS",
+  "note": "Mapping error is an affine mapping metric, not a pixel-probe measurement."
 }
