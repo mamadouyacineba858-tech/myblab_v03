@@ -402,6 +402,16 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       canonical: { width: m.runtime.width, height: m.runtime.height },
       assets: ["ne555p.default.1x.webp", "ne555p.default.3x.webp", "ne555p.default.1x.png", "ne555p.default.3x.png"].map((file) => ({ file })),
     }),
+    // A11-COMP5 : le manifest candidat CSA du TI NE556N (dossier `ne556n/` = dérivation kebab du type)
+    // suit le même schéma `runtime{width,height}` que NE555P V3, sans liste de variantes ni `backend`.
+    // Adaptateur déclaré, en lecture seule ; sha256 vérifiés contre SHA256SUMS.txt par Ne556nPart.raster.test.jsx.
+    NE556N: (m) => ({
+      component: "NE556N",
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.runtime.width, height: m.runtime.height },
+      assets: ["ne556n.default.1x.webp", "ne556n.default.3x.webp", "ne556n.default.1x.png", "ne556n.default.3x.png"].map((file) => ({ file })),
+    }),
   }
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 
@@ -497,7 +507,10 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
         ? (() => {
             const raw = JSON.parse(readFileSync(integPath, "utf-8"))
             const list = Array.isArray(raw) ? raw : Array.isArray(raw.files) ? raw.files
-              : Object.entries(raw.files ?? {}).map(([file, metadata]) => ({ ...metadata, file }))
+              : Object.entries(raw.files ?? {}).map(([file, metadata]) => typeof metadata === "string"
+                // A11-COMP5 : schéma `files{nom: sha256}` (pack candidat NE556N) — sha256 seul déclaré.
+                ? { file, sha256: metadata, sha256Only: true }
+                : { ...metadata, file })
             return new Map(list.map((r) => [r.file, r]))
           })()
         : null
@@ -516,7 +529,9 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
           expect(bytes, `${entry.file} : octets réels ≠ manifeste`).toBe(entry.bytes)
         }
         if (integrity?.has(entry.file)) {
-          expect(bytes, `${entry.file} : octets réels ≠ ASSET-INTEGRITY`).toBe(integrity.get(entry.file).bytes)
+          if (!integrity.get(entry.file).sha256Only) {
+            expect(bytes, `${entry.file} : octets réels ≠ ASSET-INTEGRITY`).toBe(integrity.get(entry.file).bytes)
+          }
           expect(sha256(buf), `${entry.file} : sha256 réel ≠ ASSET-INTEGRITY`).toBe(integrity.get(entry.file).sha256)
         }
 

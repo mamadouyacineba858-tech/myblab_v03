@@ -63,7 +63,8 @@
  *
  * This module contains neither time, nor topology, nor resolution : only the
  * table. A11-COMP4-PREQ3 built ONLY the generic mechanism ; A11-COMP4 registers
- * its first production entry, the TI NE555P timer (see `ne555pTimer` below).
+ * its first production entry, the TI NE555P timer (see `ne555pTimer` below) ;
+ * A11-COMP5 the TI NE556N dual timer (`ne556nTimer`), same channel law.
  */
 
 import { Signal } from "./signals.js"
@@ -173,9 +174,13 @@ export function createMixedSignalContributionRegistry({ contributions = new Map(
  *
  * Effects : SET -> OUT HIGH, DISCH open ; RESET -> OUT LOW and the step
  * conduction pair DISCH-GND (discharge transistor), never a digital DISCH.
+ *
+ * A11-COMP5 : this channel law is the ONE local law of the bipolar timer
+ * family (`evaluateBipolarTimerChannel`), shared by NE555P and by both
+ * channels of NE556N ; only the pin names of a channel differ.
  */
-const NE555P_SUPPLY_MIN_VOLTS = 4.5
-const NE555P_SUPPLY_MAX_VOLTS = 16
+const BIPOLAR_TIMER_SUPPLY_MIN_VOLTS = 4.5
+const BIPOLAR_TIMER_SUPPLY_MAX_VOLTS = 16
 const LATCH_SET = "SET"
 const LATCH_RESET = "RESET"
 
@@ -186,40 +191,101 @@ function relativeToGround(fact, ground) {
   return fact.voltage - ground.voltage
 }
 
-function ne555pLatch({ pinSignals, pinVoltages, previousState }) {
+/** Common supply of a timer package, V(VCC) - V(GND) inside the Level-1 range ; null = unpowered. */
+function poweredTimerSupply(pinVoltages) {
   const ground = pinVoltages.GND
   if (!ground || !Number.isFinite(ground.voltage)) return null
   const supply = relativeToGround(pinVoltages.VCC, ground)
-  if (typeof supply !== "number" || supply < NE555P_SUPPLY_MIN_VOLTS || supply > NE555P_SUPPLY_MAX_VOLTS) return null
-
-  if (pinSignals.RESET !== Signal.HIGH) return LATCH_RESET
-  const control = relativeToGround(pinVoltages.CONT, ground)
-  if (control !== null) {
-    const thresholdLevel = control === undefined ? (2 * supply) / 3 : control
-    const triggerLevel = control === undefined ? supply / 3 : control / 2
-    const trigger = relativeToGround(pinVoltages.TRIG, ground)
-    if (typeof trigger === "number" && trigger < triggerLevel) return LATCH_SET
-    const threshold = relativeToGround(pinVoltages.THRES, ground)
-    if (typeof threshold === "number" && threshold > thresholdLevel) return LATCH_RESET
-  }
-  return previousState?.latch === LATCH_SET ? LATCH_SET : LATCH_RESET
+  if (typeof supply !== "number" || supply < BIPOLAR_TIMER_SUPPLY_MIN_VOLTS || supply > BIPOLAR_TIMER_SUPPLY_MAX_VOLTS) return null
+  return { ground, supply }
 }
+
+/**
+ * The one Level-1 channel law of a powered bipolar timer. Observations are
+ * relative to GND : number, undefined (absent) or null (conflict / foreign
+ * reference). RESET > TRIG SET > THRES RESET > HOLD ; equality never switches.
+ */
+function evaluateBipolarTimerChannel({ supply, resetSignal, controlVoltage, triggerVoltage, thresholdVoltage, previousLatch }) {
+  if (resetSignal !== Signal.HIGH) return LATCH_RESET
+  if (controlVoltage !== null) {
+    const thresholdLevel = controlVoltage === undefined ? (2 * supply) / 3 : controlVoltage
+    const triggerLevel = controlVoltage === undefined ? supply / 3 : controlVoltage / 2
+    if (typeof triggerVoltage === "number" && triggerVoltage < triggerLevel) return LATCH_SET
+    if (typeof thresholdVoltage === "number" && thresholdVoltage > thresholdLevel) return LATCH_RESET
+  }
+  return previousLatch === LATCH_SET ? LATCH_SET : LATCH_RESET
+}
+
+/** Latch of ONE channel, observed only through that channel's own pins. */
+function timerChannelLatch({ pinSignals, pinVoltages }, power, pins, previousLatch) {
+  const observe = (pin) => relativeToGround(pinVoltages[pin], power.ground)
+  return evaluateBipolarTimerChannel({
+    supply: power.supply,
+    resetSignal: pinSignals[pins.reset],
+    controlVoltage: observe(pins.control),
+    triggerVoltage: observe(pins.trigger),
+    thresholdVoltage: observe(pins.threshold),
+    previousLatch,
+  })
+}
+
+/** SET -> OUT HIGH, DISCH open ; RESET -> OUT LOW and the step conduction pair DISCH-GND, per channel. */
+function timerEffects(channels) {
+  const digitalOutputs = {}
+  const conductionPairs = []
+  for (const [latch, pins] of channels) {
+    digitalOutputs[pins.output] = latch === LATCH_SET ? Signal.HIGH : Signal.LOW
+    if (latch === LATCH_RESET) conductionPairs.push([pins.discharge, "GND"])
+  }
+  return conductionPairs.length > 0 ? { digitalOutputs, conductionPairs } : { digitalOutputs }
+}
+
+const NE555P_CHANNEL = Object.freeze({ reset: "RESET", control: "CONT", trigger: "TRIG", threshold: "THRES", output: "OUT", discharge: "DISCH" })
 
 export const ne555pTimer = Object.freeze({
   digitalOutputPins: Object.freeze(["OUT"]),
   contribute(ctx) {
-    const latch = ne555pLatch(ctx)
-    if (latch === null) return { state: { latch: LATCH_RESET }, effects: {} }
-    return latch === LATCH_SET
-      ? { state: { latch }, effects: { digitalOutputs: { OUT: Signal.HIGH } } }
-      : { state: { latch }, effects: { digitalOutputs: { OUT: Signal.LOW }, conductionPairs: [["DISCH", "GND"]] } }
+    const power = poweredTimerSupply(ctx.pinVoltages)
+    if (power === null) return { state: { latch: LATCH_RESET }, effects: {} }
+    const latch = timerChannelLatch(ctx, power, NE555P_CHANNEL, ctx.previousState?.latch)
+    return { state: { latch }, effects: timerEffects([[latch, NE555P_CHANNEL]]) }
   },
 })
 
-/** Production Registry — A11-COMP4 : NE555P is its first entry. */
+/**
+ * A11-COMP5 — Texas Instruments NE556N dual precision timer, Level-1.
+ *
+ * ONE physical component, ONE private runtime state :
+ * `{ timer1: { latch }, timer2: { latch } }`. Both channels share VCC / GND
+ * (CSA Level-1 lock 4.5 V <= VCC - GND <= 16 V, as NE555P) and each runs the
+ * common channel law above on its own pins only (xRESET, xCONT, xTRIG,
+ * xTHRES -> xOUT, xDISCH) : no cross-channel observation. Common supply
+ * invalid : both latches RESET, no effect at all.
+ */
+const NE556N_CHANNELS = Object.freeze({
+  timer1: Object.freeze({ reset: "1RESET", control: "1CONT", trigger: "1TRIG", threshold: "1THRES", output: "1OUT", discharge: "1DISCH" }),
+  timer2: Object.freeze({ reset: "2RESET", control: "2CONT", trigger: "2TRIG", threshold: "2THRES", output: "2OUT", discharge: "2DISCH" }),
+})
+
+export const ne556nTimer = Object.freeze({
+  digitalOutputPins: Object.freeze(["1OUT", "2OUT"]),
+  contribute(ctx) {
+    const power = poweredTimerSupply(ctx.pinVoltages)
+    if (power === null) return { state: { timer1: { latch: LATCH_RESET }, timer2: { latch: LATCH_RESET } }, effects: {} }
+    const timer1 = timerChannelLatch(ctx, power, NE556N_CHANNELS.timer1, ctx.previousState?.timer1?.latch)
+    const timer2 = timerChannelLatch(ctx, power, NE556N_CHANNELS.timer2, ctx.previousState?.timer2?.latch)
+    return {
+      state: { timer1: { latch: timer1 }, timer2: { latch: timer2 } },
+      effects: timerEffects([[timer1, NE556N_CHANNELS.timer1], [timer2, NE556N_CHANNELS.timer2]]),
+    }
+  },
+})
+
+/** Production Registry — A11-COMP4 : NE555P is its first entry ; A11-COMP5 : NE556N. */
 const defaultRegistry = createMixedSignalContributionRegistry({
   contributions: new Map([
     ["NE555P", ne555pTimer],
+    ["NE556N", ne556nTimer],
   ]),
 })
 

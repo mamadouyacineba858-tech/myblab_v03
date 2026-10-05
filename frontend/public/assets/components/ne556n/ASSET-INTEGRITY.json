@@ -1,0 +1,18 @@
+{
+  "status": "CSA_QUALIFIED_CANDIDATE_PENDING_CANVAS",
+  "files": {
+    "CONTACT-VALIDATION.json": "9262816b0415c3dcd610e97422a86f8335701b4b0e785d577481571e946dbb87",
+    "FOUNDER-ASSET.json": "3e8bda2aafedac667b237acfbcdeef4703925e277a0e876601de160948122d72",
+    "README.md": "934fca43a21df8b81e807464e119edd9b72c6277a3c6bbfc24b2ab0a23db8bd3",
+    "README.txt": "934fca43a21df8b81e807464e119edd9b72c6277a3c6bbfc24b2ab0a23db8bd3",
+    "SHA256SUMS.txt": "9aa8bf9bd7ca3aec3e0599a802be60d3b62fd1509decda665ea9f7cb8f78ce85",
+    "manifest.json": "25e0d1d9c68b51e6bbf2eb608d0d2e77c714fb3ea8e3e3f321ab2d5cef09f3de",
+    "ne556n.default.1x.png": "e550fbe2df221f5ea09cfc807b714a0f74495c7638d0f5855adcd3a5e10dfa37",
+    "ne556n.default.1x.webp": "bf31f8a7f631f6a8700834ca4092727b71f076fe0c567211ddc66c3d3f6b01cb",
+    "ne556n.default.3x.png": "3df8eeb157499f20fd0cd315c9b43edc5f9f0aa0168ddafa6af83d16a1896458",
+    "ne556n.default.3x.webp": "07287838e57d447d5be8d2e8e0908a945e88410fa746d548ccbb5be9bd3e3302",
+    "ne556n.founder-reference.png": "c88396b75466c7fdb06abde18d1a47f6a57e1f126fa45376d3ef13b305e69eed",
+    "ne556n.runtime-master.png": "3df8eeb157499f20fd0cd315c9b43edc5f9f0aa0168ddafa6af83d16a1896458"
+  },
+  "processing": "deterministic local processing from Founder-approved horizontal source"
+}

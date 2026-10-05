@@ -187,9 +187,14 @@ const DECLARED_TYPES_PINS = {
   // mixedSignalContributionRegistry (A11-COMP4-PREQ3). CONT (I/O TI) : role passif, un CONT non
   // pilote est un cas Level-1 legitime (seuils nominaux), jamais une entree flottante a signaler.
   NE555P:[{id:'GND',role:'ground'},{id:'TRIG',role:'input'},{id:'OUT',role:'output'},{id:'RESET',role:'input'},{id:'CONT',role:'passive'},{id:'THRES',role:'input'},{id:'DISCH',role:'output'},{id:'VCC',role:'power'}],
+  // A11-COMP5 : Texas Instruments NE556N, N / PDIP-14, double timer de precision - 14 pins
+  // ELECTRIQUES, ordre = broches physiques 1..14 (top view, pinout TI). Level-1 porte exclusivement
+  // par mixedSignalContributionRegistry (meme loi de canal que NE555P) ; VCC/GND communs, roles
+  // par canal identiques a NE555P (xCONT passif).
+  NE556N:[{id:'1DISCH',role:'output'},{id:'1THRES',role:'input'},{id:'1CONT',role:'passive'},{id:'1RESET',role:'input'},{id:'1OUT',role:'output'},{id:'1TRIG',role:'input'},{id:'GND',role:'ground'},{id:'2TRIG',role:'input'},{id:'2OUT',role:'output'},{id:'2RESET',role:'input'},{id:'2CONT',role:'passive'},{id:'2THRES',role:'input'},{id:'2DISCH',role:'output'},{id:'VCC',role:'power'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY','LCD_16X2_WH1602B','WS2812B_V6','LM339NE4','LM393P','LM358P','NE555P']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY','LCD_16X2_WH1602B','WS2812B_V6','LM339NE4','LM393P','LM358P','NE555P','NE556N']
 
 const DECLARED_PARAMETER_SCHEMA = {
   AND_GATE:[],
@@ -208,6 +213,8 @@ const DECLARED_PARAMETER_SCHEMA = {
   LM393P:[],
   // A11-COMP4 : aucun parametre - le timing emerge exclusivement du circuit externe (R, C).
   NE555P:[],
+  // A11-COMP5 : aucun parametre - le timing de chaque canal emerge exclusivement du circuit externe.
+  NE556N:[],
   // A11-COMP3 : constantes pedagogiques Level-1 FIXES (minimum = maximum = defaut, meme convention
   // que les tensions nominales fixes des piles) - jamais presentees comme lois physiques du LM358 reel.
   LM358P:[
@@ -430,6 +437,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   LM393P:{},
   LM358P:{openLoopGain:100000,outputHighHeadroom:1.5},
   NE555P:{},
+  NE556N:{},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -520,6 +528,8 @@ const DECLARED_CAPABILITIES = {
   // A11-COMP4 : OUT est une autorite numerique (digitalOutputPins) ; DISCH reste une paire de
   // conduction de step (mixedSignalContributionRegistry) - aucune contribution DC requise.
   NE555P:['digital'],
+  // A11-COMP5 : meme ruling que NE555P - 1OUT/2OUT autorites numeriques, xDISCH paires de conduction.
+  NE556N:['digital'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -570,6 +580,7 @@ const DECLARED_MODEL_AVAILABLE = {
   LM393P:true,
   LM358P:true,
   NE555P:true,
+  NE556N:true,
 }
 
 /**

@@ -1,0 +1,37 @@
+{
+  "status": "PASS_PRE_CANVAS",
+  "pixelProbe": {
+    "pixelProbed": true,
+    "breadboardPitchPx1x": 12,
+    "targetsPx3x": [
+      54,
+      90,
+      126,
+      162,
+      198,
+      234,
+      270
+    ],
+    "topCentersPx3x": [
+      54.0,
+      90.0,
+      126.0,
+      162.0,
+      198.0,
+      234.0,
+      270.0
+    ],
+    "bottomCentersPx3x": [
+      54.0,
+      90.0,
+      126.0,
+      162.0,
+      198.0,
+      234.0,
+      270.0
+    ],
+    "maxAbsErrorPx3x": 0.0,
+    "maxAbsErrorPx1x": 0.0
+  },
+  "finalCanvasGate": "PENDING"
+}

@@ -667,9 +667,9 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "2OUT", label: "2OUT", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2OUT", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
     { id: "VCC+", label: "VCC+", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC+", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
   ],
-  // A11-COMP4 : TI NE555P P / PDIP-8, raster CSA FROZEN V2 84x64. 8 pins ELECTRIQUES = 8
-  // PhysicalContacts CSA LOCKED (manifest.json physicalContacts) = geometrie electrique NORMALISEE CSA,
-  // jamais pixel-probee (pixelProbed: false) : rangee basse y=48 (broches 1..4, gauche -> droite),
+  // A11-COMP4 : TI NE555P P / PDIP-8, raster CSA V3 84x64 (Founder Canvas PASS). 8 pins ELECTRIQUES = 8
+  // PhysicalContacts CSA LOCKED (manifest.json physicalContacts) = geometrie electrique CSA qualifiee,
+  // pixel-probee sur le raster V3 (pixelProbed: true) : rangee basse y=48 (broches 1..4, gauche -> droite),
   // rangee haute y=16 (broches 8..5, gauche -> droite), pas 12, ecartement 32.
   NE555P: [
     { id: "GND", label: "GND", dx: 24, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 24, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
@@ -680,6 +680,26 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "THRES", label: "THRES", dx: 48, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "THRES", dx: 48, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
     { id: "DISCH", label: "DISCH", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "DISCH", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
     { id: "VCC", label: "VCC", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+  ],
+  // A11-COMP5 : TI NE556N N / PDIP-14, raster CSA candidate 120x64 (Founder Canvas PENDING). 14 pins
+  // ELECTRIQUES = 14 PhysicalContacts CSA LOCKED (manifest.json physicalContacts), pixel-probes sur le
+  // raster candidat : rangee basse y=48 (broches 1..7, gauche -> droite), rangee haute y=16
+  // (broches 14..8, gauche -> droite), x=18..90, pas 12, ecartement 32.
+  NE556N: [
+    { id: "1DISCH", label: "1DISCH", dx: 18, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1DISCH", dx: 18, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1THRES", label: "1THRES", dx: 30, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1THRES", dx: 30, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1CONT", label: "1CONT", dx: 42, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1CONT", dx: 42, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1RESET", label: "1RESET", dx: 54, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1RESET", dx: 54, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1OUT", label: "1OUT", dx: 66, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1OUT", dx: 66, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "1TRIG", label: "1TRIG", dx: 78, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "1TRIG", dx: 78, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "GND", label: "GND", dx: 90, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "GND", dx: 90, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2TRIG", label: "2TRIG", dx: 90, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2TRIG", dx: 90, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2OUT", label: "2OUT", dx: 78, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2OUT", dx: 78, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2RESET", label: "2RESET", dx: 66, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2RESET", dx: 66, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2CONT", label: "2CONT", dx: 54, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2CONT", dx: 54, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2THRES", label: "2THRES", dx: 42, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2THRES", dx: 42, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "2DISCH", label: "2DISCH", dx: 30, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2DISCH", dx: 30, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "VCC", label: "VCC", dx: 18, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 18, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
   ],
   // A5-ZENER_DIODE — asset Founder PASS FROZEN 144×72, pixel-probe réel
   // (alpha>=32, createImageBitmap/getImageData sur le fichier livré) :
@@ -879,6 +899,8 @@ export const COMPONENT_TYPES = {
   LM358P: { id: "LM358P", label: "LM358 Dual Operational Amplifier", manufacturer: "Texas Instruments", icon: "LM358P", width: 84, height: 64, pins: buildPins("LM358P") },
   // A11-COMP4 : timer de precision (contributeur mixed-signal stateful PREQ3, latch prive runtime).
   NE555P: { id: "NE555P", label: "NE555 Precision Timer", manufacturer: "Texas Instruments", icon: "NE555P", width: 84, height: 64, pins: buildPins("NE555P") },
+  // A11-COMP5 : double timer de precision (meme contributeur mixed-signal, etat runtime prive a deux latchs).
+  NE556N: { id: "NE556N", label: "NE556 Dual Precision Timer", manufacturer: "Texas Instruments", icon: "NE556N", width: 120, height: 64, pins: buildPins("NE556N") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -905,7 +927,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY, COMPONENT_TYPES.LCD_16X2_WH1602B, COMPONENT_TYPES.WS2812B_V6, COMPONENT_TYPES.LM339NE4, COMPONENT_TYPES.LM393P, COMPONENT_TYPES.LM358P, COMPONENT_TYPES.NE555P]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY, COMPONENT_TYPES.LCD_16X2_WH1602B, COMPONENT_TYPES.WS2812B_V6, COMPONENT_TYPES.LM339NE4, COMPONENT_TYPES.LM393P, COMPONENT_TYPES.LM358P, COMPONENT_TYPES.NE555P, COMPONENT_TYPES.NE556N]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

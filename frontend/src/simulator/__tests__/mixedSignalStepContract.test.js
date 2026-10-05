@@ -88,8 +88,8 @@ describe('A11-COMP4-PREQ3 — registry, state, time', () => {
     step(powered(), registryOf({ MS_FIXTURE_A: counter(log) }))
     expect(log).toHaveLength(1)
     expect(log[0].component.uid).toBe('ms')
-    // A11-COMP4 : the production table gains its first real entry (NE555P) ; never a fixture type.
-    expect(getAllMixedSignalContributionTypes()).toEqual(['NE555P'])
+    // A11-COMP4 : the production table gains its first real entry (NE555P) ; A11-COMP5 : NE556N ; never a fixture type.
+    expect(getAllMixedSignalContributionTypes()).toEqual(['NE555P', 'NE556N'])
     expect(hasMixedSignalContribution('MS_FIXTURE_A')).toBe(false)
     expect(circuitRequiresContinuousStepping([fixture('ms')])).toBe(false)
     expect(circuitRequiresContinuousStepping([fixture('ms')], undefined, undefined, registryOf({ MS_FIXTURE_A: counter() }))).toBe(true)

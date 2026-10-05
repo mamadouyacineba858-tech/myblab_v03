@@ -32,6 +32,7 @@ import { Lm339ne4Model } from './models/Lm339ne4Model.js'
 import { Lm393pModel } from './models/Lm393pModel.js'
 import { Lm358pModel } from './models/Lm358pModel.js'
 import { Ne555pModel } from './models/Ne555pModel.js'
+import { Ne556nModel } from './models/Ne556nModel.js'
 import { PmosModel } from './models/PmosModel.js'
 import { NpnTransistorModel } from './models/NpnTransistorModel.js'
 import { Tmp36Model } from './models/Tmp36Model.js'
@@ -159,6 +160,7 @@ const defaultRegistry = createSimulationRegistry({
     Lm393pModel,
     Lm358pModel,
     Ne555pModel,
+    Ne556nModel,
     RelayModel,
     Tmp36Model,
     ForceSensorModel,

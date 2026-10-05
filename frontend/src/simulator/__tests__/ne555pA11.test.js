@@ -65,7 +65,8 @@ describe('A11-COMP4 NE555P â€” identity and registration (T01..T04)', () =>
     expect(getSimulationModel(TYPE)?.type).toBe(TYPE)
     expect(getSimulationModel(TYPE).validate({})).toBe(true)
     expect(isSimulationModelAvailable(TYPE)).toBe(true)
-    expect(getAllMixedSignalContributionTypes()).toEqual([TYPE])
+    // A11-COMP5 : NE556N joins the production table (same channel law, see ne556nA11.test.js).
+    expect(getAllMixedSignalContributionTypes()).toEqual([TYPE, 'NE556N'])
     const entry = getMixedSignalContribution(TYPE)
     expect(entry.contribute).toBe(ne555pTimer.contribute)
     expect(entry.digitalOutputPins).toEqual(['OUT'])
@@ -311,7 +312,7 @@ describe('A11-COMP4 NE555P â€” architecture guards (T31..T38)', () => {
     for (const pattern of [/Date\.now/, /performance\.now/, /\bsetTimeout\b/, /\bsetInterval\b/, /requestAnimationFrame/]) {
       expect(registry, String(pattern)).not.toMatch(pattern)
     }
-    const law = executable(registry.slice(registry.indexOf('const NE555P_SUPPLY_MIN_VOLTS'), registry.indexOf('const defaultRegistry')))
+    const law = executable(registry.slice(registry.indexOf('const BIPOLAR_TIMER_SUPPLY_MIN_VOLTS'), registry.indexOf('const defaultRegistry')))
     expect(law.length).toBeGreaterThan(0)
     expect(law).not.toMatch(/timerCounter|elapsed|deadline|period|frequency|phase|internalCapacitor|oscillator|capacitance|resistance|\btau\b|currentTimeMs|\bdt\b/i)
     // The state holds the latch only.

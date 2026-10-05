@@ -403,8 +403,8 @@ const ASSEMBLY_PROFILES = {
       "2IN+": { root: { dx: 60, dy: 16 }, style: "metallic-wire" },
     },
   },
-  // A11-COMP4 : TI NE555P P / PDIP-8 (raster CSA FROZEN V2 84x64). Geometrie electrique NORMALISEE
-  // CSA (pixelProbed: false, independante des pixels du raster) ; roots = PhysicalContacts CSA LOCKED
+  // A11-COMP4 : TI NE555P P / PDIP-8 (raster CSA V3 84x64, Founder Canvas PASS). Geometrie electrique
+  // CSA qualifiee, pixel-probee sur le raster V3 (pixelProbed: true) ; roots = PhysicalContacts CSA LOCKED
   // (rangees y=16 / y=48, pas 12). Aucun bodyClip.
   NE555P: {
     kind: "through-hole",
@@ -417,6 +417,28 @@ const ASSEMBLY_PROFILES = {
       DISCH: { root: { dx: 36, dy: 16 }, style: "metallic-wire" },
       THRES: { root: { dx: 48, dy: 16 }, style: "metallic-wire" },
       CONT: { root: { dx: 60, dy: 16 }, style: "metallic-wire" },
+    },
+  },
+  // A11-COMP5 : TI NE556N N / PDIP-14 (raster CSA candidate 120x64, Founder Canvas PENDING). Geometrie
+  // electrique CSA LOCKED, pixel-probee sur le raster candidat ; roots = PhysicalContacts CSA LOCKED
+  // (rangees y=16 / y=48, x=18..90, pas 12). Aucun bodyClip.
+  NE556N: {
+    kind: "through-hole",
+    leads: {
+      "1DISCH": { root: { dx: 18, dy: 48 }, style: "metallic-wire" },
+      "1THRES": { root: { dx: 30, dy: 48 }, style: "metallic-wire" },
+      "1CONT": { root: { dx: 42, dy: 48 }, style: "metallic-wire" },
+      "1RESET": { root: { dx: 54, dy: 48 }, style: "metallic-wire" },
+      "1OUT": { root: { dx: 66, dy: 48 }, style: "metallic-wire" },
+      "1TRIG": { root: { dx: 78, dy: 48 }, style: "metallic-wire" },
+      GND: { root: { dx: 90, dy: 48 }, style: "metallic-wire" },
+      VCC: { root: { dx: 18, dy: 16 }, style: "metallic-wire" },
+      "2DISCH": { root: { dx: 30, dy: 16 }, style: "metallic-wire" },
+      "2THRES": { root: { dx: 42, dy: 16 }, style: "metallic-wire" },
+      "2CONT": { root: { dx: 54, dy: 16 }, style: "metallic-wire" },
+      "2RESET": { root: { dx: 66, dy: 16 }, style: "metallic-wire" },
+      "2OUT": { root: { dx: 78, dy: 16 }, style: "metallic-wire" },
+      "2TRIG": { root: { dx: 90, dy: 16 }, style: "metallic-wire" },
     },
   },
   // A9-COUNTER1 : 74HC161 DIP-16 (raster Founder PASS/FROZEN, derive isotrope 120x64, pack CSA
