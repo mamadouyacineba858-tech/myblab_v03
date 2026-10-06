@@ -52,6 +52,13 @@ import {
   UnsupportedSimulationCapabilityError,
 } from './errors/index.js'
 
+/**
+ * A11-COMP6 — 4N35 optocoupler, validation only ({ type, validate() }): its A-K input
+ * reuses the diode family, so it validates the same forwardVoltage/onResistance contract
+ * as DiodeModel. Optical transfer stays in analogConditionalConductionRegistry.
+ */
+const FourN35Model = Object.freeze({ type: '4N35', validate: DiodeModel.validate })
+
 function isValidSimulationModel(model) {
   return (
     !!model &&
@@ -161,6 +168,7 @@ const defaultRegistry = createSimulationRegistry({
     Lm358pModel,
     Ne555pModel,
     Ne556nModel,
+    FourN35Model,
     RelayModel,
     Tmp36Model,
     ForceSensorModel,

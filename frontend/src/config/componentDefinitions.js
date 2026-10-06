@@ -701,6 +701,18 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "2DISCH", label: "2DISCH", dx: 30, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "2DISCH", dx: 30, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
     { id: "VCC", label: "VCC", dx: 18, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "VCC", dx: 18, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
   ],
+  // A11-COMP6 : optocoupleur 4N35 DIP-6, raster V3 CSA FROZEN 72x64 (Founder Canvas PASS). 6 pins
+  // ELECTRIQUES = 6 PhysicalContacts CSA LOCKED (manifest.json physicalContacts1x) : rangee basse
+  // y=48 (broches 1..3 A,K,NC, gauche -> droite), rangee haute y=16 (broches 6..4 B,C,E, gauche ->
+  // droite), x=24..48, pas 12, ecartement 32. NC est une vraie patte physique (insertion conservee).
+  "4N35": [
+    { id: "A", label: "A", dx: 24, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "A", dx: 24, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "K", label: "K", dx: 36, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "K", dx: 36, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "NC", label: "NC", dx: 48, dy: 48, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "NC", dx: 48, dy: 48, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "E", label: "E", dx: 48, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "E", dx: 48, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "C", label: "C", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "C", dx: 36, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+    { id: "B", label: "B", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true, contacts: [{ id: "B", dx: 24, dy: 16, wireConnectable: true, breadboardInsertable: true }] },
+  ],
   // A5-ZENER_DIODE — asset Founder PASS FROZEN 144×72, pixel-probe réel
   // (alpha>=32, createImageBitmap/getImageData sur le fichier livré) :
   // bounding box opaque globale (1x) x∈[0,143] y∈[7,63] (== manifest.json
@@ -901,6 +913,8 @@ export const COMPONENT_TYPES = {
   NE555P: { id: "NE555P", label: "NE555 Precision Timer", manufacturer: "Texas Instruments", icon: "NE555P", width: 84, height: 64, pins: buildPins("NE555P") },
   // A11-COMP5 : double timer de precision (meme contributeur mixed-signal, etat runtime prive a deux latchs).
   NE556N: { id: "NE556N", label: "NE556 Dual Precision Timer", manufacturer: "Texas Instruments", icon: "NE556N", width: 120, height: 64, pins: buildPins("NE556N") },
+  // A11-COMP6 : optocoupleur phototransistor (entree diode A-K, transfert optique Level-1 vers C-E, isolation galvanique).
+  "4N35": { id: "4N35", label: "4N35 Optocoupler", icon: "4N35", width: 72, height: 64, pins: buildPins("4N35") },
 }
 
 // L1-PROP-001: one common product contract, attached to the existing catalogue.
@@ -927,7 +941,7 @@ COMPONENT_TYPES.LED.propertySchema = Object.freeze({
   color: Object.freeze({ type: "string", default: "red", label: "Couleur", control: "select", options: LED_COLOR_OPTIONS }),
 })
 
-export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY, COMPONENT_TYPES.LCD_16X2_WH1602B, COMPONENT_TYPES.WS2812B_V6, COMPONENT_TYPES.LM339NE4, COMPONENT_TYPES.LM393P, COMPONENT_TYPES.LM358P, COMPONENT_TYPES.NE555P, COMPONENT_TYPES.NE556N]
+export const PALETTE_ITEMS = [COMPONENT_TYPES.LED, COMPONENT_TYPES.RESISTOR, COMPONENT_TYPES.ARDUINO, COMPONENT_TYPES.BUTTON, COMPONENT_TYPES.BUTTON_LATCHING, COMPONENT_TYPES.POWER, COMPONENT_TYPES.BATTERY_AA, COMPONENT_TYPES.COIN_CELL_CR2032, COMPONENT_TYPES.BATTERY_9V, COMPONENT_TYPES.CAPACITOR, COMPONENT_TYPES.BUZZER, COMPONENT_TYPES.POTENTIOMETER, COMPONENT_TYPES.LDR, COMPONENT_TYPES.THERMISTOR, COMPONENT_TYPES.DIODE, COMPONENT_TYPES.RGB_LED, COMPONENT_TYPES.NPN_TRANSISTOR, COMPONENT_TYPES.PNP_TRANSISTOR, COMPONENT_TYPES.NMOS, COMPONENT_TYPES.PMOS, COMPONENT_TYPES.VOLTAGE_REGULATOR, COMPONENT_TYPES.RELAY, COMPONENT_TYPES.SERVO, COMPONENT_TYPES.DC_MOTOR, COMPONENT_TYPES.POLARIZED_CAPACITOR, COMPONENT_TYPES.SLIDE_SWITCH, COMPONENT_TYPES.DIP_SWITCH, COMPONENT_TYPES.VIBRATION_MOTOR, COMPONENT_TYPES.LIGHT_BULB, COMPONENT_TYPES.HOBBY_GEARMOTOR, COMPONENT_TYPES.TMP36, COMPONENT_TYPES.FORCE_SENSOR, COMPONENT_TYPES.FLEX_SENSOR, COMPONENT_TYPES.SOIL_MOISTURE_SENSOR, COMPONENT_TYPES.PIR_MOTION_SENSOR, COMPONENT_TYPES.TILT_SENSOR, COMPONENT_TYPES.IR_RECEIVER, COMPONENT_TYPES.HC_SR04, COMPONENT_TYPES.INDUCTOR, COMPONENT_TYPES.ZENER_DIODE, COMPONENT_TYPES.H_BRIDGE, COMPONENT_TYPES.AND_GATE, COMPONENT_TYPES.OR_GATE, COMPONENT_TYPES.NAND_GATE, COMPONENT_TYPES.NOR_GATE, COMPONENT_TYPES.XOR_GATE, COMPONENT_TYPES.NOT_GATE, COMPONENT_TYPES.JK_FLIP_FLOP_74HC73, COMPONENT_TYPES.D_FLIP_FLOP_74HC74, COMPONENT_TYPES.D_LATCH_74HC75, COMPONENT_TYPES.BINARY_COUNTER_74HC161, COMPONENT_TYPES.SEVEN_SEGMENT_DISPLAY, COMPONENT_TYPES.LCD_16X2_WH1602B, COMPONENT_TYPES.WS2812B_V6, COMPONENT_TYPES.LM339NE4, COMPONENT_TYPES.LM393P, COMPONENT_TYPES.LM358P, COMPONENT_TYPES.NE555P, COMPONENT_TYPES.NE556N, COMPONENT_TYPES["4N35"]]
 
 export function getComponentDef(type) { return COMPONENT_TYPES[type] ?? null }
 

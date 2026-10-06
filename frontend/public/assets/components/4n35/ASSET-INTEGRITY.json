@@ -1,0 +1,31 @@
+﻿{
+    "ticket":  "A11-COMP6-4N35-ASSET-FREEZE-001",
+    "status":  "CSA_FROZEN_FOUNDER_CANVAS_PASS",
+    "component":  "4N35",
+    "immutableRasterFiles":  [
+                                 {
+                                     "file":  "4n35.default.1x.png",
+                                     "sha256":  "8BA963E89672A47170D168FD8FEBF82C21244F02651AF759097C3B702C6F1CF9"
+                                 },
+                                 {
+                                     "file":  "4n35.default.1x.webp",
+                                     "sha256":  "515F71F3299CBF54E938AD7AA8849E17CB7719CB9295C6F67C85A0405C1E229C"
+                                 },
+                                 {
+                                     "file":  "4n35.default.3x.png",
+                                     "sha256":  "AC6F1674817D8D2599359837645FC55421AD9FE4DB832757C32228CED667106C"
+                                 },
+                                 {
+                                     "file":  "4n35.default.3x.webp",
+                                     "sha256":  "626FCCE00FACB41DD6B1BEF68A03AD9F7E6B57E9BBDE0BE5E734999C61E19740"
+                                 },
+                                 {
+                                     "file":  "4n35.runtime-master.png",
+                                     "sha256":  "AC6F1674817D8D2599359837645FC55421AD9FE4DB832757C32228CED667106C"
+                                 },
+                                 {
+                                     "file":  "4n35.founder-reference.png",
+                                     "sha256":  "0796A2869E45159B1460E2D67B75C7A7B44B64812AA05D94A1C9DF7E3921402B"
+                                 }
+                             ]
+}

@@ -441,6 +441,19 @@ const ASSEMBLY_PROFILES = {
       "2TRIG": { root: { dx: 90, dy: 16 }, style: "metallic-wire" },
     },
   },
+  // A11-COMP6 : 4N35 DIP-6 (raster V3 CSA FROZEN 72x64, Founder Canvas PASS). Roots = PhysicalContacts
+  // CSA LOCKED (rangees y=16 / y=48, x=24..48, pas 12). Aucun bodyClip ; raster gele jamais modifie.
+  "4N35": {
+    kind: "through-hole",
+    leads: {
+      A: { root: { dx: 24, dy: 48 }, style: "metallic-wire" },
+      K: { root: { dx: 36, dy: 48 }, style: "metallic-wire" },
+      NC: { root: { dx: 48, dy: 48 }, style: "metallic-wire" },
+      E: { root: { dx: 48, dy: 16 }, style: "metallic-wire" },
+      C: { root: { dx: 36, dy: 16 }, style: "metallic-wire" },
+      B: { root: { dx: 24, dy: 16 }, style: "metallic-wire" },
+    },
+  },
   // A9-COUNTER1 : 74HC161 DIP-16 (raster Founder PASS/FROZEN, derive isotrope 120x64, pack CSA
   // LOCKED). Le Founder est une photographie EN PERSPECTIVE : ses pattes ne sont pas des
   // probes electriques fiables. Apparence (raster) et geometrie electrique sont donc

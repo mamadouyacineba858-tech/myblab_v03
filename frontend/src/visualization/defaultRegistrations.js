@@ -57,6 +57,7 @@ import { Lm393pPart } from '../components/parts/Lm393pPart.jsx'
 import { Lm358pPart } from '../components/parts/Lm358pPart.jsx'
 import { Ne555pPart } from '../components/parts/Ne555pPart.jsx'
 import { Ne556nPart } from '../components/parts/Ne556nPart.jsx'
+import { FourN35Part } from '../components/parts/FourN35Part.jsx'
 import { PmosPart } from '../components/parts/PmosPart.jsx'
 import { NpnTransistorPart } from '../components/parts/NpnTransistorPart.jsx';
 import { ServoPart } from '../components/parts/ServoPart.jsx';
@@ -227,6 +228,9 @@ export const DEFAULT_REGISTRATIONS = [
   // A11-COMP5 : raster CSA candidate TI NE556N (pixel-probe, Founder Canvas PENDING) ; renderer purement
   // visuel (deux latchs dans le registre mixed-signal).
   { type: 'NE556N', component: Ne556nPart, visual: { backend: 'raster' } },
+  // A11-COMP6 : raster V3 CSA FROZEN 4N35 (Founder Canvas PASS) ; renderer purement visuel (entree
+  // diode dans dcContributionRegistry, transfert optique dans analogConditionalConductionRegistry).
+  { type: '4N35', component: FourN35Part, visual: { backend: 'raster' } },
   { type: 'PMOS', component: PmosPart, visual: { backend: 'raster' } },
   { type: 'RELAY', component: RelayPart, visual: { backend: 'raster' } },
   // SERVO : porté au backend raster (asset réaliste validé MB-VIS-COMP-035,

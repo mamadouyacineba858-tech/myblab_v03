@@ -192,9 +192,14 @@ const DECLARED_TYPES_PINS = {
   // par mixedSignalContributionRegistry (meme loi de canal que NE555P) ; VCC/GND communs, roles
   // par canal identiques a NE555P (xCONT passif).
   NE556N:[{id:'1DISCH',role:'output'},{id:'1THRES',role:'input'},{id:'1CONT',role:'passive'},{id:'1RESET',role:'input'},{id:'1OUT',role:'output'},{id:'1TRIG',role:'input'},{id:'GND',role:'ground'},{id:'2TRIG',role:'input'},{id:'2OUT',role:'output'},{id:'2RESET',role:'input'},{id:'2CONT',role:'passive'},{id:'2THRES',role:'input'},{id:'2DISCH',role:'output'},{id:'VCC',role:'power'}],
+  // A11-COMP6 : optocoupleur 4N35, DIP-6 - 6 pins, ordre = broches physiques 1..6 (A,K,NC,E,C,B).
+  // Deux domaines galvaniquement isoles : entree A/K (famille diode), sortie C/E (conduction
+  // abstraite Level-1), B passive, NC sans contribution. Aucun role 'ground' : K n'est pas la masse
+  // du domaine C/E et E n'est pas la masse du domaine A/K (aucune fausse masse commune).
+  '4N35':[{id:'A',role:'input'},{id:'K',role:'passive'},{id:'NC',role:'passive'},{id:'E',role:'passive'},{id:'C',role:'output'},{id:'B',role:'passive'}],
 }
 
-const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY','LCD_16X2_WH1602B','WS2812B_V6','LM339NE4','LM393P','LM358P','NE555P','NE556N']
+const DECLARED_TYPE_ORDER = ['LED','RESISTOR','ARDUINO','BUTTON','BUTTON_LATCHING','POWER','BATTERY_AA','COIN_CELL_CR2032','BATTERY_9V','CAPACITOR','BUZZER','POTENTIOMETER','LDR','THERMISTOR','DIODE','RGB_LED','NPN_TRANSISTOR','PNP_TRANSISTOR','NMOS','PMOS','VOLTAGE_REGULATOR','RELAY','SERVO','DC_MOTOR','POLARIZED_CAPACITOR','SLIDE_SWITCH','DIP_SWITCH','VIBRATION_MOTOR','LIGHT_BULB','HOBBY_GEARMOTOR','TMP36','FORCE_SENSOR','FLEX_SENSOR','SOIL_MOISTURE_SENSOR','PIR_MOTION_SENSOR','TILT_SENSOR','IR_RECEIVER','HC_SR04','INDUCTOR','ZENER_DIODE','H_BRIDGE','AND_GATE','OR_GATE','NAND_GATE','NOR_GATE','XOR_GATE','NOT_GATE','JK_FLIP_FLOP_74HC73','D_FLIP_FLOP_74HC74','D_LATCH_74HC75','BINARY_COUNTER_74HC161','SEVEN_SEGMENT_DISPLAY','LCD_16X2_WH1602B','WS2812B_V6','LM339NE4','LM393P','LM358P','NE555P','NE556N','4N35']
 
 const DECLARED_PARAMETER_SCHEMA = {
   AND_GATE:[],
@@ -215,6 +220,13 @@ const DECLARED_PARAMETER_SCHEMA = {
   NE555P:[],
   // A11-COMP5 : aucun parametre - le timing de chaque canal emerge exclusivement du circuit externe.
   NE556N:[],
+  // A11-COMP6 : entree A-K = famille diode generique (createDiodeDcContribution), memes conventions
+  // pedagogiques Level-1 que DIODE - jamais une caracterisation exacte du 4N35 reel. forwardVoltage
+  // est aussi le seuil Level-1 du transfert optique (analogConditionalConductionRegistry).
+  '4N35':[
+    {key:'forwardVoltage',parameterType:'voltage',unit:'V',minimum:0,maximum:5,defaultValue:0.7,description:'Seuil pédagogique Level-1 de conduction directe de l\'entrée A-K (même convention que DIODE, pas une caractérisation exacte du 4N35 réel) ; strictement au-dessus de ce seuil, V(A) relativement à K active le transfert optique Level-1 (C-E conduit), sans modèle CTR.'},
+    {key:'onResistance',parameterType:'resistance',unit:'Ω',minimum:0.001,maximum:1e9,defaultValue:10,description:'Résistance équivalente pédagogique de l\'entrée A-K en conduction directe au-delà du seuil (même convention que DIODE, modèle DC simplifié).'},
+  ],
   // A11-COMP3 : constantes pedagogiques Level-1 FIXES (minimum = maximum = defaut, meme convention
   // que les tensions nominales fixes des piles) - jamais presentees comme lois physiques du LM358 reel.
   LM358P:[
@@ -438,6 +450,7 @@ const DECLARED_DEFAULT_PARAMETERS = {
   LM358P:{openLoopGain:100000,outputHighHeadroom:1.5},
   NE555P:{},
   NE556N:{},
+  '4N35':{forwardVoltage:0.7,onResistance:10},
 }
 
 const DECLARED_CAPABILITIES = {
@@ -530,6 +543,8 @@ const DECLARED_CAPABILITIES = {
   NE555P:['digital'],
   // A11-COMP5 : meme ruling que NE555P - 1OUT/2OUT autorites numeriques, xDISCH paires de conduction.
   NE556N:['digital'],
+  // A11-COMP6 : meme patron que DIODE/ZENER_DIODE - contribution DC propre (entree A-K, famille diode).
+  '4N35':['digital','dc'],
 }
 
 const DECLARED_MODEL_AVAILABLE = {
@@ -581,6 +596,7 @@ const DECLARED_MODEL_AVAILABLE = {
   LM358P:true,
   NE555P:true,
   NE556N:true,
+  '4N35':true,
 }
 
 /**

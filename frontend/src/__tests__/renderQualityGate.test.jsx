@@ -412,7 +412,19 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       canonical: { width: m.runtime.width, height: m.runtime.height },
       assets: ["ne556n.default.1x.webp", "ne556n.default.3x.webp", "ne556n.default.1x.png", "ne556n.default.3x.png"].map((file) => ({ file })),
     }),
+    // A11-COMP6 : le manifest V3 CSA FROZEN du 4N35 (dossier `4n35/`) déclare `component` et
+    // `runtime.size1x` [w, h], sans liste de variantes ni `backend`. Adaptateur déclaré, en lecture
+    // seule ; sha256 vérifiés contre ASSET-INTEGRITY.json par FourN35Part.raster.test.jsx.
+    "4N35": (m) => ({
+      component: m.component,
+      backend: "raster",
+      complexity: "complex",
+      canonical: { width: m.runtime.size1x[0], height: m.runtime.size1x[1] },
+      assets: ["4n35.default.1x.webp", "4n35.default.3x.webp", "4n35.default.1x.png", "4n35.default.3x.png"].map((file) => ({ file })),
+    }),
   }
+  // A11-COMP6 : certains packs CSA FROZEN (4N35) sont encodés UTF-8 avec BOM ; JSON.parse le refuse.
+  const readJson = (path) => JSON.parse(readFileSync(path, "utf-8").replace(/^\uFEFF/, ""))
   const sha256 = (buf) => createHash("sha256").update(buf).digest("hex")
 
   // Dimensions réelles d'un PNG (IHDR) ou d'un WebP (VP8X / VP8L / VP8 lossy).
@@ -457,7 +469,7 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       const dir = resolve(publicDir, `assets/components/${kebab}`)
       const manifestPath = resolve(dir, "manifest.json")
       expect(existsSync(manifestPath), `manifeste manquant : ${manifestPath}`).toBe(true)
-      const rawManifest = JSON.parse(readFileSync(manifestPath, "utf-8"))
+      const rawManifest = readJson(manifestPath)
       const manifest = FROZEN_MANIFEST_ADAPTERS[type]?.(rawManifest) ?? rawManifest
 
       // composant déclaré (schéma RESISTOR: `type` ; schéma DIODE: `component`)
@@ -505,7 +517,7 @@ describe("MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets r
       const integPath = resolve(dir, "ASSET-INTEGRITY.json")
       const integrity = existsSync(integPath)
         ? (() => {
-            const raw = JSON.parse(readFileSync(integPath, "utf-8"))
+            const raw = readJson(integPath)
             const list = Array.isArray(raw) ? raw : Array.isArray(raw.files) ? raw.files
               : Object.entries(raw.files ?? {}).map(([file, metadata]) => typeof metadata === "string"
                 // A11-COMP5 : schéma `files{nom: sha256}` (pack candidat NE556N) — sha256 seul déclaré.

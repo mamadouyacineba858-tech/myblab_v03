@@ -180,6 +180,14 @@ const diodeDc = createDiodeDcContribution({ reverseBreakdown: false })
 const zenerDiodeDc = createDiodeDcContribution({ reverseBreakdown: true, anodePinId: "A", cathodePinId: "K" })
 
 /**
+ * A11-COMP6 : entrée A-K de l'optocoupleur 4N35 = même famille physique
+ * diode (A5-D-PREQ), sans reverse breakdown, ids canoniques A/K. Ne lit que
+ * A et K : aucune connaissance du domaine de sortie C/E/B (isolation
+ * galvanique), aucune physique dupliquée.
+ */
+const optocouplerInputDc = createDiodeDcContribution({ reverseBreakdown: false, anodePinId: "A", cathodePinId: "K" })
+
+/**
  * Contribution DC générique pour un composant « circuit ouvert en régime DC
  * établi » à deux bornes : I = 0 quelle que soit la polarité dès lors que le
  * composant est alimenté — un résultat physiquement correct, pas une
@@ -386,6 +394,7 @@ const DC_CONTRIBUTIONS = new Map([
   ["FORCE_SENSOR", resistorDc],
   ["FLEX_SENSOR", resistorDc],
   ["SOIL_MOISTURE_SENSOR", soilMoistureSensorDc],
+  ["4N35", optocouplerInputDc],
 ])
 
 /**

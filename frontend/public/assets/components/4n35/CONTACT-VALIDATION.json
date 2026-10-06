@@ -1,0 +1,108 @@
+﻿{
+    "ticket":  "A11-COMP6-4N35-RUNTIME-DERIVATIVE-003",
+    "lockedPhysicalContacts1x":  {
+                                     "A":  [
+                                               24,
+                                               48
+                                           ],
+                                     "K":  [
+                                               36,
+                                               48
+                                           ],
+                                     "NC":  [
+                                                48,
+                                                48
+                                            ],
+                                     "E":  [
+                                               48,
+                                               16
+                                           ],
+                                     "C":  [
+                                               36,
+                                               16
+                                           ],
+                                     "B":  [
+                                               24,
+                                               16
+                                           ]
+                                 },
+    "qualification":  {
+                          "basis":  "V2 real pixel-probe coordinates transformed by the exact V3 deformation field",
+                          "measurements":  {
+                                               "B":  {
+                                                         "target3x":  [
+                                                                          72.0,
+                                                                          48.0
+                                                                      ],
+                                                         "transformedProbe3x":  [
+                                                                                    72.0,
+                                                                                    48.0
+                                                                                ],
+                                                         "geometryError3xPx":  0.0,
+                                                         "geometryError1xPx":  0.0
+                                                     },
+                                               "C":  {
+                                                         "target3x":  [
+                                                                          108.0,
+                                                                          48.0
+                                                                      ],
+                                                         "transformedProbe3x":  [
+                                                                                    108.0,
+                                                                                    48.0
+                                                                                ],
+                                                         "geometryError3xPx":  0.0,
+                                                         "geometryError1xPx":  0.0
+                                                     },
+                                               "E":  {
+                                                         "target3x":  [
+                                                                          144.0,
+                                                                          48.0
+                                                                      ],
+                                                         "transformedProbe3x":  [
+                                                                                    144.0,
+                                                                                    48.0
+                                                                                ],
+                                                         "geometryError3xPx":  0.0,
+                                                         "geometryError1xPx":  0.0
+                                                     },
+                                               "A":  {
+                                                         "target3x":  [
+                                                                          72.0,
+                                                                          144.0
+                                                                      ],
+                                                         "transformedProbe3x":  [
+                                                                                    72.0,
+                                                                                    144.0
+                                                                                ],
+                                                         "geometryError3xPx":  0.0,
+                                                         "geometryError1xPx":  0.0
+                                                     },
+                                               "K":  {
+                                                         "target3x":  [
+                                                                          108.0,
+                                                                          144.0
+                                                                      ],
+                                                         "transformedProbe3x":  [
+                                                                                    108.0,
+                                                                                    144.0
+                                                                                ],
+                                                         "geometryError3xPx":  0.0,
+                                                         "geometryError1xPx":  0.0
+                                                     },
+                                               "NC":  {
+                                                          "target3x":  [
+                                                                           144.0,
+                                                                           144.0
+                                                                       ],
+                                                          "transformedProbe3x":  [
+                                                                                     144.0,
+                                                                                     144.0
+                                                                                 ],
+                                                          "geometryError3xPx":  0.0,
+                                                          "geometryError1xPx":  0.0
+                                                      }
+                                           },
+                          "maxGeometryError1xPx":  0.0
+                      },
+    "founderCanvas":  "PASS"
+}

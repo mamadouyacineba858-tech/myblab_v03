@@ -21,7 +21,8 @@ describe("dcContributionRegistry — registre générique", () => {
     // A7-C2 : FORCE_SENSOR + FLEX_SENSOR ajoutés (réutilisent resistorDc, cf. dcContributionRegistry.js).
     // A7-C3 : SOIL_MOISTURE_SENSOR ajouté (contribution dédiée soilMoistureSensorDc, cf. dcContributionRegistry.js).
     // A5-ZENER_DIODE : ZENER_DIODE ajouté (réutilise createDiodeDcContribution avec reverseBreakdown, cf. dcContributionRegistry.js).
-    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "LIGHT_BULB", "HOBBY_GEARMOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR", "PNP_TRANSISTOR", "NMOS", "PMOS", "RELAY", "TMP36", "FORCE_SENSOR", "FLEX_SENSOR", "SOIL_MOISTURE_SENSOR", "ZENER_DIODE"]
+    // A11-COMP6 : 4N35 ajouté (entrée A-K, réutilise createDiodeDcContribution sans reverseBreakdown).
+    const expected = ["RESISTOR", "LDR", "THERMISTOR", "DC_MOTOR", "VIBRATION_MOTOR", "LIGHT_BULB", "HOBBY_GEARMOTOR", "DIODE", "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "NPN_TRANSISTOR", "PNP_TRANSISTOR", "NMOS", "PMOS", "RELAY", "TMP36", "FORCE_SENSOR", "FLEX_SENSOR", "SOIL_MOISTURE_SENSOR", "ZENER_DIODE", "4N35"]
     expect([...getAllDcContributionTypes()].sort()).toEqual([...expected].sort())
     for (const type of expected) {
       expect(hasDcContribution(type)).toBe(true)

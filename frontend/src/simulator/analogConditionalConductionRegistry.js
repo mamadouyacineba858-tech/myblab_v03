@@ -43,6 +43,26 @@ export function createOpenCollectorComparators({ channels, referencePin, supplyP
   }
 }
 
+/**
+ * Isolated threshold-controlled conduction: the single input pin is observed relative to
+ * referencePin (its own local domain); strictly above params[thresholdParameter] the output
+ * pair conducts, otherwise (equal, below, missing/invalid threshold) it is high-Z. The
+ * output pair shares no pin with the observed input domain, so no continuity, reference or
+ * voltage ever crosses between them: the external output circuit provides its own energy.
+ */
+export function createIsolatedThresholdConduction({ inputPin, referencePin, thresholdParameter, outputPair }) {
+  return {
+    referencePin,
+    inputPins: [inputPin],
+    contribute: ({ inputVoltages, params }) => {
+      const threshold = params?.[thresholdParameter]
+      return typeof threshold === 'number' && Number.isFinite(threshold) && inputVoltages[inputPin] > threshold
+        ? [[...outputPair]] : []
+    },
+    digitalProjectionPins: [...outputPair],
+  }
+}
+
 const contributions = new Map([
   // A11-COMP1 : TI LM339NE4 quad comparator, Level-1 (no offset, hysteresis, delay or saturation model).
   ['LM339NE4', createOpenCollectorComparators({
@@ -55,6 +75,14 @@ const contributions = new Map([
     referencePin: 'GND',
     supplyPin: 'VCC',
     channels: [1, 2].map((n) => ({ plus: `${n}IN+`, minus: `${n}IN-`, output: `${n}OUT` })),
+  })],
+  // A11-COMP6 : 4N35 optocoupler, Level-1 optical transfer (no CTR, no IF, no base model):
+  // V(A) relative to K above the pedagogical forwardVoltage closes C-E; B and NC never act.
+  ['4N35', createIsolatedThresholdConduction({
+    inputPin: 'A',
+    referencePin: 'K',
+    thresholdParameter: 'forwardVoltage',
+    outputPair: ['C', 'E'],
   })],
 ])
 
