@@ -20,8 +20,10 @@ import { hasTimedDigitalContribution } from '../../../simulator/timedDigitalCont
 import { hasDcContribution } from '../../../simulator/dcContributionRegistry.js'
 import { hasDigitalEventContribution } from '../../../simulator/digitalEventContributionRegistry.js'
 import { toEngineInput } from '../../../simulator/engineAdapter.js'
-import { createSimulationRuntimeSession, runSimulationWithRuntime, SIMULATION_STEP_MS } from '../../../simulator/simulationRuntimeIntegration.js'
+import { createSimulationRuntimeSession, runSimulationWithRuntime, snapshotRuntimeComponentStates, SIMULATION_STEP_MS } from '../../../simulator/simulationRuntimeIntegration.js'
 import { Signal } from '../../../simulator/signals.js'
+import { recordDigitalTransitions } from '../../../simulator/digitalTransitions.js'
+import { projectWs2812bV6 } from '../../../visualization/ws2812bV6Projection.js'
 
 /**
  * A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 — WORLDSEMI WS2812B-V6 exposé VISUAL-ONLY pour le Founder Canvas
@@ -120,7 +122,7 @@ describe('A12-NEOPIXEL — frozen raster renderer', () => {
     }
   })
 
-  it('renders <picture> WebP 1x/3x with PNG 1x/3x fallback at 72x72, no emitted colour or glow', () => {
+  it('renders <picture> WebP 1x/3x with PNG 1x/3x fallback at 72x72; default props = OFF (no emission)', () => {
     const { container } = render(<Ws2812bV6Part />)
     const root = container.querySelector('.part-ws2812b-v6')
     expect(root.style.width).toBe('72px')
@@ -134,6 +136,8 @@ describe('A12-NEOPIXEL — frozen raster renderer', () => {
     expect([img.getAttribute('width'), img.getAttribute('height')]).toEqual(['72', '72'])
     expect(container.querySelectorAll('img')).toHaveLength(1)
     expect(container.innerHTML).not.toMatch(/drop-shadow|box-shadow|filter/)
+    expect(container.querySelector('.part-ws2812b-v6__emission')).toBeNull()
+    expect(root.dataset.emitting).toBe('false')
   })
 
   it('registered once as raster renderer and rendered through the generic PartRenderer', () => {
@@ -204,5 +208,128 @@ describe('A12-NEOPIXEL — WS2812B behaviour lives only in the event contributor
       const code = src(...path).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
       expect(code, path.join('/')).not.toMatch(/WS2812|Adafruit_NeoPixel|NeoPixel/i)
     }
+  })
+})
+
+// A12-NEOPIXEL-CANVAS-RUNTIME-001 : raster FROZEN + overlay DOM local d'emission, pilote uniquement par le
+// Visual State projete { r, g, b, latched }. Eteint (non latche ou noir) : raster strictement statique.
+describe('A12-NEOPIXEL — latched RGB emission overlay', () => {
+  const emission = container => container.querySelector('.part-ws2812b-v6__emission')
+  const renderPixel = props => render(<Ws2812bV6Part {...props} />).container
+
+  function expectRasterIntact(container) {
+    const root = container.querySelector('.part-ws2812b-v6')
+    expect([root.style.width, root.style.height]).toEqual(['72px', '72px'])
+    expect(container.querySelectorAll('picture > img')).toHaveLength(1)
+    expect(container.querySelector('picture > img').getAttribute('src')).toBe('/assets/components/ws2812b-v6/ws2812b-v6.default.1x.png')
+    expect(getComponentDef(TYPE).pins.map(p => [p.id, p.dx, p.dy])).toEqual(CONTACTS.map(([, id, , x, y]) => [id, x, y]))
+  }
+
+  function expectEmission(container, [r, g, b]) {
+    const root = container.querySelector('.part-ws2812b-v6')
+    const el = emission(container)
+    expect(el).not.toBeNull()
+    expect(root.dataset.emitting).toBe('true')
+    expect(el.dataset.rgb).toBe(`${r},${g},${b}`)
+    expect(el.style.backgroundColor).toBe(`rgb(${r}, ${g}, ${b})`)
+    expect(Number(el.style.opacity)).toBeCloseTo(0.35 + 0.6 * Math.max(r, g, b) / 255, 3)
+    expectRasterIntact(container)
+  }
+
+  it('OFF (unlatched): no emission element, raster unchanged, 72x72 box and contacts untouched', () => {
+    const container = renderPixel({ r: 0, g: 0, b: 0, latched: false })
+    expect(emission(container)).toBeNull()
+    expect(container.querySelector('.part-ws2812b-v6').dataset.emitting).toBe('false')
+    expectRasterIntact(container)
+  })
+
+  it('BLACK latched (0,0,0): no emission, no residual halo', () => {
+    const container = renderPixel({ r: 0, g: 0, b: 0, latched: true })
+    expect(emission(container)).toBeNull()
+    expect(container.querySelector('.part-ws2812b-v6').dataset.emitting).toBe('false')
+    expectRasterIntact(container)
+  })
+
+  it('unlatched with non-zero channels still emits nothing (latched gates the light)', () => {
+    expect(emission(renderPixel({ r: 255, g: 255, b: 255, latched: false }))).toBeNull()
+  })
+
+  it.each([
+    ['RED', [255, 0, 0]],
+    ['GREEN', [0, 255, 0]],
+    ['BLUE', [0, 0, 255]],
+    ['YELLOW', [255, 255, 0]],
+    ['MAGENTA', [255, 0, 255]],
+    ['CYAN', [0, 255, 255]],
+    ['WHITE', [255, 255, 255]],
+  ])('%s latched: overlay colour is rgb(r, g, b) verbatim', (_, [r, g, b]) => {
+    expectEmission(renderPixel({ r, g, b, latched: true }), [r, g, b])
+  })
+
+  it('MIXED (37,149,211): the three raw values reach the overlay (no 8-colour quantisation, no channel swap)', () => {
+    expectEmission(renderPixel({ r: 37, g: 149, b: 211, latched: true }), [37, 149, 211])
+    expectEmission(renderPixel({ r: 1, g: 0, b: 0, latched: true }), [1, 0, 0])
+  })
+
+  it('overlay geometry: lens disc inside the body, clear of the four contacts, no pointer capture', () => {
+    const el = emission(renderPixel({ r: 255, g: 255, b: 255, latched: true }))
+    const [left, top, w, h] = ['left', 'top', 'width', 'height'].map(k => parseFloat(el.style[k]))
+    expect(el.style.position).toBe('absolute')
+    expect(el.style.pointerEvents).toBe('none')
+    expect(el.style.borderRadius).toBe('50%')
+    expect(el.getAttribute('aria-hidden')).toBe('true')
+    // body raster opaque x 17..62, y 12..58 (1x) ; contacts at x 0 / x 72
+    expect(left).toBeGreaterThanOrEqual(17)
+    expect(left + w).toBeLessThanOrEqual(62)
+    expect(top).toBeGreaterThanOrEqual(12)
+    expect(top + h).toBeLessThanOrEqual(58)
+    for (const [, , , x, y] of CONTACTS) {
+      expect(x >= left && x <= left + w && y >= top && y <= top + h).toBe(false)
+    }
+  })
+
+  it('pipeline: runtimeState.color -> projectWs2812bV6 -> PartRenderer -> Ws2812bV6Part -> rgb(12, 34, 56)', () => {
+    const runtimeState = { color: { r: 12, g: 34, b: 56 } }
+    expect(projectWs2812bV6(runtimeState)).toEqual({ r: 12, g: 34, b: 56, latched: true })
+    const { container } = render(<PartRenderer type={TYPE} uid="px" pinSignals={new Map()} runtimeState={runtimeState} />)
+    expectEmission(container, [12, 34, 56])
+    // the renderer itself ignores a raw runtimeState: colour only arrives through the Visual State projection
+    expect(emission(renderPixel({ runtimeState }))).toBeNull()
+    // no colour latched -> PartRenderer renders the static raster
+    const off = render(<PartRenderer type={TYPE} uid="px" pinSignals={new Map()} runtimeState={{ color: null }} />).container
+    expect(emission(off)).toBeNull()
+  })
+
+  it('end-to-end: simulated DIN frame -> runtime snapshot -> PartRenderer emits the latched (GRB-decoded upstream) colour', () => {
+    const byteBits = byte => Array.from({ length: 8 }, (_, i) => (byte >> (7 - i)) & 1)
+    const components = [
+      { uid: 'p', type: 'POWER', x: 0, y: 0 },
+      { uid: 'src', type: 'PNP_TRANSISTOR', x: 0, y: 0 },
+      { uid: 'px', type: TYPE, x: 0, y: 0 },
+    ]
+    const wires = [
+      { fromUid: 'p', fromPin: '5V', toUid: 'px', toPin: 'VDD' },
+      { fromUid: 'p', fromPin: 'GND', toUid: 'px', toPin: 'VSS' },
+      { fromUid: 'src', fromPin: 'emitter', toUid: 'px', toPin: 'DIN' },
+    ]
+    const session = createSimulationRuntimeSession()
+    const transitions = []
+    let t = 1_000_000
+    for (const bit of [...byteBits(0x12), ...byteBits(0x34), ...byteBits(0x56)]) {
+      transitions.push({ pinId: 'emitter', timeMs: t / 1e6, signal: Signal.HIGH })
+      transitions.push({ pinId: 'emitter', timeMs: (t + (bit ? 800 : 300)) / 1e6, signal: Signal.LOW })
+      t += bit ? 1400 : 1250
+    }
+    recordDigitalTransitions(session.digitalTransitions, 'src', transitions)
+    runSimulationWithRuntime(components, wires, { dt: SIMULATION_STEP_MS, runtimeSession: session })
+    runSimulationWithRuntime(components, wires, { dt: SIMULATION_STEP_MS, runtimeSession: session })
+    const runtimeState = snapshotRuntimeComponentStates(session, ['p', 'src', 'px']).get('px')
+    const { container } = render(<PartRenderer type={TYPE} uid="px" pinSignals={new Map()} runtimeState={runtimeState} />)
+    expectEmission(container, [0x34, 0x12, 0x56])
+  })
+
+  it('Presentation stays protocol-agnostic: renderer source has no protocol, timing or runtime vocabulary', () => {
+    const code = src('components', 'parts', 'Ws2812bV6Part.jsx')
+    expect(code).not.toMatch(/\bDIN\b|\bDOUT\b|\bGRB\b|bitStart|lastEdge|pulse|reset|threshold|Scheduler|digitalEvent|runtimeState|transition|pinSignals/i)
   })
 })

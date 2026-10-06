@@ -215,7 +215,8 @@ export const DEFAULT_REGISTRATIONS = [
   // A10-DISP2 : corps raster CSA RUNTIME-V2 FROZEN du WH1602B ; caracteres projetes par le renderer
   // depuis le Visual State Registry (prop `lcd`, etat runtime ST7066U) — aucun code central specifique.
   { type: 'LCD_16X2_WH1602B', component: LcdWh1602bPart, visual: { backend: 'raster' } },
-  // A12-NEOPIXEL-CANVAS-VISUAL-GATE-001 : raster CSA FROZEN WS2812B-V6, VISUAL-ONLY (aucun Visual State).
+  // A12-NEOPIXEL : raster CSA FROZEN WS2812B-V6 + Visual State RGB dynamique (r/g/b/latched projetes
+  // depuis le Visual State Registry) ; protocole hors Presentation.
   { type: 'WS2812B_V6', component: Ws2812bV6Part, visual: { backend: 'raster' } },
   // A11-COMP1 : raster CSA FROZEN TI LM339NE4 ; renderer purement visuel (logique dans le registre PREQ2).
   { type: 'LM339NE4', component: Lm339ne4Part, visual: { backend: 'raster' } },
