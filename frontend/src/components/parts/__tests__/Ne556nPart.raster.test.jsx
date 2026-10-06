@@ -35,9 +35,6 @@ const json = name => JSON.parse(readFileSync(asset(name), 'utf8'))
 const manifest = () => json('manifest.json')
 const hash = data => createHash('sha256').update(data).digest('hex')
 const src = (...p) => readFileSync(resolve(here, '../../..', ...p), 'utf8')
-// Text payloads are LF in the candidate pack; a Windows checkout may present CRLF.
-const canonical = name => /\.(json|md|txt)$/.test(name)
-  ? Buffer.from(readFileSync(asset(name), 'utf8').replace(/\r\n/g, '\n'), 'utf8') : readFileSync(asset(name))
 const PACK = [
   'ASSET-INTEGRITY.json', 'CONTACT-VALIDATION.json', 'FOUNDER-ASSET.json', 'README.md', 'README.txt', 'SHA256SUMS.txt', 'manifest.json',
   'ne556n.default.1x.png', 'ne556n.default.1x.webp', 'ne556n.default.3x.png', 'ne556n.default.3x.webp',
@@ -101,19 +98,6 @@ function decodePngRgba(raw) {
     }
   }
   return { width: w, height: h, rgba: (x, y) => [...out.subarray((y * w + x) * 4, (y * w + x) * 4 + 4)] }
-}
-
-// Same probe criterion as the NE555P V3 raster test : lead metal = alpha>=128, max(RGB)>=100,
-// min(RGB)>=60, rows contactY*3 ± 3, columns target ± 18 (3x = ± half a pitch).
-const isLeadMetal = ([r, g, b, a]) => a >= 128 && Math.max(r, g, b) >= 100 && Math.min(r, g, b) >= 60
-const isDarkBody = ([r, g, b, a]) => a >= 200 && Math.max(r, g, b) < 90
-/** Centre of the lead metal in continuous image coordinates (pixel i covers [i, i + 1)). */
-function probeLeadCentre3x(img, x1, y1) {
-  const xs = []
-  for (let y = y1 * 3 - 3; y <= y1 * 3 + 3; y++) {
-    for (let x = x1 * 3 - 18; x <= x1 * 3 + 18; x++) if (isLeadMetal(img.rgba(x, y))) xs.push(x + 0.5)
-  }
-  return xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : NaN
 }
 
 // Ticket §4/§5 : broche physique -> [pin canonique, x, y] (PhysicalContacts CSA LOCKED).
