@@ -24,10 +24,15 @@ const WEBP_3X = `${ASSET_DIR}/arduino.default.3x.webp`
 const PNG_3X = `${ASSET_DIR}/arduino.default.3x.png`
 const LEGACY_ASSETS = `${ASSET_DIR}/arduino.default.1x.webp ${ASSET_DIR}/arduino.default.1x.png`
 const APPROVED_CANVAS_SCALE = 2.45
+// A13-ARD-SURF1-CORR-003 — le pas physique du header (3–4 unités) est
+// insuffisant pour afficher D0…D13 sur une seule ligne. Les libellés restent
+// centrés sur leur trou en X mais alternent sur deux rangées afin que deux
+// libellés d'une même rangée soient séparés d'au moins 7 unités.
 const DIGITAL_PIN_LABELS = Object.freeze([
-  ['D13', 59], ['D12', 63], ['D11', 67], ['D10', 71], ['D9', 75], ['D8', 79],
-  ['D7', 82], ['D6', 86], ['D5', 90], ['D4', 94], ['D3', 98], ['D2', 102],
-  ['D1', 106], ['D0', 110],
+  ['D13', 59, 18], ['D12', 63, 24], ['D11', 67, 18], ['D10', 71, 24],
+  ['D9', 75, 18], ['D8', 79, 24], ['D7', 82, 18], ['D6', 86, 24],
+  ['D5', 90, 18], ['D4', 94, 24], ['D3', 98, 18], ['D2', 102, 24],
+  ['D1', 106, 18], ['D0', 110, 24],
 ])
 
 function UsbCable({ connected }) {
@@ -145,14 +150,14 @@ export function ArduinoPart() {
         aria-hidden="true"
         style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 4 }}
       >
-        {DIGITAL_PIN_LABELS.map(([pinId, left]) => (
+        {DIGITAL_PIN_LABELS.map(([pinId, left, top]) => (
           <span
             key={pinId}
             data-arduino-pin-label={pinId}
             style={{
               position: 'absolute',
               left,
-              top: 26,
+              top,
               transform: 'translateX(-50%)',
               color: '#ffffff',
               background: 'rgba(15, 23, 42, 0.88)',
