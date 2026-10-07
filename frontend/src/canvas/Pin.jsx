@@ -20,7 +20,6 @@ export function Pin({
   isConnected,
   onPinClick,
   hideVisualMarker = false,
-  showLabel = false,
 }) {
   const [hover, setHover] = useState(false)
 
@@ -50,7 +49,6 @@ export function Pin({
       }}
       className={[
         "myblab-pin",
-        showLabel && !hideVisualMarker && "myblab-pin--labeled",
         hover && "myblab-pin--hover",
         isPending && "myblab-pin--pending",
         isConnected && "myblab-pin--connected",
@@ -68,8 +66,6 @@ export function Pin({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       aria-label={label ?? pinId}
-    >
-      {showLabel && !hideVisualMarker && <span className="myblab-pin__label" aria-hidden="true">{label ?? pinId}</span>}
-    </button>
+    />
   )
 }
