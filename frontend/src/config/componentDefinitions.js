@@ -77,9 +77,28 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "A", label: "A", dx: 0, dy: 14 },
     { id: "B", label: "B", dx: 84, dy: 14 },
   ],
+  // A13-ARD-SURF1 — Arduino UNO R3 digital header. PhysicalContacts are
+  // anchored on the visible top-header hole centres of the frozen 120x140
+  // raster. D13..D8 occupy the rightmost six positions of the 10-pin
+  // auxiliary/digital header; D7..D0 occupy the adjacent 8-pin header.
+  // D2/D3 intentionally migrate from their historical external proxy
+  // endpoints to the real header. Pin identity is unchanged, so persisted
+  // wires keep their electrical endpoint while rendering at the physical hole.
   ARDUINO: [
-    { id: "D2", label: "D2", dx: 0, dy: 50, contacts: [{ id: "D2", dx: 3, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "D3", label: "D3", dx: 0, dy: 75, contacts: [{ id: "D3", dx: 15, dy: 75, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D13", label: "D13", dx: 59, dy: 33, contacts: [{ id: "D13", dx: 59, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D12", label: "D12", dx: 63, dy: 33, contacts: [{ id: "D12", dx: 63, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D11", label: "D11", dx: 67, dy: 33, contacts: [{ id: "D11", dx: 67, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D10", label: "D10", dx: 71, dy: 33, contacts: [{ id: "D10", dx: 71, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D9", label: "D9", dx: 75, dy: 33, contacts: [{ id: "D9", dx: 75, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D8", label: "D8", dx: 79, dy: 33, contacts: [{ id: "D8", dx: 79, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D7", label: "D7", dx: 82, dy: 33, contacts: [{ id: "D7", dx: 82, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D6", label: "D6", dx: 86, dy: 33, contacts: [{ id: "D6", dx: 86, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D5", label: "D5", dx: 90, dy: 33, contacts: [{ id: "D5", dx: 90, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D4", label: "D4", dx: 94, dy: 33, contacts: [{ id: "D4", dx: 94, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D3", label: "D3", dx: 98, dy: 33, contacts: [{ id: "D3", dx: 98, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D2", label: "D2", dx: 102, dy: 33, contacts: [{ id: "D2", dx: 102, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D1", label: "D1", dx: 106, dy: 33, contacts: [{ id: "D1", dx: 106, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D0", label: "D0", dx: 110, dy: 33, contacts: [{ id: "D0", dx: 110, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
     { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [{ id: "GND", dx: 15, dy: 108, wireConnectable: true, breadboardInsertable: false }] },
     { id: "5V", label: "5V", dx: 120, dy: 50, contacts: [{ id: "5V", dx: 115, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
   ],
