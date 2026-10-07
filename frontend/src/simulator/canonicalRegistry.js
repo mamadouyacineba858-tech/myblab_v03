@@ -4,7 +4,7 @@ const DECLARED_TYPES_PINS = {
   BATTERY_9V:[{id:'plus',role:'power_out'},{id:'minus',role:'ground_out'}],
   LED:[{id:'anode',role:'input'},{id:'cathode',role:'input'}],
   RESISTOR:[{id:'A',role:'passive'},{id:'B',role:'passive'}],
-  ARDUINO:[{id:'D2',role:'gpio'},{id:'D3',role:'gpio'},{id:'GND',role:'ground'},{id:'5V',role:'power'}],
+  ARDUINO:[{id:'D0',role:'gpio'},{id:'D1',role:'gpio'},{id:'D2',role:'gpio'},{id:'D3',role:'gpio'},{id:'D4',role:'gpio'},{id:'D5',role:'gpio'},{id:'D6',role:'gpio'},{id:'D7',role:'gpio'},{id:'D8',role:'gpio'},{id:'D9',role:'gpio'},{id:'D10',role:'gpio'},{id:'D11',role:'gpio'},{id:'D12',role:'gpio'},{id:'D13',role:'gpio'},{id:'GND',role:'ground'},{id:'5V',role:'power'}],
   BUTTON:[{id:'pin1',role:'switch'},{id:'pin2',role:'switch'}],
   BUTTON_LATCHING:[{id:'pin1',role:'switch'},{id:'pin2',role:'switch'}],
   POWER:[{id:'5V',role:'power_out'},{id:'GND',role:'ground_out'}],
