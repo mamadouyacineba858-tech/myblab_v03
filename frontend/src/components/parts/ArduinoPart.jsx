@@ -10,7 +10,7 @@ import { CircuitContext } from '../../context/CircuitContext.js'
  * MB-L1-ARDUINO-001 — mécanisme Canvas verrouillé :
  * - câble ARRÊT/MARCHE inchangé ;
  * - LED ON ARRÊT/MARCHE inchangée ;
- * - aucun badge/pastille/label artificiel autour des pins.
+ * - repères numériques locaux, sans modifier les contacts ni leur interaction.
  *
  * Correctif après régression de l'asset haute définition :
  * - retour au renderer 3x explicitement validé comme visible au Canvas ;
@@ -24,16 +24,65 @@ const WEBP_3X = `${ASSET_DIR}/arduino.default.3x.webp`
 const PNG_3X = `${ASSET_DIR}/arduino.default.3x.png`
 const LEGACY_ASSETS = `${ASSET_DIR}/arduino.default.1x.webp ${ASSET_DIR}/arduino.default.1x.png`
 const APPROVED_CANVAS_SCALE = 2.45
-// A13-ARD-SURF1-CORR-003 — le pas physique du header (3–4 unités) est
-// insuffisant pour afficher D0…D13 sur une seule ligne. Les libellés restent
-// centrés sur leur trou en X mais alternent sur deux rangées afin que deux
-// libellés d'une même rangée soient séparés d'au moins 7 unités.
-const DIGITAL_PIN_LABELS = Object.freeze([
-  ['D13', 59, 18], ['D12', 63, 24], ['D11', 67, 18], ['D10', 71, 24],
-  ['D9', 75, 18], ['D8', 79, 24], ['D7', 82, 18], ['D6', 86, 24],
-  ['D5', 90, 18], ['D4', 94, 24], ['D3', 98, 18], ['D2', 102, 24],
-  ['D1', 106, 18], ['D0', 110, 24],
-])
+// CORR-004 : éventail extérieur ordonné. Les deux extrémités suivent le
+// même ordre : les leaders ne se croisent pas. Les boîtes fixes de 12×10
+// sont espacées de 14 unités, indépendamment de la métrique du texte.
+// Les ancrages sont lus dans les PhysicalContacts existants, jamais déplacés.
+const DIGITAL_LABEL_WIDTH = 12
+const DIGITAL_LABEL_HEIGHT = 10
+const DIGITAL_LABEL_PITCH = 14
+const DIGITAL_LABEL_TOP = -20
+
+function DigitalPinLabels({ pins }) {
+  const digitalPins = pins.filter((pin) => /^D(?:[0-9]|1[0-3])$/.test(pin.id))
+    .toSorted((a, b) => a.contacts[0].dx - b.contacts[0].dx)
+  return (
+    <div
+      className="part-arduino__digital-pin-labels"
+      aria-hidden="true"
+      style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 4 }}
+    >
+      {digitalPins.map((pin, index) => {
+        const contact = pin.contacts[0]
+        const left = index * DIGITAL_LABEL_PITCH
+        const startX = left + DIGITAL_LABEL_WIDTH / 2
+        const startY = DIGITAL_LABEL_TOP + DIGITAL_LABEL_HEIGHT
+        const dx = contact.dx - startX
+        const dy = contact.dy - startY
+        return (
+          <React.Fragment key={pin.id}>
+            <span
+              data-arduino-pin-leader={pin.id}
+              data-contact-x={contact.dx}
+              data-contact-y={contact.dy}
+              style={{
+                position: 'absolute', left: startX, top: startY,
+                width: Math.hypot(dx, dy), height: 0.55,
+                transform: `rotate(${Math.atan2(dy, dx)}rad)`,
+                transformOrigin: '0 0', background: '#e2e8f0',
+                boxShadow: '0 0 0 0.25px #0f172a',
+              }}
+            />
+            <span
+              data-arduino-pin-label={pin.id}
+              style={{
+                position: 'absolute', left, top: DIGITAL_LABEL_TOP,
+                width: DIGITAL_LABEL_WIDTH, height: DIGITAL_LABEL_HEIGHT,
+                boxSizing: 'border-box', display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+                color: '#ffffff', background: '#0f172a', borderRadius: 1,
+                fontFamily: 'monospace', fontSize: 6, fontWeight: 700,
+                lineHeight: 1, whiteSpace: 'nowrap',
+              }}
+            >
+              {pin.id}
+            </span>
+          </React.Fragment>
+        )
+      })}
+    </div>
+  )
+}
 
 function UsbCable({ connected }) {
   return (
@@ -145,35 +194,7 @@ export function ArduinoPart() {
       </picture>
 
 
-      <div
-        className="part-arduino__digital-pin-labels"
-        aria-hidden="true"
-        style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 4 }}
-      >
-        {DIGITAL_PIN_LABELS.map(([pinId, left, top]) => (
-          <span
-            key={pinId}
-            data-arduino-pin-label={pinId}
-            style={{
-              position: 'absolute',
-              left,
-              top,
-              transform: 'translateX(-50%)',
-              color: '#ffffff',
-              background: 'rgba(15, 23, 42, 0.88)',
-              borderRadius: 2,
-              padding: '0 1px',
-              fontSize: 4,
-              fontWeight: 700,
-              lineHeight: 1.15,
-              whiteSpace: 'nowrap',
-              textShadow: '0 1px 1px rgba(0,0,0,.85)',
-            }}
-          >
-            {pinId}
-          </span>
-        ))}
-      </div>
+      <DigitalPinLabels pins={def.pins} />
 
       <span
         className="part-arduino__on-led"

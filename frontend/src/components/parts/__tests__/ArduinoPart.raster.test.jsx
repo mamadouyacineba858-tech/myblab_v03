@@ -231,16 +231,20 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
     for (const label of labels) expect(label.style.pointerEvents).toBe('')
     expect(container.querySelector('.part-arduino__digital-pin-labels').style.pointerEvents).toBe('none')
 
-    // CORR-003 — lisibilité : deux rangées alternées, jamais l'ancienne
-    // rangée unique qui provoquait le chevauchement massif au Canvas.
-    const rows = labels.map((el) => Number(el.style.top.replace('px', '')))
-    expect(new Set(rows)).toEqual(new Set([18, 24]))
-    for (const row of [18, 24]) {
-      const xs = labels
-        .filter((el) => Number(el.style.top.replace('px', '')) === row)
-        .map((el) => Number(el.style.left.replace('px', '')))
-        .sort((a, b) => a - b)
-      for (let i = 1; i < xs.length; i += 1) expect(xs[i] - xs[i - 1]).toBeGreaterThanOrEqual(7)
+    // CORR-004 : boîtes extérieures mesurables, pas de rangées serrées.
+    const boxes = labels.map((el) => ({
+      x: parseFloat(el.style.left), y: parseFloat(el.style.top),
+      width: parseFloat(el.style.width), height: parseFloat(el.style.height),
+    }))
+    for (const [i, box] of boxes.entries()) {
+      expect(box.y + box.height).toBeLessThan(0)
+      expect(parseFloat(labels[i].style.fontSize)).toBeGreaterThanOrEqual(6)
+      expect(labels[i].style.fontFamily).toBe('monospace')
+      expect(box.width).toBeGreaterThanOrEqual(12)
+      expect(box.height).toBeGreaterThanOrEqual(10)
+      for (const other of boxes.slice(i + 1)) {
+        expect(other.x - (box.x + box.width)).toBeGreaterThanOrEqual(2)
+      }
     }
   })
 
