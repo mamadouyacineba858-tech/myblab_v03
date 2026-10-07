@@ -1,30 +1,34 @@
 /**
- * MB-L1-ARD-002 — source de vérité unique pour le mapping
- * "numéro de pin Arduino" → "pin canonique MYBlab" (§10 du ticket).
+ * MB-L1-ARD-002 / A13-ARD-PREQ1 — compatibility adapter for the historical
+ * Arduino firmware pin API.
  *
- * Aucune connaissance de Simulation/Runtime/React/Document ici — une pure
- * table de correspondance. `firmwareCompiler.js` est le SEUL consommateur ;
- * jamais de branchement dispersé du type `pin === 2 ? "D2" : ...` ailleurs.
- *
- * Scope strict V1 (§26) : D2/D3 uniquement. Étendre à D4…D13 est
- * explicitement hors périmètre de ce ticket.
+ * The generic board capability contract is now the authority. This module
+ * deliberately preserves the existing D2/D3-only public behavior so PREQ1 is
+ * behavior-preserving and activates no new product capability.
  */
 
-const ARDUINO_PIN_TO_CANONICAL = new Map([
-  [2, "D2"],
-  [3, "D3"],
-])
+import {
+  BOARD_IDS,
+  BOARD_PIN_CAPABILITIES,
+  getBoardPins,
+  mapBoardPinToCanonical,
+} from "../boards/boardCapabilities.js"
+
+const BOARD_ID = BOARD_IDS.ARDUINO_UNO_R3
+const REQUIRED_CAPABILITY = BOARD_PIN_CAPABILITIES.DIGITAL_OUTPUT
 
 /**
- * @param {number} arduinoPin Numéro de pin tel qu'écrit dans le sketch (ex. 2).
- * @returns {string|null} Le pin canonique MYBlab (ex. "D2"), ou `null` si ce
- *   numéro de pin n'est pas supporté en V1.
+ * @param {number} arduinoPin Pin number as written in the sketch.
+ * @returns {string|null} Canonical MYBlab pin id, or null when unsupported.
  */
 export function mapArduinoPin(arduinoPin) {
-  return ARDUINO_PIN_TO_CANONICAL.get(arduinoPin) ?? null
+  return mapBoardPinToCanonical(BOARD_ID, arduinoPin, REQUIRED_CAPABILITY)
 }
 
-/** @returns {number[]} La liste des numéros de pin supportés en V1 (triée). */
+/** @returns {number[]} Supported Arduino sketch pins, sorted. */
 export function getSupportedArduinoPins() {
-  return [...ARDUINO_PIN_TO_CANONICAL.keys()].sort((a, b) => a - b)
+  return getBoardPins(BOARD_ID)
+    .filter((pin) => pin.capabilities.includes(REQUIRED_CAPABILITY))
+    .map((pin) => pin.sketchPin)
+    .sort((a, b) => a - b)
 }
