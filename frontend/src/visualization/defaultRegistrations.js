@@ -118,7 +118,7 @@ export const DEFAULT_REGISTRATIONS = [
   // visuelle des pins sur les bords réels de la carte photographiée
   // déclarée dans utils/pinPresentationGeometry.js (déterminée par
   // pixel-probe, cf. commentaire ARDUINO_VISUAL_PINS).
-  { type: 'ARDUINO', component: ArduinoPart, visual: { backend: 'raster', markerless: false, pinLabels: true } },
+  { type: 'ARDUINO', component: ArduinoPart, visual: { backend: 'raster', markerless: false } },
   // BUTTON : huitième composant à backend raster (asset validé
   // MB-VIS-PROTOTYPE-008, états `released` / `pressed`). raster => bareBody +
   // markerless dérivés, même mécanisme déclaratif que RESISTOR / DIODE /
