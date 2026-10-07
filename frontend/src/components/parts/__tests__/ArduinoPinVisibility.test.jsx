@@ -8,8 +8,20 @@ import { getComponentDef } from '../../../config/componentDefinitions.js'
 import { CircuitContext } from '../../../context/CircuitContext.js'
 
 const EXPECTED_CONTACTS = {
-  D2: [3, 50],
-  D3: [15, 75],
+  D0: [110, 33],
+  D1: [106, 33],
+  D2: [102, 33],
+  D3: [98, 33],
+  D4: [94, 33],
+  D5: [90, 33],
+  D6: [86, 33],
+  D7: [82, 33],
+  D8: [79, 33],
+  D9: [75, 33],
+  D10: [71, 33],
+  D11: [67, 33],
+  D12: [63, 33],
+  D13: [59, 33],
   GND: [15, 108],
   '5V': [115, 50],
 }
@@ -72,9 +84,9 @@ describe('MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation', () => {
     expect(led.style.boxShadow).not.toBe('none')
   })
 
-  it('préserve les quatre PhysicalContacts existants en attendant l’extension GPIO complète', () => {
+  it('expose D0-D13 plus GND/5V comme PhysicalContacts wire-only', () => {
     const def = getComponentDef('ARDUINO')
-    expect(def.pins).toHaveLength(4)
+    expect(def.pins).toHaveLength(16)
     for (const pin of def.pins) {
       expect(pin.contacts).toHaveLength(1)
       const contact = pin.contacts[0]
@@ -84,11 +96,12 @@ describe('MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation', () => {
     }
   })
 
-  it('préserve les coordonnées électriques historiques de ce ticket visuel', () => {
+  it('verrouille le mapping du header numérique et la migration physique D2/D3', () => {
     const def = getComponentDef('ARDUINO')
     const byId = Object.fromEntries(def.pins.map((p) => [p.id, p]))
-    expect({ dx: byId.D2.dx, dy: byId.D2.dy }).toEqual({ dx: 0, dy: 50 })
-    expect({ dx: byId.D3.dx, dy: byId.D3.dy }).toEqual({ dx: 0, dy: 75 })
+    for (let pin = 0; pin <= 13; pin++) {
+      expect([byId[`D${pin}`].contacts[0].dx, byId[`D${pin}`].contacts[0].dy]).toEqual(EXPECTED_CONTACTS[`D${pin}`])
+    }
     expect({ dx: byId.GND.dx, dy: byId.GND.dy }).toEqual({ dx: 0, dy: 110 })
     expect({ dx: byId['5V'].dx, dy: byId['5V'].dy }).toEqual({ dx: 120, dy: 50 })
   })
