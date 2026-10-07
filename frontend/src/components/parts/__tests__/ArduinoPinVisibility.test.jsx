@@ -108,40 +108,28 @@ describe('MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation', () => {
 })
 
 
-describe('CORR-004 — digital callout geometry', () => {
+describe('CORR-005 — on-board digital silkscreen', () => {
   for (const active of [false, true]) {
-    it(`maps 14 non-crossing leaders to frozen contacts (${active ? 'RUN' : 'OFF'})`, () => {
+    it(`prints 14 pin numbers on-board without external leaders (${active ? 'RUN' : 'OFF'})`, () => {
       const { container } = renderArduino(active)
-      const leaders = [...container.querySelectorAll('[data-arduino-pin-leader]')]
+      const root = container.querySelector('.part-arduino__digital-pin-labels')
       const labels = [...container.querySelectorAll('[data-arduino-pin-label]')]
-      expect(leaders).toHaveLength(14)
-      expect(labels.map((label) => label.textContent)).toEqual(
-        Array.from({ length: 14 }, (_, i) => `D${13 - i}`)
+      expect(root.getAttribute('data-label-layout')).toBe('on-board')
+      expect(container.querySelectorAll('[data-arduino-pin-leader]')).toHaveLength(0)
+      expect(labels).toHaveLength(14)
+      expect(labels.map((label) => label.dataset.arduinoPinLabel).sort()).toEqual(
+        Array.from({ length: 14 }, (_, i) => `D${i}`).sort()
       )
-      const segments = leaders.map((leader, index) => {
-        const contact = EXPECTED_CONTACTS[leader.dataset.arduinoPinLeader]
-        const x = parseFloat(leader.style.left)
-        const y = parseFloat(leader.style.top)
-        const length = parseFloat(leader.style.width)
-        const angle = Number(leader.style.transform.match(/rotate\((.+)rad\)/)[1])
-        expect([Number(leader.dataset.contactX), Number(leader.dataset.contactY)]).toEqual(contact)
-        expect(x + length * Math.cos(angle)).toBeCloseTo(contact[0], 5)
-        expect(y + length * Math.sin(angle)).toBeCloseTo(contact[1], 5)
-        const label = labels[index]
-        expect(x).toBe(parseFloat(label.style.left) + parseFloat(label.style.width) / 2)
-        expect(y).toBe(parseFloat(label.style.top) + parseFloat(label.style.height))
-        expect(leader.style.transformOrigin).toBe('0 0')
-        return { x, y, endX: contact[0], endY: contact[1] }
-      })
-      // Common Y at each end plus strictly ordered X prove no crossing
-      // throughout the fan, including the dense header.
-      for (let i = 1; i < segments.length; i++) {
-        expect(segments[i].y).toBe(segments[i - 1].y)
-        expect(segments[i].endY).toBe(segments[i - 1].endY)
-        expect(segments[i].x - segments[i - 1].x).toBeGreaterThanOrEqual(14)
-        expect(segments[i].endX - segments[i - 1].endX).toBeGreaterThanOrEqual(3)
+      for (const label of labels) {
+        const contact = EXPECTED_CONTACTS[label.dataset.arduinoPinLabel]
+        expect([Number(label.dataset.contactX), Number(label.dataset.contactY)]).toEqual(contact)
+        expect(parseFloat(label.style.left)).toBe(contact[0])
+        expect(parseFloat(label.style.top)).toBeGreaterThan(contact[1])
+        expect(label.style.transform).toContain('rotate(-90deg)')
+        expect(label.style.background).toBe('')
+        expect(label.textContent).toBe(label.dataset.arduinoPinLabel.slice(1))
       }
-      expect(container.querySelector('.part-arduino__digital-pin-labels').style.pointerEvents).toBe('none')
+      expect(root.style.pointerEvents).toBe('none')
     })
   }
 })
