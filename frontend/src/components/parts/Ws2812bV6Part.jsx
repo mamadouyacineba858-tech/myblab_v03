@@ -7,10 +7,17 @@ const ASSET_DIR = '/assets/components/ws2812b-v6/'
 // mesuree dans le repere 1x 72x72 (lentille x 21..55, y 16..49). Le disque reste dans le body
 // (x 17..62) et loin des quatre contacts (x 0 / x 72) ; la box et la geometrie electrique ne bougent pas.
 const LENS = { cx: 38, cy: 33, radius: 17 }
-// Opacite Level-1 : plancher lisible + part lineaire en max(r, g, b) / 255 (aucun modele optique).
-const MIN_OPACITY = 0.35
-const OPACITY_SPAN = 0.6
-const LENS_MASK = 'radial-gradient(circle closest-side, #000 45%, transparent 100%)'
+// CORR-001 (Founder brightness) : photometrie Level-1 a deux couches, chacune lineaire et monotone en
+// intensity = max(r, g, b) / 255 (aucun modele optique). Core : lentille fortement eclairee, le raster
+// reste perceptible (plafond < 1). Glow : halo doux de meme couleur, centre sur la lentille, rayon
+// GLOW_RADIUS (x 14..62, y 9..57 : local au body, loin des contacts x 0 / x 72).
+const CORE_MIN_OPACITY = 0.5
+const CORE_OPACITY_SPAN = 0.42
+const CORE_HOTSPOT_ALPHA = 0.45
+const LENS_MASK = 'radial-gradient(circle closest-side, #000 70%, transparent 100%)'
+const GLOW_RADIUS = 24
+const GLOW_MIN_OPACITY = 0.25
+const GLOW_OPACITY_SPAN = 0.65
 
 /**
  * A12-NEOPIXEL — raster CSA FROZEN WORLDSEMI WS2812B-V6 (5050 SMD), 72x72, + Visual State RGB dynamique.
@@ -43,14 +50,20 @@ export function Ws2812bV6Part({ r = 0, g = 0, b = 0, latched = false } = {}) {
         />
       </picture>
       {emitting && (
+        <div className="part-ws2812b-v6__glow" aria-hidden={true} data-rgb={`${r},${g},${b}`} style={glowStyle(r, g, b, intensity)} />
+      )}
+      {emitting && (
         <div className="part-ws2812b-v6__emission" aria-hidden={true} data-rgb={`${r},${g},${b}`} style={emissionStyle(r, g, b, intensity)} />
       )}
     </div>
   )
 }
 
-/** Disque colore sur la lentille : couleur = r/g/b tels quels, bord adouci par masque radial. */
+const round3 = v => Math.round(v * 1000) / 1000
+
+/** Core sur la lentille : couleur = r/g/b tels quels, point chaud central, bord adouci par masque radial. */
 function emissionStyle(r, g, b, intensity) {
+  const hotspot = `radial-gradient(circle closest-side, rgba(255, 255, 255, ${round3(CORE_HOTSPOT_ALPHA * intensity)}) 0%, transparent 45%)`
   return {
     position: 'absolute',
     left: LENS.cx - LENS.radius,
@@ -59,9 +72,26 @@ function emissionStyle(r, g, b, intensity) {
     height: 2 * LENS.radius,
     borderRadius: '50%',
     backgroundColor: `rgb(${r}, ${g}, ${b})`,
-    opacity: Math.round((MIN_OPACITY + OPACITY_SPAN * intensity) * 1000) / 1000,
+    backgroundImage: hotspot,
+    opacity: round3(CORE_MIN_OPACITY + CORE_OPACITY_SPAN * intensity),
     maskImage: LENS_MASK,
     WebkitMaskImage: LENS_MASK,
+    pointerEvents: 'none',
+  }
+}
+
+/** Halo doux derriere le core : meme r/g/b, meme centre, decroissance radiale jusqu'a transparent. */
+function glowStyle(r, g, b, intensity) {
+  return {
+    position: 'absolute',
+    left: LENS.cx - GLOW_RADIUS,
+    top: LENS.cy - GLOW_RADIUS,
+    width: 2 * GLOW_RADIUS,
+    height: 2 * GLOW_RADIUS,
+    borderRadius: '50%',
+    backgroundImage: `radial-gradient(circle closest-side, rgba(${r}, ${g}, ${b}, 1) 0%, rgba(${r}, ${g}, ${b}, 0.5) 55%, rgba(${r}, ${g}, ${b}, 0) 100%)`,
+    opacity: round3(GLOW_MIN_OPACITY + GLOW_OPACITY_SPAN * intensity),
+    mixBlendMode: 'screen',
     pointerEvents: 'none',
   }
 }

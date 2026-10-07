@@ -215,7 +215,18 @@ describe('A12-NEOPIXEL — WS2812B behaviour lives only in the event contributor
 // Visual State projete { r, g, b, latched }. Eteint (non latche ou noir) : raster strictement statique.
 describe('A12-NEOPIXEL — latched RGB emission overlay', () => {
   const emission = container => container.querySelector('.part-ws2812b-v6__emission')
+  const glow = container => container.querySelector('.part-ws2812b-v6__glow')
   const renderPixel = props => render(<Ws2812bV6Part {...props} />).container
+  // CORR-001 : loi photometrique de Presentation (core + glow), monotone en max(r, g, b) / 255.
+  const coreOpacity = ([r, g, b]) => 0.5 + 0.42 * Math.max(r, g, b) / 255
+  const glowOpacity = ([r, g, b]) => 0.25 + 0.65 * Math.max(r, g, b) / 255
+
+  function expectNoLight(container) {
+    expect(emission(container)).toBeNull()
+    expect(glow(container)).toBeNull()
+    expect(container.querySelector('.part-ws2812b-v6').dataset.emitting).toBe('false')
+    expect(container.innerHTML).not.toMatch(/box-shadow|rgba?\(|gradient|opacity/)
+  }
 
   function expectRasterIntact(container) {
     const root = container.querySelector('.part-ws2812b-v6')
@@ -232,26 +243,33 @@ describe('A12-NEOPIXEL — latched RGB emission overlay', () => {
     expect(root.dataset.emitting).toBe('true')
     expect(el.dataset.rgb).toBe(`${r},${g},${b}`)
     expect(el.style.backgroundColor).toBe(`rgb(${r}, ${g}, ${b})`)
-    expect(Number(el.style.opacity)).toBeCloseTo(0.35 + 0.6 * Math.max(r, g, b) / 255, 3)
+    expect(Number(el.style.opacity)).toBeCloseTo(coreOpacity([r, g, b]), 3)
+    const halo = glow(container)
+    expect(halo).not.toBeNull()
+    expect(halo.dataset.rgb).toBe(`${r},${g},${b}`)
+    // full-alpha stop serialised by CSSOM as rgb(...)
+    expect(halo.style.backgroundImage).toContain(`radial-gradient(circle closest-side, rgb(${r}, ${g}, ${b}) 0%, rgba(${r}, ${g}, ${b}, 0.5) 55%`)
+    expect(Number(halo.style.opacity)).toBeCloseTo(glowOpacity([r, g, b]), 3)
+    // glow behind the core (DOM order), both after the raster
+    expect(halo.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expectRasterIntact(container)
   }
 
-  it('OFF (unlatched): no emission element, raster unchanged, 72x72 box and contacts untouched', () => {
+  it('OFF (unlatched): no core, no glow, raster unchanged, 72x72 box and contacts untouched', () => {
     const container = renderPixel({ r: 0, g: 0, b: 0, latched: false })
-    expect(emission(container)).toBeNull()
-    expect(container.querySelector('.part-ws2812b-v6').dataset.emitting).toBe('false')
+    expectNoLight(container)
     expectRasterIntact(container)
   })
 
-  it('BLACK latched (0,0,0): no emission, no residual halo', () => {
+  it('BLACK latched (0,0,0): no core, no glow, no residual colour or shadow', () => {
     const container = renderPixel({ r: 0, g: 0, b: 0, latched: true })
-    expect(emission(container)).toBeNull()
-    expect(container.querySelector('.part-ws2812b-v6').dataset.emitting).toBe('false')
+    expectNoLight(container)
     expectRasterIntact(container)
   })
 
   it('unlatched with non-zero channels still emits nothing (latched gates the light)', () => {
-    expect(emission(renderPixel({ r: 255, g: 255, b: 255, latched: false }))).toBeNull()
+    expectNoLight(renderPixel({ r: 255, g: 255, b: 255, latched: false }))
+    expectNoLight(renderPixel({ r: 32, g: 0, b: 0, latched: false }))
   })
 
   it.each([
@@ -269,6 +287,63 @@ describe('A12-NEOPIXEL — latched RGB emission overlay', () => {
   it('MIXED (37,149,211): the three raw values reach the overlay (no 8-colour quantisation, no channel swap)', () => {
     expectEmission(renderPixel({ r: 37, g: 149, b: 211, latched: true }), [37, 149, 211])
     expectEmission(renderPixel({ r: 1, g: 0, b: 0, latched: true }), [1, 0, 0])
+  })
+
+  it('LOW RED (32,0,0): raw values preserved on core and glow', () => {
+    expectEmission(renderPixel({ r: 32, g: 0, b: 0, latched: true }), [32, 0, 0])
+  })
+
+  it('CORR-001 brightness: full channels light the lens strongly; LOW RED stays perceptibly dimmer than RED', () => {
+    const read = container => {
+      const core = emission(container)
+      const halo = glow(container)
+      return {
+        core: Number(core.style.opacity),
+        hotspot: Number(core.style.backgroundImage.match(/rgba\(255, 255, 255, ([\d.]+)\)/)[1]),
+        glow: Number(halo.style.opacity),
+      }
+    }
+    const red = read(renderPixel({ r: 255, g: 0, b: 0, latched: true }))
+    const low = read(renderPixel({ r: 32, g: 0, b: 0, latched: true }))
+    const white = read(renderPixel({ r: 255, g: 255, b: 255, latched: true }))
+    // brighter than the f954e34 law (core 0.35 + 0.6 i, no glow), raster still visible through the core (< 1)
+    expect(red.core).toBeGreaterThanOrEqual(0.9)
+    expect(red.core).toBeLessThan(1)
+    expect(white).toEqual(red)
+    expect(red.glow).toBeGreaterThanOrEqual(0.85)
+    // intensity stays informative on every presentational channel actually rendered
+    expect(red.core - low.core).toBeGreaterThan(0.3)
+    expect(red.glow - low.glow).toBeGreaterThan(0.5)
+    expect(red.hotspot).toBeGreaterThan(4 * low.hotspot)
+    // weighted brightness proxy: channel level x opacity of the visible layers
+    const brightness = ([r, g, b], o) => (Math.max(r, g, b) / 255) * (o.core + o.glow)
+    expect(brightness([32, 0, 0], low)).toBeLessThan(brightness([255, 0, 0], red) / 5)
+  })
+
+  it('glow geometry: centred on the lens, local to the body, clear of contacts, out of layout and pointer flow', () => {
+    const container = renderPixel({ r: 255, g: 255, b: 255, latched: true })
+    const el = glow(container)
+    const core = emission(container)
+    const box = node => ['left', 'top', 'width', 'height'].map(k => parseFloat(node.style[k]))
+    const [left, top, w, h] = box(el)
+    const [cl, ct, cw, chh] = box(core)
+    expect([left + w / 2, top + h / 2]).toEqual([cl + cw / 2, ct + chh / 2])
+    expect([cl, ct, cw, chh]).toEqual([21, 16, 34, 34])
+    expect(w).toBeGreaterThan(cw)
+    expect(el.style.position).toBe('absolute')
+    expect(el.style.pointerEvents).toBe('none')
+    expect(el.getAttribute('aria-hidden')).toBe('true')
+    expect(el.style.backgroundImage).toMatch(/rgba\(255, 255, 255, 0\) 100%\)$/)
+    // the soft halo fades out inside the body footprint (x 17..62, y 12..58) up to a few px, far from x 0 / x 72
+    expect(left).toBeGreaterThanOrEqual(12)
+    expect(left + w).toBeLessThanOrEqual(64)
+    expect(top).toBeGreaterThanOrEqual(8)
+    expect(top + h).toBeLessThanOrEqual(60)
+    for (const [, , , x, y] of CONTACTS) {
+      expect(x >= left && x <= left + w && y >= top && y <= top + h).toBe(false)
+    }
+    const root = container.querySelector('.part-ws2812b-v6')
+    expect([root.style.width, root.style.height]).toEqual(['72px', '72px'])
   })
 
   it('overlay geometry: lens disc inside the body, clear of the four contacts, no pointer capture', () => {
