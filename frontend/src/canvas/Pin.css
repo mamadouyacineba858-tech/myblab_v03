@@ -32,32 +32,3 @@
 .myblab-pin--connected {
   border-color: #22c55e;
 }
-
-
-/* A13-ARD-SURF1-CORR-001 — when a component explicitly opts out of the
-   markerless raster default, expose the existing pin hit target and its
-   semantic label. The label is interaction-neutral and follows the same
-   local coordinate/zoom transform as the pin itself. */
-.myblab-pin--labeled .myblab-pin__label {
-  position: absolute;
-  left: 50%;
-  bottom: 100%;
-  transform: translate(-50%, -3px);
-  min-width: 16px;
-  padding: 1px 3px;
-  border-radius: 3px;
-  background: rgba(15, 23, 42, 0.9);
-  color: #f8fafc;
-  font-size: 7px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-align: center;
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-}
-
-.myblab-pin--labeled:hover .myblab-pin__label,
-.myblab-pin--labeled.myblab-pin--hover .myblab-pin__label {
-  font-size: 8px;
-}
