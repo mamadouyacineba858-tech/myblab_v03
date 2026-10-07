@@ -343,6 +343,7 @@ export function resolvePresentation(visual) {
     backend,
     bareBody: typeof v.bareBody === 'boolean' ? v.bareBody : isRaster,
     markerless: typeof v.markerless === 'boolean' ? v.markerless : isRaster,
+    pinLabels: v.pinLabels === true,
   })
 }
 
