@@ -35,10 +35,11 @@ const BOARDS = new Map([
     freezeBoard({
       boardId: BOARD_IDS.ARDUINO_UNO_R3,
       componentType: "ARDUINO",
-      pins: [
-        { sketchPin: 2, canonicalPinId: "D2", capabilities: [BOARD_PIN_CAPABILITIES.DIGITAL_OUTPUT] },
-        { sketchPin: 3, canonicalPinId: "D3", capabilities: [BOARD_PIN_CAPABILITIES.DIGITAL_OUTPUT] },
-      ],
+      pins: Array.from({ length: 14 }, (_, sketchPin) => ({
+        sketchPin,
+        canonicalPinId: `D${sketchPin}`,
+        capabilities: [BOARD_PIN_CAPABILITIES.DIGITAL_OUTPUT],
+      })),
     }),
   ],
 ])
