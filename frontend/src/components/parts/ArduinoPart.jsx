@@ -24,60 +24,43 @@ const WEBP_3X = `${ASSET_DIR}/arduino.default.3x.webp`
 const PNG_3X = `${ASSET_DIR}/arduino.default.3x.png`
 const LEGACY_ASSETS = `${ASSET_DIR}/arduino.default.1x.webp ${ASSET_DIR}/arduino.default.1x.png`
 const APPROVED_CANVAS_SCALE = 2.45
-// CORR-004 : éventail extérieur ordonné. Les deux extrémités suivent le
-// même ordre : les leaders ne se croisent pas. Les boîtes fixes de 12×10
-// sont espacées de 14 unités, indépendamment de la métrique du texte.
-// Les ancrages sont lus dans les PhysicalContacts existants, jamais déplacés.
-const DIGITAL_LABEL_WIDTH = 12
-const DIGITAL_LABEL_HEIGHT = 10
-const DIGITAL_LABEL_PITCH = 14
-const DIGITAL_LABEL_TOP = -20
-
+// CORR-005 — sérigraphie numérique locale, inspirée du principe Tinkercad :
+// aucun callout extérieur. Chaque numéro est imprimé juste sous son trou.
+// L'orientation verticale permet au pas physique de 3–4 unités de rester lisible.
 function DigitalPinLabels({ pins }) {
   const digitalPins = pins.filter((pin) => /^D(?:[0-9]|1[0-3])$/.test(pin.id))
-    .toSorted((a, b) => a.contacts[0].dx - b.contacts[0].dx)
   return (
     <div
       className="part-arduino__digital-pin-labels"
+      data-label-layout="on-board"
       aria-hidden="true"
       style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 4 }}
     >
-      {digitalPins.map((pin, index) => {
+      {digitalPins.map((pin) => {
         const contact = pin.contacts[0]
-        const left = index * DIGITAL_LABEL_PITCH
-        const startX = left + DIGITAL_LABEL_WIDTH / 2
-        const startY = DIGITAL_LABEL_TOP + DIGITAL_LABEL_HEIGHT
-        const dx = contact.dx - startX
-        const dy = contact.dy - startY
         return (
-          <React.Fragment key={pin.id}>
-            <span
-              data-arduino-pin-leader={pin.id}
-              data-contact-x={contact.dx}
-              data-contact-y={contact.dy}
-              style={{
-                position: 'absolute', left: startX, top: startY,
-                width: Math.hypot(dx, dy), height: 0.55,
-                transform: `rotate(${Math.atan2(dy, dx)}rad)`,
-                transformOrigin: '0 0', background: '#e2e8f0',
-                boxShadow: '0 0 0 0.25px #0f172a',
-              }}
-            />
-            <span
-              data-arduino-pin-label={pin.id}
-              style={{
-                position: 'absolute', left, top: DIGITAL_LABEL_TOP,
-                width: DIGITAL_LABEL_WIDTH, height: DIGITAL_LABEL_HEIGHT,
-                boxSizing: 'border-box', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                color: '#ffffff', background: '#0f172a', borderRadius: 1,
-                fontFamily: 'monospace', fontSize: 6, fontWeight: 700,
-                lineHeight: 1, whiteSpace: 'nowrap',
-              }}
-            >
-              {pin.id}
-            </span>
-          </React.Fragment>
+          <span
+            key={pin.id}
+            data-arduino-pin-label={pin.id}
+            data-contact-x={contact.dx}
+            data-contact-y={contact.dy}
+            style={{
+              position: 'absolute',
+              left: contact.dx,
+              top: contact.dy + 3.5,
+              color: '#ffffff',
+              fontFamily: 'Arial, sans-serif',
+              fontSize: 4.2,
+              fontWeight: 700,
+              lineHeight: 1,
+              whiteSpace: 'nowrap',
+              textShadow: '0 0 0.45px #0f172a, 0 0 0.45px #0f172a',
+              transform: 'translateX(-50%) rotate(-90deg)',
+              transformOrigin: '50% 0',
+            }}
+          >
+            {pin.id.slice(1)}
+          </span>
         )
       })}
     </div>
