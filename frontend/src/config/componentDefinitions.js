@@ -87,8 +87,8 @@ const PIN_PRESENTATION_BY_TYPE = {
   ARDUINO: [
     { id: "D0", label: "D0", dx: 110, dy: 33, contacts: [{ id: "D0", dx: 110, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
     { id: "D1", label: "D1", dx: 106, dy: 33, contacts: [{ id: "D1", dx: 106, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "D2", label: "D2", dx: 102, dy: 33, contacts: [{ id: "D2", dx: 102, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "D3", label: "D3", dx: 98, dy: 33, contacts: [{ id: "D3", dx: 98, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D2", label: "D2", dx: 0, dy: 50, contacts: [{ id: "D2", dx: 102, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D3", label: "D3", dx: 0, dy: 75, contacts: [{ id: "D3", dx: 98, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
     { id: "D4", label: "D4", dx: 94, dy: 33, contacts: [{ id: "D4", dx: 94, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
     { id: "D5", label: "D5", dx: 90, dy: 33, contacts: [{ id: "D5", dx: 90, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
     { id: "D6", label: "D6", dx: 86, dy: 33, contacts: [{ id: "D6", dx: 86, dy: 33, wireConnectable: true, breadboardInsertable: false }] },
