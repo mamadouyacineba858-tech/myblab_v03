@@ -231,20 +231,14 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
     for (const label of labels) expect(label.style.pointerEvents).toBe('')
     expect(container.querySelector('.part-arduino__digital-pin-labels').style.pointerEvents).toBe('none')
 
-    // CORR-004 : boîtes extérieures mesurables, pas de rangées serrées.
-    const boxes = labels.map((el) => ({
-      x: parseFloat(el.style.left), y: parseFloat(el.style.top),
-      width: parseFloat(el.style.width), height: parseFloat(el.style.height),
-    }))
-    for (const [i, box] of boxes.entries()) {
-      expect(box.y + box.height).toBeLessThan(0)
-      expect(parseFloat(labels[i].style.fontSize)).toBeGreaterThanOrEqual(6)
-      expect(labels[i].style.fontFamily).toBe('monospace')
-      expect(box.width).toBeGreaterThanOrEqual(12)
-      expect(box.height).toBeGreaterThanOrEqual(10)
-      for (const other of boxes.slice(i + 1)) {
-        expect(other.x - (box.x + box.width)).toBeGreaterThanOrEqual(2)
-      }
+    // CORR-005 : sérigraphie locale — aucun callout extérieur ni leader.
+    expect(container.querySelectorAll('[data-arduino-pin-leader]')).toHaveLength(0)
+    expect(container.querySelector('.part-arduino__digital-pin-labels').getAttribute('data-label-layout')).toBe('on-board')
+    for (const label of labels) {
+      expect(label.style.background).toBe('')
+      expect(label.style.transform).toContain('rotate(-90deg)')
+      expect(parseFloat(label.style.top)).toBeGreaterThan(Number(label.dataset.contactY))
+      expect(label.textContent).toBe(label.dataset.arduinoPinLabel.slice(1))
     }
   })
 
