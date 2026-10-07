@@ -1,7 +1,7 @@
 {
   "component": "ARDUINO",
   "version": "1.0.0",
-  "generatedAt": "2026-09-04T20:05:03.768056Z",
+  "generatedAt": "2026-10-07T07:33:00.000Z",
   "hashAlgorithm": "sha256",
   "files": [
     {
@@ -26,8 +26,8 @@
     },
     {
       "file": "manifest.json",
-      "sha256": "928bbf551c6cd8a3aa57f82ea4b73c8a95729232617793bf46a88c1e09a1fe00",
-      "bytes": 1451
+      "sha256": "6d4272aefd519bc9a09c38105a4eea21a627ff2ff53b6eebc46d85637462e2e6",
+      "bytes": 2012
     }
   ]
 }
