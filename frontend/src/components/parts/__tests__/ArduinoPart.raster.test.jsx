@@ -59,10 +59,10 @@ describe('MB-VIS-COMP-037 — ARDUINO raster : enregistrement + résolution (TES
     expect(manager.render('ARDUINO', {})).not.toBeNull()
   })
 
-  it('TEST 3 — backend résolu = "raster" ; bareBody + markerless dérivés', () => {
+  it('TEST 3 — backend raster ; bareBody conservé et marqueurs Arduino explicitement visibles', () => {
     const manager = createDefaultVisualizationManager(DEFAULT_REGISTRATIONS)
     expect(manager.getBackend('ARDUINO')).toBe('raster')
-    expect(getComponentPresentation('ARDUINO')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
+    expect(getComponentPresentation('ARDUINO')).toEqual({ backend: 'raster', bareBody: true, markerless: false })
   })
 })
 
@@ -201,7 +201,7 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('CircuitComponent rend 16 pins dont D2/D3 sur le header physique ; asset raster, markerless', () => {
+  it('CircuitComponent rend 16 pins visibles dont D2/D3 sur le header physique ; asset raster', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('ARDUINO', 50, 60) })
@@ -218,7 +218,18 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
     expect(container.querySelector('.circuit-component').getAttribute('data-backend')).toBe('raster')
     expect(container.querySelector('.circuit-component__body').hasAttribute('data-bare-body')).toBe(true)
-    for (const p of pins) expect(p.style.opacity).toBe('0')
+    for (const p of pins) expect(p.style.opacity).toBe('1')
+  })
+
+  it('SURF1-CORR-001 — le raster affiche les 14 labels numériques D0-D13 sans intercepter les événements', () => {
+    const { container } = render(<ArduinoPart />)
+    const labels = [...container.querySelectorAll('[data-arduino-pin-label]')]
+    expect(labels).toHaveLength(14)
+    expect(labels.map((el) => el.getAttribute('data-arduino-pin-label')).sort()).toEqual(
+      Array.from({ length: 14 }, (_, pin) => `D${pin}`).sort()
+    )
+    for (const label of labels) expect(label.style.pointerEvents).toBe('')
+    expect(container.querySelector('.part-arduino__digital-pin-labels').style.pointerEvents).toBe('none')
   })
 
   it("l'<img> ne capte pas les événements — le wrapper .circuit-component les reçoit", () => {
