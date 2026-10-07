@@ -63,8 +63,15 @@ describe("MB-L1-ARD-002 — firmwareCompiler — TEST C1-C16", () => {
     expect(result.diagnostics[0].code).toBe(DiagnosticCode.MISSING_LOOP)
   })
 
-  it("C10 — pin non supportée (13) -> error", () => {
-    const result = compileFirmware("void setup() {}\nvoid loop() { digitalWrite(13, HIGH); }")
+  it("C10 — D13 compile désormais sur la surface numérique complète", () => {
+    const result = compileFirmware("void setup() { pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, HIGH); }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.setup).toEqual([{ op: "PIN_MODE", pin: "D13", mode: "OUTPUT" }])
+    expect(result.ir.loop).toEqual([{ op: "DIGITAL_WRITE", pin: "D13", value: "HIGH" }])
+  })
+
+  it("C10b — pin hors surface (14) -> error", () => {
+    const result = compileFirmware("void setup() {}\nvoid loop() { digitalWrite(14, HIGH); }")
     expect(result.ok).toBe(false)
     expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_PIN)
   })
