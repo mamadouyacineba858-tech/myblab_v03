@@ -40,7 +40,7 @@ jobs:
           from pathlib import Path
 
           lint_path = Path("lint-report.txt")
-          test_path = Path("test-report.json")
+          test_path = Path("frontend/test-report.json")
           coverage_path = Path("coverage-report.txt")
 
           report = {
