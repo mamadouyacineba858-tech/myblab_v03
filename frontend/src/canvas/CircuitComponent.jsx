@@ -465,7 +465,6 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
               isConnected={isPinConnected(uid, pin.id)}
               onPinClick={handlePinClick}
               hideVisualMarker={presentation.markerless}
-              showLabel={presentation.pinLabels === true}
             />
           )
         })
