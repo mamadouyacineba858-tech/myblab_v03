@@ -49,7 +49,7 @@ export function Pin({
       }}
       className={[
         "myblab-pin",
-        "myblab-pin--labeled",
+        !hideVisualMarker && "myblab-pin--labeled",
         hover && "myblab-pin--hover",
         isPending && "myblab-pin--pending",
         isConnected && "myblab-pin--connected",
