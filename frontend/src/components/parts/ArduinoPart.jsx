@@ -24,6 +24,11 @@ const WEBP_3X = `${ASSET_DIR}/arduino.default.3x.webp`
 const PNG_3X = `${ASSET_DIR}/arduino.default.3x.png`
 const LEGACY_ASSETS = `${ASSET_DIR}/arduino.default.1x.webp ${ASSET_DIR}/arduino.default.1x.png`
 const APPROVED_CANVAS_SCALE = 2.45
+const DIGITAL_PIN_LABELS = Object.freeze([
+  ['D13', 59], ['D12', 63], ['D11', 67], ['D10', 71], ['D9', 75], ['D8', 79],
+  ['D7', 82], ['D6', 86], ['D5', 90], ['D4', 94], ['D3', 98], ['D2', 102],
+  ['D1', 106], ['D0', 110],
+])
 
 function UsbCable({ connected }) {
   return (
@@ -133,6 +138,37 @@ export function ArduinoPart() {
           }}
         />
       </picture>
+
+
+      <div
+        className="part-arduino__digital-pin-labels"
+        aria-hidden="true"
+        style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 4 }}
+      >
+        {DIGITAL_PIN_LABELS.map(([pinId, left]) => (
+          <span
+            key={pinId}
+            data-arduino-pin-label={pinId}
+            style={{
+              position: 'absolute',
+              left,
+              top: 26,
+              transform: 'translateX(-50%)',
+              color: '#ffffff',
+              background: 'rgba(15, 23, 42, 0.88)',
+              borderRadius: 2,
+              padding: '0 1px',
+              fontSize: 4,
+              fontWeight: 700,
+              lineHeight: 1.15,
+              whiteSpace: 'nowrap',
+              textShadow: '0 1px 1px rgba(0,0,0,.85)',
+            }}
+          >
+            {pinId}
+          </span>
+        ))}
+      </div>
 
       <span
         className="part-arduino__on-led"
