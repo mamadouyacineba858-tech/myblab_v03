@@ -138,16 +138,16 @@ describe('MB-VIS-COMP-037 — pins : présentation projetée, électrique inchan
   const pinById = Object.fromEntries(arduinoDef.pins.map((p) => [p.id, p]))
   const component = { type: 'ARDUINO', x: 0, y: 0 }
 
-  it('TEST 7 — getPinPresentationPosition projette D2=(3,50) D3=(15,75) GND=(15,108) 5V=(115,50)', () => {
-    expect(getPinPresentationPosition(component, pinById.D2)).toEqual({ x: 3, y: 50 })
-    expect(getPinPresentationPosition(component, pinById.D3)).toEqual({ x: 15, y: 75 })
+  it('TEST 7 — getPinPresentationPosition projette D2/D3 sur le header physique et préserve GND/5V', () => {
+    expect(getPinPresentationPosition(component, pinById.D2)).toEqual({ x: 102, y: 33 })
+    expect(getPinPresentationPosition(component, pinById.D3)).toEqual({ x: 98, y: 33 })
     expect(getPinPresentationPosition(component, pinById.GND)).toEqual({ x: 15, y: 108 })
     expect(getPinPresentationPosition(component, pinById['5V'])).toEqual({ x: 115, y: 50 })
   })
 
   it('TEST 7b — la projection est relative à component.x/y (aucune coordonnée absolue codée en dur)', () => {
     const moved = { type: 'ARDUINO', x: 100, y: 200 }
-    expect(getPinPresentationPosition(moved, pinById.D2)).toEqual({ x: 103, y: 250 })
+    expect(getPinPresentationPosition(moved, pinById.D2)).toEqual({ x: 202, y: 233 })
     expect(getPinPresentationPosition(moved, pinById['5V'])).toEqual({ x: 215, y: 250 })
   })
 
@@ -157,7 +157,7 @@ describe('MB-VIS-COMP-037 — pins : présentation projetée, électrique inchan
     expect({ dx: pinById.GND.dx, dy: pinById.GND.dy }).toEqual({ dx: 0, dy: 110 })
     expect({ dx: pinById['5V'].dx, dy: pinById['5V'].dy }).toEqual({ dx: 120, dy: 50 })
     // canonicalRegistry : mêmes ids/rôles
-    expect(getCanonicalEntry('ARDUINO').pins.map((p) => p.id)).toEqual(['D2', 'D3', 'GND', '5V'])
+    expect(getCanonicalEntry('ARDUINO').pins.map((p) => p.id)).toEqual([...Array.from({ length: 14 }, (_, pin) => `D${pin}`), 'GND', '5V'])
     // dimensions canoniques inchangées
     expect([arduinoDef.width, arduinoDef.height]).toEqual([120, 140])
   })
@@ -188,7 +188,7 @@ describe('MB-VIS-COMP-037 — pins : présentation projetée, électrique inchan
   })
 })
 
-describe('MB-VIS-COMP-037 — pipeline réel : 4 pins projetés sur les bords réels de la carte', () => {
+describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
   const wrapper = ({ children }) => <CircuitProvider>{children}</CircuitProvider>
   function Harness({ onReady }) {
     const c = useCircuit()
@@ -201,18 +201,18 @@ describe('MB-VIS-COMP-037 — pipeline réel : 4 pins projetés sur les bords r�
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('CircuitComponent rend 4 pins aux positions de PRÉSENTATION (3,50)/(15,75)/(15,108)/(115,50) ; asset raster, markerless', () => {
+  it('CircuitComponent rend 16 pins dont D2/D3 sur le header physique ; asset raster, markerless', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('ARDUINO', 50, 60) })
 
     const pins = container.querySelectorAll('.myblab-pin')
-    expect(pins.length).toBe(4)
+    expect(pins.length).toBe(16)
     const positions = [...pins].map((el) => [
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining([[3, 50], [15, 75], [15, 108], [115, 50]]))
+    expect(positions).toEqual(expect.arrayContaining([[102, 33], [98, 33], [15, 108], [115, 50]]))
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
