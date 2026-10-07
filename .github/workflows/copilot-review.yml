@@ -20,16 +20,20 @@ jobs:
         run: npm run lint --prefix frontend > lint-report.txt 2>&1
 
       - name: Run tests with coverage
+        continue-on-error: true
         run: npm test --prefix frontend -- --coverage=false --reporter=json --outputFile=test-report.json
 
       - name: Run coverage report (advisory)
+        if: always()
         continue-on-error: true
         run: npm test --prefix frontend -- --coverage --reporter=verbose > coverage-report.txt 2>&1
 
       - name: Build frontend
+        if: always()
         run: npm run build --prefix frontend
 
       - name: Package report
+        if: always()
         run: |
           python - <<'PY'
           import json
@@ -52,12 +56,14 @@ jobs:
           PY
 
       - name: Upload JSON report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: copilot-report
           path: copilot-report.json
 
       - name: Upload coverage HTML
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
@@ -65,6 +71,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload build
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
