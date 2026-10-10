@@ -131,5 +131,96 @@
   ],
   "description": "Photorealistic Arduino UNO R3 top-down raster asset.",
   "background": "transparent",
-  "hashAlgorithm": "sha256"
+  "hashAlgorithm": "sha256",
+  "geometryContract": {
+    "status": "legacy-preserved-pending-founder-canvas-pass",
+    "units": "logical-pixels",
+    "electricalPinsSource": "frontend/src/config/componentDefinitions.js: pin.dx/pin.dy",
+    "presentationContactsSource": "frontend/src/config/componentDefinitions.js: pin.contacts[0].dx/dy",
+    "note": "canonical.pins is retained verbatim for backward compatibility; for D2/D3 it already represents presentation positions, not electrical pins. Use electricalPins and presentationContacts for unambiguous geometry.",
+    "electricalPins": {
+      "D2": [
+        0,
+        50
+      ],
+      "D3": [
+        0,
+        75
+      ],
+      "GND": [
+        0,
+        110
+      ],
+      "5V": [
+        120,
+        50
+      ]
+    },
+    "presentationContacts": {
+      "D0": [
+        110,
+        33
+      ],
+      "D1": [
+        106,
+        33
+      ],
+      "D2": [
+        102,
+        33
+      ],
+      "D3": [
+        98,
+        33
+      ],
+      "D4": [
+        94,
+        33
+      ],
+      "D5": [
+        90,
+        33
+      ],
+      "D6": [
+        86,
+        33
+      ],
+      "D7": [
+        82,
+        33
+      ],
+      "D8": [
+        79,
+        33
+      ],
+      "D9": [
+        75,
+        33
+      ],
+      "D10": [
+        71,
+        33
+      ],
+      "D11": [
+        67,
+        33
+      ],
+      "D12": [
+        63,
+        33
+      ],
+      "D13": [
+        59,
+        33
+      ],
+      "GND": [
+        15,
+        108
+      ],
+      "5V": [
+        115,
+        50
+      ]
+    }
+  }
 }
