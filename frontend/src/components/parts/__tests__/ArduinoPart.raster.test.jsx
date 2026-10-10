@@ -259,4 +259,34 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
     fireEvent.pointerDown(container.querySelector('.circuit-component__body img'))
     expect(got).toBe(1)
   })
+
+  it('imports saved D2/D3 and power wires without changing endpoints, firmware or waypoints', () => {
+    let api
+    render(<Harness onReady={(a) => { api = a }} />, { wrapper })
+    const firmware = { source: 'void setup() { pinMode(2, OUTPUT); pinMode(3, OUTPUT); }\nvoid loop() { digitalWrite(2, HIGH); digitalWrite(3, LOW); }' }
+    const legacy = {
+      version: 1,
+      components: [
+        { uid: 'uno-old', type: 'ARDUINO', x: 50, y: 60, firmware },
+        { uid: 'res-old', type: 'RESISTOR', x: 300, y: 60 },
+      ],
+      wires: ['D2', 'D3', 'GND', '5V'].map((pin, i) => ({
+        id: `old-wire-${pin}`, fromUid: 'uno-old', fromPin: pin,
+        toUid: 'res-old', toPin: i % 2 ? 'B' : 'A',
+        waypoints: [{ x: 210, y: 80 + i * 10 }],
+        ...(i % 2 ? { fromContact: pin, toContact: i % 2 ? 'B' : 'A' } : {}),
+      })),
+      breadboards: [],
+    }
+    act(() => { api.importCircuit(JSON.parse(JSON.stringify(legacy))) })
+    const first = api.exportCircuit()
+    expect(first.components.find(c => c.uid === 'uno-old')).toMatchObject({ uid: 'uno-old', x: 50, y: 60, firmware })
+    expect(first.wires).toEqual(legacy.wires)
+    act(() => { api.clearCircuit() })
+    act(() => { api.importCircuit(JSON.parse(JSON.stringify(first))) })
+    const second = api.exportCircuit()
+    expect(second.wires).toEqual(legacy.wires)
+    expect(second.components.find(c => c.uid === 'uno-old').firmware).toEqual(firmware)
+    expect(second.components.find(c => c.uid === 'res-old')).toMatchObject({ type: 'RESISTOR', x: 300, y: 60 })
+  })
 })

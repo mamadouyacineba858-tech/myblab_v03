@@ -1,7 +1,7 @@
 {
   "component": "ARDUINO",
   "version": "1.0.0",
-  "generatedAt": "2026-10-07T07:33:00.000Z",
+  "generatedAt": "2026-10-11T00:00:00+02:00",
   "hashAlgorithm": "sha256",
   "files": [
     {
@@ -26,8 +26,28 @@
     },
     {
       "file": "manifest.json",
-      "sha256": "6d4272aefd519bc9a09c38105a4eea21a627ff2ff53b6eebc46d85637462e2e6",
-      "bytes": 2012
+      "sha256": "32c5be7ce7897d608a7eebc96da9e35bd1e6a77c55ee8a9db8ba5c646e55b122",
+      "bytes": 5328
+    },
+    {
+      "file": "arduino.horizontal-candidate.1x.png",
+      "sha256": "a9d36f90cb847363cef48489bad29ccfcbe12b895aae8fb6f93d67c49d0ebd54",
+      "bytes": 14266
+    },
+    {
+      "file": "arduino.horizontal-candidate.1x.webp",
+      "sha256": "f2f05ec47dea119186e72e9f40c29de5bf70592299c4aeb73216ee7448098c5b",
+      "bytes": 10554
+    },
+    {
+      "file": "arduino.horizontal-candidate.3x.png",
+      "sha256": "d50bdfd4aed9df7a73cc0ab9624623b5d365405bf4e282fe2bc6328e2393347c",
+      "bytes": 87772
+    },
+    {
+      "file": "arduino.horizontal-candidate.3x.webp",
+      "sha256": "a48fb58d19bc061b7f3acbf9a6805467ffc34d570919b4c4018b19cbcdd5c62b",
+      "bytes": 52366
     }
   ]
 }
