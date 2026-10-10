@@ -73,8 +73,9 @@ export function resolveSignals(components, prepared, externalSignals = null, ste
 
   for (const comp of components) {
     if (conflictingNet || comp.type !== "ARDUINO") continue
-    for (const pinId of ["D2", "D3"]) {
-      const k = uf.key(comp.uid, pinId)
+    for (const pin of getCanonicalEntry(comp.type)?.pins ?? []) {
+      if (pin.role !== "gpio") continue
+      const k = uf.key(comp.uid, pin.id)
       if (pinSignals.get(k) === Signal.UNKNOWN) pinSignals.set(k, Signal.FLOATING)
     }
   }
