@@ -91,9 +91,9 @@ describe("MB-SIM-012 — TEST 4 : fallback ARDUINO préservé sans signal extern
 
   it("une clé externalSignals ne correspondant à aucune pin réelle du circuit est ignorée silencieusement (aucune clé fantôme créée)", () => {
     const { components, prepared } = circuitArduinoSeul()
-    const externalSignals = new Map([["ard1:D4", Signal.HIGH]]) // D4 n'existe pas dans canonicalRegistry pour ARDUINO
+    const externalSignals = new Map([["ard1:D99", Signal.HIGH]]) // D99 n'existe pas dans canonicalRegistry pour ARDUINO
     const { pinSignals } = resolveSignals(components, prepared, externalSignals)
-    expect(pinSignals.has("ard1:D4")).toBe(false)
+    expect(pinSignals.has("ard1:D99")).toBe(false)
   })
 })
 

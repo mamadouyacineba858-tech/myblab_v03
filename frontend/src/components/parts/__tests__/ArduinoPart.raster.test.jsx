@@ -11,7 +11,7 @@
  *  3. backend résolu = "raster" ;
  *  4. le renderer ne produit pas de SVG ;
  *  5. le raster ARDUINO est bien référencé (webp + png, 4 variantes) ;
- *  6. dimensions 1x/3x conformes : 120×140 / 360×420 ;
+ *  6. dimensions 1x/3x conformes : 180×120 / 540×360 ;
  *  7. présentation des pins : D2=(3,50) D3=(15,75) GND=(15,108) 5V=(115,50) ;
  *  8. coordonnées électriques canoniques inchangées : D2 dx=0/dy=50,
  *     D3 dx=0/dy=75, GND dx=0/dy=110, 5V dx=120/dy=50 ;
@@ -46,7 +46,7 @@ import { CircuitComponent } from '../../../canvas/CircuitComponent.jsx'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ASSET_DIR = resolve(__dirname, '../../../../public/assets/components/arduino')
-const SRC_RE = /^\/assets\/components\/arduino\/arduino\.default\.(1x|3x)\.(webp|png)( \dx)?$/
+const SRC_RE = /^\/assets\/components\/arduino\/arduino\.horizontal-candidate\.(1x|3x)\.(webp|png)( \dx)?$/
 
 describe('MB-VIS-COMP-037 — ARDUINO raster : enregistrement + résolution (TEST 1/2/3)', () => {
   it('TEST 1 — ARDUINO est enregistré vers ArduinoPart', () => {
@@ -75,7 +75,7 @@ describe('MB-VIS-COMP-037 — ARDUINO raster : rendu (TEST 4/5/6)', () => {
     expect(container.querySelector('[aria-label="Arduino UNO"]')).not.toBeNull()
   })
 
-  it('TEST 5 — le raster ARDUINO est référencé : <picture>/<source webp> + <img> png fallback, 4 variantes', () => {
+  it('TEST 5 — le raster ARDUINO est référencé : <picture>/<source webp> + <img> png fallback, sources 3x', () => {
     const { container } = render(<ArduinoPart />)
     const img = container.querySelector('img')
     expect(img).not.toBeNull()
@@ -92,21 +92,21 @@ describe('MB-VIS-COMP-037 — ARDUINO raster : rendu (TEST 4/5/6)', () => {
       expect(cand).toMatch(/\.webp/)
     }
     const all = container.innerHTML
-    for (const f of ['1x.webp', '3x.webp', '1x.png', '3x.png']) {
-      expect(all).toContain(`/assets/components/arduino/arduino.default.${f}`)
+    for (const f of ['3x.webp', '3x.png']) {
+      expect(all).toContain(`/assets/components/arduino/arduino.horizontal-candidate.${f}`)
     }
   })
 
-  it('TEST 6 — dimensions : <img> = getComponentDef (120×140) ; manifest 1x 120×140 / 3x 360×420', () => {
+  it('TEST 6 — dimensions : <img> = getComponentDef (180×120) ; manifest 1x 180×120 / 3x 540×360', () => {
     const def = getComponentDef('ARDUINO')
-    expect([def.width, def.height]).toEqual([120, 140])
+    expect([def.width, def.height]).toEqual([180, 120])
     const img = render(<ArduinoPart />).container.querySelector('img')
-    expect(img.getAttribute('width')).toBe('120')
-    expect(img.getAttribute('height')).toBe('140')
+    expect(img.getAttribute('width')).toBe('180')
+    expect(img.getAttribute('height')).toBe('120')
 
     const manifest = JSON.parse(readFileSync(resolve(ASSET_DIR, 'manifest.json'), 'utf-8'))
-    expect(manifest.canonical.width).toBe(120)
-    expect(manifest.canonical.height).toBe(140)
+    expect(manifest.canonical.width).toBe(180)
+    expect(manifest.canonical.height).toBe(120)
     expect(manifest.complexity).toBe('complex')
     // Clé dérivée du NOM DE FICHIER (`.1x.`/`.3x.`), pas de `a.scale` — comme
     // pour ServoPart/PowerPart.raster.test.jsx : le gate T10 lui-même ne lit
@@ -114,10 +114,10 @@ describe('MB-VIS-COMP-037 — ARDUINO raster : rendu (TEST 4/5/6)', () => {
     const byScale = Object.fromEntries(
       manifest.variants.map((a) => [`${a.file.includes('.3x.') ? '3x' : '1x'}.${a.format}`, [a.width, a.height]])
     )
-    expect(byScale['1x.png']).toEqual([120, 140])
-    expect(byScale['1x.webp']).toEqual([120, 140])
-    expect(byScale['3x.png']).toEqual([360, 420])
-    expect(byScale['3x.webp']).toEqual([360, 420])
+    expect(byScale['1x.png']).toEqual([180, 120])
+    expect(byScale['1x.webp']).toEqual([180, 120])
+    expect(byScale['3x.png']).toEqual([540, 360])
+    expect(byScale['3x.webp']).toEqual([540, 360])
   })
 
   it("l'<img> ne porte aucun gestionnaire, draggable=false, pointer-events:none ; rendu déterministe", () => {
@@ -139,16 +139,16 @@ describe('MB-VIS-COMP-037 — pins : présentation projetée, électrique inchan
   const component = { type: 'ARDUINO', x: 0, y: 0 }
 
   it('TEST 7 — getPinPresentationPosition projette D2/D3 sur le header physique et préserve GND/5V', () => {
-    expect(getPinPresentationPosition(component, pinById.D2)).toEqual({ x: 102, y: 33 })
-    expect(getPinPresentationPosition(component, pinById.D3)).toEqual({ x: 98, y: 33 })
-    expect(getPinPresentationPosition(component, pinById.GND)).toEqual({ x: 15, y: 108 })
-    expect(getPinPresentationPosition(component, pinById['5V'])).toEqual({ x: 115, y: 50 })
+    expect(getPinPresentationPosition(component, pinById.D2)).toEqual({ x: 153.75, y: 8.35 })
+    expect(getPinPresentationPosition(component, pinById.D3)).toEqual({ x: 148.12, y: 8.35 })
+    expect(getPinPresentationPosition(component, pinById.GND)).toEqual({ x: 112.15, y: 107.96 })
+    expect(getPinPresentationPosition(component, pinById['5V'])).toEqual({ x: 106.41, y: 107.96 })
   })
 
   it('TEST 7b — la projection est relative à component.x/y (aucune coordonnée absolue codée en dur)', () => {
     const moved = { type: 'ARDUINO', x: 100, y: 200 }
-    expect(getPinPresentationPosition(moved, pinById.D2)).toEqual({ x: 202, y: 233 })
-    expect(getPinPresentationPosition(moved, pinById['5V'])).toEqual({ x: 215, y: 250 })
+    expect(getPinPresentationPosition(moved, pinById.D2)).toEqual({ x: 253.75, y: 208.35 })
+    expect(getPinPresentationPosition(moved, pinById['5V'])).toEqual({ x: 206.41, y: 307.96 })
   })
 
   it('TEST 8 — coordonnées électriques canoniques INCHANGÉES : D2 dx=0/dy=50, D3 dx=0/dy=75, GND dx=0/dy=110, 5V dx=120/dy=50', () => {
@@ -159,7 +159,7 @@ describe('MB-VIS-COMP-037 — pins : présentation projetée, électrique inchan
     // canonicalRegistry : mêmes ids/rôles
     expect(getCanonicalEntry('ARDUINO').pins.map((p) => p.id)).toEqual([...Array.from({ length: 14 }, (_, pin) => `D${pin}`), 'GND', '5V'])
     // dimensions canoniques inchangées
-    expect([arduinoDef.width, arduinoDef.height]).toEqual([120, 140])
+    expect([arduinoDef.width, arduinoDef.height]).toEqual([180, 120])
   })
 
   it('TEST 9 — la projection de présentation ne déplace JAMAIS la position électrique (I8)', () => {
@@ -212,7 +212,13 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
-    expect(positions).toEqual(expect.arrayContaining([[102, 33], [98, 33], [15, 108], [115, 50]]))
+    // CSS projection subtracts the centre: allow only floating-point roundoff.
+    const def = getComponentDef('ARDUINO')
+    for (let i = 0; i < def.pins.length; i++) {
+      expect(pins[i].dataset.wirePin).toBe(def.pins[i].id)
+      expect(positions[i][0]).toBeCloseTo(def.pins[i].contacts[0].dx, 10)
+      expect(positions[i][1]).toBeCloseTo(def.pins[i].contacts[0].dy, 10)
+    }
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
     expect(container.querySelector('.circuit-component__body svg')).toBeNull()
@@ -221,7 +227,7 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
     for (const p of pins) expect(p.style.opacity).toBe('1')
   })
 
-  it('SURF1-CORR-001 — le raster affiche les 14 labels numériques D0-D13 sans intercepter les événements', () => {
+  it('SURF1-CORR-001 — la sérigraphie raster reste seule visible ; les 14 labels DOM sont masqués', () => {
     const { container } = render(<ArduinoPart />)
     const labels = [...container.querySelectorAll('[data-arduino-pin-label]')]
     expect(labels).toHaveLength(14)
@@ -230,13 +236,14 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
     )
     for (const label of labels) expect(label.style.pointerEvents).toBe('')
     expect(container.querySelector('.part-arduino__digital-pin-labels').style.pointerEvents).toBe('none')
+    expect(container.querySelector('.part-arduino__digital-pin-labels').style.display).toBe('none')
 
     // CORR-005 : sérigraphie locale — aucun callout extérieur ni leader.
     expect(container.querySelectorAll('[data-arduino-pin-leader]')).toHaveLength(0)
     expect(container.querySelector('.part-arduino__digital-pin-labels').getAttribute('data-label-layout')).toBe('on-board')
     for (const label of labels) {
       expect(label.style.background).toBe('')
-      expect(label.style.transform).toContain('rotate(-90deg)')
+      expect(label.style.transform).toContain('translateX(-50%)')
       expect(parseFloat(label.style.top)).toBeGreaterThan(Number(label.dataset.contactY))
       expect(label.textContent).toBe(label.dataset.arduinoPinLabel.slice(1))
     }

@@ -16,124 +16,128 @@
   ],
   "dimensions": {
     "1x": {
-      "width": 120,
-      "height": 140
+      "width": 180,
+      "height": 120
     },
     "3x": {
-      "width": 360,
-      "height": 420
+      "width": 540,
+      "height": 360
     }
   },
   "canonical": {
-    "width": 120,
-    "height": 140,
+    "width": 180,
+    "height": 120,
     "origin": "top-left",
     "pins": {
-      "D0": [
-        110,
-        33
-      ],
-      "D1": [
-        106,
-        33
-      ],
-      "D2": [
-        102,
-        33
-      ],
-      "D3": [
-        98,
-        33
-      ],
-      "D4": [
-        94,
-        33
-      ],
-      "D5": [
-        90,
-        33
-      ],
-      "D6": [
-        86,
-        33
-      ],
-      "D7": [
-        82,
-        33
-      ],
-      "D8": [
-        79,
-        33
-      ],
-      "D9": [
-        75,
-        33
-      ],
-      "D10": [
-        71,
-        33
-      ],
-      "D11": [
-        67,
-        33
+      "D13": [
+        85.55,
+        8.35
       ],
       "D12": [
-        63,
-        33
+        91.17,
+        8.35
       ],
-      "D13": [
-        59,
-        33
+      "D11": [
+        96.91,
+        8.35
       ],
-      "GND": [
-        0,
-        110
+      "D10": [
+        102.77,
+        8.35
+      ],
+      "D9": [
+        108.75,
+        8.35
+      ],
+      "D8": [
+        114.61,
+        8.35
+      ],
+      "D7": [
+        125.51,
+        8.35
+      ],
+      "D6": [
+        131.13,
+        8.35
+      ],
+      "D5": [
+        136.76,
+        8.35
+      ],
+      "D4": [
+        142.38,
+        8.35
+      ],
+      "D3": [
+        148.12,
+        8.35
+      ],
+      "D2": [
+        153.75,
+        8.35
+      ],
+      "D1": [
+        159.38,
+        8.35
+      ],
+      "D0": [
+        165,
+        8.35
       ],
       "5V": [
-        120,
-        50
+        106.41,
+        107.96
+      ],
+      "GND": [
+        112.15,
+        107.96
       ]
     }
   },
   "variants": [
     {
-      "file": "arduino.default.1x.png",
+      "file": "arduino.horizontal-candidate.1x.png",
       "state": "default",
       "scale": "1x",
       "format": "png",
-      "width": 120,
-      "height": 140
+      "width": 180,
+      "height": 120,
+      "sha256": "a9d36f90cb847363cef48489bad29ccfcbe12b895aae8fb6f93d67c49d0ebd54"
     },
     {
-      "file": "arduino.default.1x.webp",
+      "file": "arduino.horizontal-candidate.1x.webp",
       "state": "default",
       "scale": "1x",
       "format": "webp",
-      "width": 120,
-      "height": 140
+      "width": 180,
+      "height": 120,
+      "sha256": "f2f05ec47dea119186e72e9f40c29de5bf70592299c4aeb73216ee7448098c5b"
     },
     {
-      "file": "arduino.default.3x.png",
+      "file": "arduino.horizontal-candidate.3x.png",
       "state": "default",
       "scale": "3x",
       "format": "png",
-      "width": 360,
-      "height": 420
+      "width": 540,
+      "height": 360,
+      "sha256": "d50bdfd4aed9df7a73cc0ab9624623b5d365405bf4e282fe2bc6328e2393347c"
     },
     {
-      "file": "arduino.default.3x.webp",
+      "file": "arduino.horizontal-candidate.3x.webp",
       "state": "default",
       "scale": "3x",
       "format": "webp",
-      "width": 360,
-      "height": 420
+      "width": 540,
+      "height": 360,
+      "sha256": "a48fb58d19bc061b7f3acbf9a6805467ffc34d570919b4c4018b19cbcdd5c62b"
     }
   ],
   "description": "Photorealistic Arduino UNO R3 top-down raster asset.",
   "background": "transparent",
   "hashAlgorithm": "sha256",
   "geometryContract": {
-    "status": "legacy-preserved-pending-founder-canvas-pass",
+    "status": "horizontal-candidate-not-qualified",
     "units": "logical-pixels",
     "electricalPinsSource": "frontend/src/config/componentDefinitions.js: pin.dx/pin.dy",
     "presentationContactsSource": "frontend/src/config/componentDefinitions.js: pin.contacts[0].dx/dy",
@@ -157,70 +161,142 @@
       ]
     },
     "presentationContacts": {
-      "D0": [
-        110,
-        33
-      ],
-      "D1": [
-        106,
-        33
-      ],
-      "D2": [
-        102,
-        33
-      ],
-      "D3": [
-        98,
-        33
-      ],
-      "D4": [
-        94,
-        33
-      ],
-      "D5": [
-        90,
-        33
-      ],
-      "D6": [
-        86,
-        33
-      ],
-      "D7": [
-        82,
-        33
-      ],
-      "D8": [
-        79,
-        33
-      ],
-      "D9": [
-        75,
-        33
-      ],
-      "D10": [
-        71,
-        33
-      ],
-      "D11": [
-        67,
-        33
+      "D13": [
+        85.55,
+        8.35
       ],
       "D12": [
-        63,
-        33
+        91.17,
+        8.35
       ],
-      "D13": [
-        59,
-        33
+      "D11": [
+        96.91,
+        8.35
       ],
-      "GND": [
-        15,
-        108
+      "D10": [
+        102.77,
+        8.35
+      ],
+      "D9": [
+        108.75,
+        8.35
+      ],
+      "D8": [
+        114.61,
+        8.35
+      ],
+      "D7": [
+        125.51,
+        8.35
+      ],
+      "D6": [
+        131.13,
+        8.35
+      ],
+      "D5": [
+        136.76,
+        8.35
+      ],
+      "D4": [
+        142.38,
+        8.35
+      ],
+      "D3": [
+        148.12,
+        8.35
+      ],
+      "D2": [
+        153.75,
+        8.35
+      ],
+      "D1": [
+        159.38,
+        8.35
+      ],
+      "D0": [
+        165,
+        8.35
       ],
       "5V": [
-        115,
-        50
+        106.41,
+        107.96
+      ],
+      "GND": [
+        112.15,
+        107.96
       ]
     }
+  },
+  "candidatePresentation": {
+    "status": "PENDING_FOUNDER_CANVAS_PASS",
+    "orientation": "horizontal",
+    "physicalContacts": {
+      "D13": [
+        85.55,
+        8.35
+      ],
+      "D12": [
+        91.17,
+        8.35
+      ],
+      "D11": [
+        96.91,
+        8.35
+      ],
+      "D10": [
+        102.77,
+        8.35
+      ],
+      "D9": [
+        108.75,
+        8.35
+      ],
+      "D8": [
+        114.61,
+        8.35
+      ],
+      "D7": [
+        125.51,
+        8.35
+      ],
+      "D6": [
+        131.13,
+        8.35
+      ],
+      "D5": [
+        136.76,
+        8.35
+      ],
+      "D4": [
+        142.38,
+        8.35
+      ],
+      "D3": [
+        148.12,
+        8.35
+      ],
+      "D2": [
+        153.75,
+        8.35
+      ],
+      "D1": [
+        159.38,
+        8.35
+      ],
+      "D0": [
+        165,
+        8.35
+      ],
+      "5V": [
+        106.41,
+        107.96
+      ],
+      "GND": [
+        112.15,
+        107.96
+      ]
+    },
+    "warning": "Electrical pin coordinates are unchanged; Canvas approval and full regression tests required.",
+    "correction": "A13-ARD-SURF2-CORR-003: exterior alpha cleanup only; native board geometry unchanged; palette PNG optimization"
   }
 }
