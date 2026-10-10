@@ -38,9 +38,19 @@ Baseline CI exacte, workflow **38092395662** sur `ac316728745516a3bd0e857f7860e1
 
 Baseline Windows historique : 6 904 PASS / 40 FAIL et lint 150 erreurs / 3 avertissements, documentés dans les rapports de qualification. Ne pas confondre ces comptes avec l'environnement Linux CI. Le workflow global SUCCESS ne suffit pas : lint, tests et couverture sont advisory (`continue-on-error`). Les identités des échecs du nouvel artefact doivent être comparées à l'artefact baseline avant résolution de la discussion.
 
-À cette étape, publication corrective autorisée après contrôles locaux ; comparaison du nouveau workflow et résolution de discussion encore à effectuer. Le résultat distant sera ajouté dans une mise à jour documentaire publiée. Aucun merge autorisé.
+Correctif publié sans force : `62b66a598cf938e6751f0d0e50fc87ce1cafad24`. Le SHA distant et celui de la PR ont été vérifiés identiques. Workflow **38095010676** : https://github.com/mamadouyacineba858-tech/myblab_v03/actions/runs/38095010676, terminé SUCCESS. Build CI PASS. Les étapes lint, tests et couverture ont réellement terminé avec exit 1 (advisory), sans modification du workflow.
+
+Artefact lu intégralement et comparé par fichier + nom complet de test à la baseline exacte : **7 002 tests, 6 964 PASS / 38 FAIL**, **zéro nouvel échec et zéro échec disparu**. Les 57 nouveaux tests passent. Les trois fichiers graphiques Arduino (32 tests), les 11 tests de signaux externes et les 22 tests WiresLayer passent. Lint strictement identique à la baseline : **147 erreurs / 2 avertissements**. La passe de couverture confirme 6 964 PASS / 38 FAIL ; elle ne fournit pas un pourcentage de couverture exploitable. Ces échecs sont conservés et ne sont pas masqués par le statut global SUCCESS.
+
+SHA-256 du nouvel artefact `copilot-report.json` : `745ed11298c5dbb5a846d9cd1a696178759d4c9855765a254a2752b8b250567c`. Comparaison nominative, artefact original et logs conservés localement dans le dossier de preuves. La liste complète des 38 échecs figure dans `ci-comparison.json` et dans l'artefact GitHub, sans nouvelle régression constatée.
+
+Main recontrôlée : `bd685f041c4a09ab71dca6249bf97c5945973206`, non protégée, règles de branche vides. PR OPEN, Ready for Review, MERGEABLE. Une seule discussion de revue existe, celle corrigée ; aucune autre observation bloquante lors du contrôle. Réponse publiée avec les preuves : https://github.com/mamadouyacineba858-tech/myblab_v03/pull/20#discussion_r4239591373. Mutation GitHub confirmée : `PRRT_kwDOTiUgd86rIcJz`, `isResolved: true`, après vérification CI. Aucun merge effectué. La décision de fusion reste au CSA.
 
 Preuves locales : `A13_SURF2_CORR003_REPORT/final-corr-20261011/` (red-test.txt, targeted.txt, arduino-gate.txt, build.txt, lint-targeted.txt). Ces résultats bruts restent locaux, ce rapport est destiné au commit publié.
+
+Commandes de publication et contrôle exécutées : `git diff --cached --check`, `git diff --cached --name-status`, commit limité aux trois fichiers décrits, `git push origin HEAD:refs/heads/feat/A13-ARD-SURF1-digital-pin-surface`, `git ls-remote --heads origin feat/A13-ARD-SURF1-digital-pin-surface`, `gh pr view 20`, `gh run view 38095010676`, `gh run download 38095010676 --name copilot-report`, `gh run view 38095010676 --log`, puis comparaison `python A13_SURF2_CORR003_REPORT/final-corr-20261011/compare-ci.py` (exit 0). Aucun reset, rebase, clean ou suppression de fichiers historiques.
+
+Cette mise à jour documentaire publie les résultats du commit fonctionnel ci-dessus. Elle ne change aucun fichier fonctionnel. Contrôles après une éventuelle fusion autorisée séparément : vérifier SHA de main et CI, rendu OFF/RUN déjà validé, D13 LED intégrée, fils GPIO flottants/HIGH/LOW et import de circuits sauvegardés.
 
 SHA-256 des fichiers fonctionnels (octets locaux qualifiés) :
 
