@@ -151,3 +151,25 @@
   z-index: 10;
   bottom: calc(100% + 3px);
 }
+
+/* Keyboard navigation gets the same instantaneous feedback as pointer hover. */
+.part-arduino__visual-identifier:focus-visible {
+  border-radius: 1px;
+  background: rgba(239, 68, 68, .30);
+  box-shadow: inset 0 0 0 1px #ef4444;
+}
+.part-arduino__visual-identifier:focus-visible::after {
+  content: attr(data-arduino-visual-pin);
+  position: absolute;
+  z-index: 10;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: #17212c;
+  color: #fff;
+  font: 700 9px/1.2 Arial, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
