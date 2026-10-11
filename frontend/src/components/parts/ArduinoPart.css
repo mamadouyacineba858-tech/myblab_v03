@@ -108,9 +108,9 @@
 }
 .part-arduino__visual-identifier {
   position: absolute;
-  top: 94px;
+  top: 99px;
   width: 5px;
-  height: 9px;
+  height: 7px;
   transform: translateX(-50%);
   pointer-events: auto;
   cursor: help;
@@ -120,4 +120,22 @@
 .part-arduino__visual-identifier:focus-visible {
   outline: 1px solid #fbbf24;
   outline-offset: 0;
+}
+
+/* The approved raster already prints every legend. Show a legible tooltip
+   on demand without duplicating permanent typography over the board. */
+.part-arduino__visual-identifier:hover::after {
+  content: attr(data-arduino-visual-pin);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: #17212c;
+  color: #fff;
+  font: 700 9px/1.2 Arial, sans-serif;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
+  pointer-events: none;
 }
