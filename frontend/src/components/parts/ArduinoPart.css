@@ -173,3 +173,45 @@
   white-space: nowrap;
   pointer-events: none;
 }
+
+/* Auxiliary top sockets (NC, AREF, GND): visual-only hover, never wiring.
+   Their centers share the same top header row as the digital sockets. */
+.part-arduino__auxiliary-identifiers {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+.part-arduino__auxiliary-identifier {
+  position: absolute;
+  top: 5.6px;
+  width: 5.5px;
+  height: 5.5px;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: crosshair;
+  border-radius: 1px;
+  background: transparent;
+}
+.part-arduino__auxiliary-identifier:hover,
+.part-arduino__auxiliary-identifier:focus-visible {
+  background: rgba(239, 68, 68, .30);
+  box-shadow: inset 0 0 0 1px #ef4444;
+  outline: none;
+}
+.part-arduino__auxiliary-identifier:hover::after,
+.part-arduino__auxiliary-identifier:focus-visible::after {
+  content: attr(data-arduino-visual-pin);
+  position: absolute;
+  z-index: 10;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: #17212c;
+  color: #fff;
+  font: 700 9px/1.2 Arial, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
