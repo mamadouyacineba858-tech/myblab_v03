@@ -2,7 +2,7 @@
 // CircuitComponent.jsx) : import React explicite requis par la config
 // vitest secondaire pour tout .jsx rendu sous cette config. Aucun
 // changement de comportement.
-import React, { useState } from "react"
+import React from "react"
 import "./Pin.css"
 
 /**
@@ -21,8 +21,6 @@ export function Pin({
   onPinClick,
   hideVisualMarker = false,
 }) {
-  const [hover, setHover] = useState(false)
-
   const handleMouseDown = (e) => {
     e.stopPropagation()
   }
@@ -49,7 +47,6 @@ export function Pin({
       }}
       className={[
         "myblab-pin",
-        hover && "myblab-pin--hover",
         isPending && "myblab-pin--pending",
         isConnected && "myblab-pin--connected",
       ]
@@ -60,11 +57,9 @@ export function Pin({
         top: Number.isFinite(top) ? top : 0,
         opacity: hideVisualMarker ? 0 : 1,
       }}
-      title={label ?? pinId}
+      data-hover-label={label ?? pinId}
       onMouseDown={handleMouseDown}
       onClick={handleClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       aria-label={label ?? pinId}
     />
   )
