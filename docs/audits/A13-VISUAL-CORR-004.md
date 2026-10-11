@@ -51,7 +51,17 @@ npm run build --prefix frontend
 git diff --check
 ```
 
-Baseline complète exacte de main : workflow [38100486667](https://github.com/mamadouyacineba858-tech/myblab_v03/actions/runs/38100486667), artefact `copilot-report` téléchargé et conservé. **7 002 tests, 6 964 PASS / 38 FAIL** ; lint **147 erreurs / 2 avertissements**. Ces erreurs advisory ne sont pas masquées ni assimilées à un PASS. Les contrôles ciblés de cette correction ne révèlent aucune nouvelle régression ; la comparaison nominative de la CI de la nouvelle PR doit utiliser cet artefact exact. Le workflow reste inchangé.
+Baseline complète exacte de main : workflow [38100486667](https://github.com/mamadouyacineba858-tech/myblab_v03/actions/runs/38100486667), artefact `copilot-report` téléchargé et conservé. **7 002 tests, 6 964 PASS / 38 FAIL** ; lint **147 erreurs / 2 avertissements**. Ces erreurs advisory ne sont pas masquées ni assimilées à un PASS. Le workflow reste inchangé.
+
+## Publication et comparaison CI vérifiée
+
+Correctif publié : `4cefd6f62fb1a2fda65c59ef2cfc049475e21046`. SHA local, distant et source PR identiques. [PR #21](https://github.com/mamadouyacineba858-tech/myblab_v03/pull/21), base main, source codex/A13-VISUAL-CORR-004, OPEN, Ready for Review, MERGEABLE/CLEAN. Deux fichiers seulement : le CSS Arduino et ce rapport.
+
+Workflow du correctif [38102165911](https://github.com/mamadouyacineba858-tech/myblab_v03/actions/runs/38102165911), terminé SUCCESS : build PASS. L'artefact brut a été lu et comparé à la baseline par fichier et nom complet de test : **6 964 PASS / 38 FAIL sur 7 002 tests, zéro nouvel échec, zéro échec disparu, lint strictement identique (147 erreurs / 2 avertissements)**. Les étapes lint, tests et couverture ont réellement terminé avec exit 1 advisory ; le succès global ne les transforme pas en PASS.
+
+SHA-256 artefact baseline : `cf14d4940445c272ea7b792d37ee434f46891fb701d9f79af88564a1fa79521c`. SHA-256 artefact corrigé : `14f92bd27d277cc3ab26d661d69a1aca52b9c4493e30fb007ed9558af14d1872`. Comparaison nominative et logs conservés dans `A13_VISUAL_CORR_004_QA/ci-comparison.json` et `workflow.log`. Commandes : `gh run download 38102165911 --name copilot-report`, `gh run view 38102165911 --log`, `python A13_VISUAL_CORR_004_QA/compare-ci.py` (exit 0).
+
+La mise à jour documentaire publiant ces preuves ne modifie pas le correctif fonctionnel qualifié. Aucun merge effectué. État de sortie : **VISUAL_CORR_004 — PENDING_FOUNDER_CANVAS_PASS**.
 
 Preuves locales conservées dans `A13_VISUAL_CORR_004_QA/` : asset-audit.json, pin-styles-after.json, captures avant/après OFF/RUN et câblage, targeted.txt, gate.txt, build.txt et baseline-copilot/copilot-report.json. Les captures et logs bruts restent locaux ; ce rapport est inclus dans le commit publié. La validation visuelle du fondateur reste à obtenir, sans fusion automatique.
 
