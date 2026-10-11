@@ -222,3 +222,28 @@
   transform-box: fill-box;
   transform-origin: center;
 }
+
+/* Shared high-frequency hover: transparent enlarged hit areas, each strictly
+   smaller than half the pitch. No topology or placement geometry changes. */
+.breadboard__hole-hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+  cursor: crosshair;
+}
+.breadboard__hole-hit:hover,
+.breadboard__hole-hit--active {
+  fill: rgba(239, 68, 68, .32);
+  stroke: #ef4444;
+  stroke-width: 1;
+}
+.breadboard__hover-tooltip {
+  pointer-events: none;
+}
+.breadboard__hover-tooltip rect {
+  fill: #17212c;
+}
+.breadboard__hover-tooltip text {
+  fill: #fff;
+  font: 700 10px Arial, sans-serif;
+}
