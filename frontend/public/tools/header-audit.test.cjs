@@ -1,0 +1,9 @@
+/* Run: node --test frontend/public/tools/header-audit.test.cjs */
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const audit=require('./header-audit.js');
+function raster(w=540,h=360){const data=new Uint8ClampedArray(w*h*4);for(let i=0;i<data.length;i+=4){data[i]=11;data[i+1]=12;data[i+2]=13;data[i+3]=255}return {data,w,h}}
+test('covers all three visible headers without inventing electrical contacts',()=>{const {data,w,h}=raster();const r=audit.audit(data,w,h);assert.equal(r.entries.length,26);assert.equal(r.entries.filter(x=>x.electrical).length,16);assert.equal(r.visualOnlyCount,10);assert.deepEqual([...new Set(r.entries.map(x=>x.group))],['DIGITAL','POWER','ANALOG IN']);assert.equal(r.suspectCount,0)});
+test('detects and repairs bright center pixel without mutating original',()=>{const {data,w,h}=raster();const slot=audit.slots[0];const x=Math.floor(slot.x*w/180),y=Math.floor(slot.y*h/120),k=(y*w+x)*4;data[k]=240;data[k+1]=240;data[k+2]=240;const r=audit.audit(data,w,h);assert.ok(r.suspectPixels>0);const result=audit.repair(data,w,h,r,['DIGITAL']);assert.ok(result.changed>0);assert.equal(result.data[k],11);assert.equal(data[k],240)});
+test('does not repair unselected groups',()=>{const {data,w,h}=raster();const slot=audit.slots.find(x=>x.group==='ANALOG IN');const x=Math.floor(slot.x*w/180),y=Math.floor(slot.y*h/120),k=(y*w+x)*4;data[k]=245;data[k+1]=245;data[k+2]=245;const r=audit.audit(data,w,h);const result=audit.repair(data,w,h,r,['DIGITAL']);assert.equal(result.changed,0);assert.equal(result.data[k],245)});
+test('rejects invalid raster geometry',()=>{assert.throws(()=>audit.audit(new Uint8ClampedArray(2),2,2),/Invalid RGBA/);const {data,w,h}=raster();const r=audit.audit(data,w,h);assert.throws(()=>audit.repair(data,w+1,h,r),/mismatch/)});
