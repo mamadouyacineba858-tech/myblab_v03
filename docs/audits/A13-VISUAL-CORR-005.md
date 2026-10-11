@@ -37,7 +37,7 @@ Contrat OFF/RUN préservé : câble masqué en OFF (`display:none`, état discon
 - Ensemble ciblé incluant visualContract, GPIO flottants et signaux externes : **136/136 PASS** dans six fichiers.
 - Gate `renderQualityGate.test.jsx -t ARDUINO` : **5/5 PASS**, 363 tests des autres composants non sélectionnés.
 - Build : **PASS**, avertissement de chunk >500 kB déjà documenté.
-- Lint ciblé : ArduinoPart.jsx et ArduinoPinVisibility sans erreur ; une erreur préexistante `React` importé mais inutilisé dans ArduinoPart.raster.test.jsx, même import qu'au HEAD initial, sans nouvelle désactivation de règle.
+- Lint ciblé final : **PASS, exit 0** sur les trois fichiers JSX modifiés. Le nouveau test de drag utilise réellement `React.createRef`, supprimant naturellement l'ancienne erreur d'import React inutilisé du test raster. Aucune désactivation de règle ajoutée.
 - `git diff --check` : PASS. Aucun test assoupli ni workflow modifié.
 - Canvas réel sur Vite http://127.0.0.1:5175/, navigateur intégré : OFF/RUN, déplacement, zoom, mesures d'occlusion/continuité et identification des 16 contacts. `check-layout.py` : PASS.
 - Test existant d'import/export des circuits anciens, firmware et waypoints : PASS. Registres, dimensions, coordonnées électriques/contacts, simulation, sauvegarde, et fichiers globaux Pin/CircuitComponent inchangés.
@@ -55,9 +55,19 @@ python A13_VISUAL_CORR_005_QA/check-layout.py
 git diff --check
 ```
 
-Baseline exacte du parent d335de6 : workflow [38125493722](https://github.com/mamadouyacineba858-tech/myblab_v03/actions/runs/38125493722), artefact copilot-report SHA-256 `9519f40cac325a02d9ace1c9bb6aeaf74eb78951dde08227aead0ecd6136673a`. **7 002 tests, 6 964 PASS / 38 FAIL ; lint 147 erreurs / 2 avertissements**, advisory. Cette baseline a déjà été comparée nominativement à main sans écart. Le workflow de la PR mise à jour doit être comparé à cet artefact ; son statut global SUCCESS ne suffit pas à établir la conformité des étapes advisory.
+Baseline exacte du parent d335de6 : workflow [38125493722](https://github.com/mamadouyacineba858-tech/myblab_v03/actions/runs/38125493722), artefact copilot-report SHA-256 `9519f40cac325a02d9ace1c9bb6aeaf74eb78951dde08227aead0ecd6136673a`. **7 002 tests, 6 964 PASS / 38 FAIL ; lint 147 erreurs / 2 avertissements**, advisory. Cette baseline a déjà été comparée nominativement à main sans écart. Le statut global SUCCESS ne suffit pas à établir la conformité des étapes advisory.
 
-Preuves brutes locales : `A13_VISUAL_CORR_005_QA/` (captures, before-drag.json, after-drag.json, after-zoom.json, zoom-1x.json, check-layout.py, targeted-final.txt, drag-test.txt, gate.txt, build.txt, lint-targeted.txt). Le rapport est publié dans la PR ; captures et logs bruts restent locaux. La validation esthétique finale est réservée au fondateur. Aucun merge automatique.
+## Publication et comparaison CI
+
+Correctif publié sans force sur la PR #21 : `8ad494298d1a6a664eb3d1717b2291d5f3afcf19`, source et destination conservées. Workflow [38127936026](https://github.com/mamadouyacineba858-tech/myblab_v03/actions/runs/38127936026), terminé SUCCESS ; build PASS.
+
+Artefact lu et comparaison nominative au parent effectuée : **7 005 tests, 6 967 PASS / 38 FAIL**, zéro nouvel échec, zéro échec disparu et **aucun message d'échec modifié**. Les 35 tests graphiques Arduino passent ; les trois nouveaux tests passent. Lint : **146 erreurs / 2 avertissements**, aucun nouveau diagnostic et une seule erreur supprimée : import React inutilisé à la ligne 24 du test ArduinoPart.raster, maintenant réellement utilisé via `React.createRef`. Aucune erreur masquée, aucune règle désactivée.
+
+Lint, tests et couverture gardent leur exit 1 advisory dans les logs ; le build est conforme. SHA-256 de l'artefact correctif : `b6d6b5dd07b9d79fbd7870908e36917d19f7a001b172c5081de7ba8c16cd0fc3`. Comparaison complète locale : `A13_VISUAL_CORR_005_QA/ci-comparison.json`. Commandes : `gh run download 38127936026 --name copilot-report`, `gh run view 38127936026 --log`, `python A13_VISUAL_CORR_005_QA/compare-ci.py` (exit 0).
+
+La mise à jour documentaire publiant ces résultats ne change aucun fichier fonctionnel. Aucun merge effectué ; la décision esthétique finale appartient au fondateur, statut **A13-VISUAL-CORR-005 — PENDING_FOUNDER_CANVAS_PASS**.
+
+Preuves brutes locales : `A13_VISUAL_CORR_005_QA/` (captures, before-drag.json, after-drag.json, after-zoom.json, zoom-1x.json, check-layout.py, targeted-final.txt, drag-test.txt, gate.txt, build.txt, lint-targeted-final.txt). Le rapport est publié dans la PR ; captures et logs bruts restent locaux. La validation esthétique finale est réservée au fondateur. Aucun merge automatique.
 
 ## Fichiers intégrés par ce complément
 
