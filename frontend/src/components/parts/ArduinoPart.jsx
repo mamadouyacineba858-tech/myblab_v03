@@ -57,23 +57,28 @@ function DigitalPinLabels({ pins }) {
 // Visual-only Arduino UNO R3 header identifiers. These do not create electrical
 // pins, wire endpoints or simulated analog/power capabilities.
 const VISUAL_ONLY_HEADERS = [
-  { id: 'IOREF', x: 84.6 }, { id: 'RESET', x: 90.3 },
-  { id: '3.3V', x: 96.0 }, { id: 'VIN', x: 118.0 },
-  { id: 'A0', x: 137.8 }, { id: 'A1', x: 143.4 },
-  { id: 'A2', x: 149.1 }, { id: 'A3', x: 154.8 },
-  { id: 'A4', x: 160.5 }, { id: 'A5', x: 166.2 },
+  // Measured from the approved 540x360 raster and expressed in 180x120 units.
+  // POWER header: 7 positions; ANALOG IN header: 6 positions.
+  { id: 'IOREF', x: 84.3 }, { id: 'RESET', x: 90.0 },
+  { id: '3.3V', x: 95.7 }, { id: '5V', x: 101.4 },
+  { id: 'GND', x: 107.1 }, { id: 'GND', x: 112.8 },
+  { id: 'VIN', x: 118.5 },
+  { id: 'A0', x: 135.4 }, { id: 'A1', x: 141.1 },
+  { id: 'A2', x: 146.8 }, { id: 'A3', x: 152.5 },
+  { id: 'A4', x: 158.2 }, { id: 'A5', x: 163.9 },
 ]
 
 function VisualHeaderIdentifiers() {
   return (
     <div className="part-arduino__visual-identifiers" aria-label="Repères visuels POWER et ANALOG IN">
-      {VISUAL_ONLY_HEADERS.map(({ id, x }) => (
+      {VISUAL_ONLY_HEADERS.map(({ id, x }, index) => (
         <span
-          key={id}
+          key={id + '-' + index}
           className="part-arduino__visual-identifier"
           data-arduino-visual-pin={id}
-          title={id + ' — repère visuel uniquement'}
-          aria-label={id + ' — repère visuel uniquement'}
+          data-arduino-header={index < 7 ? 'POWER' : 'ANALOG IN'}
+          title={id + ' — repère visuel de la carte'}
+          aria-label={id + ' — repère visuel de la carte'}
           style={{ left: x }}
         />
       ))}
