@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MYBlab · Atelier graphique Arduino</title>
+<style>
+:root{font:15px system-ui,sans-serif;color:#e9eef9;background:#101827}*{box-sizing:border-box}body{margin:0}header{padding:18px 24px;background:#19243a;border-bottom:1px solid #354461}h1{margin:0;font-size:22px}header p{margin:6px 0 0;color:#b9c8df}main{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;padding:18px}aside,.panel{background:#19243a;border:1px solid #354461;border-radius:12px;padding:16px}aside{align-self:start}label{display:block;margin:14px 0 6px;font-weight:600}input,select,button{max-width:100%}button,select,input[type=file]{background:#283a59;color:#fff;border:1px solid #56729e;border-radius:7px;padding:8px;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ffbe55}button:disabled{opacity:.45;cursor:not-allowed}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}small,.note{color:#b9c8df}canvas{image-rendering:pixelated;touch-action:none;cursor:crosshair;max-width:none}.viewport{overflow:auto;background:#303c50;border-radius:8px;min-height:420px;max-height:72vh;border:1px solid #55647a}#view{display:block}#status{white-space:pre-wrap;line-height:1.5}.key{display:inline-block;background:#384969;border-radius:4px;padding:2px 5px}@media(max-width:850px){main{grid-template-columns:1fr}}</style></head>
+<body><header><h1>MYBlab · Atelier graphique Arduino</h1><p>Inspection et retouche locale du raster, sans modification des contacts électriques du simulateur.</p></header>
+<main><aside>
+<label for="file">Image à examiner</label><input id="file" type="file" accept="image/png,image/webp,image/*">
+<div class="actions"><button id="load">Charger l'Arduino du dépôt</button></div>
+<label for="zoom">Grossissement</label><select id="zoom"><option value="2">200 %</option><option value="4" selected>400 %</option><option value="8">800 %</option><option value="16">1600 %</option></select>
+<label for="mode">Outil</label><select id="mode"><option value="inspect">Inspection (sans modification)</option><option value="sample">Pipette couleur</option><option value="paint">Pinceau 1 pixel</option><option value="undo">Annuler dernier trait</option></select>
+<label for="color">Couleur du pinceau</label><input id="color" type="color" value="#0b0c0d">
+<label><input id="contacts" type="checkbox" checked> Afficher les 16 contacts électriques réels</label>
+<label><input id="grid" type="checkbox"> Grille de pixels</label>
+<div class="actions"><button id="undo" disabled>Annuler</button><button id="reset" disabled>Restaurer</button></div>
+<div class="actions"><button id="export" disabled>Exporter PNG corrigé</button></div>
+<p class="note">L'export crée un nouveau fichier PNG. Il ne remplace jamais automatiquement les assets du dépôt. Conserver la taille native et contrôler les coordonnées avant intégration.</p>
+<p id="status" role="status" aria-live="polite">Aucune image chargée.</p>
+</aside><section class="panel"><div class="viewport"><canvas id="view" aria-label="Vue agrandie de l'image Arduino"></canvas></div><p class="note">Cliquer pour inspecter un pixel. Le pinceau modifie un pixel source par clic ou déplacement. <span class="key">Ctrl+Z</span> annule. Les croix cyan indiquent les contacts canoniques, elles ne sont pas enregistrées dans l'image.</p></section></main>
+<script>
+'use strict';
+const BASE='/assets/components/arduino/arduino.horizontal-candidate.3x.png';
+const POINTS=[['D0',165,8.35],['D1',159.38,8.35],['D2',153.75,8.35],['D3',148.12,8.35],['D4',142.38,8.35],['D5',136.76,8.35],['D6',131.13,8.35],['D7',125.51,8.35],['D8',114.61,8.35],['D9',108.75,8.35],['D10',102.77,8.35],['D11',96.91,8.35],['D12',91.17,8.35],['D13',85.55,8.35],['GND',112.15,107.96],['5V',106.41,107.96]];
+const $=id=>document.getElementById(id),view=$('view'),ctx=view.getContext('2d'),source=document.createElement('canvas'),sctx=source.getContext('2d',{willReadFrequently:true});
+let initial=null,history=[],painting=false,modified=false,origin='arduino';
+const status=message=>$('status').textContent=message;
+function draw(){if(!source.width)return;const z=+$('zoom').value;view.width=source.width*z;view.height=source.height*z;ctx.imageSmoothingEnabled=false;ctx.drawImage(source,0,0,view.width,view.height);
+if($('grid').checked&&z>=8){ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=1;ctx.beginPath();for(let x=0;x<=source.width;x++){ctx.moveTo(x*z+.5,0);ctx.lineTo(x*z+.5,view.height)}for(let y=0;y<=source.height;y++){ctx.moveTo(0,y*z+.5);ctx.lineTo(view.width,y*z+.5)}ctx.stroke()}
+if($('contacts').checked){const sx=source.width/180,sy=source.height/120;ctx.strokeStyle='#00edff';ctx.fillStyle='#fff';ctx.lineWidth=1.4;ctx.font='bold 11px system-ui';for(const [name,x,y] of POINTS){const px=x*sx*z,py=y*sy*z;ctx.beginPath();ctx.moveTo(px-7,py);ctx.lineTo(px+7,py);ctx.moveTo(px,py-7);ctx.lineTo(px,py+7);ctx.stroke();if(z>=8)ctx.fillText(name,px+7,py-8)}}}
+function refresh(){draw();$('undo').disabled=!history.length;$('reset').disabled=!initial;$('export').disabled=!initial}
+function loadImage(img,name){if(!img.naturalWidth||!img.naturalHeight)throw Error('Image vide');source.width=img.naturalWidth;source.height=img.naturalHeight;sctx.clearRect(0,0,source.width,source.height);sctx.drawImage(img,0,0);initial=sctx.getImageData(0,0,source.width,source.height);history=[];modified=false;origin=name;refresh();status('Image : '+name+'\nDimensions : '+source.width+' × '+source.height+' px\nContacts réels : 16\nModifications : aucune')}
+function fromURL(url,name){const img=new Image();img.onload=()=>loadImage(img,name);img.onerror=()=>status('Impossible de charger '+name+'. Vérifier le fichier ou utiliser le sélecteur.');img.src=url}
+$('load').onclick=()=>fromURL(BASE,'arduino.horizontal-candidate.3x.png');
+$('file').onchange=e=>{const file=e.target.files?.[0];if(!file)return;const url=URL.createObjectURL(file),img=new Image();img.onload=()=>{try{loadImage(img,file.name)}finally{URL.revokeObjectURL(url)}};img.onerror=()=>{status('Format non lisible.');URL.revokeObjectURL(url)};img.src=url};
+for(const id of ['zoom','contacts','grid'])$(id).onchange=refresh;
+function locationOf(e){const rect=view.getBoundingClientRect(),z=+$('zoom').value;return [Math.floor((e.clientX-rect.left)*view.width/rect.width/z),Math.floor((e.clientY-rect.top)*view.height/rect.height/z)]}
+function rgbaAt(x,y){const p=sctx.getImageData(x,y,1,1).data;return [...p]}
+function colorHex(p){return '#'+[...p].slice(0,3).map(v=>v.toString(16).padStart(2,'0')).join('')}
+function edit(e){if(!initial)return;const [x,y]=locationOf(e);if(x<0||y<0||x>=source.width||y>=source.height)return;const rgba=rgbaAt(x,y);const mode=$('mode').value;
+if(mode==='sample'){$('color').value=colorHex(rgba);status('Pipette : ('+x+', '+y+') '+colorHex(rgba)+' alpha '+rgba[3]);return}
+if(mode==='paint'){sctx.fillStyle=$('color').value;sctx.fillRect(x,y,1,1);modified=true;refresh()}
+status('Pixel ('+x+', '+y+') : RGBA '+rgba.join(', ')+'\nPosition logique Arduino : ('+(x*180/source.width).toFixed(2)+', '+(y*120/source.height).toFixed(2)+')\nImage : '+source.width+' × '+source.height+' px\nModifiée : '+(modified?'oui':'non'))}
+view.addEventListener('pointerdown',e=>{if(!initial)return;if($('mode').value==='undo'){undo();return}if($('mode').value==='paint'){history.push(sctx.getImageData(0,0,source.width,source.height));if(history.length>20)history.shift();painting=true;view.setPointerCapture(e.pointerId)}edit(e)});
+view.addEventListener('pointermove',e=>{if(painting)edit(e)});
+view.addEventListener('pointerup',()=>{painting=false});view.addEventListener('pointercancel',()=>{painting=false});
+function undo(){if(!history.length)return;sctx.putImageData(history.pop(),0,0);modified=true;refresh();status('Dernière retouche annulée.')}
+$('undo').onclick=undo;$('reset').onclick=()=>{if(!initial)return;sctx.putImageData(initial,0,0);history=[];modified=false;refresh();status('Image originale restaurée.')};
+$('export').onclick=()=>{if(!initial)return;source.toBlob(blob=>{if(!blob){status('Échec de l’export PNG.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=origin.replace(/\.(png|webp|jpg|jpeg)$/i,'')+'.corrected.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('PNG exporté ('+source.width+' × '+source.height+'). Les croix de contacts sont exclues.')},'image/png')};
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();undo()}});
+fromURL(BASE,'arduino.horizontal-candidate.3x.png');
+</script></body></html>
