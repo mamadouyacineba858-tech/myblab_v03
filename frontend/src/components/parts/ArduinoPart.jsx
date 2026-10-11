@@ -77,7 +77,6 @@ function VisualHeaderIdentifiers() {
           className="part-arduino__visual-identifier"
           data-arduino-visual-pin={id}
           data-arduino-header={index < 7 ? 'POWER' : 'ANALOG IN'}
-          title={id + ' — repère visuel de la carte'}
           aria-label={id + ' — repère visuel de la carte'}
           style={{ left: x }}
         />
