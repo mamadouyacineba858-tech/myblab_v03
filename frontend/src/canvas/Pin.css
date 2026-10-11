@@ -49,3 +49,10 @@
   pointer-events: none;
   box-shadow: 0 1px 5px rgba(0,0,0,.3);
 }
+
+/* Markerless contacts remain invisible at rest but expose the same immediate
+   hover/focus tooltip and socket feedback as ordinary electrical pins. */
+.myblab-pin--markerless { opacity: 0; }
+.myblab-pin--markerless:hover,
+.myblab-pin--markerless:focus-visible,
+.myblab-pin--markerless.myblab-pin--pending { opacity: 1; }
