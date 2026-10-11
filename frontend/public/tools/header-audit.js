@@ -18,7 +18,7 @@
   function luminance(data,idx){return (299*data[idx]+587*data[idx+1]+114*data[idx+2])/1000}
   function audit(data,width,height,options={}){
     if(!data||data.length!==width*height*4||width<=0||height<=0)throw Error('Invalid RGBA raster');
-    const radius=options.radius??0.55,threshold=options.threshold??110,minimumAlpha=options.minimumAlpha??200;
+    const radius=options.radius??0.65,threshold=options.threshold??48,minimumAlpha=options.minimumAlpha??200;
     if(radius<=0||radius>2||threshold<0||threshold>255)throw Error('Invalid audit parameters');
     const entries=slots.map(slot=>{
       const cx=slot.x*width/frame.width,cy=slot.y*height/frame.height;
