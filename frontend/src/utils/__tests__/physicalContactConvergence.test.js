@@ -202,8 +202,8 @@ describe('FT-B-001-S5 — TEST S4-F/G/S5 : POWER / ARDUINO / NPN présentation v
   it('ARDUINO : hit target / endpoint sur les CONTACTS raster ; pin.dx/dy canonique intacte', () => {
     const comp = { uid: 'a', type: 'ARDUINO', x: 0, y: 0 }
     const def = getComponentDef('ARDUINO')
-    const expected = { D2: [3, 50], D3: [15, 75], GND: [15, 108], '5V': [115, 50] }
-    const canon = { D2: [0, 50], D3: [0, 75], GND: [0, 110], '5V': [120, 50] }
+    const expected = { D0: [165, 8.35], D1: [159.38, 8.35], D2: [153.75, 8.35], D3: [148.12, 8.35], D4: [142.38, 8.35], D5: [136.76, 8.35], D6: [131.13, 8.35], D7: [125.51, 8.35], D8: [114.61, 8.35], D9: [108.75, 8.35], D10: [102.77, 8.35], D11: [96.91, 8.35], D12: [91.17, 8.35], D13: [85.55, 8.35], GND: [112.15, 107.96], '5V': [106.41, 107.96] }
+    const canon = { D0: [110, 33], D1: [106, 33], D2: [0, 50], D3: [0, 75], D4: [94, 33], D5: [90, 33], D6: [86, 33], D7: [82, 33], D8: [79, 33], D9: [75, 33], D10: [71, 33], D11: [67, 33], D12: [63, 33], D13: [59, 33], GND: [0, 110], '5V': [120, 50] }
     for (const pin of def.pins) {
       const pos = getPinPresentationPosition(comp, pin)
       expect([pos.x, pos.y]).toEqual(expected[pin.id])

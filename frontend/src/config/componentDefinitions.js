@@ -77,11 +77,30 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "A", label: "A", dx: 0, dy: 14 },
     { id: "B", label: "B", dx: 84, dy: 14 },
   ],
+  // A13-ARD-SURF1 — Arduino UNO R3 digital header. PhysicalContacts are
+  // anchored on the visible top-header hole centres of the horizontal 180x120
+  // raster. D13..D8 occupy the rightmost six positions of the 10-pin
+  // auxiliary/digital header; D7..D0 occupy the adjacent 8-pin header.
+  // D2/D3 intentionally migrate from their historical external proxy
+  // endpoints to the real header. Pin identity is unchanged, so persisted
+  // wires keep their electrical endpoint while rendering at the physical hole.
   ARDUINO: [
-    { id: "D2", label: "D2", dx: 0, dy: 50, contacts: [{ id: "D2", dx: 3, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "D3", label: "D3", dx: 0, dy: 75, contacts: [{ id: "D3", dx: 15, dy: 75, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [{ id: "GND", dx: 15, dy: 108, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "5V", label: "5V", dx: 120, dy: 50, contacts: [{ id: "5V", dx: 115, dy: 50, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D0", label: "D0", dx: 110, dy: 33, contacts: [{ id: "D0", dx: 165.0, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D1", label: "D1", dx: 106, dy: 33, contacts: [{ id: "D1", dx: 159.38, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D2", label: "D2", dx: 0, dy: 50, contacts: [{ id: "D2", dx: 153.75, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D3", label: "D3", dx: 0, dy: 75, contacts: [{ id: "D3", dx: 148.12, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D4", label: "D4", dx: 94, dy: 33, contacts: [{ id: "D4", dx: 142.38, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D5", label: "D5", dx: 90, dy: 33, contacts: [{ id: "D5", dx: 136.76, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D6", label: "D6", dx: 86, dy: 33, contacts: [{ id: "D6", dx: 131.13, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D7", label: "D7", dx: 82, dy: 33, contacts: [{ id: "D7", dx: 125.51, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D8", label: "D8", dx: 79, dy: 33, contacts: [{ id: "D8", dx: 114.61, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D9", label: "D9", dx: 75, dy: 33, contacts: [{ id: "D9", dx: 108.75, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D10", label: "D10", dx: 71, dy: 33, contacts: [{ id: "D10", dx: 102.77, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D11", label: "D11", dx: 67, dy: 33, contacts: [{ id: "D11", dx: 96.91, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D12", label: "D12", dx: 63, dy: 33, contacts: [{ id: "D12", dx: 91.17, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "D13", label: "D13", dx: 59, dy: 33, contacts: [{ id: "D13", dx: 85.55, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [{ id: "GND", dx: 112.15, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "5V", label: "5V", dx: 120, dy: 50, contacts: [{ id: "5V", dx: 106.41, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
   ],
   BUTTON: [
     { id: "pin1", label: "1", dx: 14, dy: 30, contacts: [{ id: "1a", dx: 14, dy: 58, wireConnectable: true, breadboardInsertable: true }, { id: "1b", dx: 14, dy: 2, wireConnectable: true, breadboardInsertable: true }] },
@@ -759,7 +778,7 @@ function buildPins(type) {
 export const COMPONENT_TYPES = {
   LED: { id: "LED", label: "LED", icon: "💡", width: 80, height: 64, pins: buildPins("LED") },
   RESISTOR: { id: "RESISTOR", label: "Résistance", icon: "〰️", width: 84, height: 28, pins: buildPins("RESISTOR") },
-  ARDUINO: { id: "ARDUINO", label: "Arduino UNO", icon: "🤖", width: 120, height: 140, pins: buildPins("ARDUINO") },
+  ARDUINO: { id: "ARDUINO", label: "Arduino UNO", icon: "🤖", width: 180, height: 120, pins: buildPins("ARDUINO") },
   BUTTON: { id: "BUTTON", label: "Bouton", icon: "🔘", width: 60, height: 60, pins: buildPins("BUTTON"), interaction: { type: "momentary" }, initialState: "released" },
   BUTTON_LATCHING: { id: "BUTTON_LATCHING", label: "Interrupteur", icon: "🔲", width: 60, height: 60, pins: buildPins("BUTTON_LATCHING"), interaction: { type: "latching" }, initialState: "off" },
   POWER: { id: "POWER", label: "Alimentation", icon: "⚡", width: 70, height: 90, pins: buildPins("POWER") },

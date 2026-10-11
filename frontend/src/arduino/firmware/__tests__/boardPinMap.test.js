@@ -1,21 +1,18 @@
 import { describe, it, expect } from "vitest"
 import { mapArduinoPin, getSupportedArduinoPins } from "../boardPinMap.js"
 
-describe("MB-L1-ARD-002 — boardPinMap", () => {
-  it("AC-07/AC-08 : pin 2 -> D2, pin 3 -> D3", () => {
-    expect(mapArduinoPin(2)).toBe("D2")
-    expect(mapArduinoPin(3)).toBe("D3")
+describe("A13-ARD-SURF1 — boardPinMap", () => {
+  it("maps every Arduino Uno digital sketch pin D0-D13", () => {
+    for (let pin = 0; pin <= 13; pin++) expect(mapArduinoPin(pin)).toBe(`D${pin}`)
   })
 
-  it("§26 : tout pin hors {2,3} (ex. 13, D4-D13) retourne null, jamais une valeur inventée", () => {
-    expect(mapArduinoPin(13)).toBeNull()
-    expect(mapArduinoPin(0)).toBeNull()
-    expect(mapArduinoPin(4)).toBeNull()
+  it("rejects pins outside the digital surface", () => {
+    expect(mapArduinoPin(14)).toBeNull()
     expect(mapArduinoPin(-1)).toBeNull()
     expect(mapArduinoPin(NaN)).toBeNull()
   })
 
-  it("getSupportedArduinoPins expose exactement [2, 3]", () => {
-    expect(getSupportedArduinoPins()).toEqual([2, 3])
+  it("getSupportedArduinoPins exposes exactly 0..13", () => {
+    expect(getSupportedArduinoPins()).toEqual(Array.from({ length: 14 }, (_, pin) => pin))
   })
 })

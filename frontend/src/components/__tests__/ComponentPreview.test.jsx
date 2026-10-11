@@ -88,14 +88,14 @@ describe('MB-VIS-LAB-046 — ComponentPreview.jsx (canal générique palette, F9
     expect(scale * 120).toBeLessThanOrEqual(38 + 0.01)
   })
 
-  it('T11 — un composant large/complexe (ARDUINO, boîte canonique 120×140) reste contenu dans le cadre de la cellule (F10)', () => {
+  it('T11 — un composant large/complexe (ARDUINO, boîte canonique 180×120) reste contenu dans le cadre de la cellule (F10)', () => {
     const { container } = render(<ComponentPreview type="ARDUINO" />)
     const stage = container.querySelector('.component-preview__stage')
     const scale = Number(stage.style.transform.match(/scale\(([\d.]+)\)/)?.[1])
-    expect(parseFloat(stage.style.width)).toBe(120)
-    expect(parseFloat(stage.style.height)).toBe(140)
-    expect(scale * 120).toBeLessThanOrEqual(42 + 0.01)
-    expect(scale * 140).toBeLessThanOrEqual(38 + 0.01)
+    expect(parseFloat(stage.style.width)).toBe(180)
+    expect(parseFloat(stage.style.height)).toBe(120)
+    expect(scale * 180).toBeLessThanOrEqual(42 + 0.01)
+    expect(scale * 120).toBeLessThanOrEqual(38 + 0.01)
   })
 
   it('T12 — aucun <Pin> interactif : 0 bouton `.myblab-pin` dans une preview, quel que soit le nombre de pins du type (POTENTIOMETER, 3 contacts)', () => {

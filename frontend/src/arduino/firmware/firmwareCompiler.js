@@ -14,8 +14,8 @@ import { DiagnosticCode, createDiagnostic } from "./firmwareDiagnostics.js"
  * Subset V1 strict (§5, étendu par MB-L1-ARD-003 §21) :
  *   void setup() { ... }
  *   void loop() { ... }
- *   pinMode(2|3, OUTPUT);
- *   digitalWrite(2|3, HIGH|LOW);
+ *   pinMode(0..13, OUTPUT);
+ *   digitalWrite(0..13, HIGH|LOW);
  *   delay(<littérale numérique finie >= 0>);
  *
  * Aucune interprétation directe du texte (§8) : `eval`/`new Function`/
@@ -100,7 +100,7 @@ function parseStatement(text, source, offset, diagnostics) {
     const [, pinStr, mode] = pinModeMatch
     const pin = mapArduinoPin(Number(pinStr))
     if (!pin) {
-      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported in V1 (only 2, 3)`, line))
+      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported on the Arduino Uno digital surface (0..13)`, line))
       return null
     }
     if (!VALID_PIN_MODES.has(mode)) {
@@ -115,7 +115,7 @@ function parseStatement(text, source, offset, diagnostics) {
     const [, pinStr, level] = digitalWriteMatch
     const pin = mapArduinoPin(Number(pinStr))
     if (!pin) {
-      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported in V1 (only 2, 3)`, line))
+      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported on the Arduino Uno digital surface (0..13)`, line))
       return null
     }
     if (!VALID_LEVELS.has(level)) {

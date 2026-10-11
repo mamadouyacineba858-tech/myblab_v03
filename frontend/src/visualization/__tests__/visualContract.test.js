@@ -251,7 +251,9 @@ describe('G — Backend Contract', () => {
     expect(manager.getPresentation('NPN_TRANSISTOR')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('SERVO')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
     expect(manager.getPresentation('POWER')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
-    expect(manager.getPresentation('ARDUINO')).toEqual({ backend: 'raster', bareBody: true, markerless: true })
+    // A13-ARD-SURF1-CORR-002 : Arduino réactive explicitement ses marqueurs de pins ;
+    // les autres backends raster conservent le défaut markerless=true.
+    expect(manager.getPresentation('ARDUINO')).toEqual({ backend: 'raster', bareBody: true, markerless: false })
   })
 
   it('MB-VIS-INDUSTRIAL-001 — accesseur statique getComponentPresentation == manager (même source, même résultat)', () => {

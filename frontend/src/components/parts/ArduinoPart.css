@@ -1,0 +1,10 @@
+/* UNO header pitch is 5.62–5.98 logical pixels. Keep the contact centres
+   untouched, and keep even the 1.35x hover target narrower than that pitch.
+   Scope this rule to the component containing this renderer only. */
+.circuit-component:has(.part-arduino) > .myblab-pin {
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  margin-top: -2px;
+  border-width: 0.6px;
+}
