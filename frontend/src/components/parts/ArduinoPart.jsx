@@ -68,6 +68,31 @@ const VISUAL_ONLY_HEADERS = [
   { id: 'A4', x: 158.2 }, { id: 'A5', x: 163.9 },
 ]
 
+// Three upper-left holes are visible on the approved raster but are not
+// registered as electrical endpoints. Keep their hover purely informational.
+const AUXILIARY_TOP_HOLES = [
+  { id: 'NON UTILISÉ', x: 68.3 },
+  { id: 'AREF', x: 74.0 },
+  { id: 'GND', x: 79.7 },
+]
+
+function AuxiliaryTopHoleIdentifiers() {
+  return (
+    <div className="part-arduino__auxiliary-identifiers" aria-label="Repères supérieurs auxiliaires">
+      {AUXILIARY_TOP_HOLES.map(({ id, x }) => (
+        <span
+          key={id}
+          className="part-arduino__auxiliary-identifier"
+          tabIndex={0}
+          data-arduino-visual-pin={id}
+          aria-label={id + ' — repère visuel uniquement'}
+          style={{ left: x }}
+        />
+      ))}
+    </div>
+  )
+}
+
 function VisualHeaderIdentifiers() {
   return (
     <div className="part-arduino__visual-identifiers" aria-label="Repères visuels POWER et ANALOG IN">
@@ -168,6 +193,7 @@ export function ArduinoPart({ uid, pinSignals } = {}) {
 
       <DigitalPinLabels pins={def.pins} />
       <VisualHeaderIdentifiers />
+      <AuxiliaryTopHoleIdentifiers />
       {/* No UART activity contract exists: baked TX/RX lights stay unlit. */}
       {[38, 43].map((top) => (
         <span key={top} className="part-arduino__serial-led" data-led-state="off"
