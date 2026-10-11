@@ -47,6 +47,7 @@ export function Pin({
       }}
       className={[
         "myblab-pin",
+        hideVisualMarker && "myblab-pin--markerless",
         isPending && "myblab-pin--pending",
         isConnected && "myblab-pin--connected",
       ]
@@ -55,7 +56,6 @@ export function Pin({
       style={{
         left: Number.isFinite(left) ? left : 0,
         top: Number.isFinite(top) ? top : 0,
-        opacity: hideVisualMarker ? 0 : 1,
       }}
       data-hover-label={label ?? pinId}
       onMouseDown={handleMouseDown}
