@@ -53,6 +53,34 @@ function DigitalPinLabels({ pins }) {
   )
 }
 
+
+// Visual-only Arduino UNO R3 header identifiers. These do not create electrical
+// pins, wire endpoints or simulated analog/power capabilities.
+const VISUAL_ONLY_HEADERS = [
+  { id: 'IOREF', x: 84.6 }, { id: 'RESET', x: 90.3 },
+  { id: '3.3V', x: 96.0 }, { id: 'VIN', x: 118.0 },
+  { id: 'A0', x: 137.8 }, { id: 'A1', x: 143.4 },
+  { id: 'A2', x: 149.1 }, { id: 'A3', x: 154.8 },
+  { id: 'A4', x: 160.5 }, { id: 'A5', x: 166.2 },
+]
+
+function VisualHeaderIdentifiers() {
+  return (
+    <div className="part-arduino__visual-identifiers" aria-label="Repères visuels POWER et ANALOG IN">
+      {VISUAL_ONLY_HEADERS.map(({ id, x }) => (
+        <span
+          key={id}
+          className="part-arduino__visual-identifier"
+          data-arduino-visual-pin={id}
+          title={id + ' — repère visuel uniquement'}
+          aria-label={id + ' — repère visuel uniquement'}
+          style={{ left: x }}
+        />
+      ))}
+    </div>
+  )
+}
+
 function UsbCable({ connected }) {
   return (
     <span
@@ -134,6 +162,7 @@ export function ArduinoPart({ uid, pinSignals } = {}) {
 
 
       <DigitalPinLabels pins={def.pins} />
+      <VisualHeaderIdentifiers />
       {/* No UART activity contract exists: baked TX/RX lights stay unlit. */}
       {[38, 43].map((top) => (
         <span key={top} className="part-arduino__serial-led" data-led-state="off"
