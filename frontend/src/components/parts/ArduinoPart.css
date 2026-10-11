@@ -12,6 +12,15 @@
   border-color: #343536;
   border-radius: 0.5px;
   background: #0b0c0d;
+  /* The raster already draws each socket. Do not paint a second socket over it. */
+  opacity: 0;
+}
+
+/* Keep real connection gestures visible without permanent visual residue. */
+.circuit-component:has(.part-arduino) > .myblab-pin--hover,
+.circuit-component:has(.part-arduino) > .myblab-pin:hover,
+.circuit-component:has(.part-arduino) > .myblab-pin--pending {
+  opacity: 1;
 }
 
 /* Preserve the existing gesture feedback without a pale idle socket rim. */
