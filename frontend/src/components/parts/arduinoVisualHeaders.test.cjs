@@ -18,11 +18,17 @@ test('all thirteen bottom header legends are present in physical order', () => {
 
 test('identifiers are visual only and do not create circuit contacts', () => {
   assert.match(jsx, /data-arduino-visual-pin=\{id\}/)
-  assert.match(jsx, /title=\{id \+ ' — repère visuel de la carte'\}/)
+  assert.doesNotMatch(jsx, /title=\{id \+ ' — repère visuel de la carte'\}/)
   assert.doesNotMatch(region, /contacts|wireConnectable|breadboardInsertable/)
 })
 
 test('labels are shown on hover, not permanently painted over the raster', () => {
   assert.match(css, /\.part-arduino__visual-identifier:hover::after/)
   assert.match(css, /content: attr\(data-arduino-visual-pin\)/)
+})
+
+test('hover highlight is instant and constrained to one socket pitch', () => {
+  assert.match(css, /width: 5\.5px/)
+  assert.match(css, /background: rgba\(239, 68, 68, \.30\)/)
+  assert.match(css, /cursor: crosshair/)
 })
