@@ -96,3 +96,28 @@
   border-top: .5px solid rgba(255, 255, 255, .09);
   background: linear-gradient(180deg, #25292e, #171a1f);
 }
+
+/* A13: discoverability for printed bottom header names only. These tiny
+   hover zones sit on the silkscreen, above the sockets (y~100 vs y~108).
+   No new electrical endpoint is introduced. */
+.part-arduino__visual-identifiers {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+.part-arduino__visual-identifier {
+  position: absolute;
+  top: 94px;
+  width: 5px;
+  height: 9px;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: help;
+  background: transparent;
+}
+.part-arduino__visual-identifier:hover,
+.part-arduino__visual-identifier:focus-visible {
+  outline: 1px solid #fbbf24;
+  outline-offset: 0;
+}
