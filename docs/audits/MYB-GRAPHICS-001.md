@@ -32,3 +32,16 @@ PR : #21 (ne pas fusionner sans validation visuelle)
 3. Ouvrir `http://localhost:<port>/tools/arduino-graphics.html`.
 4. Cliquer sur « Auditer les trous », examiner les contacts, tester « Corriger les centres clairs », puis « Annuler ».
 5. Comparer le PNG exporté et le Canvas du simulateur. Ne pas écraser l'image de production avant validation.
+
+## Extension MYB-GRAPHICS-002 — 2026-10-11
+
+Fichiers ajoutés/modifiés :
+- `frontend/public/tools/header-audit.js` : moteur de détection raster, sans dépendance.
+- `frontend/public/tools/header-audit.test.cjs` : tests Node de classification, réparation ciblée et garde géométrique.
+- `frontend/public/tools/arduino-graphics.html` : boutons audit complet et réparation avec confirmation.
+
+Couverture de l'atelier : 14 centres DIGITAL, 6 positions visuelles POWER, 6 positions visuelles ANALOG IN ; seuls 16 contacts sont électriquement canoniques. Les positions supplémentaires sont des repères approximatifs, sans identité de broche ni capacité simulée.
+
+Observation indépendante sur le PNG historique extrait de `A13_ARD_SURF2_HORIZONTAL_CANDIDATE.zip` (540×360) : les centres DIGITAL présentent des luminances de 0 à environ 89/255, avec plusieurs centres gris visibles autour de D7–D11. Le seuil initial 110/255 manquait ces anomalies ; le seuil de l'audit étendu a été ramené à 48/255. **Attention** : ce fichier historique n'est pas une preuve que le PNG actuel de GitHub est identique.
+
+Limites : tests Node ajoutés mais non exécutés dans le dépôt à ce stade ; build et QA navigateur non exécutés. Aucune image de production remplacée. La réparation automatique est heuristique et requiert validation visuelle sur chaque header. PR #21 : PENDING_FOUNDER_CANVAS_PASS.
