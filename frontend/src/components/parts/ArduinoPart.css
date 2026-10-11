@@ -7,4 +7,24 @@
   margin-left: -2px;
   margin-top: -2px;
   border-width: 0.6px;
+  /* Match the raster's recessed square sockets instead of the generic
+     pale circular pin marker. The hit area and contact centre stay fixed. */
+  border-color: #343536;
+  border-radius: 0.5px;
+  background: #0b0c0d;
+}
+
+/* Preserve the existing gesture feedback without a pale idle socket rim. */
+.circuit-component:has(.part-arduino) > .myblab-pin--hover,
+.circuit-component:has(.part-arduino) > .myblab-pin:hover {
+  border-color: #f59e0b;
+}
+
+.circuit-component:has(.part-arduino) > .myblab-pin--pending {
+  border-color: #fbbf24;
+  background: #f59e0b;
+}
+
+.circuit-component:has(.part-arduino) > .myblab-pin--connected {
+  border-color: #22c55e;
 }
