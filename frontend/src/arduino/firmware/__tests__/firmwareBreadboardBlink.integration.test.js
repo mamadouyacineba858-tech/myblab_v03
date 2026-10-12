@@ -16,13 +16,13 @@ void loop() {
 const board = { id: "bb-blink", position: { x: 0, y: 0 }, layout: "STANDARD_V1" }
 const coreComponents = [
   { id: "r1", type: "RESISTOR", position: { x: 0, y: 22 } },
-  // LED anode dx=28,dy=62 -> x=84,y=36, matching resistor B x=84,y=36
-  { id: "led1", type: "LED", position: { x: 56, y: -26 } },
+  // LED anode dx=28,dy=62 -> x=84,y=48 (row 4); resistor B is x=84,y=36 (row 3): separate holes, same strip
+  { id: "led1", type: "LED", position: { x: 56, y: -14 } },
 ]
 const electricalComponents = [
   { uid: "arduino1", type: "ARDUINO", x: -200, y: 0, firmware: { source: firmware } },
   { uid: "r1", type: "RESISTOR", x: 0, y: 22 },
-  { uid: "led1", type: "LED", x: 56, y: -26 },
+  { uid: "led1", type: "LED", x: 56, y: -14 },
   { uid: "power1", type: "POWER", x: -200, y: 100 },
 ]
 const directWires = [
