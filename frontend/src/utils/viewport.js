@@ -28,9 +28,9 @@ import { clientToCanvas } from "./geometry.js"
 export const ZOOM_MIN = 0.5
 export const ZOOM_MAX = 2
 
-// Product default: 20% larger components AND breadboards via the sole canonical
+// Product default: 200% display for components AND breadboards via the sole canonical
 // viewport transform. Wire anchors, snapping and document coordinates stay fixed.
-export const DEFAULT_VIEWPORT = Object.freeze({ zoom: 1.2, translateX: 0, translateY: 0 })
+export const DEFAULT_VIEWPORT = Object.freeze({ zoom: 2, translateX: 0, translateY: 0 })
 
 export function createDefaultViewport() {
   return { ...DEFAULT_VIEWPORT }
