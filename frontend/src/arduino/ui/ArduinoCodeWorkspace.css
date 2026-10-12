@@ -6,3 +6,8 @@
 .arduino-code-workspace button:disabled { opacity: .5; cursor: default; }
 .arduino-code-workspace [role="status"] { overflow-wrap: anywhere; font-size: 13px; }
 @media (max-width: 650px) { .arduino-code-workspace { width: 65vw; right: 8px; } }
+
+.arduino-code-help { margin: 0; font-size: 12px; line-height: 1.5; color: #cbd5e1; }
+.arduino-code-actions { flex-wrap: wrap; justify-content: flex-start; }
+.arduino-code-actions button { border: 1px solid #64748b; border-radius: 6px; background: #26374e; color: #f8fafc; }
+.arduino-code-actions button:hover:not(:disabled), .arduino-code-actions button:focus-visible { background: #355474; }
