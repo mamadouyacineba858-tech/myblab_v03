@@ -31,10 +31,10 @@ describe("ARD-004 Workspace", () => {
     fireEvent.change(screen.getByLabelText("Sketch"), { target: { value: source } })
     expect(api.selectedComponent.firmware.source).toBe(original)
     expect(api.getUndoCount()).toBe(count)
-    fireEvent.click(screen.getByText("Appliquer"))
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
     expect(api.selectedComponent.firmware.source).toBe(source)
     expect(api.getUndoCount()).toBe(count + 1)
-    fireEvent.click(screen.getByText("Appliquer"))
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
     expect(api.getUndoCount()).toBe(count + 1)
   })
   it("uses compiler for success and diagnostics without applying draft", () => {
@@ -45,6 +45,22 @@ describe("ARD-004 Workspace", () => {
     fireEvent.change(screen.getByLabelText("Sketch"), { target: { value: "invalid" } })
     fireEvent.click(screen.getByText("Compiler"))
     expect(screen.getByRole("status").textContent).toContain("MISSING_SETUP")
+  })
+  it("loads Blink D2, compiles and applies the valid example", () => {
+    mount(); add(); fireEvent.click(screen.getByText(/Code/))
+    fireEvent.click(screen.getByText("Exemple : LED clignotante D2"))
+    expect(screen.getByLabelText("Sketch").value).toContain("digitalWrite(2, HIGH)")
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
+    expect(screen.getByRole("status").textContent).toContain("Compilation réussie")
+    expect(api.selectedComponent.firmware.source).toContain("delay(500)")
+  })
+  it("rejects invalid code without modifying the saved Arduino firmware", () => {
+    mount(); add(); fireEvent.click(screen.getByText(/Code/))
+    const previous = api.selectedComponent.firmware.source
+    fireEvent.change(screen.getByLabelText("Sketch"), { target: { value: "invalid" } })
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
+    expect(screen.getByRole("status").textContent).toContain("MISSING_SETUP")
+    expect(api.selectedComponent.firmware.source).toBe(previous)
   })
   it("switches Arduino, closes on deselection and stays closed on reselection; Close works", () => {
     mount(); const first = add(); fireEvent.click(screen.getByText(/Code/))
