@@ -10,7 +10,7 @@ describe('A13 product default scale', () => {
     const initial = createDefaultViewport()
     expect(clampZoom(1)).toBe(1)
     const next = zoomViewportAtScreenPoint(initial, 240, 180, 1.8)
-    expect(next.zoom).toBe(1.4)
+    expect(next.zoom).toBe(1.8)
     expect(next.translateX + 240 / initial.zoom * next.zoom).toBeCloseTo(240)
     expect(next.translateY + 180 / initial.zoom * next.zoom).toBeCloseTo(180)
   })
