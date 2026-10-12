@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useCircuit } from "../../context/useCircuit.js"
 import { compileFirmware } from "../firmware/firmwareCompiler.js"
 import "./ArduinoCodeWorkspace.css"
@@ -19,13 +19,23 @@ void loop() {
 export function ArduinoCodeWorkspace({ onClose }) {
   const { selectedComponent, updateArduinoFirmware, firmwareDiagnostics } = useCircuit()
   if (selectedComponent?.type !== "ARDUINO") return null
-  return <Editor key={`${selectedComponent.uid}:${selectedComponent.firmware?.source}`} component={selectedComponent}
+  return <Editor key={selectedComponent.uid} component={selectedComponent}
     apply={updateArduinoFirmware} onClose={onClose} runtimeDiagnostics={firmwareDiagnostics?.[selectedComponent.uid]} />
 }
 function Editor({ component, apply, onClose, runtimeDiagnostics }) {
   const source = component.firmware?.source ?? ""
   const [draft, setDraft] = useState(source)
   const [compilation, setCompilation] = useState(null)
+  // Keep the editor mounted after Apply so compilation feedback stays visible.
+  // Synchronize external document changes (Undo/Redo/import) without erasing
+  // a locally edited draft on ordinary rerenders.
+  const [lastSavedSource, setLastSavedSource] = useState(source)
+  useEffect(() => {
+    if (source !== lastSavedSource) {
+      setDraft(current => current === lastSavedSource ? source : current)
+      setLastSavedSource(source)
+    }
+  }, [source, lastSavedSource])
   const diagnostics = compilation?.diagnostics ?? runtimeDiagnostics ?? []
   const compileDraft = () => {
     const result = compileFirmware(draft)
