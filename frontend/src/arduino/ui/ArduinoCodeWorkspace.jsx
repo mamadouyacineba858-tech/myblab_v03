@@ -32,10 +32,11 @@ void loop() {
 const BUTTON_PULLUP_EXAMPLE = `void setup() {
   pinMode(2, INPUT_PULLUP);
   pinMode(13, OUTPUT);
+  int pressed = 0;
 }
 
 void loop() {
-  int pressed = digitalRead(2);
+  pressed = digitalRead(2);
   if (pressed == 0) {
     digitalWrite(13, HIGH);
   } else {
