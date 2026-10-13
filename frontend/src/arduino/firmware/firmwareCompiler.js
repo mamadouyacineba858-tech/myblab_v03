@@ -29,8 +29,8 @@ const VALID_PIN_MODES = new Set(["OUTPUT"])
 const VALID_LEVELS = new Set(["HIGH", "LOW"])
 // Arduino UNO R3 built-in LED is electrically attached to D13.
 // Resolve this constant at compile time: no dynamic evaluation or VM changes.
-function resolveDigitalPin(token) {
-  const number = token === "LED_BUILTIN" ? 13 : Number(token)
+function resolveDigitalPin(token, constants = new Map()) {
+  const number = token === "LED_BUILTIN" ? 13 : constants.has(token) ? constants.get(token) : Number(token)
   return mapArduinoPin(number)
 }
 
@@ -98,13 +98,13 @@ function splitStatementsWithOffsets(body, bodyStartOffset) {
 }
 
 /** Reconnaît une instruction unique par motif structurel — jamais par comparaison de texte entier (§8). */
-function parseStatement(text, source, offset, diagnostics) {
+function parseStatement(text, source, offset, diagnostics, constants) {
   const line = lineAt(source, offset)
 
-  const pinModeMatch = text.match(/^pinMode\s*\(\s*(\d+|LED_BUILTIN)\s*,\s*(\w+)\s*\)$/)
+  const pinModeMatch = text.match(/^pinMode\s*\(\s*(\d+|LED_BUILTIN|[A-Za-z_]\w*)\s*,\s*(\w+)\s*\)$/)
   if (pinModeMatch) {
     const [, pinStr, mode] = pinModeMatch
-    const pin = resolveDigitalPin(pinStr)
+    const pin = resolveDigitalPin(pinStr, constants)
     if (!pin) {
       diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported on the Arduino Uno digital surface (0..13)`, line))
       return null
@@ -116,10 +116,10 @@ function parseStatement(text, source, offset, diagnostics) {
     return Object.freeze({ op: "PIN_MODE", pin, mode })
   }
 
-  const digitalWriteMatch = text.match(/^digitalWrite\s*\(\s*(\d+|LED_BUILTIN)\s*,\s*(\w+)\s*\)$/)
+  const digitalWriteMatch = text.match(/^digitalWrite\s*\(\s*(\d+|LED_BUILTIN|[A-Za-z_]\w*)\s*,\s*(\w+)\s*\)$/)
   if (digitalWriteMatch) {
     const [, pinStr, level] = digitalWriteMatch
-    const pin = resolveDigitalPin(pinStr)
+    const pin = resolveDigitalPin(pinStr, constants)
     if (!pin) {
       diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported on the Arduino Uno digital surface (0..13)`, line))
       return null
@@ -155,12 +155,12 @@ function parseStatement(text, source, offset, diagnostics) {
   return null
 }
 
-function compileBody(body, bodyStartOffset, source) {
+function compileBody(body, bodyStartOffset, source, constants) {
   const statements = splitStatementsWithOffsets(body, bodyStartOffset)
   const diagnostics = []
   const ir = []
   for (const { text, offset } of statements) {
-    const node = parseStatement(text, source, offset, diagnostics)
+    const node = parseStatement(text, source, offset, diagnostics, constants)
     if (node) ir.push(node)
   }
   return { ir, diagnostics }
@@ -211,8 +211,31 @@ export function compileFirmware(source) {
     return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, `firmware exceeds the ${MAX_INSTRUCTIONS}-instruction safety limit`)] }
   }
 
-  const setupCompiled = compileBody(setupResult.body, setupResult.bodyStartOffset, clean)
-  const loopCompiled = compileBody(loopResult.body, loopResult.bodyStartOffset, clean)
+  // A17.3: first bounded, statically resolved C++ declaration subset.
+  // Only global const int pin aliases are accepted; no runtime expressions.
+  const constants = new Map()
+  const declarationPattern = /\bconst\s+int\s+([A-Za-z_]\w*)\s*=\s*(\d+)\s*;/g
+  const outsideFunctions = clean.split("").map((character, index) => {
+    const inSetup = index >= setupResult.bodyStartOffset && index < setupResult.bodyStartOffset + setupResult.body.length
+    const inLoop = index >= loopResult.bodyStartOffset && index < loopResult.bodyStartOffset + loopResult.body.length
+    return inSetup || inLoop ? " " : character
+  }).join("")
+  for (const match of outsideFunctions.matchAll(declarationPattern)) {
+    if (constants.has(match[1]) || match[1] === "LED_BUILTIN") {
+      return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, `duplicate or reserved constant: ${match[1]}`, lineAt(clean, match.index))] }
+    }
+    constants.set(match[1], Number(match[2]))
+  }
+  // Remove recognized declarations, setup and loop; any remaining nonspace
+  // top-level token is rejected, not silently discarded.
+  let topLevel = outsideFunctions.replace(declarationPattern, "")
+  topLevel = topLevel.replace(/void\s+(setup|loop)\s*\(\s*\)\s*\{\s*\}/g, "")
+  if (topLevel.trim()) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, "unsupported global declaration or source outside setup()/loop()")] }
+  }
+
+  const setupCompiled = compileBody(setupResult.body, setupResult.bodyStartOffset, clean, constants)
+  const loopCompiled = compileBody(loopResult.body, loopResult.bodyStartOffset, clean, constants)
   const diagnostics = [...setupCompiled.diagnostics, ...loopCompiled.diagnostics]
 
   if (diagnostics.length > 0) {
