@@ -148,3 +148,45 @@ describe("A17.7-C — physical button topology to Arduino input", () => {
     expect(firmwareSessions.get("arduino1").inputSignals.get("arduino1:D2")).not.toBe("HIGH")
   })
 })
+
+describe("A17.7-D — real switched electrical HIGH / LOW / HIGH cycle", () => {
+  it("reacts to successive physical contact changes without replacing the firmware session", () => {
+    const source = "void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", x: 0, y: 0, firmware: { source } },
+      { uid: "highButton", type: "BUTTON", state: "pressed" },
+      { uid: "lowButton", type: "BUTTON", state: "released" },
+      { uid: "power1", type: "POWER" },
+      { uid: "resistor1", type: "RESISTOR" },
+      { uid: "led1", type: "LED" },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "highButton", toPin: "pin1" },
+      { fromUid: "highButton", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "power1", fromPin: "GND", toUid: "lowButton", toPin: "pin1" },
+      { fromUid: "lowButton", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    expect(step(0).get("arduino1:D2")).toBe("HIGH")
+    expect(getLedState("led1", step()).on).toBe(true)
+    const session = firmwareSessions.get("arduino1")
+
+    // Break before make: never short POWER.5V to GND.
+    components[1].state = "released"
+    components[2].state = "pressed"
+    expect(step().get("arduino1:D2")).toBe("LOW")
+    expect(getLedState("led1", step()).on).toBe(false)
+    expect(firmwareSessions.get("arduino1")).toBe(session)
+
+    components[2].state = "released"
+    components[1].state = "pressed"
+    expect(step().get("arduino1:D2")).toBe("HIGH")
+    expect(getLedState("led1", step()).on).toBe(true)
+    expect(firmwareSessions.get("arduino1")).toBe(session)
+  })
+})
