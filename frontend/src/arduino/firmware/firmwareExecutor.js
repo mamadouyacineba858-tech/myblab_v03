@@ -221,6 +221,38 @@ export class FirmwareExecutor {
 
   _executeInstruction(instruction) {
     switch (instruction.op) {
+      case "VAR_DECLARE_EXPR":
+      case "VAR_ASSIGN_EXPR": {
+        if (instruction.op === "VAR_DECLARE_EXPR" && this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError("variable already declared: " + instruction.name)
+        }
+        if (instruction.op === "VAR_ASSIGN_EXPR" && !this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError("undeclared variable: " + instruction.name)
+        }
+        const resolve = token => /^-?\d+$/.test(token) ? Number(token) : this._variables.get(token)
+        const left = resolve(instruction.left), right = resolve(instruction.right)
+        if (!Number.isSafeInteger(left) || !Number.isSafeInteger(right)) {
+          throw new FirmwareExecutionError("undefined or unsafe arithmetic operand")
+        }
+        let result
+        switch (instruction.operator) {
+          case "+": result = left + right; break
+          case "-": result = left - right; break
+          case "*": result = left * right; break
+          case "/":
+            if (right === 0) throw new FirmwareExecutionError("division by zero")
+            result = Math.trunc(left / right)
+            break
+          case "%":
+            if (right === 0) throw new FirmwareExecutionError("modulo by zero")
+            result = left % right
+            break
+          default: throw new FirmwareExecutionError("unsupported arithmetic operator")
+        }
+        if (!Number.isSafeInteger(result)) throw new FirmwareExecutionError("integer arithmetic exceeds safe range")
+        this._variables.set(instruction.name, result)
+        return
+      }
       case "VAR_REINITIALIZE": {
         if (!Number.isSafeInteger(instruction.value)) throw new FirmwareExecutionError("invalid for counter")
         this._variables.set(instruction.name, instruction.value)
