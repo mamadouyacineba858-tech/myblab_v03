@@ -163,8 +163,29 @@ export class FirmwareExecutor {
       if (currentTimeMs < this._waitingUntil) return true
       this._waitingUntil = null
     }
+    let executed = 0
     while (this._pc < body.length) {
+      if (++executed > 10000) {
+        throw new FirmwareExecutionError("execution budget exceeded (possible infinite loop)")
+      }
       const instruction = body[this._pc]
+      if (instruction.op === "BRANCH_FALSE") {
+        const { left, right, operator } = instruction.condition
+        const valueOf = (token) => /^-?\d+$/.test(token) ? Number(token) : this._variables.get(token)
+        const a = valueOf(left), b = valueOf(right)
+        if (!Number.isSafeInteger(a) || !Number.isSafeInteger(b)) {
+          throw new FirmwareExecutionError("condition contains an undefined or unsafe integer")
+        }
+        const truth = operator === "==" ? a === b : operator === "!=" ? a !== b
+          : operator === "<" ? a < b : operator === "<=" ? a <= b
+          : operator === ">" ? a > b : a >= b
+        this._pc = truth ? this._pc + 1 : instruction.target
+        continue
+      }
+      if (instruction.op === "JUMP") {
+        this._pc = instruction.target
+        continue
+      }
       if (instruction.op === "DELAY") {
         this._pc++
         this._waitingUntil = currentTimeMs + instruction.durationMs
