@@ -110,6 +110,7 @@ export class FirmwareExecutor {
   reset() {
     this._setupExecuted = false
     this._pinModes = new Map()
+    this._variables = new Map()
     // MB-L1-ARD-003 §20 : reset() efface aussi l'état d'exécution temporel
     // (jamais le Document firmware.source, jamais l'historique — cette
     // méthode ne connaît ni l'un ni l'autre).
