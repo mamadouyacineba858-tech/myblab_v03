@@ -202,3 +202,26 @@ describe("MB-L1-ARD-002 — IR immuable (ARD-09)", () => {
     expect(Object.isFrozen(result.ir.loop[0])).toBe(true)
   })
 })
+
+describe("A17.2 — compiler safety limits", () => {
+  it("rejects sketches larger than 64 KiB without returning partial IR", () => {
+    const source = "void setup() {} void loop() {} //" + "a".repeat(66000)
+    const result = compileFirmware(source)
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+    expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_STATEMENT)
+  })
+
+  it("rejects more than 1024 statements atomically", () => {
+    const statements = "delay(0);".repeat(1025)
+    const result = compileFirmware("void setup() {} void loop() { " + statements + " }")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+    expect(result.diagnostics[0].message).toContain("instruction safety limit")
+  })
+
+  it("keeps Blink and LED_BUILTIN within safety limits", () => {
+    const result = compileFirmware("void setup() { pinMode(LED_BUILTIN, OUTPUT); } void loop() { digitalWrite(LED_BUILTIN, HIGH); delay(500); digitalWrite(LED_BUILTIN, LOW); delay(500); }")
+    expect(result.ok).toBe(true)
+  })
+})
