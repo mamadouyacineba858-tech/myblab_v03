@@ -25,7 +25,7 @@ import { DiagnosticCode, createDiagnostic } from "./firmwareDiagnostics.js"
  * entier de l'instruction à une chaîne candidate.
  */
 
-const VALID_PIN_MODES = new Set(["OUTPUT"])
+const VALID_PIN_MODES = new Set(["OUTPUT", "INPUT", "INPUT_PULLUP"])
 const VALID_LEVELS = new Set(["HIGH", "LOW"])
 // Arduino UNO R3 built-in LED is electrically attached to D13.
 // Resolve this constant at compile time: no dynamic evaluation or VM changes.
@@ -116,6 +116,16 @@ function parseStatement(text, source, offset, diagnostics, constants) {
     const [, left, operator, right] = assignmentExpression[2].match(expression)
     return Object.freeze({ op: "VAR_ASSIGN_EXPR", name: assignmentExpression[1], left, operator, right })
   }
+  // Digital input is a typed runtime read, never a compile-time constant.
+  const readMatch = text.match(/^(?:(int)\s+)?([A-Za-z_]\w*)\s*=\s*digitalRead\s*\(\s*(\d+|LED_BUILTIN|[A-Za-z_]\w*)\s*\)$/)
+  if (readMatch) {
+    const pin = resolveDigitalPin(readMatch[3], constants)
+    if (!pin) {
+      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, "unsupported digitalRead pin: " + readMatch[3], line))
+      return null
+    }
+    return Object.freeze({ op: "DIGITAL_READ", pin, name: readMatch[2], declare: Boolean(readMatch[1]) })
+  }
   const integerDeclaration = text.match(/^int\s+([A-Za-z_]\w*)\s*=\s*(-?\d+)$/)
   if (integerDeclaration) {
     return Object.freeze({ op: "VAR_DECLARE", name: integerDeclaration[1], value: Number(integerDeclaration[2]) })
@@ -138,7 +148,7 @@ function parseStatement(text, source, offset, diagnostics, constants) {
       return null
     }
     if (!VALID_PIN_MODES.has(mode)) {
-      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_MODE, `pinMode "${mode}" is not supported in V1 (only OUTPUT)`, line))
+      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_MODE, `pinMode "${mode}" is not supported (OUTPUT, INPUT, INPUT_PULLUP)`, line))
       return null
     }
     return Object.freeze({ op: "PIN_MODE", pin, mode })
