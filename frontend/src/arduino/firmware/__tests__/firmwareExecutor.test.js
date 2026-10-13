@@ -363,3 +363,23 @@ describe("MB-L1-ARD-003 — firmwareExecutor.resume() — TEST T1-T15 (API tempo
     expect(runtime.digitalWrite).toHaveBeenCalledTimes(3)
   })
 })
+
+describe("A17.3-B — deterministic integer execution", () => {
+  it("persists integer state across loop ticks and resets it", () => {
+    const ir = compileOk("void setup() { int count = 0; } void loop() { count++; count += 2; }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    executor.resume(0)
+    expect(executor._variables.get("count")).toBe(3)
+    executor.resume(1)
+    expect(executor._variables.get("count")).toBe(6)
+    executor.reset()
+    expect(executor._variables.size).toBe(0)
+    executor.resume(0)
+    expect(executor._variables.get("count")).toBe(3)
+  })
+  it("rejects undeclared variables rather than inventing state", () => {
+    const ir = compileOk("void setup() {} void loop() { missing++; }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    expect(() => executor.resume(0)).toThrow(FirmwareExecutionError)
+  })
+})
