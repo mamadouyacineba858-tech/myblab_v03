@@ -1402,6 +1402,17 @@ function computeElectricalStep(components, wires, options = {}) {
   // même interdiction que pour CAPACITOR/POLARIZED_CAPACITOR ailleurs dans
   // ce fichier) : `composeElectricalAnalysis` ne connaît que deux
   // Map<uid, {voltage, current}>, jamais un type de composant.
+  // Publish the authoritative resolved pin levels for the NEXT firmware step.
+  // No second resolution pass and no fabricated HIGH/LOW for floating nets.
+  if (options.firmwareSessions) {
+    for (const [uid, firmware] of options.firmwareSessions) {
+      if (!firmware.inputSignals) continue
+      firmware.inputSignals.clear()
+      for (const [key, signal] of pinSignals) {
+        if (key.startsWith(`${uid}:`)) firmware.inputSignals.set(key, signal)
+      }
+    }
+  }
   return { pinSignals, electricalAnalysis: composeElectricalAnalysis(dcAnalysis, transientContributions) }
 }
 
@@ -1484,7 +1495,15 @@ function synchronizeFirmware(components, orchestrators, sessions) {
     const session = { source, diagnostics: compiled.ok ? [] : compiled.diagnostics }
     sessions.set(comp.uid, session)
     if (!compiled.ok) continue
-    session.executor = new FirmwareExecutor(compiled.ir, runtime)
+    // A17.7-B: input sampling uses the last authoritative electrical
+    // resolution, never the Arduino output map or an invented pin level.
+    // The first sample is UNKNOWN until the circuit has been resolved.
+    session.inputSignals = new Map()
+    const runtimePort = {
+      digitalWrite: (pin, signal) => runtime.digitalWrite(pin, signal),
+      digitalRead: (pin) => session.inputSignals.get(`${comp.uid}:${pin}`) ?? Signal.UNKNOWN,
+    }
+    session.executor = new FirmwareExecutor(compiled.ir, runtimePort)
     session.controller = new FirmwareRuntimeController({ scheduler: orchestrator.getScheduler(), executor: session.executor })
     runtime.start()
     session.controller.start()
