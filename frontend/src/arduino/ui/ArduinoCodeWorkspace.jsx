@@ -16,7 +16,19 @@ void loop() {
 }
 `
 
-const BUILTIN_LED_EXAMPLE = `void setup() {\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(500);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(500);\n}\n`\n\nexport function ArduinoCodeWorkspace({ onClose }) {
+const BUILTIN_LED_EXAMPLE = `void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(500);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(500);
+}
+`
+
+export function ArduinoCodeWorkspace({ onClose }) {
   const { selectedComponent, updateArduinoFirmware, firmwareDiagnostics } = useCircuit()
   if (selectedComponent?.type !== "ARDUINO") return null
   return <Editor key={selectedComponent.uid} component={selectedComponent}
