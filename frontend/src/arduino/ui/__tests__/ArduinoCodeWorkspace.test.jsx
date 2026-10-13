@@ -4,6 +4,8 @@ import { render, screen, fireEvent, act, cleanup } from "@testing-library/react"
 import { CircuitProvider } from "../../../context/CircuitContext.jsx"
 import { useCircuit } from "../../../context/useCircuit.js"
 import { Navbar } from "../../../components/Navbar.jsx"
+import { runSimulationWithRuntime } from "../../../simulator/simulationRuntimeIntegration.js"
+import { getLedState } from "../../../simulator/production.js"
 let api
 function Probe() { api = useCircuit(); return <Navbar /> }
 afterEach(cleanup)
@@ -92,5 +94,42 @@ describe("A17.7-G — browser Arduino button example", () => {
     expect(screen.getByRole("status").textContent).toContain("Compilation réussie")
     expect(api.selectedComponent.firmware.source).toBe(sketch)
     expect(api.getUndoCount()).toBe(before + 1)
+  })
+})
+
+describe("A17.7-G — editor sketch to physical circuit integration", () => {
+  it("uses the sketch saved from the visible editor to drive a real button/LED circuit", () => {
+    mount()
+    add()
+    fireEvent.click(screen.getByText(/Code/))
+    fireEvent.click(screen.getByText("Exemple : Bouton D2 → LED D13 (INPUT_PULLUP)"))
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
+    expect(screen.getByRole("status").textContent).toContain("Compilation réussie")
+    const source = api.selectedComponent.firmware.source
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", firmware: { source } },
+      { uid: "button1", type: "BUTTON", state: "released" },
+      { uid: "resistor1", type: "RESISTOR" },
+      { uid: "led1", type: "LED" },
+      { uid: "power1", type: "POWER" },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "GND", toUid: "button1", toPin: "pin1" },
+      { fromUid: "button1", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    step(0)
+    expect(getLedState("led1", step()).on).toBe(false)
+    components[1].state = "pressed"
+    expect(step().get("arduino1:D2")).toBe("LOW")
+    expect(getLedState("led1", step()).on).toBe(true)
+    components[1].state = "released"
+    step()
+    expect(getLedState("led1", step()).on).toBe(false)
   })
 })
