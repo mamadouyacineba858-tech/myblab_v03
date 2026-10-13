@@ -221,6 +221,11 @@ export class FirmwareExecutor {
 
   _executeInstruction(instruction) {
     switch (instruction.op) {
+      case "VAR_REINITIALIZE": {
+        if (!Number.isSafeInteger(instruction.value)) throw new FirmwareExecutionError("invalid for counter")
+        this._variables.set(instruction.name, instruction.value)
+        return
+      }
       case "VAR_DECLARE": {
         if (this._variables.has(instruction.name)) {
           throw new FirmwareExecutionError(`variable "${instruction.name}" already declared`)
