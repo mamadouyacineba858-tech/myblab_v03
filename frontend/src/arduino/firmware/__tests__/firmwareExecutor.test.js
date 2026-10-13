@@ -383,3 +383,30 @@ describe("A17.3-B — deterministic integer execution", () => {
     expect(() => executor.resume(0)).toThrow(FirmwareExecutionError)
   })
 })
+
+describe("A17.4 — structured control flow integration", () => {
+  it("executes while, nested if/else and variable updates", () => {
+    const source = "void setup() { int count = 0; pinMode(13, OUTPUT); } void loop() { while (count < 3) { count++; } if (count == 3) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } }"
+    const ir = compileOk(source)
+    const runtime = fakeRuntime()
+    const executor = new FirmwareExecutor(ir, runtime)
+    executor.resume(0)
+    expect(executor._variables.get("count")).toBe(3)
+    expect(runtime.digitalWrite).toHaveBeenCalledWith("D13", Signal.HIGH)
+  })
+  it("rejects infinite while loops using the execution budget", () => {
+    const ir = compileOk("void setup() { int count = 0; } void loop() { while (count < 1) { count += 0; } }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    expect(() => executor.resume(0)).toThrow(/budget exceeded/)
+  })
+  it("supports delay within a while loop across scheduler ticks", () => {
+    const ir = compileOk("void setup() { int count = 0; } void loop() { while (count < 2) { count++; delay(100); } }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    executor.resume(0)
+    expect(executor._variables.get("count")).toBe(1)
+    executor.resume(50)
+    expect(executor._variables.get("count")).toBe(1)
+    executor.resume(100)
+    expect(executor._variables.get("count")).toBe(2)
+  })
+})
