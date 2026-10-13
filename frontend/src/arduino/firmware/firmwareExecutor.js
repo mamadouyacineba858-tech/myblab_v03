@@ -66,6 +66,7 @@ export class FirmwareExecutor {
     // globalement). Partagée entre l'API ARD-002 et l'API temporelle
     // ARD-003 : le "matériel" configuré est le même quelle que soit l'API.
     this._pinModes = new Map()
+    this._variables = new Map()
 
     // MB-L1-ARD-003 — état d'exécution temporel, VOLATILE, distinct de
     // `_setupExecuted` (API ARD-002) : jamais lu/écrit par start()/
@@ -198,6 +199,36 @@ export class FirmwareExecutor {
 
   _executeInstruction(instruction) {
     switch (instruction.op) {
+      case "VAR_DECLARE": {
+        if (this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError(`variable "${instruction.name}" already declared`)
+        }
+        if (!Number.isSafeInteger(instruction.value)) {
+          throw new FirmwareExecutionError("integer declaration exceeds safe range")
+        }
+        this._variables.set(instruction.name, instruction.value)
+        return
+      }
+      case "VAR_ASSIGN": {
+        if (!this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError(`undeclared variable "${instruction.name}"`)
+        }
+        const operand = /^-?\d+$/.test(instruction.operand)
+          ? Number(instruction.operand)
+          : this._variables.get(instruction.operand)
+        if (!Number.isSafeInteger(operand)) {
+          throw new FirmwareExecutionError(`invalid integer operand "${instruction.operand}"`)
+        }
+        const previous = this._variables.get(instruction.name)
+        const value = instruction.operator === "=" ? operand
+          : instruction.operator === "+=" ? previous + operand
+          : previous - operand
+        if (!Number.isSafeInteger(value)) {
+          throw new FirmwareExecutionError("integer arithmetic exceeds safe range")
+        }
+        this._variables.set(instruction.name, value)
+        return
+      }
       case "PIN_MODE":
         this._pinModes.set(instruction.pin, instruction.mode)
         return
