@@ -27,6 +27,12 @@ import { DiagnosticCode, createDiagnostic } from "./firmwareDiagnostics.js"
 
 const VALID_PIN_MODES = new Set(["OUTPUT"])
 const VALID_LEVELS = new Set(["HIGH", "LOW"])
+// Arduino UNO R3 built-in LED is electrically attached to D13.
+// Resolve this constant at compile time: no dynamic evaluation or VM changes.
+function resolveDigitalPin(token) {
+  const number = token === "LED_BUILTIN" ? 13 : Number(token)
+  return mapArduinoPin(number)
+}
 
 function stripComments(source) {
   return source.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "")
@@ -98,7 +104,7 @@ function parseStatement(text, source, offset, diagnostics) {
   const pinModeMatch = text.match(/^pinMode\s*\(\s*(\d+)\s*,\s*(\w+)\s*\)$/)
   if (pinModeMatch) {
     const [, pinStr, mode] = pinModeMatch
-    const pin = mapArduinoPin(Number(pinStr))
+    const pin = resolveDigitalPin(pinStr)
     if (!pin) {
       diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported on the Arduino Uno digital surface (0..13)`, line))
       return null
@@ -113,7 +119,7 @@ function parseStatement(text, source, offset, diagnostics) {
   const digitalWriteMatch = text.match(/^digitalWrite\s*\(\s*(\d+)\s*,\s*(\w+)\s*\)$/)
   if (digitalWriteMatch) {
     const [, pinStr, level] = digitalWriteMatch
-    const pin = mapArduinoPin(Number(pinStr))
+    const pin = resolveDigitalPin(pinStr)
     if (!pin) {
       diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported on the Arduino Uno digital surface (0..13)`, line))
       return null
