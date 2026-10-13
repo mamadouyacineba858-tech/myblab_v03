@@ -200,6 +200,17 @@ export function compileFirmware(source) {
     return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.MISSING_LOOP, "expected exactly one \"void loop() { }\" function")] }
   }
 
+  // Keep generated IR bounded independently of source byte length. This
+  // avoids pathological sketches with thousands of tiny statements.
+  const MAX_INSTRUCTIONS = 1024
+  const statementCount = [setupResult, loopResult].reduce(
+    (sum, result) => sum + splitStatementsWithOffsets(result.body, result.bodyStartOffset).length,
+    0
+  )
+  if (statementCount > MAX_INSTRUCTIONS) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, `firmware exceeds the ${MAX_INSTRUCTIONS}-instruction safety limit`)] }
+  }
+
   const setupCompiled = compileBody(setupResult.body, setupResult.bodyStartOffset, clean)
   const loopCompiled = compileBody(loopResult.body, loopResult.bodyStartOffset, clean)
   const diagnostics = [...setupCompiled.diagnostics, ...loopCompiled.diagnostics]
