@@ -88,6 +88,8 @@ describe("A17.7-G — browser Arduino button example", () => {
     const sketch = screen.getByLabelText("Sketch").value
     expect(sketch).toContain("pinMode(2, INPUT_PULLUP)")
     expect(sketch).toContain("digitalRead(2)")
+    expect(sketch).toContain("int pressed = 0;")
+    expect(sketch).toContain("pressed = digitalRead(2);")
     expect(sketch).toContain("digitalWrite(13, HIGH)")
     const before = api.getUndoCount()
     fireEvent.click(screen.getByText("Compiler et appliquer"))
