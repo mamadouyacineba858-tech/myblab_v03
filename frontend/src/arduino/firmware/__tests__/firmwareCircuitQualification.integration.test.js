@@ -108,3 +108,43 @@ describe("A17.7-B — firmware digitalRead through electrical resolution", () =>
     expect(getLedState("led1", signals).on).toBe(true)
   })
 })
+
+describe("A17.7-C — physical button topology to Arduino input", () => {
+  const SOURCE = "void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+
+  function buttonCircuit(state = "pressed") {
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", x: 0, y: 0, firmware: { source: SOURCE } },
+      { uid: "button1", type: "BUTTON", x: 0, y: 0, state },
+      { uid: "resistor1", type: "RESISTOR", x: 0, y: 0 },
+      { uid: "led1", type: "LED", x: 0, y: 0 },
+      { uid: "power1", type: "POWER", x: 0, y: 0 },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "button1", toPin: "pin1" },
+      { fromUid: "button1", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    return { components, orchestrators, firmwareSessions, step }
+  }
+
+  it("pressed button propagates physical POWER.5V through closed contacts to D2 and lights D13 LED", () => {
+    const { firmwareSessions, step } = buttonCircuit()
+    const initial = step(0)
+    expect(initial.get("arduino1:D2")).toBe("HIGH")
+    expect(firmwareSessions.get("arduino1").awaitingFirstElectricalSample).toBe(true)
+    expect(getLedState("led1", step()).on).toBe(true)
+  })
+
+  it("released button does not fabricate HIGH on an electrically disconnected input", () => {
+    const { firmwareSessions, step } = buttonCircuit("released")
+    const signals = step(0)
+    expect(signals.get("arduino1:D2")).not.toBe("HIGH")
+    expect(firmwareSessions.get("arduino1").inputSignals.get("arduino1:D2")).not.toBe("HIGH")
+  })
+})
