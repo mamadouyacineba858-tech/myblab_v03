@@ -284,3 +284,29 @@ describe("A17.5 — compiler for and expression safety", () => {
     expect(result.ok).toBe(false)
   })
 })
+
+describe("A17.6 — bounded helper function compilation", () => {
+  it("compiles a void helper called from loop", () => {
+    const result = compileFirmware("void light() { digitalWrite(13, HIGH); } void setup() { pinMode(13, OUTPUT); } void loop() { light(); }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop[0]).toEqual({ op: "DIGITAL_WRITE", pin: "D13", value: "HIGH" })
+  })
+  it("compiles nested helpers without evaluating source code", () => {
+    const result = compileFirmware("void outer() { inner(); } void inner() { digitalWrite(13, LOW); } void setup() {} void loop() { outer(); }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop[0].op).toBe("DIGITAL_WRITE")
+  })
+  it("rejects recursive helper calls", () => {
+    const result = compileFirmware("void recurse() { recurse(); } void setup() {} void loop() { recurse(); }")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+  })
+  it("rejects unknown helpers", () => {
+    const result = compileFirmware("void setup() {} void loop() { nonexistent(); }")
+    expect(result.ok).toBe(false)
+  })
+  it("rejects duplicate helper definitions", () => {
+    const result = compileFirmware("void light() {} void light() {} void setup() {} void loop() { light(); }")
+    expect(result.ok).toBe(false)
+  })
+})
