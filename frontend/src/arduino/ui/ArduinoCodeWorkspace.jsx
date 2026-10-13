@@ -28,7 +28,7 @@ void loop() {
 }
 `
 
-export function ArduinoCodeWorkspace({ onClose }) {
+// Bouton momentané entre D2 et GND ; LED externe D13 -> résistance -> LED -> GND.\nconst BUTTON_PULLUP_EXAMPLE = `void setup() {\n  pinMode(2, INPUT_PULLUP);\n  pinMode(13, OUTPUT);\n}\n\nvoid loop() {\n  int pressed = digitalRead(2);\n  if (pressed == LOW) {\n    digitalWrite(13, HIGH);\n  } else {\n    digitalWrite(13, LOW);\n  }\n  delay(16);\n}\n`\n\nexport function ArduinoCodeWorkspace({ onClose }) {
   const { selectedComponent, updateArduinoFirmware, firmwareDiagnostics } = useCircuit()
   if (selectedComponent?.type !== "ARDUINO") return null
   return <Editor key={selectedComponent.uid} component={selectedComponent}
@@ -61,12 +61,12 @@ function Editor({ component, apply, onClose, runtimeDiagnostics }) {
   return <aside className="arduino-code-workspace" aria-label="Arduino Code">
     <div className="arduino-code-heading"><h2>Arduino Code</h2><button onClick={onClose} aria-label="Fermer Arduino Code">X</button></div>
     <small>Arduino {component.uid}</small>
-    <p className="arduino-code-help">Programme Arduino — sorties numériques D0 à D13. Le moteur actuel accepte pinMode(…, OUTPUT), digitalWrite(…), delay(…) et LED_BUILTIN (D13).</p>
+    <p className="arduino-code-help">Programme Arduino D0 à D13 : pinMode(OUTPUT, INPUT, INPUT_PULLUP), digitalWrite(), digitalRead(), delay() et LED_BUILTIN. Pour le bouton : connecter D2 au bouton, puis le bouton à GND ; LED externe sur D13 avec résistance vers GND.</p>
     <label htmlFor="arduino-sketch">Sketch</label>
     <textarea id="arduino-sketch" spellCheck={false} value={draft} onChange={event => { setDraft(event.target.value); setCompilation(null) }} />
     <div className="arduino-code-actions">
       <button type="button" onClick={() => { setDraft(BLINK_EXAMPLE); setCompilation(null) }}>Exemple : LED clignotante D2</button>\n      <button type="button" onClick={() => { setDraft(BUILTIN_LED_EXAMPLE); setCompilation(null) }}>Exemple : LED intégrée D13</button>
-      <button type="button" disabled={draft === source} onClick={applyValidated}>Compiler et appliquer</button>
+      <button type="button" onClick={() => { setDraft(BUTTON_PULLUP_EXAMPLE); setCompilation(null) }}>Exemple : Bouton D2 → LED D13 (INPUT_PULLUP)</button>\n      <button type="button" disabled={draft === source} onClick={applyValidated}>Compiler et appliquer</button>
       <button type="button" onClick={compileDraft}>Compiler</button>
     </div>
     <div role="status" aria-live="polite">
