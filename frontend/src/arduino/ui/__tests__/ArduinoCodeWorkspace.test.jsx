@@ -76,3 +76,21 @@ describe("ARD-004 Workspace", () => {
     expect(screen.queryByLabelText("Sketch")).toBeNull()
   })
 })
+
+describe("A17.7-G — browser Arduino button example", () => {
+  it("loads, compiles and persists the INPUT_PULLUP button sketch from the visible editor", () => {
+    mount()
+    add()
+    fireEvent.click(screen.getByText(/Code/))
+    fireEvent.click(screen.getByText("Exemple : Bouton D2 → LED D13 (INPUT_PULLUP)"))
+    const sketch = screen.getByLabelText("Sketch").value
+    expect(sketch).toContain("pinMode(2, INPUT_PULLUP)")
+    expect(sketch).toContain("digitalRead(2)")
+    expect(sketch).toContain("digitalWrite(13, HIGH)")
+    const before = api.getUndoCount()
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
+    expect(screen.getByRole("status").textContent).toContain("Compilation réussie")
+    expect(api.selectedComponent.firmware.source).toBe(sketch)
+    expect(api.getUndoCount()).toBe(before + 1)
+  })
+})
