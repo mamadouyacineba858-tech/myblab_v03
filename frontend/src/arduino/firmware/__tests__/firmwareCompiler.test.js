@@ -76,8 +76,16 @@ describe("MB-L1-ARD-002 — firmwareCompiler — TEST C1-C16", () => {
     expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_PIN)
   })
 
-  it("C11 — mode INPUT non supporté -> error", () => {
-    const result = compileFirmware("void setup() { pinMode(2, INPUT); }\nvoid loop() {}")
+  it("C11 — INPUT et INPUT_PULLUP sont des modes Arduino autorisés", () => {
+    for (const mode of ["INPUT", "INPUT_PULLUP"]) {
+      const result = compileFirmware(`void setup() { pinMode(2, ${mode}); }\nvoid loop() {}`)
+      expect(result.ok).toBe(true)
+      expect(result.ir.setup).toEqual([{ op: "PIN_MODE", pin: "D2", mode }])
+    }
+  })
+
+  it("C11b — un mode inconnu reste rejeté explicitement", () => {
+    const result = compileFirmware("void setup() { pinMode(2, ANALOG); }\nvoid loop() {}")
     expect(result.ok).toBe(false)
     expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_MODE)
   })
