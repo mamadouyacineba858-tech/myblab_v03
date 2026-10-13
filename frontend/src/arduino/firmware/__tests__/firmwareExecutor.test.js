@@ -439,3 +439,26 @@ describe("A17.5 — integrated for loops and integer expressions", () => {
     expect(port.digitalWrite).toHaveBeenCalledWith("D13", Signal.HIGH)
   })
 })
+
+describe("A17.7 — digital input runtime port", () => {
+  it("reads HIGH and drives LED from a button", () => {
+    const ir = compileOk("void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } }")
+    const port = { digitalRead: vi.fn(() => Signal.HIGH), digitalWrite: vi.fn() }
+    const executor = new FirmwareExecutor(ir, port)
+    executor.resume(0)
+    expect(port.digitalWrite).toHaveBeenCalledWith("D13", Signal.HIGH)
+    port.digitalRead.mockReturnValue(Signal.LOW)
+    executor.resume(1)
+    expect(port.digitalWrite).toHaveBeenLastCalledWith("D13", Signal.LOW)
+  })
+  it("rejects unresolved FLOATING signals instead of inventing a voltage", () => {
+    const ir = compileOk("void setup() { pinMode(2, INPUT); int pressed = digitalRead(2); } void loop() {}")
+    const executor = new FirmwareExecutor(ir, { digitalRead: () => Signal.FLOATING, digitalWrite: vi.fn() })
+    expect(() => executor.resume(0)).toThrow(/unresolved signal/)
+  })
+  it("rejects input reads without pinMode", () => {
+    const ir = compileOk("void setup() { int pressed = digitalRead(2); } void loop() {}")
+    const executor = new FirmwareExecutor(ir, { digitalRead: () => Signal.HIGH, digitalWrite: vi.fn() })
+    expect(() => executor.resume(0)).toThrow(/requires INPUT/)
+  })
+})
