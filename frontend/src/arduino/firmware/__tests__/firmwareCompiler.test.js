@@ -262,3 +262,20 @@ describe("A17.3-B — mutable integer compilation", () => {
     expect(result.ir).toBeUndefined()
   })
 })
+
+describe("A17.5 — compiler for and expression safety", () => {
+  it("compiles for into bounded branch and jump instructions", () => {
+    const result = compileFirmware("void setup() {} void loop() { for (int i = 0; i < 3; i++) { digitalWrite(13, HIGH); } }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop.map(node => node.op)).toEqual(["VAR_REINITIALIZE", "BRANCH_FALSE", "DIGITAL_WRITE", "VAR_ASSIGN", "JUMP"])
+  })
+  it("rejects malformed for headers without emitting partial IR", () => {
+    const result = compileFirmware("void setup() {} void loop() { for (int i = 0; i < 3) { i++; } }")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+  })
+  it("rejects arbitrary function invocation as an expression", () => {
+    const result = compileFirmware("void setup() { int x = random(10); } void loop() {}")
+    expect(result.ok).toBe(false)
+  })
+})
