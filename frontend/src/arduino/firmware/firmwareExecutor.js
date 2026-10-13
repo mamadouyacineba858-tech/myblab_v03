@@ -296,7 +296,7 @@ export class FirmwareExecutor {
         if (typeof this._runtimePort.digitalRead !== "function") {
           throw new FirmwareExecutionError("digitalRead runtime port is unavailable")
         }
-        const signal = this._runtimePort.digitalRead(instruction.pin)
+        const signal = this._runtimePort.digitalRead(instruction.pin, mode)
         if (signal !== Signal.HIGH && signal !== Signal.LOW) {
           throw new FirmwareExecutionError("digitalRead received unresolved signal: " + signal)
         }
