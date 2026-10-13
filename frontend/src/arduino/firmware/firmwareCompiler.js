@@ -205,7 +205,33 @@ function compileBody(body, bodyStartOffset, source, constants) {
         pos++
         return
       }
-      if (word("if") || word("while")) {
+      if (word("for")) {
+        pos += 3
+        skip()
+        if (body[pos] !== "(") { fail("expected for header"); return }
+        const begin = ++pos
+        while (pos < body.length && body[pos] !== ")") pos++
+        if (pos >= body.length) { fail("unclosed for header"); return }
+        const clauses = body.slice(begin, pos++).split(";").map(x => x.trim())
+        if (clauses.length !== 3) { fail("for requires initialization, condition, update"); return }
+        const initializer = parseStatement(clauses[0], source, bodyStartOffset + begin, diagnostics, constants)
+        if (!initializer || !["VAR_DECLARE", "VAR_ASSIGN"].includes(initializer.op)) { fail("unsupported for initializer"); return }
+        ir.push(initializer)
+        const conditionMatch = clauses[1].match(/^(-?\d+|[A-Za-z_]\w*)\s*(==|!=|<=|>=|<|>)\s*(-?\d+|[A-Za-z_]\w*)$/)
+        if (!conditionMatch) { fail("unsupported for condition"); return }
+        const condition = Object.freeze({ left: conditionMatch[1], operator: conditionMatch[2], right: conditionMatch[3] })
+        const update = parseStatement(clauses[2], source, bodyStartOffset + begin, diagnostics, constants)
+        if (!update || update.op !== "VAR_ASSIGN") { fail("unsupported for update"); return }
+        skip()
+        if (body[pos] !== "{") { fail("expected braced for body"); return }
+        pos++
+        const head = ir.length
+        ir.push({ op: "BRANCH_FALSE", condition, target: -1 })
+        block(depth + 1)
+        if (diagnostics.length) return
+        ir.push(update, { op: "JUMP", target: head })
+        ir[head].target = ir.length
+      } else       if (word("if") || word("while")) {
         const loop = word("while")
         pos += loop ? 5 : 2
         const condition = readCondition()
