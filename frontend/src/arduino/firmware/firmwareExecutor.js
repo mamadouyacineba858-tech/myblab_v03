@@ -288,6 +288,27 @@ export class FirmwareExecutor {
         this._variables.set(instruction.name, value)
         return
       }
+      case "DIGITAL_READ": {
+        const mode = this._pinModes.get(instruction.pin)
+        if (mode !== "INPUT" && mode !== "INPUT_PULLUP") {
+          throw new FirmwareExecutionError("digitalRead requires INPUT or INPUT_PULLUP: " + instruction.pin)
+        }
+        if (typeof this._runtimePort.digitalRead !== "function") {
+          throw new FirmwareExecutionError("digitalRead runtime port is unavailable")
+        }
+        const signal = this._runtimePort.digitalRead(instruction.pin)
+        if (signal !== Signal.HIGH && signal !== Signal.LOW) {
+          throw new FirmwareExecutionError("digitalRead received unresolved signal: " + signal)
+        }
+        if (instruction.declare && this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError("variable already declared: " + instruction.name)
+        }
+        if (!instruction.declare && !this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError("undeclared variable: " + instruction.name)
+        }
+        this._variables.set(instruction.name, signal === Signal.HIGH ? 1 : 0)
+        return
+      }
       case "PIN_MODE":
         this._pinModes.set(instruction.pin, instruction.mode)
         return
