@@ -355,12 +355,56 @@ export function compileFirmware(source) {
   // top-level token is rejected, not silently discarded.
   let topLevel = outsideFunctions.replace(declarationPattern, "")
   topLevel = topLevel.replace(/void\s+(setup|loop)\s*\(\s*\)\s*\{\s*\}/g, "")
-  if (topLevel.trim()) {
+
+
+  // A17.6: statically inline bounded void helper functions with no arguments.
+  // Recursion, unknown calls and helpers with parameters remain rejected.
+  const helperPattern = /\bvoid\s+([A-Za-z_]\w*)\s*\(\s*\)\s*\{/g
+  const helpers = new Map()
+  for (const match of clean.matchAll(helperPattern)) {
+    const name = match[1]
+    if (name === "setup" || name === "loop") continue
+    if (helpers.has(name)) {
+      return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, "duplicate helper function: " + name)] }
+    }
+    const result = findFunctionBody(clean, name)
+    if (result.malformed || result.found !== 1 || helpers.size >= 16) {
+      return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, "malformed or excessive helper functions")] }
+    }
+    helpers.set(name, result)
+  }
+  // Validate that helper definitions occupy all remaining top-level text.
+  // A function name must be a single identifier; its body is replaced only
+  // when the entire top-level declaration was recognized.
+  let helperTopLevel = topLevel
+  for (const [name, helper] of helpers) {
+    const header = new RegExp("void\\s+" + name + "\\s*\\(\\s*\\)\\s*\\{")
+    const original = clean.slice(helper.headerIndex, helper.bodyStartOffset + helper.body.length + 1)
+    helperTopLevel = helperTopLevel.replace(original, "")
+  }
+  if (helperTopLevel.trim()) {
     return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, "unsupported global declaration or source outside setup()/loop()")] }
   }
-
-  const setupCompiled = compileBody(setupResult.body, setupResult.bodyStartOffset, clean, constants)
-  const loopCompiled = compileBody(loopResult.body, loopResult.bodyStartOffset, clean, constants)
+  const expand = (body, stack = []) => {
+    if (stack.length > 8) throw new Error("helper call depth exceeds 8")
+    return body.replace(/\b([A-Za-z_]\w*)\s*\(\s*\)\s*;/g, (call, name) => {
+      if (!helpers.has(name)) return call
+      if (stack.includes(name)) throw new Error("recursive helper call: " + name)
+      return expand(helpers.get(name).body, [...stack, name])
+    })
+  }
+  let setupBody, loopBody
+  try {
+    setupBody = expand(setupResult.body)
+    loopBody = expand(loopResult.body)
+  } catch (error) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, error.message)] }
+  }
+  if (setupBody.length + loopBody.length > MAX_SOURCE_LENGTH) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, "expanded helpers exceed source safety limit")] }
+  }
+  const setupCompiled = compileBody(setupBody, setupResult.bodyStartOffset, clean, constants)
+  const loopCompiled = compileBody(loopBody, loopResult.bodyStartOffset, clean, constants)
   const diagnostics = [...setupCompiled.diagnostics, ...loopCompiled.diagnostics]
 
   if (diagnostics.length > 0) {
