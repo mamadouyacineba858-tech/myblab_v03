@@ -225,3 +225,26 @@ describe("A17.2 — compiler safety limits", () => {
     expect(result.ok).toBe(true)
   })
 })
+
+describe("A17.3 — global constant pin aliases", () => {
+  it("compiles const int pin alias in setup and loop", () => {
+    const source = "const int ledPin = 13;\nvoid setup() { pinMode(ledPin, OUTPUT); }\nvoid loop() { digitalWrite(ledPin, HIGH); delay(500); digitalWrite(ledPin, LOW); }"
+    const result = compileFirmware(source)
+    expect(result.ok).toBe(true)
+    expect(result.ir.setup[0].pin).toBe("D13")
+    expect(result.ir.loop[0].pin).toBe("D13")
+  })
+  it("rejects unresolved pin variables explicitly", () => {
+    const result = compileFirmware("void setup() { pinMode(unknownPin, OUTPUT); } void loop() {}")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+  })
+  it("rejects mutable global declarations", () => {
+    const result = compileFirmware("int ledPin = 13; void setup() {} void loop() {}")
+    expect(result.ok).toBe(false)
+  })
+  it("rejects duplicate constant declarations", () => {
+    const result = compileFirmware("const int led = 2; const int led = 3; void setup() {} void loop() {}")
+    expect(result.ok).toBe(false)
+  })
+})
