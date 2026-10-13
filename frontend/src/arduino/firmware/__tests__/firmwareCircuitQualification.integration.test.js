@@ -88,3 +88,23 @@ describe("MB-L1-ARD-005 — canonical Arduino -> resistor -> LED -> POWER.GND ci
     expect(getLedState("led1", pinSignals).on).toBe(false)
   })
 })
+
+describe("A17.7-B — firmware digitalRead through electrical resolution", () => {
+  it("samples a powered D2 input from the preceding resolved electrical frame", () => {
+    const source = "void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+    const { components, wires } = canonicalCircuit(source)
+    wires.splice(0, wires.length,
+      { fromUid: "power1", fromPin: "5V", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" })
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    step(0)
+    const session = firmwareSessions.get("arduino1")
+    expect(session.inputSignals.get("arduino1:D2")).toBe("HIGH")
+    const signals = step()
+    expect(getLedState("led1", signals).on).toBe(true)
+  })
+})
