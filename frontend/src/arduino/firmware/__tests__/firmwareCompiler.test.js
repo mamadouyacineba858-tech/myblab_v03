@@ -248,3 +248,17 @@ describe("A17.3 — global constant pin aliases", () => {
     expect(result.ok).toBe(false)
   })
 })
+
+describe("A17.3-B — mutable integer compilation", () => {
+  it("compiles declaration, increment and assignment", () => {
+    const result = compileFirmware("void setup() { int count = 0; } void loop() { count++; count += 2; count = 5; }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.setup[0]).toEqual({ op: "VAR_DECLARE", name: "count", value: 0 })
+    expect(result.ir.loop.map(node => node.op)).toEqual(["VAR_ASSIGN", "VAR_ASSIGN", "VAR_ASSIGN"])
+  })
+  it("rejects unsupported arbitrary arithmetic explicitly", () => {
+    const result = compileFirmware("void setup() {} void loop() { int count = 1 + 2; }")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+  })
+})
