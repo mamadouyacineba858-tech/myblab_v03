@@ -1511,7 +1511,13 @@ function synchronizeFirmware(components, orchestrators, sessions) {
     session.inputSignals = new Map()
     const runtimePort = {
       digitalWrite: (pin, signal) => runtime.digitalWrite(pin, signal),
-      digitalRead: (pin) => session.inputSignals.get(`${comp.uid}:${pin}`) ?? Signal.UNKNOWN,
+      digitalRead: (pin, mode) => {
+        const resolved = session.inputSignals.get(`${comp.uid}:${pin}`) ?? Signal.UNKNOWN
+        // INPUT_PULLUP supplies a weak HIGH only when no external level is resolved.
+        // Explicit LOW/HIGH from the electrical circuit always wins.
+        return mode === "INPUT_PULLUP" && (resolved === Signal.UNKNOWN || resolved === Signal.FLOATING)
+          ? Signal.HIGH : resolved
+      },
     }
     session.executor = new FirmwareExecutor(compiled.ir, runtimePort)
     session.controller = new FirmwareRuntimeController({ scheduler: orchestrator.getScheduler(), executor: session.executor })
