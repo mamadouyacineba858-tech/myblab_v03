@@ -170,15 +170,86 @@ function parseStatement(text, source, offset, diagnostics, constants) {
   return null
 }
 
+
 function compileBody(body, bodyStartOffset, source, constants) {
-  const statements = splitStatementsWithOffsets(body, bodyStartOffset)
   const diagnostics = []
   const ir = []
-  for (const { text, offset } of statements) {
-    const node = parseStatement(text, source, offset, diagnostics, constants)
-    if (node) ir.push(node)
+  let pos = 0
+  const fail = (message) => diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, message, lineAt(source, bodyStartOffset + pos)))
+  const skip = () => { while (pos < body.length && /\s/.test(body[pos])) pos++ }
+  const word = (value) => new RegExp("^" + value + "\\b").test(body.slice(pos))
+  const readCondition = () => {
+    skip()
+    if (body[pos] !== "(") { fail("expected condition in parentheses"); return null }
+    let depth = 1
+    const begin = ++pos
+    while (pos < body.length && depth > 0) {
+      if (body[pos] === "(") depth++
+      else if (body[pos] === ")") depth--
+      pos++
+    }
+    if (depth !== 0) { fail("unclosed condition"); return null }
+    const token = String.raw`(?:-?\d+|[A-Za-z_]\w*)`
+    const pattern = new RegExp("^(" + token + ")\\s*(==|!=|<=|>=|<|>)\\s*(" + token + ")$")
+    const match = body.slice(begin, pos - 1).trim().match(pattern)
+    if (!match) { fail("unsupported condition"); return null }
+    return Object.freeze({ left: match[1], operator: match[2], right: match[3] })
   }
-  return { ir, diagnostics }
+  const block = (depth = 0) => {
+    if (depth > 16) { fail("maximum block nesting exceeded"); return }
+    while (pos < body.length && diagnostics.length === 0) {
+      skip()
+      if (pos >= body.length) break
+      if (body[pos] === "}") {
+        if (depth === 0) { fail("unexpected closing brace"); return }
+        pos++
+        return
+      }
+      if (word("if") || word("while")) {
+        const loop = word("while")
+        pos += loop ? 5 : 2
+        const condition = readCondition()
+        if (!condition) return
+        skip()
+        if (body[pos] !== "{") { fail("expected braced block"); return }
+        pos++
+        const head = ir.length
+        ir.push({ op: "BRANCH_FALSE", condition, target: -1 })
+        block(depth + 1)
+        if (diagnostics.length) return
+        if (loop) {
+          ir.push({ op: "JUMP", target: head })
+          ir[head].target = ir.length
+        } else {
+          skip()
+          if (word("else")) {
+            pos += 4
+            skip()
+            if (body[pos] !== "{") { fail("expected braced else"); return }
+            pos++
+            const jump = ir.length
+            ir.push({ op: "JUMP", target: -1 })
+            ir[head].target = ir.length
+            block(depth + 1)
+            if (diagnostics.length) return
+            ir[jump].target = ir.length
+          } else ir[head].target = ir.length
+        }
+      } else {
+        const begin = pos
+        while (pos < body.length && !";{}".includes(body[pos])) pos++
+        if (body[pos] !== ";") { fail("expected semicolon or unsupported block"); return }
+        const statement = body.slice(begin, pos++).trim()
+        if (!statement) continue
+        const node = parseStatement(statement, source, bodyStartOffset + begin, diagnostics, constants)
+        if (node) ir.push(node)
+      }
+      if (ir.length > 1024) { fail("compiled instruction limit exceeded"); return }
+    }
+    if (depth !== 0 && diagnostics.length === 0) fail("unclosed block")
+  }
+  block()
+  return { ir: ir.map(node => Object.freeze(node)), diagnostics }
 }
 
 /**
