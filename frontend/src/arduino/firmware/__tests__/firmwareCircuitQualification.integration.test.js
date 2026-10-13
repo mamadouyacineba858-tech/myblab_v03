@@ -240,3 +240,33 @@ describe("A17.7-E — switch lifecycle, floating safety and restart", () => {
     expect(second.inputSignals.get("arduino1:D2")).not.toBe("HIGH")
   })
 })
+
+describe("A17.7-F — INPUT_PULLUP Arduino interactive button circuit", () => {
+  it("reads released HIGH and pressed LOW through the physical BUTTON, then releases HIGH", () => {
+    const source = "void setup() { pinMode(2, INPUT_PULLUP); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 0) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", firmware: { source } },
+      { uid: "button1", type: "BUTTON", state: "released" },
+      { uid: "resistor1", type: "RESISTOR" },
+      { uid: "led1", type: "LED" },
+      { uid: "power1", type: "POWER" },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "GND", toUid: "button1", toPin: "pin1" },
+      { fromUid: "button1", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    step(0)
+    expect(getLedState("led1", step()).on).toBe(false)
+    components[1].state = "pressed"
+    expect(step().get("arduino1:D2")).toBe("LOW")
+    expect(getLedState("led1", step()).on).toBe(true)
+    components[1].state = "released"
+    expect(getLedState("led1", step()).on).toBe(false)
+  })
+})
