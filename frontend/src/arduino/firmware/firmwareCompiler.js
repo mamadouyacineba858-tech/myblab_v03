@@ -216,7 +216,7 @@ function compileBody(body, bodyStartOffset, source, constants) {
         if (clauses.length !== 3) { fail("for requires initialization, condition, update"); return }
         const initializer = parseStatement(clauses[0], source, bodyStartOffset + begin, diagnostics, constants)
         if (!initializer || !["VAR_DECLARE", "VAR_ASSIGN"].includes(initializer.op)) { fail("unsupported for initializer"); return }
-        ir.push(initializer)
+        ir.push(initializer.op === "VAR_DECLARE" ? { ...initializer, op: "VAR_REINITIALIZE" } : initializer)
         const conditionMatch = clauses[1].match(/^(-?\d+|[A-Za-z_]\w*)\s*(==|!=|<=|>=|<|>)\s*(-?\d+|[A-Za-z_]\w*)$/)
         if (!conditionMatch) { fail("unsupported for condition"); return }
         const condition = Object.freeze({ left: conditionMatch[1], operator: conditionMatch[2], right: conditionMatch[3] })
