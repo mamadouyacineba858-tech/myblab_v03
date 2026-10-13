@@ -190,3 +190,53 @@ describe("A17.7-D — real switched electrical HIGH / LOW / HIGH cycle", () => {
     expect(firmwareSessions.get("arduino1")).toBe(session)
   })
 })
+
+describe("A17.7-E — switch lifecycle, floating safety and restart", () => {
+  const source = "void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+  function setup(state = "pressed") {
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", firmware: { source } },
+      { uid: "button1", type: "BUTTON", state },
+      { uid: "resistor1", type: "RESISTOR" },
+      { uid: "led1", type: "LED" },
+      { uid: "power1", type: "POWER" },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "button1", toPin: "pin1" },
+      { fromUid: "button1", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    return { components, orchestrators, firmwareSessions, step }
+  }
+
+  it("an open, unpolarized button never fabricates a valid HIGH reading", () => {
+    const { firmwareSessions, step } = setup("released")
+    const frame = step(0)
+    expect(frame.get("arduino1:D2")).not.toBe("HIGH")
+    expect(firmwareSessions.get("arduino1").inputSignals.get("arduino1:D2")).not.toBe("HIGH")
+  })
+
+  it("stop discards the input sampling session and restart re-reads the current physical contact", () => {
+    const { components, orchestrators, firmwareSessions, step } = setup()
+    expect(step(0).get("arduino1:D2")).toBe("HIGH")
+    expect(getLedState("led1", step()).on).toBe(true)
+    const first = firmwareSessions.get("arduino1")
+    stopFirmwareSimulation(orchestrators, firmwareSessions)
+    expect(firmwareSessions.size).toBe(0)
+    expect(orchestrators.size).toBe(0)
+    expect(getLedState("led1", new Map()).on).toBe(false)
+
+    components[1].state = "released"
+    const restarted = step(0)
+    expect(restarted.get("arduino1:D2")).not.toBe("HIGH")
+    const second = firmwareSessions.get("arduino1")
+    expect(second).not.toBe(first)
+    expect(second.awaitingFirstElectricalSample).toBe(true)
+    expect(second.inputSignals.get("arduino1:D2")).not.toBe("HIGH")
+  })
+})
