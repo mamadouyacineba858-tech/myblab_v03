@@ -175,6 +175,13 @@ export function compileFirmware(source) {
     return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.MALFORMED_BRACES, "firmware source must be a string")] }
   }
 
+  // A17.2: hard limits prevent oversized user sketches from monopolizing the UI
+  // during regex scanning and IR construction. Reject explicitly, never truncate.
+  const MAX_SOURCE_LENGTH = 64 * 1024
+  if (source.length > MAX_SOURCE_LENGTH) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, `firmware exceeds the ${MAX_SOURCE_LENGTH}-character safety limit`)] }
+  }
+
   const clean = stripComments(source)
 
   const setupResult = findFunctionBody(clean, "setup")
