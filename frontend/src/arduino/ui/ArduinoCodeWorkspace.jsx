@@ -16,7 +16,7 @@ void loop() {
 }
 `
 
-export function ArduinoCodeWorkspace({ onClose }) {
+const BUILTIN_LED_EXAMPLE = `void setup() {\n  pinMode(LED_BUILTIN, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(500);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(500);\n}\n`\n\nexport function ArduinoCodeWorkspace({ onClose }) {
   const { selectedComponent, updateArduinoFirmware, firmwareDiagnostics } = useCircuit()
   if (selectedComponent?.type !== "ARDUINO") return null
   return <Editor key={selectedComponent.uid} component={selectedComponent}
@@ -49,11 +49,11 @@ function Editor({ component, apply, onClose, runtimeDiagnostics }) {
   return <aside className="arduino-code-workspace" aria-label="Arduino Code">
     <div className="arduino-code-heading"><h2>Arduino Code</h2><button onClick={onClose} aria-label="Fermer Arduino Code">X</button></div>
     <small>Arduino {component.uid}</small>
-    <p className="arduino-code-help">Programme Arduino — sorties numériques D0 à D13. Le moteur actuel accepte pinMode(…, OUTPUT), digitalWrite(…) et delay(…).</p>
+    <p className="arduino-code-help">Programme Arduino — sorties numériques D0 à D13. Le moteur actuel accepte pinMode(…, OUTPUT), digitalWrite(…), delay(…) et LED_BUILTIN (D13).</p>
     <label htmlFor="arduino-sketch">Sketch</label>
     <textarea id="arduino-sketch" spellCheck={false} value={draft} onChange={event => { setDraft(event.target.value); setCompilation(null) }} />
     <div className="arduino-code-actions">
-      <button type="button" onClick={() => { setDraft(BLINK_EXAMPLE); setCompilation(null) }}>Exemple : LED clignotante D2</button>
+      <button type="button" onClick={() => { setDraft(BLINK_EXAMPLE); setCompilation(null) }}>Exemple : LED clignotante D2</button>\n      <button type="button" onClick={() => { setDraft(BUILTIN_LED_EXAMPLE); setCompilation(null) }}>Exemple : LED intégrée D13</button>
       <button type="button" disabled={draft === source} onClick={applyValidated}>Compiler et appliquer</button>
       <button type="button" onClick={compileDraft}>Compiler</button>
     </div>
