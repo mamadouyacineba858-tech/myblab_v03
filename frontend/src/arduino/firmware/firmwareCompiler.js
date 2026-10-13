@@ -101,7 +101,7 @@ function splitStatementsWithOffsets(body, bodyStartOffset) {
 function parseStatement(text, source, offset, diagnostics) {
   const line = lineAt(source, offset)
 
-  const pinModeMatch = text.match(/^pinMode\s*\(\s*(\d+)\s*,\s*(\w+)\s*\)$/)
+  const pinModeMatch = text.match(/^pinMode\s*\(\s*(\d+|LED_BUILTIN)\s*,\s*(\w+)\s*\)$/)
   if (pinModeMatch) {
     const [, pinStr, mode] = pinModeMatch
     const pin = resolveDigitalPin(pinStr)
@@ -116,7 +116,7 @@ function parseStatement(text, source, offset, diagnostics) {
     return Object.freeze({ op: "PIN_MODE", pin, mode })
   }
 
-  const digitalWriteMatch = text.match(/^digitalWrite\s*\(\s*(\d+)\s*,\s*(\w+)\s*\)$/)
+  const digitalWriteMatch = text.match(/^digitalWrite\s*\(\s*(\d+|LED_BUILTIN)\s*,\s*(\w+)\s*\)$/)
   if (digitalWriteMatch) {
     const [, pinStr, level] = digitalWriteMatch
     const pin = resolveDigitalPin(pinStr)
