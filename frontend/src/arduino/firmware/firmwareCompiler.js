@@ -101,6 +101,21 @@ function splitStatementsWithOffsets(body, bodyStartOffset) {
 function parseStatement(text, source, offset, diagnostics, constants) {
   const line = lineAt(source, offset)
 
+  // A17.3-B: bounded integer state and arithmetic. Expressions are compiled
+  // to a small typed IR, never evaluated as JavaScript source.
+  const integerDeclaration = text.match(/^int\s+([A-Za-z_]\w*)\s*=\s*(-?\d+)$/)
+  if (integerDeclaration) {
+    return Object.freeze({ op: "VAR_DECLARE", name: integerDeclaration[1], value: Number(integerDeclaration[2]) })
+  }
+  const integerAssignment = text.match(/^([A-Za-z_]\w*)\s*(=|\+=|-=)\s*([A-Za-z_]\w*|-?\d+)$/)
+  if (integerAssignment) {
+    return Object.freeze({ op: "VAR_ASSIGN", name: integerAssignment[1], operator: integerAssignment[2], operand: integerAssignment[3] })
+  }
+  const integerIncrement = text.match(/^([A-Za-z_]\w*)(\+\+|--)$/)
+  if (integerIncrement) {
+    return Object.freeze({ op: "VAR_ASSIGN", name: integerIncrement[1], operator: integerIncrement[2] === "++" ? "+=" : "-=", operand: "1" })
+  }
+
   const pinModeMatch = text.match(/^pinMode\s*\(\s*(\d+|LED_BUILTIN|[A-Za-z_]\w*)\s*,\s*(\w+)\s*\)$/)
   if (pinModeMatch) {
     const [, pinStr, mode] = pinModeMatch
