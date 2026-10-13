@@ -256,8 +256,13 @@ describe("A17.3-B — mutable integer compilation", () => {
     expect(result.ir.setup[0]).toEqual({ op: "VAR_DECLARE", name: "count", value: 0 })
     expect(result.ir.loop.map(node => node.op)).toEqual(["VAR_ASSIGN", "VAR_ASSIGN", "VAR_ASSIGN"])
   })
-  it("rejects unsupported arbitrary arithmetic explicitly", () => {
+  it("compiles supported integer arithmetic into explicit IR", () => {
     const result = compileFirmware("void setup() {} void loop() { int count = 1 + 2; }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop).toEqual([{ op: "VAR_DECLARE_EXPR", name: "count", left: "1", operator: "+", right: "2" }])
+  })
+  it("rejects unsupported compound arithmetic without partial IR", () => {
+    const result = compileFirmware("void setup() {} void loop() { int count = (1 + 2) * 3; }")
     expect(result.ok).toBe(false)
     expect(result.ir).toBeUndefined()
   })
