@@ -267,6 +267,10 @@ describe("A17.7-F — INPUT_PULLUP Arduino interactive button circuit", () => {
     expect(step().get("arduino1:D2")).toBe("LOW")
     expect(getLedState("led1", step()).on).toBe(true)
     components[1].state = "released"
+    // The controller samples the preceding resolved electrical frame.
+    // First resolve the opened contact, then allow the next loop read.
+    const releasedFrame = step()
+    expect(releasedFrame.get("arduino1:D2")).not.toBe("LOW")
     expect(getLedState("led1", step()).on).toBe(false)
   })
 })
