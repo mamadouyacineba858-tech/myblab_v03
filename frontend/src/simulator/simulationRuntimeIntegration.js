@@ -1248,7 +1248,17 @@ function computeElectricalStep(components, wires, options = {}) {
 
     if (runtimeComponents.length > 0) {
       for (const comp of runtimeComponents) {
-        options.firmwareSessions?.get(comp.uid)?.controller?.resumeAtCurrentTime()
+        const firmware = options.firmwareSessions?.get(comp.uid)
+        if (firmware?.awaitingFirstElectricalSample) {
+          // The previous frame has already resolved the circuit. Start only
+          // after those authoritative signals have been published.
+          if (firmware.inputSignals.size > 0) {
+            firmware.awaitingFirstElectricalSample = false
+            firmware.controller.start()
+          }
+        } else {
+          firmware?.controller?.resumeAtCurrentTime()
+        }
       }
       for (const comp of runtimeComponents) {
         const signalMap = orchestrators.get(comp.uid).getRuntime().tick(currentTimeMs)
@@ -1506,6 +1516,10 @@ function synchronizeFirmware(components, orchestrators, sessions) {
     session.executor = new FirmwareExecutor(compiled.ir, runtimePort)
     session.controller = new FirmwareRuntimeController({ scheduler: orchestrator.getScheduler(), executor: session.executor })
     runtime.start()
-    session.controller.start()
+    // Firmware with digitalRead must not execute before the first circuit
+    // resolution. Output-only Blink keeps its immediate-start semantics.
+    session.awaitingFirstElectricalSample = [...compiled.ir.setup, ...compiled.ir.loop]
+      .some(instruction => instruction.op === "DIGITAL_READ")
+    if (!session.awaitingFirstElectricalSample) session.controller.start()
   }
 }
