@@ -410,3 +410,32 @@ describe("A17.4 — structured control flow integration", () => {
     expect(executor._variables.get("count")).toBe(2)
   })
 })
+
+describe("A17.5 — integrated for loops and integer expressions", () => {
+  it("executes a for loop and resets its counter on the next loop tick", () => {
+    const ir = compileOk("void setup() { int total = 0; } void loop() { for (int i = 0; i < 3; i++) { total += 2; } }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    executor.resume(0)
+    expect(executor._variables.get("total")).toBe(6)
+    executor.resume(1)
+    expect(executor._variables.get("total")).toBe(12)
+  })
+  it("evaluates addition, multiplication, integer division and modulo", () => {
+    const ir = compileOk("void setup() { int a = 4; int b = 3; int c = a * b; c = c + 5; c = c / 2; c = c % 3; } void loop() {}")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    executor.resume(0)
+    expect(executor._variables.get("c")).toBe(2)
+  })
+  it("rejects division by zero without freezing the runtime", () => {
+    const ir = compileOk("void setup() { int a = 10; int b = 0; a = a / b; } void loop() {}")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    expect(() => executor.resume(0)).toThrow(/division by zero/)
+  })
+  it("executes a for loop with an if branch and physical digitalWrite", () => {
+    const ir = compileOk("void setup() { pinMode(13, OUTPUT); int count = 0; } void loop() { for (int i = 0; i < 4; i++) { count++; } if (count >= 4) { digitalWrite(13, HIGH); } }")
+    const port = fakeRuntime()
+    const executor = new FirmwareExecutor(ir, port)
+    executor.resume(0)
+    expect(port.digitalWrite).toHaveBeenCalledWith("D13", Signal.HIGH)
+  })
+})
