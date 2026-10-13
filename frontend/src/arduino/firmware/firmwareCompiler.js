@@ -103,6 +103,19 @@ function parseStatement(text, source, offset, diagnostics, constants) {
 
   // A17.3-B: bounded integer state and arithmetic. Expressions are compiled
   // to a small typed IR, never evaluated as JavaScript source.
+  // Explicitly parsed two-operand integer expressions; never eval user code.
+  const atom = String.raw`(?:-?\d+|[A-Za-z_]\w*)`
+  const expression = new RegExp("^(" + atom + ")\\s*([+*%/-])\\s*(" + atom + ")$")
+  const declarationExpression = text.match(/^int\s+([A-Za-z_]\w*)\s*=\s*(.+)$/)
+  if (declarationExpression && expression.test(declarationExpression[2])) {
+    const [, left, operator, right] = declarationExpression[2].match(expression)
+    return Object.freeze({ op: "VAR_DECLARE_EXPR", name: declarationExpression[1], left, operator, right })
+  }
+  const assignmentExpression = text.match(/^([A-Za-z_]\w*)\s*=\s*(.+)$/)
+  if (assignmentExpression && expression.test(assignmentExpression[2])) {
+    const [, left, operator, right] = assignmentExpression[2].match(expression)
+    return Object.freeze({ op: "VAR_ASSIGN_EXPR", name: assignmentExpression[1], left, operator, right })
+  }
   const integerDeclaration = text.match(/^int\s+([A-Za-z_]\w*)\s*=\s*(-?\d+)$/)
   if (integerDeclaration) {
     return Object.freeze({ op: "VAR_DECLARE", name: integerDeclaration[1], value: Number(integerDeclaration[2]) })
