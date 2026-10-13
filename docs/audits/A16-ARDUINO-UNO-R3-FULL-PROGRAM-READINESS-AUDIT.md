@@ -51,3 +51,35 @@
 
 ## 6. Décision CSA
 **Arduino UNO R3 : NON PRÊT pour un programme Arduino complet.** Architecture existante intéressante et réutilisable, mais son compilateur V1 constitue le verrou majeur. La prochaine mission doit être une **extension structurante du moteur de programmation**, non une retouche cosmétique de l'éditeur. Aucun changement de source/runtime réalisé dans cet audit.
+
+
+## 7. A17-FULL — mandat consolidé CSA (2026-10-14)
+
+**Décision utilisateur : arrêter les micro-missions Arduino.** La cible devient un **unique chantier de livraison Arduino UNO de bout en bout**, sans annoncer une compatibilité Arduino/C++ ou Tinkercad non démontrée. Les validations intermédiaires ne constituent plus des missions produit autonomes.
+
+### Périmètre de livraison intégrée
+
+1. **Surface et circuit** : placement UNO, contacts physiques D0–D13 et alimentation, connexions filaires, LED/résistance/bouton, sélection, déplacement, interaction momentanée et bistable, sauvegarde/Undo/Redo, Stop/Restart.
+2. **IDE** : édition, exemples fonctionnels, diagnostic compile/runtime, état appliqué, instructions utilisateur, réouverture de l'éditeur, erreurs explicites, absence de succès trompeur.
+3. **Langage et exécution** : setup/loop, pinMode, digitalWrite/digitalRead, INPUT_PULLUP, variables et portée, expressions, conditions/boucles, delay, quotas d'exécution, reprise temporelle et isolation entre sessions.
+4. **I/O étendues** : PWM/analogRead et Serial/terminal seulement après preuve complète jusqu'au circuit ou à l'interface ; sinon marquage explicite « non pris en charge ».
+5. **Qualification intégrée** : 10 sketches représentatifs de la section 4, matrice PASS/FAIL/UNSUPPORTED argumentée, tests UI+runtime+électrique+Canvas, build, régression, essai manuel dans le navigateur.
+6. **Exploitation** : un bloc PowerShell unique, avec STOP sur échec, Git → tests → build → VS Code → Vite → ouverture automatique de la plateforme après disponibilité HTTP.
+
+### Critères de clôture obligatoires
+
+- Aucun échec de tests inclus dans la qualification globale n'est écarté silencieusement.
+- Les scénarios déclarés supportés passent de la saisie du sketch jusqu'à la réponse visible des composants.
+- Les scénarios non supportés échouent avec diagnostic clair ; ils ne sont jamais présentés comme réussis.
+- Aucun gel navigateur, court-circuit inventé, HIGH artificiel en INPUT flottant, ni régression du bouton.
+- Le build et l'ouverture locale passent ; le fondateur confirme l'essai visuel réel.
+- La matrice finale liste les fonctionnalités supportées, partielles et absentes ; seul ce verdict clôt A17-FULL.
+
+### État initial vérifié au 2026-10-14
+
+- **PASS rapporté par le fondateur** : 20/20 tests ciblés Arduino et build, commit `ccd839a`, ouverture automatique de MYBlab.
+- **OUVERT** : 5 échecs des tests historiques `ButtonInteraction008.integration.test.jsx` lors d'une qualification élargie ; la structure DOM actuelle distingue actionneur et corps du bouton. Il faut qualifier ces tests sans supprimer les assertions.
+- **OUVERT** : matrice de 10 sketches, capacités ADC/PWM/Serial, fidélité du langage Arduino et essai visuel complet.
+- **Verdict** : **A17-FULL OPEN / NO-GO pour annoncer Arduino terminé**. Les travaux déjà validés restent conservés.
+
+Ce mandat remplace les propositions de nouvelles sous-missions A17.7-H, A17.7-I, etc. Toute correction à venir appartient à la même livraison consolidée A17-FULL.
