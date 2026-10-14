@@ -318,3 +318,27 @@ describe("A17.6 — bounded helper function compilation", () => {
     expect(result.ok).toBe(false)
   })
 })
+
+
+describe("A17-FULL — ten representative UNO sketch compatibility contracts", () => {
+  const sketches = [
+    ["Blink", true, "void setup(){pinMode(13,OUTPUT);} void loop(){digitalWrite(13,HIGH);delay(500);digitalWrite(13,LOW);delay(500);}"],
+    ["button input", true, "void setup(){pinMode(2,INPUT);int pressed=0;} void loop(){pressed=digitalRead(2);delay(16);}"],
+    ["button to LED", true, "void setup(){pinMode(2,INPUT_PULLUP);pinMode(13,OUTPUT);int pressed=0;} void loop(){pressed=digitalRead(2);if(pressed==0){digitalWrite(13,HIGH);}else{digitalWrite(13,LOW);}delay(16);}"],
+    ["PWM dimmer", false, "void setup(){pinMode(9,OUTPUT);} void loop(){analogWrite(9,128);delay(16);}"],
+    ["potentiometer ADC", false, "void setup(){} void loop(){int value=analogRead(A0);delay(16);}"],
+    ["Serial monitor", false, "void setup(){Serial.begin(9600);} void loop(){Serial.println(42);delay(1000);}"],
+    ["traffic lights", true, "void setup(){pinMode(2,OUTPUT);pinMode(3,OUTPUT);pinMode(4,OUTPUT);} void loop(){digitalWrite(2,HIGH);delay(100);digitalWrite(2,LOW);digitalWrite(3,HIGH);delay(100);digitalWrite(3,LOW);digitalWrite(4,HIGH);delay(100);digitalWrite(4,LOW);}"],
+    ["variables and arithmetic", true, "void setup(){int counter=0;pinMode(13,OUTPUT);} void loop(){counter+=1;if(counter>5){counter=0;}delay(16);}"],
+    ["bounded conditional loop", true, "void setup(){pinMode(13,OUTPUT);} void loop(){for(int i=0;i<3;i++){digitalWrite(13,HIGH);digitalWrite(13,LOW);}delay(16);}"],
+    ["servo library", false, "#include <Servo.h>\nServo motor; void setup(){motor.attach(9);} void loop(){motor.write(90);delay(100);}"],
+  ]
+  it.each(sketches)("%s: explicit compiler compatibility verdict", (_name, supported, source) => {
+    const result = compileFirmware(source)
+    expect(result.ok).toBe(supported)
+    if (!supported) {
+      expect(result.diagnostics.length).toBeGreaterThan(0)
+      expect(result.diagnostics.every(d => typeof d.message === "string" && d.message.length > 0)).toBe(true)
+    }
+  })
+})
