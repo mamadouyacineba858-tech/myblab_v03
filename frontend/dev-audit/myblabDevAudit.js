@@ -1,6 +1,8 @@
 import { spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { Buffer } from 'node:buffer'
+import process from 'node:process'
 
 /**
  * MB-AUDIT-AUTO-004 — exécuteur strictement local au serveur Vite DEV.
