@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
  * The preview is a cloned DOM snapshot, not a pixel-level image comparison.
  */
 const rectData = rect => ({ x: +rect.x.toFixed(2), y: +rect.y.toFixed(2), width: +rect.width.toFixed(2), height: +rect.height.toFixed(2) })
-const findComponents = () => [...document.querySelectorAll('.circuit-component')].filter(el => !el.closest('[data-visual-microscope]'))
+const findComponents = () => [...document.querySelectorAll('.simulation-canvas .circuit-component')].filter(el => !el.closest('[data-visual-microscope]'))
 const nodeName = (el, index) => {
   const type = el.getAttribute('data-component-type') || el.getAttribute('data-type') || el.querySelector('[class*="part-"]')?.className?.toString().split(' ').find(x => x.startsWith('part-')) || 'Composant'
   return `${index + 1}. ${type}`
@@ -78,13 +78,20 @@ export function ComponentVisualMicroscope() {
     host.appendChild(snapshot)
     setResult(inspect(current))
   }, [current])
-  const auditAll = () => {
+  const auditAll = useCallback(() => {
     const components = findComponents().map(inspect)
     const summary = { total: components.length, anomaly: components.filter(c => c.verdict === 'ANOMALY').length, review: components.filter(c => c.verdict === 'REVIEW').length, noAutomaticAnomaly: components.filter(c => c.verdict === 'NO_AUTOMATIC_ANOMALY').length }
-    const payload = { schema: 'myblab.visual-microscope.batch.v1', timestamp: new Date().toISOString(), summary, components, qualification: 'VISUAL_HUMAN_REVIEW_REQUIRED' }
+    const canvas = document.querySelector('.simulation-canvas')
+    const canvasStatus = !canvas ? 'CANVAS_NOT_FOUND' : components.length === 0 ? 'EMPTY_OR_NOT_RENDERED' : 'INSPECTED'
+    const payload = { schema: 'myblab.visual-microscope.batch.v2', timestamp: new Date().toISOString(), summary, canvasStatus, canvasPresent: Boolean(canvas), qualification: components.length ? 'VISUAL_HUMAN_REVIEW_REQUIRED' : 'BLOCKED_NO_COMPONENTS', components }
     setBatch(payload)
     window.dispatchEvent(new CustomEvent('myblab:visual-audit', { detail: payload }))
-  }
+  }, [])
+  useEffect(() => {
+    const handleFullAudit = () => auditAll()
+    window.addEventListener('myblab:run-visual-audit', handleFullAudit)
+    return () => window.removeEventListener('myblab:run-visual-audit', handleFullAudit)
+  }, [auditAll])
   const save = () => {
     if (!result && !batch) return
     const payload = batch || { schema: 'myblab.visual-microscope.v1', zoom, ...result }
@@ -101,7 +108,7 @@ export function ComponentVisualMicroscope() {
     <p style={{ fontSize: 12 }}>Grossissement optique DOM de 1× à 12×. Analyse des images, dimensions et contacts. Une anomalie absente de cette liste n'est pas une preuve de perfection graphique.</p>
     <button type="button" onClick={refresh}>↻ Rechercher les composants du Canvas</button>
     <button type="button" onClick={auditAll} style={{ marginLeft: 8 }}>🔬 Auditer tous les composants du Canvas</button>
-    {batch && <p role="status">Audit collectif : {batch.summary.total} composants, {batch.summary.anomaly} anomalie(s), {batch.summary.review} à examiner, {batch.summary.noAutomaticAnomaly} sans anomalie automatique. Revue humaine toujours obligatoire.</p>}
+    {batch && <p role="status">{batch.canvasStatus !== 'INSPECTED' ? 'Audit visuel BLOQUÉ : aucun composant inspecté. ' : ''}Audit collectif : {batch.summary.total} composants, {batch.summary.anomaly} anomalie(s), {batch.summary.review} à examiner, {batch.summary.noAutomaticAnomaly} sans anomalie automatique. Revue humaine toujours obligatoire.</p>}
     {items.length ? <>
       <label style={{ display: 'block', marginTop: 10 }}>Composant à examiner
         <select aria-label="Composant à examiner" value={selected} onChange={e => setSelected(Number(e.target.value))} style={{ display: 'block', width: '100%', padding: 7 }}>
