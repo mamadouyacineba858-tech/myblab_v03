@@ -2,7 +2,7 @@
 // CircuitComponent.jsx) : import React explicite requis par la config
 // vitest secondaire pour tout .jsx rendu sous cette config. Aucun
 // changement de comportement.
-import React from "react"
+import React, { useState } from "react"
 import "./Pin.css"
 
 /**
@@ -21,6 +21,7 @@ export function Pin({
   onPinClick,
   hideVisualMarker = false,
 }) {
+  const [hovered, setHovered] = useState(false)
   const handleMouseDown = (e) => {
     e.stopPropagation()
   }
@@ -37,7 +38,10 @@ export function Pin({
       type="button"
       data-wire-uid={componentUid}
       data-wire-pin={pinId}
-      {...(contactId != null ? { "data-wire-contact": contactId } : {})}
+      data-wire-contact={contactId ?? pinId}
+      title={pinId}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       onPointerDown={(e) => {
         e.stopPropagation()
         // [FT-B-001-S2] `contactId` transmis à la gesture (ancre de contact
@@ -50,12 +54,14 @@ export function Pin({
         hideVisualMarker && "myblab-pin--markerless",
         isPending && "myblab-pin--pending",
         isConnected && "myblab-pin--connected",
+        hovered && "myblab-pin--hover",
       ]
         .filter(Boolean)
         .join(" ")}
       style={{
         left: Number.isFinite(left) ? left : 0,
         top: Number.isFinite(top) ? top : 0,
+        opacity: hideVisualMarker ? 0 : 1,
       }}
       data-hover-label={label ?? pinId}
       onMouseDown={handleMouseDown}
