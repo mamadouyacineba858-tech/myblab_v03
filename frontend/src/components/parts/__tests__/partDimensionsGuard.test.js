@@ -67,7 +67,8 @@ const RASTER_PART_FILES = new Set(
 // A6-OUT1-R1 : VibrationMotorPart.jsx est passé au backend raster (paquet
 // d'assets réaliste Founder-approved) — couvert par RASTER_PART_FILES
 // ci-dessus, n'est plus un renderer CSS/DOM physique. Retiré de cette liste.
-const PHYSICAL_DOM_PART_FILES = new Set()\nconst HYBRID_RASTER_PART_FILES = new Set(["ThermistorPart.jsx"])
+const PHYSICAL_DOM_PART_FILES = new Set()
+const HYBRID_RASTER_PART_FILES = new Set(["ThermistorPart.jsx"])
 
 // [MB-L1-CONS-002] RgbLedPart.jsx est un cas distinct, pré-existant et
 // indépendant de la réconciliation CAPACITOR/THERMISTOR : il gère son propre
