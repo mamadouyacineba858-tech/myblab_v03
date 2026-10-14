@@ -123,7 +123,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     pointerUp(190, 150, 51)
 
     const moved = getApi().components.find((c) => c.uid === button.uid)
-    expect(moved.x).toBe(140)
+    expect(moved.x, `B2 drag: zoom=${getApi().zoom}, selected=${JSON.stringify([...getApi().selection ?? []])}`).toBe(140)
     expect(moved.y).toBe(120)
 
     // Le release momentary appartient au handler React du corps du bouton.
