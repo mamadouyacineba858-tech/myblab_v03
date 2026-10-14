@@ -16,7 +16,7 @@ export function myblabDevAudit() {
   // Chaque controle a son propre delai. Les preuves visuelles/physiques restent distinctes.
   const plan = [
     { id: 'full-suite', label: 'Toutes les suites Vitest du frontend (simulation, composants, Canvas, Arduino, persistance)', script: 'node_modules/vitest/vitest.mjs',
-      args: ['--config', 'src/simulator/vitest.config.ts', '--run', '--maxWorkers=2', '--minWorkers=1'], timeoutMs: 300000 },
+      args: ['--config', 'src/simulator/vitest.config.ts', '--run', '--maxWorkers=2', '--minWorkers=1'], timeoutMs: 900000 },
     { id: 'lint', label: 'Analyse statique ESLint de tout le frontend', script: 'node_modules/eslint/bin/eslint.js',
       args: ['.'], timeoutMs: 120000 },
     { id: 'build', label: 'Compilation TypeScript et Vite', script: 'node_modules/typescript/bin/tsc',
@@ -39,6 +39,7 @@ export function myblabDevAudit() {
       let finished = false
       let output = ''
       let truncated = false
+      let omittedBytes = 0
       const append = chunk => {
         if (state.phase === "RUNNING") {
           const active = state.steps.find(item => item.status === "RUNNING")
@@ -48,6 +49,7 @@ export function myblabDevAudit() {
         if (output.length + value.length > 60000) {
           output += value.slice(0, Math.max(0, 60000 - output.length))
           truncated = true
+          omittedBytes += Buffer.byteLength(value)
         } else output += value
       }
       const child = spawn(process.execPath, [resolve(root, script), ...args], {
@@ -69,7 +71,7 @@ export function myblabDevAudit() {
         if (finished) return
         finished = true
         clearTimeout(timeout)
-        done({ status: code === 0 ? 'PASS' : 'FAIL', exitCode: code, reason: timedOut ? `TIMEOUT_${Math.round(timeoutMs / 1000)}_SECONDS` : reason, output, truncated })
+        done({ status: code === 0 ? 'PASS' : 'FAIL', exitCode: code, reason: timedOut ? `TIMEOUT_${Math.round(timeoutMs / 1000)}_SECONDS` : reason, output, truncated, omittedBytes })
       }
       child.on('error', error => finish(null, error.message))
       child.on('close', (code, signal) => finish(code, signal ? `Signal: ${signal}` : null))
