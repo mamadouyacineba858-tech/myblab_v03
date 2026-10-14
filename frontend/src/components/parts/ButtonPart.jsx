@@ -47,7 +47,7 @@ export function ButtonPart({
   // Sur l'actionneur, preventDefault() supprime uniquement ce mousedown :
   // la pression momentary reste donc une pression et ne déplace pas le bouton.
   const handleActuatorPointerDown = (event) => {
-    event.preventDefault()
+    event.stopPropagation()
     onPointerDown?.(event)
   }
 
