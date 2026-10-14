@@ -38,12 +38,12 @@ function mouseDown(node, clientX, clientY) {
   })
 }
 
-function pointerMove(clientX, clientY) {
-  fireEvent.pointerMove(window, { clientX, clientY })
+function pointerMove(clientX, clientY, pointerId = 1) {
+  fireEvent.pointerMove(window, { button: 0, buttons: 1, pointerId, clientX, clientY })
 }
 
-function pointerUp(clientX = 0, clientY = 0) {
-  fireEvent.pointerUp(window, { clientX, clientY })
+function pointerUp(clientX = 0, clientY = 0, pointerId = 1) {
+  fireEvent.pointerUp(window, { button: 0, buttons: 0, pointerId, clientX, clientY })
 }
 
 describe("MB-VIS-BUTTON-INTERACTION-008", () => {
@@ -117,8 +117,8 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
       clientY: 110,
     })
     mouseDown(body, 110, 110)
-    pointerMove(150, 130)
-    pointerUp(150, 130)
+    pointerMove(150, 130, 51)
+    pointerUp(150, 130, 51)
 
     const moved = getApi().components.find((c) => c.uid === button.uid)
     expect(moved.x).toBe(140)
@@ -177,8 +177,8 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
       clientY: 110,
     })
     mouseDown(body, 110, 110)
-    pointerMove(150, 130)
-    pointerUp(150, 130)
+    pointerMove(150, 130, 61)
+    pointerUp(150, 130, 61)
 
     fireEvent.click(body, {
       clientX: 150,
@@ -234,6 +234,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
       clientX: 110,
       clientY: 110,
     })
+    fireEvent.pointerUp(body, { button: 0, pointerId: 71, clientX: 110, clientY: 110 })
     fireEvent.click(body, {
       clientX: 110,
       clientY: 110,
@@ -246,6 +247,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
       clientX: 110,
       clientY: 110,
     })
+    fireEvent.pointerUp(body, { button: 0, pointerId: 72, clientX: 110, clientY: 110 })
     fireEvent.click(body, {
       clientX: 110,
       clientY: 110,
