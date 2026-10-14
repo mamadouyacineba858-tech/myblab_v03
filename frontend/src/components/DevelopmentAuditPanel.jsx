@@ -195,41 +195,67 @@ export function DevelopmentAuditPanel({ onClose }) {
     window.open(url, "_blank", "noopener,noreferrer");
     window.setTimeout(() => URL.revokeObjectURL(url), 60000);
   }, [report, runner]);
+  const running = runner?.phase === "RUNNING";
+  const finished = runner?.phase === "DONE";
+  const passed = runner?.steps?.filter(step => step.status === "PASS").length ?? 0;
+  const total = runner?.steps?.length ?? 0;
+  const current = runner?.steps?.find(step => step.status === "RUNNING");
+  const failures = runner?.steps?.filter(step => step.status === "FAIL") ?? [];
   return (
-    <section role="dialog" aria-modal="false" aria-label="Audit de développement MYBlab"
-      style={{ position: "fixed", right: 16, top: 72, width: "min(520px, calc(100vw - 32px))", maxHeight: "78vh", overflowY: "auto", zIndex: 10000, background: "#14202e", color: "#f8fafc", border: "1px solid #64748b", borderRadius: 12, padding: 18, boxShadow: "0 16px 40px #0006" }}>
+    <section role="dialog" aria-modal="false" aria-label="Contrôle MYBlab"
+      style={{ position: "fixed", right: 16, top: 72, width: "min(490px, calc(100vw - 32px))",
+        maxHeight: "min(75vh, 650px)", overflowY: "auto", zIndex: 10000,
+        background: "#14202e", color: "#f8fafc", border: "1px solid #64748b",
+        borderRadius: 12, padding: 18, boxShadow: "0 16px 40px #0006" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-        <strong>Centre d'audit DEV · provisoire</strong>
-        <button type="button" onClick={onClose} aria-label="Fermer l'audit">✕</button>
+        <strong style={{ fontSize: 20 }}>Contrôle de MYBlab</strong>
+        <button type="button" onClick={onClose} aria-label="Fermer le contrôle">✕</button>
       </div>
-      <p style={{ fontSize: 13 }}>Audit global des suites Vitest, simulateur, ESLint et compilation. La validation visuelle et physique reste distincte.</p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button type="button" onClick={runAll} disabled={runner?.phase === "RUNNING"}>▶ Lancer l'audit automatisé</button>
-        <button type="button" onClick={run}>Pré-audit navigateur</button>
-        <button type="button" onClick={download} disabled={runner?.phase !== "DONE"}>↓ Télécharger le JSON final</button>
-      </div>
-      {autoOpened && runner?.phase === "DONE" && <div role="status" style={{ marginTop: 12, padding: 12, border: "1px solid #64748b", borderRadius: 8 }}><strong>Audit terminé : rapport JSON prêt.</strong><p>Le JSON final est affiché automatiquement dans l’onglet ouvert au démarrage. Aucun téléchargement partiel n’est autorisé.</p><button type="button" onClick={viewJson}>↗ Ouvrir le JSON final dans un nouvel onglet</button></div>}
-      {runner?.phase === "RUNNING" && <p role="status">Contrôles en cours : export désactivé jusqu’à la fin de toutes les étapes.</p>}
-      {runnerError && <p role="alert" style={{ color: "#fca5a5" }}>STOP : {runnerError}</p>}
-      {runner && <div aria-live="polite" style={{ marginTop: 12 }}>
-        <p><strong>Tests locaux :</strong> {runner.phase} — {runner.verdict}</p>
-        <ul style={{ paddingLeft: 20 }}>
-          {runner.steps?.map(step => <li key={step.id}>
-            <strong>{step.status}</strong> — {step.label}
-            {step.reason && <span> ({step.reason})</span>}
-            {step.output && <details><summary>Journal du test</summary><pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 11 }}>{step.output}</pre></details>}
-          </li>)}
-        </ul>
+      <p style={{ lineHeight: 1.5 }}>Vérifie le logiciel et prépare automatiquement un rapport à me transmettre.</p>
+      <button type="button" onClick={runAll} disabled={running}
+        style={{ padding: "12px 16px", fontSize: 16, fontWeight: 700, width: "100%",
+          cursor: running ? "wait" : "pointer" }}>
+        {running ? "⏳ Contrôle en cours…" : "▶ Démarrer le contrôle complet"}
+      </button>
+      {running && <div role="status" aria-live="polite" style={{ marginTop: 16 }}>
+        <strong>Patiente pendant la vérification.</strong>
+        <p>{current ? current.label : "Préparation des contrôles…"}</p>
+        <p>{passed} étape(s) terminée(s) sur {total}.</p>
+        <progress value={passed} max={Math.max(1, total)} style={{ width: "100%" }} />
+        <p style={{ fontSize: 13 }}>Le rapport final apparaîtra automatiquement dans l'onglet ouvert au démarrage.</p>
       </div>}
-      {report && (
-        <div aria-live="polite" style={{ marginTop: 12 }}>
-          <p><strong>{report.totals.pass} PASS · {report.totals.fail} FAIL · {report.totals.blocked} NON QUALIFIÉS</strong></p>
-          <p>Verdict : {report.verdict} — qualification produit : NON ACQUISE</p>
+      {finished && <div role="status" aria-live="polite" style={{ marginTop: 16 }}>
+        <strong style={{ fontSize: 17 }}>{failures.length ? "⚠ Contrôle terminé : des problèmes ont été détectés." : "✓ Contrôle automatique terminé."}</strong>
+        <p>{passed} étape(s) réussie(s) sur {total}. {failures.length ? `${failures.length} étape(s) en échec.` : ""}</p>
+        <p>Le rapport complet est prêt dans l'onglet du navigateur.</p>
+        <button type="button" onClick={viewJson}>↗ Voir le rapport complet</button>
+        <button type="button" onClick={download} style={{ marginLeft: 8 }}>↓ Enregistrer le rapport</button>
+        <p style={{ fontSize: 13 }}>Les contrôles visuels et physiques nécessitent encore une validation séparée.</p>
+      </div>}
+      {!running && !finished && <p style={{ fontSize: 13 }}>Un nouvel onglet affichera le rapport lorsque le contrôle sera terminé.</p>}
+      {runnerError && <p role="alert" style={{ color: "#fca5a5" }}>Impossible de poursuivre : {runnerError}</p>}
+      <details style={{ marginTop: 16 }}>
+        <summary style={{ cursor: "pointer", fontWeight: 600 }}>Afficher les détails techniques (facultatif)</summary>
+        <div style={{ marginTop: 12 }}>
+          <button type="button" onClick={run}>Vérifier uniquement l'affichage</button>
+          <p>État du contrôle : {runner?.phase ?? "non démarré"} — {runner?.verdict ?? "aucun résultat"}</p>
           <ul style={{ paddingLeft: 20 }}>
-            {report.checks.map(c => <li key={c.id}><strong>{c.status}</strong> — {c.label} : {c.detail}</li>)}
+            {runner?.steps?.map(step => <li key={step.id}>
+              <strong>{step.status}</strong> — {step.label}
+              {step.reason && <span> ({step.reason})</span>}
+              {step.output && <details><summary>Journal du test</summary>
+                <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 11 }}>{step.output}</pre>
+              </details>}
+            </li>)}
           </ul>
+          {report && <>
+            <p>{report.totals.pass} réussites, {report.totals.fail} échecs, {report.totals.blocked} contrôles non réalisés dans le navigateur.</p>
+            <ul style={{ paddingLeft: 20 }}>
+              {report.checks.map(c => <li key={c.id}><strong>{c.status}</strong> — {c.label} : {c.detail}</li>)}
+            </ul>
+          </>}
         </div>
-      )}
+      </details>
     </section>
   );
 }
