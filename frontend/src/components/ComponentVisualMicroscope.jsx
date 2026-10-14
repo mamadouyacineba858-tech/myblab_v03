@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 /**
  * Audit DEV only. Optical DOM magnifier and measurable geometry checks.
@@ -50,6 +50,7 @@ export function ComponentVisualMicroscope() {
   const [zoom, setZoom] = useState(5)
   const [result, setResult] = useState(null)
   const [revision, setRevision] = useState(0)
+  const [batch, setBatch] = useState(null)
   const stage = useRef(null)
   const refresh = useCallback(() => {
     const found = findComponents()
@@ -77,13 +78,21 @@ export function ComponentVisualMicroscope() {
     host.appendChild(snapshot)
     setResult(inspect(current))
   }, [current])
+  const auditAll = () => {
+    const components = findComponents().map(inspect)
+    const summary = { total: components.length, anomaly: components.filter(c => c.verdict === 'ANOMALY').length, review: components.filter(c => c.verdict === 'REVIEW').length, noAutomaticAnomaly: components.filter(c => c.verdict === 'NO_AUTOMATIC_ANOMALY').length }
+    const payload = { schema: 'myblab.visual-microscope.batch.v1', timestamp: new Date().toISOString(), summary, components, qualification: 'VISUAL_HUMAN_REVIEW_REQUIRED' }
+    setBatch(payload)
+    window.dispatchEvent(new CustomEvent('myblab:visual-audit', { detail: payload }))
+  }
   const save = () => {
-    if (!result) return
-    const blob = new Blob([JSON.stringify({ schema: 'myblab.visual-microscope.v1', zoom, ...result }, null, 2)], { type: 'application/json' })
+    if (!result && !batch) return
+    const payload = batch || { schema: 'myblab.visual-microscope.v1', zoom, ...result }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'MYBLAB-VISUAL-MICROSCOPE.json'
+    a.download = batch ? 'MYBLAB-VISUAL-MICROSCOPE-BATCH.json' : 'MYBLAB-VISUAL-MICROSCOPE.json'
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -91,6 +100,8 @@ export function ComponentVisualMicroscope() {
     <h3 style={{ margin: '0 0 8px' }}>🔬 Microscope visuel — composants</h3>
     <p style={{ fontSize: 12 }}>Grossissement optique DOM de 1× à 12×. Analyse des images, dimensions et contacts. Une anomalie absente de cette liste n'est pas une preuve de perfection graphique.</p>
     <button type="button" onClick={refresh}>↻ Rechercher les composants du Canvas</button>
+    <button type="button" onClick={auditAll} style={{ marginLeft: 8 }}>🔬 Auditer tous les composants du Canvas</button>
+    {batch && <p role="status">Audit collectif : {batch.summary.total} composants, {batch.summary.anomaly} anomalie(s), {batch.summary.review} à examiner, {batch.summary.noAutomaticAnomaly} sans anomalie automatique. Revue humaine toujours obligatoire.</p>}
     {items.length ? <>
       <label style={{ display: 'block', marginTop: 10 }}>Composant à examiner
         <select aria-label="Composant à examiner" value={selected} onChange={e => setSelected(Number(e.target.value))} style={{ display: 'block', width: '100%', padding: 7 }}>
@@ -106,7 +117,7 @@ export function ComponentVisualMicroscope() {
         </div>
       </div>
       <button type="button" onClick={() => current && setResult(inspect(current))} style={{ marginTop: 10 }}>Analyser à nouveau</button>
-      <button type="button" onClick={save} disabled={!result} style={{ marginLeft: 8 }}>↓ Rapport visuel JSON</button>
+      <button type="button" onClick={save} disabled={!result && !batch} style={{ marginLeft: 8 }}>↓ Rapport visuel JSON</button>
       {result && <div aria-live="polite" style={{ marginTop: 8, fontSize: 13 }}>
         <strong>Diagnostic : {result.verdict}</strong>
         <p>{result.imageCount} image(s) · {result.contacts.length} cible(s) de contact · {result.issues.length} observation(s)</p>
