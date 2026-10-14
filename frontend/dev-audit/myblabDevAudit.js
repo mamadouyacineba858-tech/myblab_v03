@@ -47,9 +47,10 @@ export function myblabDevAudit() {
         }
         const value = String(chunk)
         if (output.length + value.length > 60000) {
-          output += value.slice(0, Math.max(0, 60000 - output.length))
+          const kept = value.slice(0, Math.max(0, 60000 - output.length))
+          output += kept
           truncated = true
-          omittedBytes += Buffer.byteLength(value)
+          omittedBytes += Buffer.byteLength(value.slice(kept.length))
         } else output += value
       }
       const child = spawn(process.execPath, [resolve(root, script), ...args], {
