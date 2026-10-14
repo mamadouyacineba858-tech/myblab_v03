@@ -394,15 +394,16 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
     })
 
     const root = document.querySelector('.part-button')
-    expect(root).not.toBeNull()
+    const actuator = root?.querySelector('[data-button-actuator="true"]')
+    expect(actuator).not.toBeNull()
 
     act(() => {
-      fireEvent.pointerDown(root)
+      fireEvent.pointerDown(actuator)
     })
     expect(circuitApi.components[0].state).toBe('pressed')
 
     act(() => {
-      fireEvent.pointerUp(root)
+      fireEvent.pointerUp(actuator)
     })
     expect(circuitApi.components[0].state).toBe('released')
   })
