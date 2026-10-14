@@ -18,6 +18,11 @@ function inspect(el) {
   const rect = el.getBoundingClientRect()
   if (rect.width < 1 || rect.height < 1) issues.push({ severity: 'ERROR', code: 'EMPTY_BOX', message: 'Boîte du composant vide ou invisible' })
   if (bodyRect.width < 1 || bodyRect.height < 1) issues.push({ severity: 'ERROR', code: 'EMPTY_BODY', message: 'Corps visuel absent' })
+  const canvas = el.closest('.simulation-canvas')
+  const canvasRect = canvas?.getBoundingClientRect()
+  if (canvasRect && (rect.right < canvasRect.left || rect.left > canvasRect.right || rect.bottom < canvasRect.top || rect.top > canvasRect.bottom)) {
+    issues.push({ severity: 'WARNING', code: 'OFFSCREEN_COMPONENT', message: 'Composant entièrement hors de la zone visible du Canvas' })
+  }
   const images = [...el.querySelectorAll('img')]
   images.forEach((img, index) => {
     if (!img.complete) issues.push({ severity: 'PENDING', code: 'IMAGE_LOADING', message: `Image ${index + 1} en chargement` })
@@ -39,6 +44,9 @@ function inspect(el) {
     if (seen.has(id)) issues.push({ severity: 'WARNING', code: 'DUPLICATE_CONTACT', message: `Contact présenté plusieurs fois : ${id}` })
     seen.add(id)
     const p = pin.getBoundingClientRect()
+    if (p.width > 0 && p.height > 0 && (p.right < rect.left - 2 || p.left > rect.right + 2 || p.bottom < rect.top - 2 || p.top > rect.bottom + 2)) {
+      issues.push({ severity: 'WARNING', code: 'CONTACT_OUTSIDE_COMPONENT', message: `Contact ${id} en dehors de la boîte visuelle du composant` })
+    }
     if (!Number.isFinite(p.x + p.y) || p.width < 1 || p.height < 1) issues.push({ severity: 'ERROR', code: 'CONTACT_BOX', message: `Zone de contact invalide : ${id}` })
   })
   if (!contacts.length) issues.push({ severity: 'WARNING', code: 'NO_VISIBLE_CONTACT', message: 'Aucune cible de contact trouvée dans le DOM (à vérifier selon le composant)' })
