@@ -155,9 +155,9 @@ describe('MB-VIS-LAB-046 — Navbar : commandes existantes inchangées (O2, T19-
 describe('MB-VIS-LAB-046 — SettingsPanel : ouverture/fermeture + cohérence thème (O7/F13, T28-T30)', () => {
   it("T28 — Settings s'ouvre/se ferme correctement (comportement inchangé)", () => {
     const { getByTitle, container, queryByText } = renderNavbar()
-    expect(queryByText('Paramètres')).toBe(null)
+    expect(container.querySelector('.settings-panel')).toBe(null)
 
-    fireEvent.click(getByTitle('Paramètres'))
+    fireEvent.click(getByTitle('Ouvrir les paramètres'))
     expect(container.querySelector('.settings-panel')).not.toBe(null)
 
     const closeBtn = container.querySelector('.settings-panel__close')
@@ -167,7 +167,7 @@ describe('MB-VIS-LAB-046 — SettingsPanel : ouverture/fermeture + cohérence th
 
   it('T29 — Settings respecte theme-light : App.css déclare une surcharge réelle de fond clair pour .settings-panel (F13, avant ce ticket : aucune)', () => {
     const { getByTitle, container } = renderNavbar('theme-light')
-    fireEvent.click(getByTitle('Paramètres'))
+    fireEvent.click(getByTitle('Ouvrir les paramètres'))
     expect(container.querySelector('.settings-panel')).not.toBe(null)
 
     expect(APP_CSS).toMatch(/\.theme-light\s+\.settings-panel\s*\{[^}]*background:\s*#f8fafc/)
@@ -178,7 +178,7 @@ describe('MB-VIS-LAB-046 — SettingsPanel : ouverture/fermeture + cohérence th
 
   it('T30 — Settings respecte theme-dark : le rendu sombre historique de SettingsPanel.css reste strictement inchangé (non-régression)', () => {
     const { getByTitle, container } = renderNavbar('theme-dark')
-    fireEvent.click(getByTitle('Paramètres'))
+    fireEvent.click(getByTitle('Ouvrir les paramètres'))
     expect(container.querySelector('.settings-panel')).not.toBe(null)
 
     // Valeur historique — SettingsPanel.css n'est PAS modifié par ce ticket
