@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ComponentVisualMicroscope } from "./ComponentVisualMicroscope.jsx";
 
 /**
  * MB-UI-AUDIT-002 — audit navigateur non destructif.
@@ -247,6 +248,7 @@ export function DevelopmentAuditPanel({ onClose }) {
       </div>}
       {!running && !finished && <p style={{ fontSize: 13 }}>Un nouvel onglet affichera le rapport lorsque le contrôle sera terminé.</p>}
       {runnerError && <p role="alert" style={{ color: "#fca5a5" }}>Impossible de poursuivre : {runnerError}</p>}
+      <ComponentVisualMicroscope />
       <details style={{ marginTop: 16 }}>
         <summary style={{ cursor: "pointer", fontWeight: 600 }}>Afficher les détails techniques (facultatif)</summary>
         <div style={{ marginTop: 12 }}>
