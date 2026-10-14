@@ -110,6 +110,8 @@ export function DevelopmentAuditPanel({ onClose }) {
   const [runnerError, setRunnerError] = useState("");
   const [autoOpened, setAutoOpened] = useState(false);
   const lastOpenedRun = useRef(null);
+  const reportTab = useRef(null);
+  const auditStartedHere = useRef(false);
   const run = useCallback(() => setReport(auditBrowser()), []);
   const refresh = useCallback(async () => {
     try {
@@ -126,12 +128,26 @@ export function DevelopmentAuditPanel({ onClose }) {
   }, [refresh]);
   const runAll = useCallback(async () => {
     setAutoOpened(false);
+    // Open a same-origin placeholder synchronously from the user gesture;
+    // browsers may block a new tab opened later by an async polling effect.
+    if (!reportTab.current || reportTab.current.closed) {
+      reportTab.current = window.open("about:blank", "_blank");
+    }
+    if (reportTab.current) {
+      reportTab.current.document.title = "MYBlab — audit en cours";
+      reportTab.current.document.body.textContent = "MYBlab : audit en cours. Le JSON final apparaîtra ici automatiquement après tous les contrôles.";
+    }
+    auditStartedHere.current = true;
     setReport(auditBrowser());
     try {
       const response = await fetch("/__myblab_dev_audit/run", { method: "POST" });
       if (!response.ok) throw new Error("Lancement refusé HTTP " + response.status);
       await refresh();
-    } catch (error) { setRunnerError(String(error.message || error)); }
+    } catch (error) {
+      auditStartedHere.current = false;
+      if (reportTab.current && !reportTab.current.closed) reportTab.current.document.body.textContent = "Audit non démarré : " + String(error.message || error);
+      setRunnerError(String(error.message || error));
+    }
   }, [refresh]);
   const download = useCallback(() => {
     if (runner?.phase !== "DONE") return;
@@ -150,10 +166,27 @@ export function DevelopmentAuditPanel({ onClose }) {
     URL.revokeObjectURL(url);
   }, [report, runner]);
   useEffect(() => {
-    if (!runner?.id || runner.phase !== "DONE" || lastOpenedRun.current === runner.id) return;
+    if (!auditStartedHere.current || !runner?.id || runner.phase !== "DONE" || lastOpenedRun.current === runner.id) return;
     lastOpenedRun.current = runner.id;
+    auditStartedHere.current = false;
     setAutoOpened(true);
-  }, [runner]);
+    const payload = { schema: "myblab.dev-audit.consolidated.v1", exportedAt: new Date().toISOString(),
+      browser: report, localRunner: runner, visualAcceptance: "PENDING_HUMAN_REVIEW",
+      productQualification: "NOT_QUALIFIED" };
+    const json = JSON.stringify(payload, null, 2);
+    const tab = reportTab.current;
+    if (tab && !tab.closed) {
+      // Render JSON as plain text in the pre-opened tab, never as HTML.
+      tab.document.title = "MYBLAB-DEV-AUDIT-REPORT.json";
+      tab.document.body.replaceChildren();
+      const pre = tab.document.createElement("pre");
+      pre.style.whiteSpace = "pre-wrap";
+      pre.style.overflowWrap = "anywhere";
+      pre.textContent = json;
+      tab.document.body.appendChild(pre);
+      tab.focus();
+    }
+  }, [runner, report]);
   const viewJson = useCallback(() => {
     if (runner?.phase !== "DONE") return;
     const payload = { schema: "myblab.dev-audit.consolidated.v1", exportedAt: new Date().toISOString(), browser: report, localRunner: runner, visualAcceptance: "PENDING_HUMAN_REVIEW", productQualification: "NOT_QUALIFIED" };
@@ -169,13 +202,13 @@ export function DevelopmentAuditPanel({ onClose }) {
         <strong>Centre d'audit DEV · provisoire</strong>
         <button type="button" onClick={onClose} aria-label="Fermer l'audit">✕</button>
       </div>
-      <p style={{ fontSize: 13 }}>Audit navigateur, tests Arduino/Canvas et compilation locale. Validation visuelle et qualification physique restent distinctes.</p>
+      <p style={{ fontSize: 13 }}>Audit global des suites Vitest, simulateur, ESLint et compilation. La validation visuelle et physique reste distincte.</p>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button type="button" onClick={runAll} disabled={runner?.phase === "RUNNING"}>▶ Lancer l'audit automatisé</button>
         <button type="button" onClick={run}>Pré-audit navigateur</button>
         <button type="button" onClick={download} disabled={runner?.phase !== "DONE"}>↓ Télécharger le JSON final</button>
       </div>
-      {autoOpened && runner?.phase === "DONE" && <div role="status" style={{ marginTop: 12, padding: 12, border: "1px solid #64748b", borderRadius: 8 }}><strong>Audit terminé : rapport JSON prêt.</strong><p>Le fichier final est maintenant disponible. Aucun téléchargement partiel n’est autorisé.</p><button type="button" onClick={viewJson}>↗ Ouvrir le JSON final dans un nouvel onglet</button></div>}
+      {autoOpened && runner?.phase === "DONE" && <div role="status" style={{ marginTop: 12, padding: 12, border: "1px solid #64748b", borderRadius: 8 }}><strong>Audit terminé : rapport JSON prêt.</strong><p>Le JSON final est affiché automatiquement dans l’onglet ouvert au démarrage. Aucun téléchargement partiel n’est autorisé.</p><button type="button" onClick={viewJson}>↗ Ouvrir le JSON final dans un nouvel onglet</button></div>}
       {runner?.phase === "RUNNING" && <p role="status">Contrôles en cours : export désactivé jusqu’à la fin de toutes les étapes.</p>}
       {runnerError && <p role="alert" style={{ color: "#fca5a5" }}>STOP : {runnerError}</p>}
       {runner && <div aria-live="polite" style={{ marginTop: 12 }}>
