@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * MB-UI-AUDIT-002 — audit navigateur non destructif.
@@ -108,6 +108,8 @@ export function DevelopmentAuditPanel({ onClose }) {
   const [report, setReport] = useState(null);
   const [runner, setRunner] = useState(null);
   const [runnerError, setRunnerError] = useState("");
+  const [autoOpened, setAutoOpened] = useState(false);
+  const lastOpenedRun = useRef(null);
   const run = useCallback(() => setReport(auditBrowser()), []);
   const refresh = useCallback(async () => {
     try {
@@ -123,6 +125,7 @@ export function DevelopmentAuditPanel({ onClose }) {
     return () => window.clearInterval(timer);
   }, [refresh]);
   const runAll = useCallback(async () => {
+    setAutoOpened(false);
     setReport(auditBrowser());
     try {
       const response = await fetch("/__myblab_dev_audit/run", { method: "POST" });
@@ -131,6 +134,7 @@ export function DevelopmentAuditPanel({ onClose }) {
     } catch (error) { setRunnerError(String(error.message || error)); }
   }, [refresh]);
   const download = useCallback(() => {
+    if (runner?.phase !== "DONE") return;
     if (!report && !runner) return;
     const payload = { schema: "myblab.dev-audit.consolidated.v1", exportedAt: new Date().toISOString(),
       browser: report, localRunner: runner, visualAcceptance: "PENDING_HUMAN_REVIEW",
@@ -145,6 +149,19 @@ export function DevelopmentAuditPanel({ onClose }) {
     anchor.remove();
     URL.revokeObjectURL(url);
   }, [report, runner]);
+  useEffect(() => {
+    if (!runner?.id || runner.phase !== "DONE" || lastOpenedRun.current === runner.id) return;
+    lastOpenedRun.current = runner.id;
+    setAutoOpened(true);
+  }, [runner]);
+  const viewJson = useCallback(() => {
+    if (runner?.phase !== "DONE") return;
+    const payload = { schema: "myblab.dev-audit.consolidated.v1", exportedAt: new Date().toISOString(), browser: report, localRunner: runner, visualAcceptance: "PENDING_HUMAN_REVIEW", productQualification: "NOT_QUALIFIED" };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank", "noopener,noreferrer");
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }, [report, runner]);
   return (
     <section role="dialog" aria-modal="false" aria-label="Audit de développement MYBlab"
       style={{ position: "fixed", right: 16, top: 72, width: "min(520px, calc(100vw - 32px))", maxHeight: "78vh", overflowY: "auto", zIndex: 10000, background: "#14202e", color: "#f8fafc", border: "1px solid #64748b", borderRadius: 12, padding: 18, boxShadow: "0 16px 40px #0006" }}>
@@ -156,8 +173,10 @@ export function DevelopmentAuditPanel({ onClose }) {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button type="button" onClick={runAll} disabled={runner?.phase === "RUNNING"}>▶ Lancer l'audit automatisé</button>
         <button type="button" onClick={run}>Pré-audit navigateur</button>
-        <button type="button" onClick={download} disabled={!report && !runner}>↓ Exporter les preuves JSON</button>
+        <button type="button" onClick={download} disabled={runner?.phase !== "DONE"}>↓ Télécharger le JSON final</button>
       </div>
+      {autoOpened && runner?.phase === "DONE" && <div role="status" style={{ marginTop: 12, padding: 12, border: "1px solid #64748b", borderRadius: 8 }}><strong>Audit terminé : rapport JSON prêt.</strong><p>Le fichier final est maintenant disponible. Aucun téléchargement partiel n’est autorisé.</p><button type="button" onClick={viewJson}>↗ Ouvrir le JSON final dans un nouvel onglet</button></div>}
+      {runner?.phase === "RUNNING" && <p role="status">Contrôles en cours : export désactivé jusqu’à la fin de toutes les étapes.</p>}
       {runnerError && <p role="alert" style={{ color: "#fca5a5" }}>STOP : {runnerError}</p>}
       {runner && <div aria-live="polite" style={{ marginTop: 12 }}>
         <p><strong>Tests locaux :</strong> {runner.phase} — {runner.verdict}</p>
