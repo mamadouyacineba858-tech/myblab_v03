@@ -147,6 +147,7 @@ export function DevelopmentAuditPanel({ onClose }) {
     }
     auditStartedHere.current = true;
     setReport(auditBrowser());
+    window.dispatchEvent(new Event("myblab:run-visual-audit"));
     try {
       const response = await fetch("/__myblab_dev_audit/run", { method: "POST" });
       if (!response.ok) throw new Error("Lancement refusé HTTP " + response.status);
