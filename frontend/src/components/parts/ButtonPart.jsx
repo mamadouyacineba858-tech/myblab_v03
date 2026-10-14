@@ -45,6 +45,7 @@ export function ButtonPart({
   // les événements souris de compatibilité utiles au déplacement du boîtier.
   const handleActuatorPointerDown = (event) => {
     event.stopPropagation()
+    // Le handler racine reçoit l'événement via le même contrat React.
     onPointerDown?.(event)
   }
 
@@ -52,6 +53,11 @@ export function ButtonPart({
     <div
       className={`part-button${isPressed ? ' part-button--pressed' : ''}`}
       aria-label="Bouton"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onPointerLeave={onPointerLeave}
+      onLostPointerCapture={onLostPointerCapture}
       style={{
         cursor: 'default',
         userSelect: 'none',
@@ -79,10 +85,6 @@ export function ButtonPart({
         aria-hidden="true"
         onPointerDown={handleActuatorPointerDown}
         onMouseDown={(event) => event.stopPropagation()}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerCancel}
-        onPointerLeave={onPointerLeave}
-        onLostPointerCapture={onLostPointerCapture}
         style={{
           position: 'absolute',
           left: '25%',
