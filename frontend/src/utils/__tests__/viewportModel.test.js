@@ -22,10 +22,10 @@ import {
 import { clientToCanvas } from '../geometry.js'
 
 describe('MB-VIS-CANVAS-050 — createDefaultViewport / clampZoom', () => {
-  it('createDefaultViewport() renvoie {zoom:2, translateX:0, translateY:0}, une nouvelle instance à chaque appel', () => {
+  it('createDefaultViewport() renvoie {zoom:1, translateX:0, translateY:0}, une nouvelle instance à chaque appel', () => {
     const a = createDefaultViewport()
     const b = createDefaultViewport()
-    expect(a).toEqual({ zoom: 2, translateX: 0, translateY: 0 })
+    expect(a).toEqual({ zoom: 1, translateX: 0, translateY: 0 })
     expect(a).toEqual(DEFAULT_VIEWPORT)
     expect(a).not.toBe(b) // instances distinctes (mutation externe sans danger)
   })
@@ -100,7 +100,7 @@ describe('MB-VIS-CANVAS-050 — panViewport (D1/D5 : translation écran pure, in
 
 describe('MB-VIS-CANVAS-050 — resetViewport via createDefaultViewport (D6)', () => {
   it('produit toujours la même vue neutre déterministe, quel que soit le viewport de départ', () => {
-    expect(createDefaultViewport()).toEqual({ zoom: 2, translateX: 0, translateY: 0 })
+    expect(createDefaultViewport()).toEqual({ zoom: 1, translateX: 0, translateY: 0 })
   })
 })
 
