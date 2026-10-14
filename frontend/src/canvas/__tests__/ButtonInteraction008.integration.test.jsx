@@ -117,8 +117,10 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
       clientY: 110,
     })
     mouseDown(body, 110, 110)
-    pointerMove(150, 130, 51)
-    pointerUp(150, 130, 51)
+    // Le viewport produit est à 200 % : 80/40 px écran = 40/20 unités Document.
+    expect(getApi().zoom).toBe(2)
+    pointerMove(190, 150, 51)
+    pointerUp(190, 150, 51)
 
     const moved = getApi().components.find((c) => c.uid === button.uid)
     expect(moved.x).toBe(140)
@@ -177,8 +179,10 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
       clientY: 110,
     })
     mouseDown(body, 110, 110)
-    pointerMove(150, 130, 61)
-    pointerUp(150, 130, 61)
+    // Même conversion écran → Document à zoom 2 ; conserver les assertions x=140/y=120.
+    expect(getApi().zoom).toBe(2)
+    pointerMove(190, 150, 61)
+    pointerUp(190, 150, 61)
 
     fireEvent.click(body, {
       clientX: 150,
