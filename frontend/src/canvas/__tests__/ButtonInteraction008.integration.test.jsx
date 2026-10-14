@@ -54,12 +54,14 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
       getApi().addComponent("BUTTON", 100, 100)
     })
 
-    const body = document.querySelector(".part-button")
+    const body = document.querySelector(".part-button__actuator")
+    expect(body).toBeTruthy()
     const capture = vi.fn()
     body.setPointerCapture = capture
     body.hasPointerCapture = () => false
 
     fireEvent.pointerDown(body, {
+      button: 0,
       pointerId: 41,
       clientX: 110,
       clientY: 110,
@@ -69,6 +71,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     expect(getApi().components[0].state).toBe("pressed")
 
     fireEvent.pointerUp(body, {
+      button: 0,
       pointerId: 41,
       clientX: 110,
       clientY: 110,
@@ -78,6 +81,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     // Sans pointer capture, quitter physiquement le corps doit aussi
     // rel?cher le momentary et emp?cher tout ?tat "pressed" bloqu?.
     fireEvent.pointerDown(body, {
+      button: 0,
       pointerId: 42,
       clientX: 110,
       clientY: 110,
@@ -85,6 +89,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     expect(getApi().components[0].state).toBe("pressed")
 
     fireEvent.pointerLeave(body, {
+      button: 0,
       pointerId: 42,
       clientX: 170,
       clientY: 170,
@@ -106,6 +111,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     const body = document.querySelector(".part-button")
 
     fireEvent.pointerDown(body, {
+      button: 0,
       pointerId: 51,
       clientX: 110,
       clientY: 110,
@@ -123,6 +129,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     // c?blage post-drag ; il ne simule pas artificiellement un pointerup
     // directement sur window comme s'il s'agissait du corps.
     fireEvent.pointerUp(body, {
+      button: 0,
       pointerId: 51,
       clientX: 150,
       clientY: 130,
@@ -164,6 +171,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     const body = document.querySelector(".part-latching-button")
 
     fireEvent.pointerDown(body, {
+      button: 0,
       pointerId: 61,
       clientX: 110,
       clientY: 110,
@@ -185,16 +193,19 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     // Un vrai drag reste un drag m?me si le pointeur revient ? son
     // point de d?part avant que le navigateur produise le click.
     fireEvent.pointerDown(body, {
+      button: 0,
       pointerId: 62,
       clientX: 150,
       clientY: 130,
     })
     fireEvent.pointerMove(body, {
+      button: 0,
       pointerId: 62,
       clientX: 180,
       clientY: 160,
     })
     fireEvent.pointerMove(body, {
+      button: 0,
       pointerId: 62,
       clientX: 150,
       clientY: 130,
@@ -218,6 +229,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     const body = document.querySelector(".part-latching-button")
 
     fireEvent.pointerDown(body, {
+      button: 0,
       pointerId: 71,
       clientX: 110,
       clientY: 110,
@@ -229,6 +241,7 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     expect(getApi().components[0].state).toBe("on")
 
     fireEvent.pointerDown(body, {
+      button: 0,
       pointerId: 72,
       clientX: 110,
       clientY: 110,
