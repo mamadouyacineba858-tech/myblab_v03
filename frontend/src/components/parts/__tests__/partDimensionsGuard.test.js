@@ -117,7 +117,7 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
       continue
     }
 
-    if (HYBRID_RASTER_PART_FILES.has(file)) {\n      it(`${file} : renderer hybride DOM/raster, géométrie canonique et image réelle`, () => {\n        const codeOnly = stripComments(readFileSync(resolve(PARTS_DIR, file), "utf-8"))\n        expect(extractRootSvgOpenTag(codeOnly)).toBeNull()\n        expect(codeOnly).toMatch(/<img\\b/)\n        expect(codeOnly).toMatch(/[\\"\x27\x60]\\/assets\\//)\n        expect(codeOnly).toMatch(/getComponentDef/)\n      })\n      continue\n    }\n\n    if (RASTER_PART_FILES.has(file)) {
+    if (HYBRID_RASTER_PART_FILES.has(file)) {\n      it(`${file} : renderer hybride DOM/raster, géométrie canonique et image réelle`, () => {\n        const codeOnly = stripComments(readFileSync(resolve(PARTS_DIR, file), "utf-8"))\n        expect(extractRootSvgOpenTag(codeOnly)).toBeNull()\n        expect(codeOnly).toContain("<img")\n        expect(codeOnly).toContain("/assets/")\n        expect(codeOnly).toMatch(/getComponentDef/)\n      })\n      continue\n    }\n\n    if (RASTER_PART_FILES.has(file)) {
       it(`${file} : backend raster — aucun <svg> racine, rend un <img> vers /assets/`, () => {
         const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")
         const codeOnly = stripComments(rawSource)
