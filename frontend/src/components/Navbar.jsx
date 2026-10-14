@@ -7,6 +7,7 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useCircuit } from "../context/useCircuit.js"
 import { SettingsPanel } from "./SettingsPanel.jsx";
+import { DevelopmentAuditPanel } from "./DevelopmentAuditPanel.jsx";
 import { LiveMeasurementPanel } from "../measurement/LiveMeasurementPanel.jsx";
 import "./Navbar.css";
 import { ArduinoCodeWorkspace } from "../arduino/ui/ArduinoCodeWorkspace.jsx";
@@ -28,6 +29,7 @@ export function Navbar() {
   } = useCircuit();
 
   const [codeOpen, setCodeOpen] = useState(false);
+  const [auditOpen, setAuditOpen] = useState(false);
   const isArduino = selectedComponent?.type === "ARDUINO";
   useEffect(() => { if (!isArduino) setCodeOpen(false); }, [isArduino]);
   const fileInputRef = useRef(null);
@@ -168,6 +170,10 @@ const [settingsOpen, setSettingsOpen] = useState(false);
           📊 Mesures
         </button>
 
+        {import.meta.env.DEV && (
+          <button type="button" onClick={() => setAuditOpen(true)} aria-expanded={auditOpen} title="Pré-audit UI de développement (provisoire)">🧪 Audit DEV</button>
+        )}
+
         <button
           className="settings"
           onClick={() => setSettingsOpen(true)}
@@ -176,6 +182,7 @@ const [settingsOpen, setSettingsOpen] = useState(false);
           ⚙
         </button>
       </nav>
+      {import.meta.env.DEV && auditOpen && <DevelopmentAuditPanel onClose={() => setAuditOpen(false)} />}
       {codeOpen && isArduino && <ArduinoCodeWorkspace onClose={() => setCodeOpen(false)} />}
       {settingsOpen && (
   <SettingsPanel onClose={() => setSettingsOpen(false)} />
