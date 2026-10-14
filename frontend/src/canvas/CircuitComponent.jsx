@@ -119,13 +119,13 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
   // sur le boîtier. Ne dépend plus de la génération optionnelle de mousedown
   // de compatibilité (touch, stylus, preventDefault d'un enfant).
   const handleBodyPointerDown = useCallback((e) => {
-    if (e.button !== 0 || !uid || type !== "BUTTON") return
+    if (e.button !== 0 || !uid || def?.interaction?.type !== "momentary") return
     if (e.target.closest?.(".myblab-pin, .part-button__actuator")) return
     if (e.ctrlKey || e.metaKey) return
     e.stopPropagation()
     selectOnly({ type: "component", id: uid })
     startDrag(e, uid, x, y)
-  }, [uid, type, x, y, selectOnly, startDrag])
+  }, [uid, def, x, y, selectOnly, startDrag])
 
   const handlePinClick = useCallback(
     (pinId, contactId) => {
