@@ -10,14 +10,16 @@ export function myblabDevAudit() {
   const root = resolve(import.meta.dirname, '..')
   let state = { id: null, phase: 'IDLE', startedAt: null, finishedAt: null, steps: [], verdict: 'NOT_RUN' }
   let busy = false
+  // Audit élargi : la suite complète remplace la sélection de cinq fichiers.
+  // Le rapport distingue les vérifications automatisées des preuves physiques
+  // et visuelles qui exigent toujours une qualification dédiée.
   const plan = [
-    { id: 'arduino', label: 'Arduino firmware et UI', script: 'node_modules/vitest/vitest.mjs',
-      args: ['run', 'src/arduino/firmware/__tests__/firmwareCompiler.test.js',
-        'src/arduino/firmware/__tests__/firmwareExecutor.test.js',
-        'src/arduino/firmware/__tests__/firmwareCircuitQualification.integration.test.js',
-        'src/arduino/ui/__tests__/ArduinoCodeWorkspace.test.jsx', '--maxWorkers=1', '--minWorkers=1'] },
-    { id: 'canvas', label: 'Interactions Canvas et boutons', script: 'node_modules/vitest/vitest.mjs',
-      args: ['run', 'src/canvas/__tests__/ButtonInteraction008.integration.test.jsx', '--maxWorkers=1', '--minWorkers=1'] },
+    { id: 'full-suite', label: 'Toutes les suites Vitest du frontend (simulation, composants, Canvas, Arduino, persistance)', script: 'node_modules/vitest/vitest.mjs',
+      args: ['run', '--maxWorkers=1', '--minWorkers=1'] },
+    { id: 'simulator-suite', label: 'Suite dédiée simulateur / moteur électrique', script: 'node_modules/vitest/vitest.mjs',
+      args: ['--config', 'src/simulator/vitest.config.ts', '--run', '--maxWorkers=1', '--minWorkers=1'] },
+    { id: 'lint', label: 'Analyse statique ESLint de tout le frontend', script: 'node_modules/eslint/bin/eslint.js',
+      args: ['.'] },
     { id: 'build', label: 'Compilation TypeScript et Vite', script: 'node_modules/typescript/bin/tsc',
       args: ['-b'], next: { script: 'node_modules/vite/bin/vite.js', args: ['build'] } },
   ]
@@ -40,15 +42,15 @@ export function myblabDevAudit() {
       let truncated = false
       const append = chunk => {
         const value = String(chunk)
-        if (output.length + value.length > 20000) {
-          output += value.slice(0, Math.max(0, 20000 - output.length))
+        if (output.length + value.length > 60000) {
+          output += value.slice(0, Math.max(0, 60000 - output.length))
           truncated = true
         } else output += value
       }
       const child = spawn(process.execPath, [resolve(root, script), ...args], {
         cwd: root, shell: false, windowsHide: true, env: { ...process.env, CI: '1', NO_COLOR: '1' },
       })
-      const timeout = setTimeout(() => child.kill(), 180000)
+      const timeout = setTimeout(() => child.kill(), 600000)
       child.stdout.on('data', append)
       child.stderr.on('data', append)
       const finish = (code, reason) => {
@@ -77,7 +79,7 @@ export function myblabDevAudit() {
         }
         state.steps[i] = { id: step.id, label: step.label, ...result }
       }
-      state.verdict = state.steps.every(s => s.status === 'PASS') ? 'AUTOMATED_CHECKS_PASS' : 'AUTOMATED_CHECKS_FAIL'
+      state.verdict = state.steps.every(s => s.status === 'PASS') ? 'AUTOMATED_CHECKS_PASS_VISUAL_AND_PHYSICAL_PENDING' : 'AUTOMATED_CHECKS_FAIL'
     } catch (error) {
       state.verdict = 'STOP'
       state.error = String(error)
