@@ -67,7 +67,7 @@ const RASTER_PART_FILES = new Set(
 // A6-OUT1-R1 : VibrationMotorPart.jsx est passé au backend raster (paquet
 // d'assets réaliste Founder-approved) — couvert par RASTER_PART_FILES
 // ci-dessus, n'est plus un renderer CSS/DOM physique. Retiré de cette liste.
-const PHYSICAL_DOM_PART_FILES = new Set(["ThermistorPart.jsx"])
+const PHYSICAL_DOM_PART_FILES = new Set()\nconst HYBRID_RASTER_PART_FILES = new Set(["ThermistorPart.jsx"])
 
 // [MB-L1-CONS-002] RgbLedPart.jsx est un cas distinct, pré-existant et
 // indépendant de la réconciliation CAPACITOR/THERMISTOR : il gère son propre
@@ -92,43 +92,9 @@ function extractRootSvgOpenTag(codeOnly) {
 
 describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> racine non codées en dur", () => {
   it("la liste des fichiers scannés couvre bien tous les Part renderers connus (aucun oubli silencieux)", () => {
-    expect(PART_FILES.sort()).toEqual(
-      [
-        "ArduinoPart.jsx",
-        "Battery9VPart.jsx",
-        "BatteryAaPart.jsx",
-        "CoinCellCr2032Part.jsx",
-        "ButtonPart.jsx",
-        "BuzzerPart.jsx",
-        "CapacitorPart.jsx",
-        "DcMotorPart.jsx",
-        "DiodePart.jsx",
-        "DipSwitchPart.jsx",
-        "FlexSensorPart.jsx",
-        "ForceSensorPart.jsx",
-        "HobbyGearmotorPart.jsx",
-        "LatchingButtonPart.jsx",
-        "LdrPart.jsx",
-        "LedPart.jsx",
-        "LightBulbPart.jsx",
-        "NpnTransistorPart.jsx",
-        "NmosPart.jsx",
-        "PmosPart.jsx",
-        "PirMotionSensorPart.jsx",
-        "PolarizedCapacitorPart.jsx",
-        "PotentiometerPart.jsx",
-        "PowerPart.jsx",
-        "ResistorPart.jsx",
-        "RgbLedPart.jsx",
-        "ServoPart.jsx",
-        "SlideSwitchPart.jsx",
-        "SoilMoistureSensorPart.jsx",
-        "ThermistorPart.jsx",
-        "Tmp36Part.jsx",
-        "VibrationMotorPart.jsx",
-        "ZenerDiodePart.jsx",
-      ].sort()
-    )
+    const registeredFiles = DEFAULT_REGISTRATIONS.map(entry => `${entry.component.name}.jsx`)
+    expect(new Set(registeredFiles).size).toBe(registeredFiles.length)
+    expect(PART_FILES.sort()).toEqual(registeredFiles.sort())
   })
 
   for (const file of PART_FILES) {
@@ -151,7 +117,7 @@ describe("MB-VIS-COMP-006 — garde-fou architectural : dimensions du <svg> raci
       continue
     }
 
-    if (RASTER_PART_FILES.has(file)) {
+    if (HYBRID_RASTER_PART_FILES.has(file)) {\n      it(`${file} : renderer hybride DOM/raster, géométrie canonique et image réelle`, () => {\n        const codeOnly = stripComments(readFileSync(resolve(PARTS_DIR, file), "utf-8"))\n        expect(extractRootSvgOpenTag(codeOnly)).toBeNull()\n        expect(codeOnly).toMatch(/<img\\b/)\n        expect(codeOnly).toMatch(/[\\"\x27\x60]\\/assets\\//)\n        expect(codeOnly).toMatch(/getComponentDef/)\n      })\n      continue\n    }\n\n    if (RASTER_PART_FILES.has(file)) {
       it(`${file} : backend raster — aucun <svg> racine, rend un <img> vers /assets/`, () => {
         const rawSource = readFileSync(resolve(PARTS_DIR, file), "utf-8")
         const codeOnly = stripComments(rawSource)
