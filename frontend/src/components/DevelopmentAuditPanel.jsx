@@ -107,6 +107,12 @@ function auditBrowser() {
 }
 export function DevelopmentAuditPanel({ onClose }) {
   const [report, setReport] = useState(null);
+  const [visualEvidence, setVisualEvidence] = useState(null);
+  useEffect(() => {
+    const onVisualAudit = event => setVisualEvidence(event.detail);
+    window.addEventListener("myblab:visual-audit", onVisualAudit);
+    return () => window.removeEventListener("myblab:visual-audit", onVisualAudit);
+  }, []);
   const [runner, setRunner] = useState(null);
   const [clock, setClock] = useState(Date.now());
   const [runnerError, setRunnerError] = useState("");
@@ -155,7 +161,7 @@ export function DevelopmentAuditPanel({ onClose }) {
     if (runner?.phase !== "DONE") return;
     if (!report && !runner) return;
     const payload = { schema: "myblab.dev-audit.consolidated.v1", exportedAt: new Date().toISOString(),
-      browser: report, localRunner: runner, visualAcceptance: "PENDING_HUMAN_REVIEW",
+      browser: report, localRunner: runner, visualEvidence, visualAcceptance: "PENDING_HUMAN_REVIEW",
       productQualification: "NOT_QUALIFIED" };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -166,14 +172,14 @@ export function DevelopmentAuditPanel({ onClose }) {
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(url);
-  }, [report, runner]);
+  }, [report, runner, visualEvidence]);
   useEffect(() => {
     if (!auditStartedHere.current || !runner?.id || runner.phase !== "DONE" || lastOpenedRun.current === runner.id) return;
     lastOpenedRun.current = runner.id;
     auditStartedHere.current = false;
     setAutoOpened(true);
     const payload = { schema: "myblab.dev-audit.consolidated.v1", exportedAt: new Date().toISOString(),
-      browser: report, localRunner: runner, visualAcceptance: "PENDING_HUMAN_REVIEW",
+      browser: report, localRunner: runner, visualEvidence, visualAcceptance: "PENDING_HUMAN_REVIEW",
       productQualification: "NOT_QUALIFIED" };
     const json = JSON.stringify(payload, null, 2);
     const tab = reportTab.current;
@@ -188,10 +194,10 @@ export function DevelopmentAuditPanel({ onClose }) {
       tab.document.body.appendChild(pre);
       tab.focus();
     }
-  }, [runner, report]);
+  }, [runner, report, visualEvidence]);
   const viewJson = useCallback(() => {
     if (runner?.phase !== "DONE") return;
-    const payload = { schema: "myblab.dev-audit.consolidated.v1", exportedAt: new Date().toISOString(), browser: report, localRunner: runner, visualAcceptance: "PENDING_HUMAN_REVIEW", productQualification: "NOT_QUALIFIED" };
+    const payload = { schema: "myblab.dev-audit.consolidated.v1", exportedAt: new Date().toISOString(), browser: report, localRunner: runner, visualEvidence, visualAcceptance: "PENDING_HUMAN_REVIEW", productQualification: "NOT_QUALIFIED" };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank", "noopener,noreferrer");
