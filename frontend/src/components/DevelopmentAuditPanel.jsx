@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 /**
  * MB-UI-AUDIT-002 — audit navigateur non destructif.
@@ -106,10 +106,36 @@ function auditBrowser() {
 }
 export function DevelopmentAuditPanel({ onClose }) {
   const [report, setReport] = useState(null);
+  const [runner, setRunner] = useState(null);
+  const [runnerError, setRunnerError] = useState("");
   const run = useCallback(() => setReport(auditBrowser()), []);
+  const refresh = useCallback(async () => {
+    try {
+      const response = await fetch("/__myblab_dev_audit/status", { cache: "no-store" });
+      if (!response.ok) throw new Error("Service local HTTP " + response.status);
+      setRunner(await response.json());
+      setRunnerError("");
+    } catch (error) { setRunnerError(String(error.message || error)); }
+  }, []);
+  useEffect(() => {
+    void refresh();
+    const timer = window.setInterval(() => { void refresh(); }, 1500);
+    return () => window.clearInterval(timer);
+  }, [refresh]);
+  const runAll = useCallback(async () => {
+    setReport(auditBrowser());
+    try {
+      const response = await fetch("/__myblab_dev_audit/run", { method: "POST" });
+      if (!response.ok) throw new Error("Lancement refusé HTTP " + response.status);
+      await refresh();
+    } catch (error) { setRunnerError(String(error.message || error)); }
+  }, [refresh]);
   const download = useCallback(() => {
-    if (!report) return;
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+    if (!report && !runner) return;
+    const payload = { schema: "myblab.dev-audit.consolidated.v1", exportedAt: new Date().toISOString(),
+      browser: report, localRunner: runner, visualAcceptance: "PENDING_HUMAN_REVIEW",
+      productQualification: "NOT_QUALIFIED" };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -118,7 +144,7 @@ export function DevelopmentAuditPanel({ onClose }) {
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(url);
-  }, [report]);
+  }, [report, runner]);
   return (
     <section role="dialog" aria-modal="false" aria-label="Audit de développement MYBlab"
       style={{ position: "fixed", right: 16, top: 72, width: "min(520px, calc(100vw - 32px))", maxHeight: "78vh", overflowY: "auto", zIndex: 10000, background: "#14202e", color: "#f8fafc", border: "1px solid #64748b", borderRadius: 12, padding: 18, boxShadow: "0 16px 40px #0006" }}>
@@ -126,11 +152,23 @@ export function DevelopmentAuditPanel({ onClose }) {
         <strong>Centre d'audit DEV · provisoire</strong>
         <button type="button" onClick={onClose} aria-label="Fermer l'audit">✕</button>
       </div>
-      <p style={{ fontSize: 13 }}>Contrôle de l'interface, de la visibilité des commandes et de l'accessibilité. Les parcours fonctionnels restent explicitement non qualifiés.</p>
+      <p style={{ fontSize: 13 }}>Audit navigateur, tests Arduino/Canvas et compilation locale. Validation visuelle et qualification physique restent distinctes.</p>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button type="button" onClick={run}>▶ Lancer l'audit navigateur</button>
-        <button type="button" onClick={download} disabled={!report}>↓ Exporter les preuves JSON</button>
+        <button type="button" onClick={runAll} disabled={runner?.phase === "RUNNING"}>▶ Lancer l'audit automatisé</button>
+        <button type="button" onClick={run}>Pré-audit navigateur</button>
+        <button type="button" onClick={download} disabled={!report && !runner}>↓ Exporter les preuves JSON</button>
       </div>
+      {runnerError && <p role="alert" style={{ color: "#fca5a5" }}>STOP : {runnerError}</p>}
+      {runner && <div aria-live="polite" style={{ marginTop: 12 }}>
+        <p><strong>Tests locaux :</strong> {runner.phase} — {runner.verdict}</p>
+        <ul style={{ paddingLeft: 20 }}>
+          {runner.steps?.map(step => <li key={step.id}>
+            <strong>{step.status}</strong> — {step.label}
+            {step.reason && <span> ({step.reason})</span>}
+            {step.output && <details><summary>Journal du test</summary><pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 11 }}>{step.output}</pre></details>}
+          </li>)}
+        </ul>
+      </div>}
       {report && (
         <div aria-live="polite" style={{ marginTop: 12 }}>
           <p><strong>{report.totals.pass} PASS · {report.totals.fail} FAIL · {report.totals.blocked} NON QUALIFIÉS</strong></p>
