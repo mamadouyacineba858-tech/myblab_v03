@@ -10,18 +10,15 @@ export function myblabDevAudit() {
   const root = resolve(import.meta.dirname, '..')
   let state = { id: null, phase: 'IDLE', startedAt: null, finishedAt: null, steps: [], verdict: 'NOT_RUN' }
   let busy = false
-  // Audit élargi : la suite complète remplace la sélection de cinq fichiers.
-  // Le rapport distingue les vérifications automatisées des preuves physiques
-  // et visuelles qui exigent toujours une qualification dédiée.
+  // Une seule passe Vitest : la suite simulateur est deja incluse dans la suite complete.
+  // Chaque controle a son propre delai. Les preuves visuelles/physiques restent distinctes.
   const plan = [
     { id: 'full-suite', label: 'Toutes les suites Vitest du frontend (simulation, composants, Canvas, Arduino, persistance)', script: 'node_modules/vitest/vitest.mjs',
-      args: ['run', '--maxWorkers=1', '--minWorkers=1'] },
-    { id: 'simulator-suite', label: 'Suite dédiée simulateur / moteur électrique', script: 'node_modules/vitest/vitest.mjs',
-      args: ['--config', 'src/simulator/vitest.config.ts', '--run', '--maxWorkers=1', '--minWorkers=1'] },
+      args: ['--config', 'src/simulator/vitest.config.ts', '--run', '--maxWorkers=2', '--minWorkers=1'], timeoutMs: 300000 },
     { id: 'lint', label: 'Analyse statique ESLint de tout le frontend', script: 'node_modules/eslint/bin/eslint.js',
-      args: ['.'] },
+      args: ['.'], timeoutMs: 120000 },
     { id: 'build', label: 'Compilation TypeScript et Vite', script: 'node_modules/typescript/bin/tsc',
-      args: ['-b'], next: { script: 'node_modules/vite/bin/vite.js', args: ['build'] } },
+      args: ['-b'], timeoutMs: 120000, next: { script: 'node_modules/vite/bin/vite.js', args: ['build'] } },
   ]
   function allowed(req) {
     const remote = req.socket.remoteAddress || ''
@@ -55,14 +52,22 @@ export function myblabDevAudit() {
         cwd: root, shell: false, windowsHide: true, env: { ...process.env, CI: '1', NO_COLOR: '1' },
       })
       let timedOut = false
-      const timeout = setTimeout(() => { timedOut = true; child.kill() }, 600000)
+      const timeoutMs = step.timeoutMs || 120000
+      const timeout = setTimeout(() => {
+        timedOut = true
+        // Sur Windows, tuer seulement le parent node laisse parfois des workers Vitest orphelins.
+        if (process.platform === 'win32' && child.pid) {
+          const killer = spawn('taskkill', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' })
+          killer.on('error', () => child.kill())
+        } else child.kill()
+      }, timeoutMs)
       child.stdout.on('data', append)
       child.stderr.on('data', append)
       const finish = (code, reason) => {
         if (finished) return
         finished = true
         clearTimeout(timeout)
-        done({ status: code === 0 ? 'PASS' : 'FAIL', exitCode: code, reason: timedOut ? 'TIMEOUT_600_SECONDS' : reason, output, truncated })
+        done({ status: code === 0 ? 'PASS' : 'FAIL', exitCode: code, reason: timedOut ? `TIMEOUT_${Math.round(timeoutMs / 1000)}_SECONDS` : reason, output, truncated })
       }
       child.on('error', error => finish(null, error.message))
       child.on('close', (code, signal) => finish(code, signal ? `Signal: ${signal}` : null))
@@ -83,7 +88,7 @@ export function myblabDevAudit() {
           result = { ...next, output: result.output + '\n--- Vite build ---\n' + next.output,
             truncated: result.truncated || next.truncated }
         }
-        state.steps[i] = { id: step.id, label: step.label, ...result }
+        state.steps[i] = { id: step.id, label: step.label, startedAt: state.steps[i].startedAt, finishedAt: new Date().toISOString(), ...result }
       }
       state.verdict = state.steps.every(s => s.status === 'PASS') ? 'AUTOMATED_CHECKS_PASS_VISUAL_AND_PHYSICAL_PENDING' : 'AUTOMATED_CHECKS_FAIL'
     } catch (error) {
