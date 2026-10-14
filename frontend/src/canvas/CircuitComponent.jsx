@@ -115,6 +115,18 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
     [startDrag, uid, x, y, selectOnly, toggleSelection]
   )
 
+  // MB-VIS-BUTTON-INTERACTION-009 : Pointer Events est la source du drag
+  // sur le boîtier. Ne dépend plus de la génération optionnelle de mousedown
+  // de compatibilité (touch, stylus, preventDefault d'un enfant).
+  const handleBodyPointerDown = useCallback((e) => {
+    if (e.button !== 0 || !uid) return
+    if (e.target.closest?.(".myblab-pin, .part-button__actuator")) return
+    if (e.ctrlKey || e.metaKey) return
+    e.stopPropagation()
+    selectOnly({ type: "component", id: uid })
+    startDrag(e, uid, x, y)
+  }, [uid, x, y, selectOnly, startDrag])
+
   const handlePinClick = useCallback(
     (pinId, contactId) => {
       if (uid) onPinClick(uid, pinId, contactId)
@@ -378,6 +390,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
         transformOrigin: 'center center',
         zIndex: focused ? 20 : undefined,
       }}
+      onPointerDown={handleBodyPointerDown}
       onMouseDown={handleBodyMouseDown}
       onClick={(e) => e.stopPropagation()}
     >
