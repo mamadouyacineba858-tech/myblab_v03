@@ -177,9 +177,11 @@ const [settingsOpen, setSettingsOpen] = useState(false);
         <button
           className="settings"
           onClick={() => setSettingsOpen(true)}
-          title="Paramètres"
+          title="Ouvrir les paramètres"
+          aria-label="Ouvrir les paramètres"
+          aria-expanded={settingsOpen}
         >
-          ⚙
+          <span aria-hidden="true">⚙</span> Paramètres
         </button>
       </nav>
       {import.meta.env.DEV && auditOpen && <DevelopmentAuditPanel onClose={() => setAuditOpen(false)} />}
