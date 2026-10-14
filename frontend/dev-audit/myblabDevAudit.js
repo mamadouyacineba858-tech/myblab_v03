@@ -41,6 +41,10 @@ export function myblabDevAudit() {
       let output = ''
       let truncated = false
       const append = chunk => {
+        if (state.phase === "RUNNING") {
+          const active = state.steps.find(item => item.status === "RUNNING")
+          if (active) { active.lastOutputAt = new Date().toISOString(); active.outputBytes = (active.outputBytes || 0) + Buffer.byteLength(chunk) }
+        }
         const value = String(chunk)
         if (output.length + value.length > 60000) {
           output += value.slice(0, Math.max(0, 60000 - output.length))
@@ -50,14 +54,15 @@ export function myblabDevAudit() {
       const child = spawn(process.execPath, [resolve(root, script), ...args], {
         cwd: root, shell: false, windowsHide: true, env: { ...process.env, CI: '1', NO_COLOR: '1' },
       })
-      const timeout = setTimeout(() => child.kill(), 600000)
+      let timedOut = false
+      const timeout = setTimeout(() => { timedOut = true; child.kill() }, 600000)
       child.stdout.on('data', append)
       child.stderr.on('data', append)
       const finish = (code, reason) => {
         if (finished) return
         finished = true
         clearTimeout(timeout)
-        done({ status: code === 0 ? 'PASS' : 'FAIL', exitCode: code, reason, output, truncated })
+        done({ status: code === 0 ? 'PASS' : 'FAIL', exitCode: code, reason: timedOut ? 'TIMEOUT_600_SECONDS' : reason, output, truncated })
       }
       child.on('error', error => finish(null, error.message))
       child.on('close', (code, signal) => finish(code, signal ? `Signal: ${signal}` : null))
@@ -71,6 +76,7 @@ export function myblabDevAudit() {
       for (let i = 0; i < plan.length; i++) {
         const step = plan[i]
         state.steps[i].status = 'RUNNING'
+        state.steps[i].startedAt = new Date().toISOString()
         let result = await execute(step)
         if (result.status === 'PASS' && step.next) {
           const next = await execute(step, step.next.script, step.next.args)
