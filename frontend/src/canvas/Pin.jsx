@@ -21,8 +21,7 @@ export function Pin({
   onPinClick,
   hideVisualMarker = false,
 }) {
-  const [hover, setHover] = useState(false)
-
+  const [hovered, setHovered] = useState(false)
   const handleMouseDown = (e) => {
     e.stopPropagation()
   }
@@ -39,7 +38,10 @@ export function Pin({
       type="button"
       data-wire-uid={componentUid}
       data-wire-pin={pinId}
-      {...(contactId != null ? { "data-wire-contact": contactId } : {})}
+      data-wire-contact={contactId ?? pinId}
+      title={pinId}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       onPointerDown={(e) => {
         e.stopPropagation()
         // [FT-B-001-S2] `contactId` transmis à la gesture (ancre de contact
@@ -49,9 +51,10 @@ export function Pin({
       }}
       className={[
         "myblab-pin",
-        hover && "myblab-pin--hover",
+        hideVisualMarker && "myblab-pin--markerless",
         isPending && "myblab-pin--pending",
         isConnected && "myblab-pin--connected",
+        hovered && "myblab-pin--hover",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -60,11 +63,9 @@ export function Pin({
         top: Number.isFinite(top) ? top : 0,
         opacity: hideVisualMarker ? 0 : 1,
       }}
-      title={label ?? pinId}
+      data-hover-label={label ?? pinId}
       onMouseDown={handleMouseDown}
       onClick={handleClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       aria-label={label ?? pinId}
     />
   )

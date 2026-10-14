@@ -76,8 +76,16 @@ describe("MB-L1-ARD-002 — firmwareCompiler — TEST C1-C16", () => {
     expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_PIN)
   })
 
-  it("C11 — mode INPUT non supporté -> error", () => {
-    const result = compileFirmware("void setup() { pinMode(2, INPUT); }\nvoid loop() {}")
+  it("C11 — INPUT et INPUT_PULLUP sont des modes Arduino autorisés", () => {
+    for (const mode of ["INPUT", "INPUT_PULLUP"]) {
+      const result = compileFirmware(`void setup() { pinMode(2, ${mode}); }\nvoid loop() {}`)
+      expect(result.ok).toBe(true)
+      expect(result.ir.setup).toEqual([{ op: "PIN_MODE", pin: "D2", mode }])
+    }
+  })
+
+  it("C11b — un mode inconnu reste rejeté explicitement", () => {
+    const result = compileFirmware("void setup() { pinMode(2, ANALOG); }\nvoid loop() {}")
     expect(result.ok).toBe(false)
     expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_MODE)
   })
@@ -200,5 +208,137 @@ describe("MB-L1-ARD-002 — IR immuable (ARD-09)", () => {
     expect(Object.isFrozen(result.ir.setup)).toBe(true)
     expect(Object.isFrozen(result.ir.loop)).toBe(true)
     expect(Object.isFrozen(result.ir.loop[0])).toBe(true)
+  })
+})
+
+describe("A17.2 — compiler safety limits", () => {
+  it("rejects sketches larger than 64 KiB without returning partial IR", () => {
+    const source = "void setup() {} void loop() {} //" + "a".repeat(66000)
+    const result = compileFirmware(source)
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+    expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_STATEMENT)
+  })
+
+  it("rejects more than 1024 statements atomically", () => {
+    const statements = "delay(0);".repeat(1025)
+    const result = compileFirmware("void setup() {} void loop() { " + statements + " }")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+    expect(result.diagnostics[0].message).toContain("instruction safety limit")
+  })
+
+  it("keeps Blink and LED_BUILTIN within safety limits", () => {
+    const result = compileFirmware("void setup() { pinMode(LED_BUILTIN, OUTPUT); } void loop() { digitalWrite(LED_BUILTIN, HIGH); delay(500); digitalWrite(LED_BUILTIN, LOW); delay(500); }")
+    expect(result.ok).toBe(true)
+  })
+})
+
+describe("A17.3 — global constant pin aliases", () => {
+  it("compiles const int pin alias in setup and loop", () => {
+    const source = "const int ledPin = 13;\nvoid setup() { pinMode(ledPin, OUTPUT); }\nvoid loop() { digitalWrite(ledPin, HIGH); delay(500); digitalWrite(ledPin, LOW); }"
+    const result = compileFirmware(source)
+    expect(result.ok).toBe(true)
+    expect(result.ir.setup[0].pin).toBe("D13")
+    expect(result.ir.loop[0].pin).toBe("D13")
+  })
+  it("rejects unresolved pin variables explicitly", () => {
+    const result = compileFirmware("void setup() { pinMode(unknownPin, OUTPUT); } void loop() {}")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+  })
+  it("rejects mutable global declarations", () => {
+    const result = compileFirmware("int ledPin = 13; void setup() {} void loop() {}")
+    expect(result.ok).toBe(false)
+  })
+  it("rejects duplicate constant declarations", () => {
+    const result = compileFirmware("const int led = 2; const int led = 3; void setup() {} void loop() {}")
+    expect(result.ok).toBe(false)
+  })
+})
+
+describe("A17.3-B — mutable integer compilation", () => {
+  it("compiles declaration, increment and assignment", () => {
+    const result = compileFirmware("void setup() { int count = 0; } void loop() { count++; count += 2; count = 5; }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.setup[0]).toEqual({ op: "VAR_DECLARE", name: "count", value: 0 })
+    expect(result.ir.loop.map(node => node.op)).toEqual(["VAR_ASSIGN", "VAR_ASSIGN", "VAR_ASSIGN"])
+  })
+  it("compiles supported integer arithmetic into explicit IR", () => {
+    const result = compileFirmware("void setup() {} void loop() { int count = 1 + 2; }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop).toEqual([{ op: "VAR_DECLARE_EXPR", name: "count", left: "1", operator: "+", right: "2" }])
+  })
+  it("rejects unsupported compound arithmetic without partial IR", () => {
+    const result = compileFirmware("void setup() {} void loop() { int count = (1 + 2) * 3; }")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+  })
+})
+
+describe("A17.5 — compiler for and expression safety", () => {
+  it("compiles for into bounded branch and jump instructions", () => {
+    const result = compileFirmware("void setup() {} void loop() { for (int i = 0; i < 3; i++) { digitalWrite(13, HIGH); } }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop.map(node => node.op)).toEqual(["VAR_REINITIALIZE", "BRANCH_FALSE", "DIGITAL_WRITE", "VAR_ASSIGN", "JUMP"])
+  })
+  it("rejects malformed for headers without emitting partial IR", () => {
+    const result = compileFirmware("void setup() {} void loop() { for (int i = 0; i < 3) { i++; } }")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+  })
+  it("rejects arbitrary function invocation as an expression", () => {
+    const result = compileFirmware("void setup() { int x = random(10); } void loop() {}")
+    expect(result.ok).toBe(false)
+  })
+})
+
+describe("A17.6 — bounded helper function compilation", () => {
+  it("compiles a void helper called from loop", () => {
+    const result = compileFirmware("void light() { digitalWrite(13, HIGH); } void setup() { pinMode(13, OUTPUT); } void loop() { light(); }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop[0]).toEqual({ op: "DIGITAL_WRITE", pin: "D13", value: "HIGH" })
+  })
+  it("compiles nested helpers without evaluating source code", () => {
+    const result = compileFirmware("void outer() { inner(); } void inner() { digitalWrite(13, LOW); } void setup() {} void loop() { outer(); }")
+    expect(result.ok).toBe(true)
+    expect(result.ir.loop[0].op).toBe("DIGITAL_WRITE")
+  })
+  it("rejects recursive helper calls", () => {
+    const result = compileFirmware("void recurse() { recurse(); } void setup() {} void loop() { recurse(); }")
+    expect(result.ok).toBe(false)
+    expect(result.ir).toBeUndefined()
+  })
+  it("rejects unknown helpers", () => {
+    const result = compileFirmware("void setup() {} void loop() { nonexistent(); }")
+    expect(result.ok).toBe(false)
+  })
+  it("rejects duplicate helper definitions", () => {
+    const result = compileFirmware("void light() {} void light() {} void setup() {} void loop() { light(); }")
+    expect(result.ok).toBe(false)
+  })
+})
+
+
+describe("A17-FULL — ten representative UNO sketch compatibility contracts", () => {
+  const sketches = [
+    ["Blink", true, "void setup(){pinMode(13,OUTPUT);} void loop(){digitalWrite(13,HIGH);delay(500);digitalWrite(13,LOW);delay(500);}"],
+    ["button input", true, "void setup(){pinMode(2,INPUT);int pressed=0;} void loop(){pressed=digitalRead(2);delay(16);}"],
+    ["button to LED", true, "void setup(){pinMode(2,INPUT_PULLUP);pinMode(13,OUTPUT);int pressed=0;} void loop(){pressed=digitalRead(2);if(pressed==0){digitalWrite(13,HIGH);}else{digitalWrite(13,LOW);}delay(16);}"],
+    ["PWM dimmer", false, "void setup(){pinMode(9,OUTPUT);} void loop(){analogWrite(9,128);delay(16);}"],
+    ["potentiometer ADC", false, "void setup(){} void loop(){int value=analogRead(A0);delay(16);}"],
+    ["Serial monitor", false, "void setup(){Serial.begin(9600);} void loop(){Serial.println(42);delay(1000);}"],
+    ["traffic lights", true, "void setup(){pinMode(2,OUTPUT);pinMode(3,OUTPUT);pinMode(4,OUTPUT);} void loop(){digitalWrite(2,HIGH);delay(100);digitalWrite(2,LOW);digitalWrite(3,HIGH);delay(100);digitalWrite(3,LOW);digitalWrite(4,HIGH);delay(100);digitalWrite(4,LOW);}"],
+    ["variables and arithmetic", true, "void setup(){int counter=0;pinMode(13,OUTPUT);} void loop(){counter+=1;if(counter>5){counter=0;}delay(16);}"],
+    ["bounded conditional loop", true, "void setup(){pinMode(13,OUTPUT);} void loop(){for(int i=0;i<3;i++){digitalWrite(13,HIGH);digitalWrite(13,LOW);}delay(16);}"],
+    ["servo library", false, "#include <Servo.h>\nServo motor; void setup(){motor.attach(9);} void loop(){motor.write(90);delay(100);}"],
+  ]
+  it.each(sketches)("%s: explicit compiler compatibility verdict", (_name, supported, source) => {
+    const result = compileFirmware(source)
+    expect(result.ok).toBe(supported)
+    if (!supported) {
+      expect(result.diagnostics.length).toBeGreaterThan(0)
+      expect(result.diagnostics.every(d => typeof d.message === "string" && d.message.length > 0)).toBe(true)
+    }
   })
 })

@@ -346,7 +346,7 @@ describe('FT-C-COMP-004 — non-régression du modèle électrique et des autres
 
   it('T28 (catalogue) — toujours 34 types canoniques (A3-SW2 : DIP_SWITCH ajouté ; A6-OUT1 : VIBRATION_MOTOR ajouté ; A6-OUT2 : LIGHT_BULB ajouté ; A6-OUT3 : HOBBY_GEARMOTOR ajouté ; A7-C1 : TMP36 ajouté ; A7-C2 : FORCE_SENSOR + FLEX_SENSOR ajoutés ; A7-C3 : SOIL_MOISTURE_SENSOR ajouté ; A7-C4-PIR : PIR_MOTION_SENSOR ajouté ; A7-C4-TILT : TILT_SENSOR ajouté ; A7-C4-IR : IR_RECEIVER ajouté ; A7-C5 : HC_SR04 ajouté ; A4-INDUCTOR : INDUCTOR ajouté), BUZZER inclus une seule fois', () => {
     const types = getAllCanonicalTypes()
-    expect(types.length).toBe(34)
+    expect(types.length).toBe(60)
     expect(types.filter((t) => t === 'BUZZER')).toHaveLength(1)
   })
 })

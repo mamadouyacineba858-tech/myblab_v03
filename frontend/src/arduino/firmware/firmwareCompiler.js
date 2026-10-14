@@ -25,8 +25,14 @@ import { DiagnosticCode, createDiagnostic } from "./firmwareDiagnostics.js"
  * entier de l'instruction à une chaîne candidate.
  */
 
-const VALID_PIN_MODES = new Set(["OUTPUT"])
+const VALID_PIN_MODES = new Set(["OUTPUT", "INPUT", "INPUT_PULLUP"])
 const VALID_LEVELS = new Set(["HIGH", "LOW"])
+// Arduino UNO R3 built-in LED is electrically attached to D13.
+// Resolve this constant at compile time: no dynamic evaluation or VM changes.
+function resolveDigitalPin(token, constants = new Map()) {
+  const number = token === "LED_BUILTIN" ? 13 : constants.has(token) ? constants.get(token) : Number(token)
+  return mapArduinoPin(number)
+}
 
 function stripComments(source) {
   return source.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "")
@@ -92,28 +98,66 @@ function splitStatementsWithOffsets(body, bodyStartOffset) {
 }
 
 /** Reconnaît une instruction unique par motif structurel — jamais par comparaison de texte entier (§8). */
-function parseStatement(text, source, offset, diagnostics) {
+function parseStatement(text, source, offset, diagnostics, constants) {
   const line = lineAt(source, offset)
 
-  const pinModeMatch = text.match(/^pinMode\s*\(\s*(\d+)\s*,\s*(\w+)\s*\)$/)
+  // A17.3-B: bounded integer state and arithmetic. Expressions are compiled
+  // to a small typed IR, never evaluated as JavaScript source.
+  // Explicitly parsed two-operand integer expressions; never eval user code.
+  const atom = String.raw`(?:-?\d+|[A-Za-z_]\w*)`
+  const expression = new RegExp("^(" + atom + ")\\s*([+*%/-])\\s*(" + atom + ")$")
+  const declarationExpression = text.match(/^int\s+([A-Za-z_]\w*)\s*=\s*(.+)$/)
+  if (declarationExpression && expression.test(declarationExpression[2])) {
+    const [, left, operator, right] = declarationExpression[2].match(expression)
+    return Object.freeze({ op: "VAR_DECLARE_EXPR", name: declarationExpression[1], left, operator, right })
+  }
+  const assignmentExpression = text.match(/^([A-Za-z_]\w*)\s*=\s*(.+)$/)
+  if (assignmentExpression && expression.test(assignmentExpression[2])) {
+    const [, left, operator, right] = assignmentExpression[2].match(expression)
+    return Object.freeze({ op: "VAR_ASSIGN_EXPR", name: assignmentExpression[1], left, operator, right })
+  }
+  // Digital input is a typed runtime read, never a compile-time constant.
+  const readMatch = text.match(/^(?:(int)\s+)?([A-Za-z_]\w*)\s*=\s*digitalRead\s*\(\s*(\d+|LED_BUILTIN|[A-Za-z_]\w*)\s*\)$/)
+  if (readMatch) {
+    const pin = resolveDigitalPin(readMatch[3], constants)
+    if (!pin) {
+      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, "unsupported digitalRead pin: " + readMatch[3], line))
+      return null
+    }
+    return Object.freeze({ op: "DIGITAL_READ", pin, name: readMatch[2], declare: Boolean(readMatch[1]) })
+  }
+  const integerDeclaration = text.match(/^int\s+([A-Za-z_]\w*)\s*=\s*(-?\d+)$/)
+  if (integerDeclaration) {
+    return Object.freeze({ op: "VAR_DECLARE", name: integerDeclaration[1], value: Number(integerDeclaration[2]) })
+  }
+  const integerAssignment = text.match(/^([A-Za-z_]\w*)\s*(=|\+=|-=)\s*([A-Za-z_]\w*|-?\d+)$/)
+  if (integerAssignment) {
+    return Object.freeze({ op: "VAR_ASSIGN", name: integerAssignment[1], operator: integerAssignment[2], operand: integerAssignment[3] })
+  }
+  const integerIncrement = text.match(/^([A-Za-z_]\w*)(\+\+|--)$/)
+  if (integerIncrement) {
+    return Object.freeze({ op: "VAR_ASSIGN", name: integerIncrement[1], operator: integerIncrement[2] === "++" ? "+=" : "-=", operand: "1" })
+  }
+
+  const pinModeMatch = text.match(/^pinMode\s*\(\s*(\d+|LED_BUILTIN|[A-Za-z_]\w*)\s*,\s*(\w+)\s*\)$/)
   if (pinModeMatch) {
     const [, pinStr, mode] = pinModeMatch
-    const pin = mapArduinoPin(Number(pinStr))
+    const pin = resolveDigitalPin(pinStr, constants)
     if (!pin) {
       diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported on the Arduino Uno digital surface (0..13)`, line))
       return null
     }
     if (!VALID_PIN_MODES.has(mode)) {
-      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_MODE, `pinMode "${mode}" is not supported in V1 (only OUTPUT)`, line))
+      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_MODE, `pinMode "${mode}" is not supported (OUTPUT, INPUT, INPUT_PULLUP)`, line))
       return null
     }
     return Object.freeze({ op: "PIN_MODE", pin, mode })
   }
 
-  const digitalWriteMatch = text.match(/^digitalWrite\s*\(\s*(\d+)\s*,\s*(\w+)\s*\)$/)
+  const digitalWriteMatch = text.match(/^digitalWrite\s*\(\s*(\d+|LED_BUILTIN|[A-Za-z_]\w*)\s*,\s*(\w+)\s*\)$/)
   if (digitalWriteMatch) {
     const [, pinStr, level] = digitalWriteMatch
-    const pin = mapArduinoPin(Number(pinStr))
+    const pin = resolveDigitalPin(pinStr, constants)
     if (!pin) {
       diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `pin ${pinStr} is not supported on the Arduino Uno digital surface (0..13)`, line))
       return null
@@ -149,15 +193,112 @@ function parseStatement(text, source, offset, diagnostics) {
   return null
 }
 
-function compileBody(body, bodyStartOffset, source) {
-  const statements = splitStatementsWithOffsets(body, bodyStartOffset)
+
+function compileBody(body, bodyStartOffset, source, constants) {
   const diagnostics = []
   const ir = []
-  for (const { text, offset } of statements) {
-    const node = parseStatement(text, source, offset, diagnostics)
-    if (node) ir.push(node)
+  let pos = 0
+  const fail = (message) => diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, message, lineAt(source, bodyStartOffset + pos)))
+  const skip = () => { while (pos < body.length && /\s/.test(body[pos])) pos++ }
+  const word = (value) => new RegExp("^" + value + "\\b").test(body.slice(pos))
+  const readCondition = () => {
+    skip()
+    if (body[pos] !== "(") { fail("expected condition in parentheses"); return null }
+    let depth = 1
+    const begin = ++pos
+    while (pos < body.length && depth > 0) {
+      if (body[pos] === "(") depth++
+      else if (body[pos] === ")") depth--
+      pos++
+    }
+    if (depth !== 0) { fail("unclosed condition"); return null }
+    const token = String.raw`(?:-?\d+|[A-Za-z_]\w*)`
+    const pattern = new RegExp("^(" + token + ")\\s*(==|!=|<=|>=|<|>)\\s*(" + token + ")$")
+    const match = body.slice(begin, pos - 1).trim().match(pattern)
+    if (!match) { fail("unsupported condition"); return null }
+    return Object.freeze({ left: match[1], operator: match[2], right: match[3] })
   }
-  return { ir, diagnostics }
+  const block = (depth = 0) => {
+    if (depth > 16) { fail("maximum block nesting exceeded"); return }
+    while (pos < body.length && diagnostics.length === 0) {
+      skip()
+      if (pos >= body.length) break
+      if (body[pos] === "}") {
+        if (depth === 0) { fail("unexpected closing brace"); return }
+        pos++
+        return
+      }
+      if (word("for")) {
+        pos += 3
+        skip()
+        if (body[pos] !== "(") { fail("expected for header"); return }
+        const begin = ++pos
+        while (pos < body.length && body[pos] !== ")") pos++
+        if (pos >= body.length) { fail("unclosed for header"); return }
+        const clauses = body.slice(begin, pos++).split(";").map(x => x.trim())
+        if (clauses.length !== 3) { fail("for requires initialization, condition, update"); return }
+        const initializer = parseStatement(clauses[0], source, bodyStartOffset + begin, diagnostics, constants)
+        if (!initializer || !["VAR_DECLARE", "VAR_ASSIGN"].includes(initializer.op)) { fail("unsupported for initializer"); return }
+        ir.push(initializer.op === "VAR_DECLARE" ? { ...initializer, op: "VAR_REINITIALIZE" } : initializer)
+        const conditionMatch = clauses[1].match(/^(-?\d+|[A-Za-z_]\w*)\s*(==|!=|<=|>=|<|>)\s*(-?\d+|[A-Za-z_]\w*)$/)
+        if (!conditionMatch) { fail("unsupported for condition"); return }
+        const condition = Object.freeze({ left: conditionMatch[1], operator: conditionMatch[2], right: conditionMatch[3] })
+        const update = parseStatement(clauses[2], source, bodyStartOffset + begin, diagnostics, constants)
+        if (!update || update.op !== "VAR_ASSIGN") { fail("unsupported for update"); return }
+        skip()
+        if (body[pos] !== "{") { fail("expected braced for body"); return }
+        pos++
+        const head = ir.length
+        ir.push({ op: "BRANCH_FALSE", condition, target: -1 })
+        block(depth + 1)
+        if (diagnostics.length) return
+        ir.push(update, { op: "JUMP", target: head })
+        ir[head].target = ir.length
+      } else       if (word("if") || word("while")) {
+        const loop = word("while")
+        pos += loop ? 5 : 2
+        const condition = readCondition()
+        if (!condition) return
+        skip()
+        if (body[pos] !== "{") { fail("expected braced block"); return }
+        pos++
+        const head = ir.length
+        ir.push({ op: "BRANCH_FALSE", condition, target: -1 })
+        block(depth + 1)
+        if (diagnostics.length) return
+        if (loop) {
+          ir.push({ op: "JUMP", target: head })
+          ir[head].target = ir.length
+        } else {
+          skip()
+          if (word("else")) {
+            pos += 4
+            skip()
+            if (body[pos] !== "{") { fail("expected braced else"); return }
+            pos++
+            const jump = ir.length
+            ir.push({ op: "JUMP", target: -1 })
+            ir[head].target = ir.length
+            block(depth + 1)
+            if (diagnostics.length) return
+            ir[jump].target = ir.length
+          } else ir[head].target = ir.length
+        }
+      } else {
+        const begin = pos
+        while (pos < body.length && !";{}".includes(body[pos])) pos++
+        if (body[pos] !== ";") { fail("expected semicolon or unsupported block"); return }
+        const statement = body.slice(begin, pos++).trim()
+        if (!statement) continue
+        const node = parseStatement(statement, source, bodyStartOffset + begin, diagnostics, constants)
+        if (node) ir.push(node)
+      }
+      if (ir.length > 1024) { fail("compiled instruction limit exceeded"); return }
+    }
+    if (depth !== 0 && diagnostics.length === 0) fail("unclosed block")
+  }
+  block()
+  return { ir: ir.map(node => Object.freeze(node)), diagnostics }
 }
 
 /**
@@ -167,6 +308,13 @@ function compileBody(body, bodyStartOffset, source) {
 export function compileFirmware(source) {
   if (typeof source !== "string") {
     return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.MALFORMED_BRACES, "firmware source must be a string")] }
+  }
+
+  // A17.2: hard limits prevent oversized user sketches from monopolizing the UI
+  // during regex scanning and IR construction. Reject explicitly, never truncate.
+  const MAX_SOURCE_LENGTH = 64 * 1024
+  if (source.length > MAX_SOURCE_LENGTH) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, `firmware exceeds the ${MAX_SOURCE_LENGTH}-character safety limit`)] }
   }
 
   const clean = stripComments(source)
@@ -187,8 +335,86 @@ export function compileFirmware(source) {
     return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.MISSING_LOOP, "expected exactly one \"void loop() { }\" function")] }
   }
 
-  const setupCompiled = compileBody(setupResult.body, setupResult.bodyStartOffset, clean)
-  const loopCompiled = compileBody(loopResult.body, loopResult.bodyStartOffset, clean)
+  // Keep generated IR bounded independently of source byte length. This
+  // avoids pathological sketches with thousands of tiny statements.
+  const MAX_INSTRUCTIONS = 1024
+  const statementCount = [setupResult, loopResult].reduce(
+    (sum, result) => sum + splitStatementsWithOffsets(result.body, result.bodyStartOffset).length,
+    0
+  )
+  if (statementCount > MAX_INSTRUCTIONS) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, `firmware exceeds the ${MAX_INSTRUCTIONS}-instruction safety limit`)] }
+  }
+
+  // A17.3: first bounded, statically resolved C++ declaration subset.
+  // Only global const int pin aliases are accepted; no runtime expressions.
+  const constants = new Map()
+  const declarationPattern = /\bconst\s+int\s+([A-Za-z_]\w*)\s*=\s*(\d+)\s*;/g
+  const outsideFunctions = clean.split("").map((character, index) => {
+    const inSetup = index >= setupResult.bodyStartOffset && index < setupResult.bodyStartOffset + setupResult.body.length
+    const inLoop = index >= loopResult.bodyStartOffset && index < loopResult.bodyStartOffset + loopResult.body.length
+    return inSetup || inLoop ? " " : character
+  }).join("")
+  for (const match of outsideFunctions.matchAll(declarationPattern)) {
+    if (constants.has(match[1]) || match[1] === "LED_BUILTIN") {
+      return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, `duplicate or reserved constant: ${match[1]}`, lineAt(clean, match.index))] }
+    }
+    constants.set(match[1], Number(match[2]))
+  }
+  // Remove recognized declarations, setup and loop; any remaining nonspace
+  // top-level token is rejected, not silently discarded.
+  let topLevel = outsideFunctions.replace(declarationPattern, "")
+  topLevel = topLevel.replace(/void\s+(setup|loop)\s*\(\s*\)\s*\{\s*\}/g, "")
+
+
+  // A17.6: statically inline bounded void helper functions with no arguments.
+  // Recursion, unknown calls and helpers with parameters remain rejected.
+  const helperPattern = /\bvoid\s+([A-Za-z_]\w*)\s*\(\s*\)\s*\{/g
+  const helpers = new Map()
+  for (const match of clean.matchAll(helperPattern)) {
+    const name = match[1]
+    if (name === "setup" || name === "loop") continue
+    if (helpers.has(name)) {
+      return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, "duplicate helper function: " + name)] }
+    }
+    const result = findFunctionBody(clean, name)
+    if (result.malformed || result.found !== 1 || helpers.size >= 16) {
+      return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, "malformed or excessive helper functions")] }
+    }
+    helpers.set(name, result)
+  }
+  // Validate that helper definitions occupy all remaining top-level text.
+  // A function name must be a single identifier; its body is replaced only
+  // when the entire top-level declaration was recognized.
+  let helperTopLevel = topLevel
+  for (const [name, helper] of helpers) {
+    const header = new RegExp("void\\s+" + name + "\\s*\\(\\s*\\)\\s*\\{")
+    const original = clean.slice(helper.headerIndex, helper.bodyStartOffset + helper.body.length + 1)
+    helperTopLevel = helperTopLevel.replace(original, "")
+  }
+  if (helperTopLevel.trim()) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, "unsupported global declaration or source outside setup()/loop()")] }
+  }
+  const expand = (body, stack = []) => {
+    if (stack.length > 8) throw new Error("helper call depth exceeds 8")
+    return body.replace(/\b([A-Za-z_]\w*)\s*\(\s*\)\s*;/g, (call, name) => {
+      if (!helpers.has(name)) return call
+      if (stack.includes(name)) throw new Error("recursive helper call: " + name)
+      return expand(helpers.get(name).body, [...stack, name])
+    })
+  }
+  let setupBody, loopBody
+  try {
+    setupBody = expand(setupResult.body)
+    loopBody = expand(loopResult.body)
+  } catch (error) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, error.message)] }
+  }
+  if (setupBody.length + loopBody.length > MAX_SOURCE_LENGTH) {
+    return { ok: false, diagnostics: [createDiagnostic(DiagnosticCode.UNSUPPORTED_STATEMENT, "expanded helpers exceed source safety limit")] }
+  }
+  const setupCompiled = compileBody(setupBody, setupResult.bodyStartOffset, clean, constants)
+  const loopCompiled = compileBody(loopBody, loopResult.bodyStartOffset, clean, constants)
   const diagnostics = [...setupCompiled.diagnostics, ...loopCompiled.diagnostics]
 
   if (diagnostics.length > 0) {

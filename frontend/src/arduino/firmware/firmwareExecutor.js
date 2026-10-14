@@ -66,6 +66,7 @@ export class FirmwareExecutor {
     // globalement). Partagée entre l'API ARD-002 et l'API temporelle
     // ARD-003 : le "matériel" configuré est le même quelle que soit l'API.
     this._pinModes = new Map()
+    this._variables = new Map()
 
     // MB-L1-ARD-003 — état d'exécution temporel, VOLATILE, distinct de
     // `_setupExecuted` (API ARD-002) : jamais lu/écrit par start()/
@@ -109,6 +110,7 @@ export class FirmwareExecutor {
   reset() {
     this._setupExecuted = false
     this._pinModes = new Map()
+    this._variables = new Map()
     // MB-L1-ARD-003 §20 : reset() efface aussi l'état d'exécution temporel
     // (jamais le Document firmware.source, jamais l'historique — cette
     // méthode ne connaît ni l'un ni l'autre).
@@ -161,8 +163,29 @@ export class FirmwareExecutor {
       if (currentTimeMs < this._waitingUntil) return true
       this._waitingUntil = null
     }
+    let executed = 0
     while (this._pc < body.length) {
+      if (++executed > 10000) {
+        throw new FirmwareExecutionError("execution budget exceeded (possible infinite loop)")
+      }
       const instruction = body[this._pc]
+      if (instruction.op === "BRANCH_FALSE") {
+        const { left, right, operator } = instruction.condition
+        const valueOf = (token) => /^-?\d+$/.test(token) ? Number(token) : this._variables.get(token)
+        const a = valueOf(left), b = valueOf(right)
+        if (!Number.isSafeInteger(a) || !Number.isSafeInteger(b)) {
+          throw new FirmwareExecutionError("condition contains an undefined or unsafe integer")
+        }
+        const truth = operator === "==" ? a === b : operator === "!=" ? a !== b
+          : operator === "<" ? a < b : operator === "<=" ? a <= b
+          : operator === ">" ? a > b : a >= b
+        this._pc = truth ? this._pc + 1 : instruction.target
+        continue
+      }
+      if (instruction.op === "JUMP") {
+        this._pc = instruction.target
+        continue
+      }
       if (instruction.op === "DELAY") {
         this._pc++
         this._waitingUntil = currentTimeMs + instruction.durationMs
@@ -198,6 +221,94 @@ export class FirmwareExecutor {
 
   _executeInstruction(instruction) {
     switch (instruction.op) {
+      case "VAR_DECLARE_EXPR":
+      case "VAR_ASSIGN_EXPR": {
+        if (instruction.op === "VAR_DECLARE_EXPR" && this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError("variable already declared: " + instruction.name)
+        }
+        if (instruction.op === "VAR_ASSIGN_EXPR" && !this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError("undeclared variable: " + instruction.name)
+        }
+        const resolve = token => /^-?\d+$/.test(token) ? Number(token) : this._variables.get(token)
+        const left = resolve(instruction.left), right = resolve(instruction.right)
+        if (!Number.isSafeInteger(left) || !Number.isSafeInteger(right)) {
+          throw new FirmwareExecutionError("undefined or unsafe arithmetic operand")
+        }
+        let result
+        switch (instruction.operator) {
+          case "+": result = left + right; break
+          case "-": result = left - right; break
+          case "*": result = left * right; break
+          case "/":
+            if (right === 0) throw new FirmwareExecutionError("division by zero")
+            result = Math.trunc(left / right)
+            break
+          case "%":
+            if (right === 0) throw new FirmwareExecutionError("modulo by zero")
+            result = left % right
+            break
+          default: throw new FirmwareExecutionError("unsupported arithmetic operator")
+        }
+        if (!Number.isSafeInteger(result)) throw new FirmwareExecutionError("integer arithmetic exceeds safe range")
+        this._variables.set(instruction.name, result)
+        return
+      }
+      case "VAR_REINITIALIZE": {
+        if (!Number.isSafeInteger(instruction.value)) throw new FirmwareExecutionError("invalid for counter")
+        this._variables.set(instruction.name, instruction.value)
+        return
+      }
+      case "VAR_DECLARE": {
+        if (this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError(`variable "${instruction.name}" already declared`)
+        }
+        if (!Number.isSafeInteger(instruction.value)) {
+          throw new FirmwareExecutionError("integer declaration exceeds safe range")
+        }
+        this._variables.set(instruction.name, instruction.value)
+        return
+      }
+      case "VAR_ASSIGN": {
+        if (!this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError(`undeclared variable "${instruction.name}"`)
+        }
+        const operand = /^-?\d+$/.test(instruction.operand)
+          ? Number(instruction.operand)
+          : this._variables.get(instruction.operand)
+        if (!Number.isSafeInteger(operand)) {
+          throw new FirmwareExecutionError(`invalid integer operand "${instruction.operand}"`)
+        }
+        const previous = this._variables.get(instruction.name)
+        const value = instruction.operator === "=" ? operand
+          : instruction.operator === "+=" ? previous + operand
+          : previous - operand
+        if (!Number.isSafeInteger(value)) {
+          throw new FirmwareExecutionError("integer arithmetic exceeds safe range")
+        }
+        this._variables.set(instruction.name, value)
+        return
+      }
+      case "DIGITAL_READ": {
+        const mode = this._pinModes.get(instruction.pin)
+        if (mode !== "INPUT" && mode !== "INPUT_PULLUP") {
+          throw new FirmwareExecutionError("digitalRead requires INPUT or INPUT_PULLUP: " + instruction.pin)
+        }
+        if (typeof this._runtimePort.digitalRead !== "function") {
+          throw new FirmwareExecutionError("digitalRead runtime port is unavailable")
+        }
+        const signal = this._runtimePort.digitalRead(instruction.pin, mode)
+        if (signal !== Signal.HIGH && signal !== Signal.LOW) {
+          throw new FirmwareExecutionError("digitalRead received unresolved signal: " + signal)
+        }
+        if (instruction.declare && this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError("variable already declared: " + instruction.name)
+        }
+        if (!instruction.declare && !this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError("undeclared variable: " + instruction.name)
+        }
+        this._variables.set(instruction.name, signal === Signal.HIGH ? 1 : 0)
+        return
+      }
       case "PIN_MODE":
         this._pinModes.set(instruction.pin, instruction.mode)
         return

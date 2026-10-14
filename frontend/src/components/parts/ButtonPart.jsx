@@ -6,8 +6,7 @@ import { getComponentDef } from '../../config/componentDefinitions.js'
  *
  * A3-GATE-FIX : l'actionneur central et le corps ont désormais deux rôles
  * d'interaction distincts. L'actionneur reçoit les événements momentary et
- * bloque le mousedown de compatibilité afin qu'une pression ne démarre pas
- * startDrag() sur le wrapper CircuitComponent. La couronne/base reste sans
+ * isole les gestes de pression de ceux du boîtier déplaçable. La couronne/base reste sans
  * handler pointer : un drag initié dessus remonte normalement au wrapper et
  * conserve donc la possibilité de déplacer le composant.
  *
@@ -42,12 +41,11 @@ export function ButtonPart({
   const isPressed = state === 'pressed'
   const source = isPressed ? ASSET_SOURCES.pressed : ASSET_SOURCES.released
 
-  // Pointer Events génère normalement un mousedown de compatibilité après
-  // pointerdown. CircuitComponent utilise ce mousedown pour startDrag().
-  // Sur l'actionneur, preventDefault() supprime uniquement ce mousedown :
-  // la pression momentary reste donc une pression et ne déplace pas le bouton.
+  // Stopper la propagation du pointerdown sur l'actionneur sans supprimer
+  // les événements souris de compatibilité utiles au déplacement du boîtier.
   const handleActuatorPointerDown = (event) => {
-    event.preventDefault()
+    event.stopPropagation()
+    // Le handler racine reçoit l'événement via le même contrat React.
     onPointerDown?.(event)
   }
 
@@ -55,6 +53,11 @@ export function ButtonPart({
     <div
       className={`part-button${isPressed ? ' part-button--pressed' : ''}`}
       aria-label="Bouton"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onPointerLeave={onPointerLeave}
+      onLostPointerCapture={onLostPointerCapture}
       style={{
         cursor: 'default',
         userSelect: 'none',
@@ -81,10 +84,7 @@ export function ButtonPart({
         data-button-actuator="true"
         aria-hidden="true"
         onPointerDown={handleActuatorPointerDown}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerCancel}
-        onPointerLeave={onPointerLeave}
-        onLostPointerCapture={onLostPointerCapture}
+        onMouseDown={(event) => event.stopPropagation()}
         style={{
           position: 'absolute',
           left: '25%',

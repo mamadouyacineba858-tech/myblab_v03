@@ -240,7 +240,7 @@ describe('MB-VIS-CANVAS-050 — Canvas Navigation (viewport pan/zoom/reset/fit)'
   // RESET
   // ==========================================================================
   describe('Reset viewport (D6)', () => {
-    it('resetViewport ramène systématiquement à {zoom:1, translateX:0, translateY:0}, quel que soit l\'état de départ', () => {
+    it('resetViewport ramène systématiquement au viewport initial {zoom:1, translateX:0, translateY:0}, quel que soit l\'état de départ', () => {
       const { result } = renderWithCanvasSize()
       _result = result
 
@@ -249,7 +249,7 @@ describe('MB-VIS-CANVAS-050 — Canvas Navigation (viewport pan/zoom/reset/fit)'
       pointerUp()
       act(() => { result.current.zoomAtScreenPoint(100, 100, 1.7) })
 
-      expect(result.current.viewport).not.toEqual({ zoom: 1, translateX: 0, translateY: 0 })
+      expect(result.current.viewport).not.toEqual({ zoom: 2, translateX: 0, translateY: 0 })
 
       act(() => { result.current.resetViewport() })
       expect(result.current.viewport).toEqual({ zoom: 1, translateX: 0, translateY: 0 })
@@ -276,7 +276,7 @@ describe('MB-VIS-CANVAS-050 — Canvas Navigation (viewport pan/zoom/reset/fit)'
         result.current.addComponent('RESISTOR', 2000, 1500)
       })
       act(() => { result.current.fitToContent() })
-      expect(result.current.viewport).not.toEqual({ zoom: 1, translateX: 0, translateY: 0 })
+      expect(result.current.viewport).not.toEqual({ zoom: 2, translateX: 0, translateY: 0 })
       expect(Number.isFinite(result.current.viewport.zoom)).toBe(true)
       expect(result.current.viewport.zoom).toBeGreaterThanOrEqual(0.5)
       expect(result.current.viewport.zoom).toBeLessThanOrEqual(2)

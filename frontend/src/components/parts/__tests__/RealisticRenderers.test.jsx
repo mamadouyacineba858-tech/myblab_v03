@@ -154,14 +154,14 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat gé
 
   // [MB-L1-CONS-002] CAPACITOR : renderer CSS/DOM pur (ni <svg> ni <img>) —
   // le <div> racine (`.part-capacitor`) porte directement la boîte canonique.
-  it.each(LOT.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — le <div> racine respecte exactement les dimensions de componentDefinitions.js, ni <svg> ni <img>', ({ type, Component }) => {
+  it.each(LOT.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — boîte canonique, sans <svg>, avec image physique interne', ({ type, Component }) => {
     const def = getComponentDef(type)
     const { container } = render(<Component />)
     const root = container.firstElementChild
     expect(root.style.width).toBe(`${def.width}px`)
     expect(root.style.height).toBe(`${def.height}px`)
     expect(container.querySelector('svg')).toBeNull()
-    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('img')).not.toBeNull()
   })
 
   it('RESISTOR : aria-label correct, aucune prop dynamique requise', () => {
@@ -245,14 +245,14 @@ describe('MB-COMPONENT-LIBRARY-002 — second lot (rendu, contrat géométrique,
 
   // [MB-L1-CONS-002] THERMISTOR : renderer CSS/DOM pur (ni <svg> ni <img>) —
   // le <div> racine (`.part-thermistor`) porte directement la boîte canonique.
-  it.each(LOT2.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — le <div> racine respecte exactement les dimensions de componentDefinitions.js, ni <svg> ni <img>', ({ type, Component }) => {
+  it.each(LOT2.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — boîte canonique, sans <svg>, avec image physique interne', ({ type, Component }) => {
     const def = getComponentDef(type)
     const { container } = render(<Component />)
     const root = container.firstElementChild
     expect(root.style.width).toBe(`${def.width}px`)
     expect(root.style.height).toBe(`${def.height}px`)
     expect(container.querySelector('svg')).toBeNull()
-    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('img')).not.toBeNull()
   })
 
   it.each(LOT2.filter((entry) => entry.label !== null))(
@@ -384,7 +384,7 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
 
   it("BUTTON : le clic réel (pointerdown/pointerup) sur le rendu raster (MB-VIS-PROTOTYPE-008) met bien à jour l'état pressé dans le Document (interaction non régressée, AC-06)", () => {
     let circuitApi = null
-    render(
+    const { container } = render(
       <CanvasHarness onReady={(api) => { circuitApi = api }} />,
       { wrapper: circuitWrapper }
     )
@@ -393,16 +393,17 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
       circuitApi.addComponent('BUTTON', 0, 0)
     })
 
-    const root = document.querySelector('.part-button')
-    expect(root).not.toBeNull()
+    const root = container.querySelector('.part-button')
+    const actuator = root?.querySelector('[data-button-actuator="true"]')
+    expect(actuator).not.toBeNull()
 
     act(() => {
-      fireEvent.pointerDown(root)
+      fireEvent.pointerDown(actuator)
     })
     expect(circuitApi.components[0].state).toBe('pressed')
 
     act(() => {
-      fireEvent.pointerUp(root)
+      fireEvent.pointerUp(actuator)
     })
     expect(circuitApi.components[0].state).toBe('released')
   })

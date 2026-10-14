@@ -89,6 +89,23 @@ describe('MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation', () => {
     expect(led.style.boxShadow).not.toBe('none')
   })
 
+  it('USB Type-B reste une décoration locale insérée sous le port, sans cible électrique', () => {
+    const { container } = renderArduino(true)
+    const cable = container.querySelector('.part-arduino__usb-cable')
+    expect(cable.dataset.usbType).toBe('B')
+    expect(cable.style.position).toBe('absolute')
+    // Port left face x=2, centre y≈36.5 in the unchanged 180×120 raster.
+    expect(parseFloat(cable.style.left) + parseFloat(cable.style.width)).toBeGreaterThan(2)
+    expect(parseFloat(cable.style.top) + parseFloat(cable.style.height) / 2).toBe(36.5)
+    expect(Number(cable.style.zIndex)).toBeLessThan(Number(container.querySelector('img').style.zIndex))
+    expect(cable.style.pointerEvents).toBe('none')
+    expect(cable.getAttribute('aria-hidden')).toBe('true')
+    expect(cable.querySelector('button, [data-wire-pin]')).toBeNull()
+    for (const part of ['cord', 'strain-relief', 'shell', 'grip']) {
+      expect(cable.querySelector(`.part-arduino__usb-${part}`)).not.toBeNull()
+    }
+  })
+
   it('expose D0-D13 plus GND/5V comme PhysicalContacts wire-only', () => {
     const def = getComponentDef('ARDUINO')
     expect(def.pins).toHaveLength(16)

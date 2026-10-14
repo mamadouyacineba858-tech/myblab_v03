@@ -249,6 +249,53 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
     }
   })
 
+  it('identifies every hovered GPIO and supply contact by its real electrical pin', () => {
+    let api
+    const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
+    act(() => { api.addComponent('ARDUINO', 50, 60) })
+    const pins = [...container.querySelectorAll('.myblab-pin')]
+    expect(pins).toHaveLength(16)
+    for (const pin of pins) {
+      const id = pin.dataset.wirePin
+      expect(pin.getAttribute('title')).toBe(id)
+      expect(pin.getAttribute('aria-label')).toBe(id)
+      expect(pin.dataset.wireContact).toBe(id)
+      const position = [pin.style.left, pin.style.top]
+      fireEvent.mouseEnter(pin)
+      expect(pin.classList.contains('myblab-pin--hover')).toBe(true)
+      expect([pin.style.left, pin.style.top]).toEqual(position)
+      expect(pin.getAttribute('title')).toBe(id)
+      fireEvent.mouseLeave(pin)
+      expect(pin.classList.contains('myblab-pin--hover')).toBe(false)
+    }
+  })
+
+  it('keeps the Type-B cable attached during the real drag preview and after release', async () => {
+    let api
+    const canvasRef = React.createRef()
+    const dragWrapper = ({ children }) => <CircuitProvider canvasRef={canvasRef}><div ref={canvasRef}>{children}</div></CircuitProvider>
+    const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper: dragWrapper })
+    act(() => { api.addComponent('ARDUINO', 100, 100) })
+    const component = api.components[0]
+    const board = container.querySelector('.circuit-component')
+    const cable = board.querySelector('.part-arduino__usb-cable')
+    const anchor = [cable.style.left, cable.style.top, cable.style.width, cable.style.height]
+    const before = [board.style.left, board.style.top]
+    act(() => { api.startDrag({ button: 0, clientX: component.x + 5, clientY: component.y + 5,
+      target: canvasRef.current, preventDefault() {}, stopPropagation() {} }, component.uid) })
+    await act(async () => {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: component.x + 85, clientY: component.y + 45 }))
+      await new Promise(resolve => requestAnimationFrame(resolve))
+    })
+    expect([board.style.left, board.style.top]).not.toEqual(before)
+    expect(board.contains(cable)).toBe(true)
+    expect([cable.style.left, cable.style.top, cable.style.width, cable.style.height]).toEqual(anchor)
+    act(() => { window.dispatchEvent(new PointerEvent('pointerup')) })
+    expect([cable.style.left, cable.style.top, cable.style.width, cable.style.height]).toEqual(anchor)
+    expect(api.exportCircuit().components[0].x).toBe(component.x + 80)
+    expect(api.exportCircuit().components[0].y).toBe(component.y + 40)
+  })
+
   it("l'<img> ne capte pas les événements — le wrapper .circuit-component les reçoit", () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })

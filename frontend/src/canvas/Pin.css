@@ -10,10 +10,7 @@
   background: #1e293b;
   cursor: crosshair;
   z-index: 10;
-  transition:
-    transform 0.12s ease,
-    border-color 0.12s ease,
-    box-shadow 0.12s ease;
+  transition: none;
 }
 
 .myblab-pin--hover,
@@ -32,3 +29,30 @@
 .myblab-pin--connected {
   border-color: #22c55e;
 }
+
+/* Shared instant tooltip for every real electrical pin. CSS-only hover
+   avoids hundreds of React state updates and the delayed native title. */
+.myblab-pin:hover::after,
+.myblab-pin:focus-visible::after {
+  content: attr(data-hover-label);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 3px 5px;
+  border-radius: 3px;
+  background: #17212c;
+  color: #fff;
+  font: 700 10px/1.2 Arial, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 1px 5px rgba(0,0,0,.3);
+}
+
+/* Markerless contacts remain invisible at rest but expose the same immediate
+   hover/focus tooltip and socket feedback as ordinary electrical pins. */
+.myblab-pin--markerless { opacity: 0; }
+.myblab-pin--markerless:hover,
+.myblab-pin--markerless:focus-visible,
+.myblab-pin--markerless.myblab-pin--pending { opacity: 1; }

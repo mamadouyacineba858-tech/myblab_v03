@@ -35,14 +35,14 @@ describe('MB-VIS-CANVAS-050 — createDefaultViewport / clampZoom', () => {
     expect(clampZoom(0.01)).toBe(ZOOM_MIN)
     expect(clampZoom(1.3)).toBe(1.3)
     for (const bogus of [NaN, undefined, Infinity, -Infinity]) {
-      expect(clampZoom(bogus)).toBe(1)
+      expect(clampZoom(bogus)).toBe(DEFAULT_VIEWPORT.zoom)
     }
   })
 })
 
 describe('MB-VIS-CANVAS-050 — zoomViewportAtScreenPoint (D4 : zoom orienté curseur sans dérive)', () => {
   it('le point Document sous le curseur reste EXACTEMENT sous le même point écran après zoom', () => {
-    const viewport = { zoom: 1, translateX: 0, translateY: 0 }
+    const viewport = { zoom: 2, translateX: 0, translateY: 0 }
     const screenX = 300
     const screenY = 200
     const before = clientToCanvas({ clientX: screenX, clientY: screenY }, { left: 0, top: 0 }, viewport.zoom, viewport.translateX, viewport.translateY)
@@ -69,7 +69,7 @@ describe('MB-VIS-CANVAS-050 — zoomViewportAtScreenPoint (D4 : zoom orienté cu
   })
 
   it('le nextZoom demandé est borné [ZOOM_MIN, ZOOM_MAX] (D10 — jamais infini/NaN)', () => {
-    const viewport = { zoom: 1, translateX: 0, translateY: 0 }
+    const viewport = { zoom: 2, translateX: 0, translateY: 0 }
     expect(zoomViewportAtScreenPoint(viewport, 0, 0, 999).zoom).toBe(ZOOM_MAX)
     expect(zoomViewportAtScreenPoint(viewport, 0, 0, 0.0001).zoom).toBe(ZOOM_MIN)
     const bogus = zoomViewportAtScreenPoint(viewport, 0, 0, NaN)

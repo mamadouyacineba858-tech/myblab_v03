@@ -53,60 +53,86 @@ function DigitalPinLabels({ pins }) {
   )
 }
 
+
+// Visual-only Arduino UNO R3 header identifiers. These do not create electrical
+// pins, wire endpoints or simulated analog/power capabilities.
+const VISUAL_ONLY_HEADERS = [
+  // Measured from the approved 540x360 raster and expressed in 180x120 units.
+  // POWER header: 7 positions; ANALOG IN header: 6 positions.
+  { id: 'IOREF', x: 84.3 }, { id: 'RESET', x: 90.0 },
+  { id: '3.3V', x: 95.7 }, { id: '5V', x: 101.4 },
+  { id: 'GND', x: 107.1 }, { id: 'GND', x: 112.8 },
+  { id: 'VIN', x: 118.5 },
+  { id: 'A0', x: 135.4 }, { id: 'A1', x: 141.1 },
+  { id: 'A2', x: 146.8 }, { id: 'A3', x: 152.5 },
+  { id: 'A4', x: 158.2 }, { id: 'A5', x: 163.9 },
+]
+
+// Three upper-left holes are visible on the approved raster but are not
+// registered as electrical endpoints. Keep their hover purely informational.
+const AUXILIARY_TOP_HOLES = [
+  { id: 'NON UTILISÉ', x: 68.3 },
+  { id: 'AREF', x: 74.0 },
+  { id: 'GND', x: 79.7 },
+]
+
+function AuxiliaryTopHoleIdentifiers() {
+  return (
+    <div className="part-arduino__auxiliary-identifiers" aria-label="Repères supérieurs auxiliaires">
+      {AUXILIARY_TOP_HOLES.map(({ id, x }) => (
+        <span
+          key={id}
+          className="part-arduino__auxiliary-identifier"
+          tabIndex={0}
+          data-arduino-visual-pin={id}
+          aria-label={id + ' — repère visuel uniquement'}
+          style={{ left: x }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function VisualHeaderIdentifiers() {
+  return (
+    <div className="part-arduino__visual-identifiers" aria-label="Repères visuels POWER et ANALOG IN">
+      {VISUAL_ONLY_HEADERS.map(({ id, x }, index) => (
+        <span
+          key={id + '-' + index}
+          className="part-arduino__visual-identifier"
+          tabIndex={0}
+          data-arduino-visual-pin={id}
+          data-arduino-header={index < 7 ? 'POWER' : 'ANALOG IN'}
+          aria-label={id + ' — repère visuel de la carte'}
+          style={{ left: x }}
+        />
+      ))}
+    </div>
+  )
+}
+
 function UsbCable({ connected }) {
   return (
     <span
       className={`part-arduino__usb-cable part-arduino__usb-cable--${connected ? 'connected' : 'disconnected'}`}
       data-usb-state={connected ? 'connected' : 'disconnected'}
+      data-usb-type="B"
       aria-hidden="true"
       style={{
         position: 'absolute',
-        left: -34,
-        top: 25,
-        width: 38,
-        height: 22,
+        left: -78,
+        top: 27.5,
+        width: 84,
+        height: 18,
         pointerEvents: 'none',
         zIndex: 1,
         display: connected ? 'block' : 'none',
       }}
     >
-      <span
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 2,
-          width: 25,
-          height: 18,
-          borderRadius: '4px 2px 2px 4px',
-          background: 'linear-gradient(180deg,#26282c 0%,#0f1114 55%,#24262a 100%)',
-          boxShadow: '0 1px 2px rgba(0,0,0,.5)',
-        }}
-      />
-      <span
-        style={{
-          position: 'absolute',
-          right: 0,
-          top: 5,
-          width: 14,
-          height: 12,
-          borderRadius: 1,
-          background: 'linear-gradient(180deg,#d7d9db,#8b8f94 50%,#c6c8ca)',
-          border: '1px solid rgba(45,48,52,.75)',
-          boxSizing: 'border-box',
-        }}
-      />
-      <span
-        style={{
-          position: 'absolute',
-          left: -18,
-          top: 7,
-          width: 20,
-          height: 8,
-          borderRadius: '5px 0 0 5px',
-          background: '#181a1d',
-          boxShadow: 'inset 0 1px 1px rgba(255,255,255,.08)',
-        }}
-      />
+      <span className="part-arduino__usb-cord" />
+      <span className="part-arduino__usb-strain-relief" />
+      <span className="part-arduino__usb-shell" />
+      <span className="part-arduino__usb-grip"><span /></span>
     </span>
   )
 }
@@ -166,6 +192,8 @@ export function ArduinoPart({ uid, pinSignals } = {}) {
 
 
       <DigitalPinLabels pins={def.pins} />
+      <VisualHeaderIdentifiers />
+      <AuxiliaryTopHoleIdentifiers />
       {/* No UART activity contract exists: baked TX/RX lights stay unlit. */}
       {[38, 43].map((top) => (
         <span key={top} className="part-arduino__serial-led" data-led-state="off"
