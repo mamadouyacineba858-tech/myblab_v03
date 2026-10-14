@@ -161,7 +161,7 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat gé
     expect(root.style.width).toBe(`${def.width}px`)
     expect(root.style.height).toBe(`${def.height}px`)
     expect(container.querySelector('svg')).toBeNull()
-    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('img')).not.toBeNull()
   })
 
   it('RESISTOR : aria-label correct, aucune prop dynamique requise', () => {
@@ -252,7 +252,7 @@ describe('MB-COMPONENT-LIBRARY-002 — second lot (rendu, contrat géométrique,
     expect(root.style.width).toBe(`${def.width}px`)
     expect(root.style.height).toBe(`${def.height}px`)
     expect(container.querySelector('svg')).toBeNull()
-    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('img')).not.toBeNull()
   })
 
   it.each(LOT2.filter((entry) => entry.label !== null))(
