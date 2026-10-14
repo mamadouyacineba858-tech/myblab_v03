@@ -119,3 +119,34 @@
     background:#55657c;
 
 }
+/* MB-UI-AUDIT-003 : les 2 FAIL à 1280px venaient du débordement horizontal
+   (Paramètres x=1275..1404). Garder toutes les actions accessibles :
+   la navigation défile horizontalement dans sa zone, sans cacher les boutons. */
+.myblab-navbar {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    gap: 12px;
+}
+.navbar-logo {
+    flex: 0 0 auto;
+}
+.navbar-actions {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #7dd3fc transparent;
+    justify-content: flex-start;
+    padding: 4px 2px 7px;
+}
+.navbar-actions > button,
+.navbar-actions > .separator {
+    flex-shrink: 0;
+}
+.navbar-actions button:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 1px;
+}
