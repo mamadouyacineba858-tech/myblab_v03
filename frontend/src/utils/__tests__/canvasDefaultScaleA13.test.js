@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { DEFAULT_VIEWPORT, createDefaultViewport, clampZoom, zoomViewportAtScreenPoint } from '../viewport.js'
 
 describe('A13 product default scale', () => {
-  it('starts maximum 200% through the single canonical viewport', () => {
-    expect(DEFAULT_VIEWPORT.zoom).toBe(2)
-    expect(createDefaultViewport()).toEqual({ zoom: 2, translateX: 0, translateY: 0 })
+  it('starts at 100% without globally enlarging Arduino or breadboard', () => {
+    expect(DEFAULT_VIEWPORT.zoom).toBe(1)
+    expect(createDefaultViewport()).toEqual({ zoom: 1, translateX: 0, translateY: 0 })
   })
   it('keeps normal zoom-out and cursor-anchored zoom behavior', () => {
     const initial = createDefaultViewport()
