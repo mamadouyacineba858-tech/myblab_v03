@@ -154,7 +154,7 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat gé
 
   // [MB-L1-CONS-002] CAPACITOR : renderer CSS/DOM pur (ni <svg> ni <img>) —
   // le <div> racine (`.part-capacitor`) porte directement la boîte canonique.
-  it.each(LOT.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — le <div> racine respecte exactement les dimensions de componentDefinitions.js, ni <svg> ni <img>', ({ type, Component }) => {
+  it.each(LOT.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — boîte canonique, sans <svg>, avec image physique interne', ({ type, Component }) => {
     const def = getComponentDef(type)
     const { container } = render(<Component />)
     const root = container.firstElementChild
@@ -245,7 +245,7 @@ describe('MB-COMPONENT-LIBRARY-002 — second lot (rendu, contrat géométrique,
 
   // [MB-L1-CONS-002] THERMISTOR : renderer CSS/DOM pur (ni <svg> ni <img>) —
   // le <div> racine (`.part-thermistor`) porte directement la boîte canonique.
-  it.each(LOT2.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — le <div> racine respecte exactement les dimensions de componentDefinitions.js, ni <svg> ni <img>', ({ type, Component }) => {
+  it.each(LOT2.filter((entry) => isPhysicalDom(entry.type)))('$type : renderer CSS/DOM physique — boîte canonique, sans <svg>, avec image physique interne', ({ type, Component }) => {
     const def = getComponentDef(type)
     const { container } = render(<Component />)
     const root = container.firstElementChild
