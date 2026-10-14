@@ -384,7 +384,7 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
 
   it("BUTTON : le clic réel (pointerdown/pointerup) sur le rendu raster (MB-VIS-PROTOTYPE-008) met bien à jour l'état pressé dans le Document (interaction non régressée, AC-06)", () => {
     let circuitApi = null
-    render(
+    const { container } = render(
       <CanvasHarness onReady={(api) => { circuitApi = api }} />,
       { wrapper: circuitWrapper }
     )
@@ -393,7 +393,7 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
       circuitApi.addComponent('BUTTON', 0, 0)
     })
 
-    const root = document.querySelector('.part-button')
+    const root = container.querySelector('.part-button')
     const actuator = root?.querySelector('[data-button-actuator="true"]')
     expect(actuator).not.toBeNull()
 
