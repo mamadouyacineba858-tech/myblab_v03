@@ -78,6 +78,7 @@ export function ButtonPart({
         data-button-actuator="true"
         aria-hidden="true"
         onPointerDown={handleActuatorPointerDown}
+        onMouseDown={(event) => event.stopPropagation()}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
         onPointerLeave={onPointerLeave}
