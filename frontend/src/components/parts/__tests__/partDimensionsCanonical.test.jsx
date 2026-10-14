@@ -291,7 +291,8 @@ describe("MB-VIS-COMP-006 — dimensions des Part renderers dérivées de compon
       expect(root.style.width).toBe(`${def.width}px`)
       expect(root.style.height).toBe(`${def.height}px`)
       expect(container.querySelector("svg")).toBeNull()
-      expect(container.querySelector("img")).toBeNull()
+      expect(container.querySelector("img")).not.toBeNull()
+      expect(container.querySelector("img").style.pointerEvents).toBe("none")
     })
 
     it("TEST — mutation : si componentDefinitions.js change width/height, le <div> racine suit IMMÉDIATEMENT", () => {
