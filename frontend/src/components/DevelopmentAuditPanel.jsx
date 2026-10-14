@@ -107,6 +107,7 @@ function auditBrowser() {
 export function DevelopmentAuditPanel({ onClose }) {
   const [report, setReport] = useState(null);
   const [runner, setRunner] = useState(null);
+  const [clock, setClock] = useState(Date.now());
   const [runnerError, setRunnerError] = useState("");
   const [autoOpened, setAutoOpened] = useState(false);
   const lastOpenedRun = useRef(null);
@@ -123,7 +124,7 @@ export function DevelopmentAuditPanel({ onClose }) {
   }, []);
   useEffect(() => {
     void refresh();
-    const timer = window.setInterval(() => { void refresh(); }, 1500);
+    const timer = window.setInterval(() => { setClock(Date.now()); void refresh(); }, 1500);
     return () => window.clearInterval(timer);
   }, [refresh]);
   const runAll = useCallback(async () => {
@@ -198,9 +199,13 @@ export function DevelopmentAuditPanel({ onClose }) {
   const running = runner?.phase === "RUNNING";
   const finished = runner?.phase === "DONE";
   const passed = runner?.steps?.filter(step => step.status === "PASS").length ?? 0;
+  const completed = runner?.steps?.filter(step => ["PASS", "FAIL"].includes(step.status)).length ?? 0;
   const total = runner?.steps?.length ?? 0;
   const current = runner?.steps?.find(step => step.status === "RUNNING");
   const failures = runner?.steps?.filter(step => step.status === "FAIL") ?? [];
+  const elapsed = runner?.startedAt ? Math.max(0, Math.floor((clock - Date.parse(runner.startedAt)) / 1000)) : 0;
+  const elapsedLabel = `${Math.floor(elapsed / 60)} min ${String(elapsed % 60).padStart(2, "0")} s`;
+  const activityAge = current?.lastOutputAt ? Math.max(0, Math.floor((clock - Date.parse(current.lastOutputAt)) / 1000)) : null;
   return (
     <section role="dialog" aria-modal="false" aria-label="Contrôle MYBlab"
       style={{ position: "fixed", right: 16, top: 72, width: "min(490px, calc(100vw - 32px))",
@@ -218,10 +223,18 @@ export function DevelopmentAuditPanel({ onClose }) {
         {running ? "⏳ Contrôle en cours…" : "▶ Démarrer le contrôle complet"}
       </button>
       {running && <div role="status" aria-live="polite" style={{ marginTop: 16 }}>
-        <strong>Patiente pendant la vérification.</strong>
+        <strong>Contrôle en cours — le logiciel travaille.</strong>
         <p>{current ? current.label : "Préparation des contrôles…"}</p>
-        <p>{passed} étape(s) terminée(s) sur {total}.</p>
-        <progress value={passed} max={Math.max(1, total)} style={{ width: "100%" }} />
+        <p>Temps écoulé : <strong>{elapsedLabel}</strong></p>
+        <p>{completed} étape(s) terminée(s) sur {total} ({passed} réussie(s), {failures.length} en échec).</p>
+        <progress aria-label="Progression des étapes terminées" value={completed} max={Math.max(1, total)} style={{ width: "100%", height: 16 }} />
+        <div aria-label="Activité du contrôle en cours" style={{ height: 6, background: "#334155", borderRadius: 8, overflow: "hidden", marginTop: 8 }}>
+          <div style={{ width: "35%", height: "100%", background: "#38bdf8", borderRadius: 8, animation: "myblabAuditActivity 1.8s ease-in-out infinite alternate" }} />
+        </div>
+        <style>{`@keyframes myblabAuditActivity { from { transform: translateX(0); } to { transform: translateX(185%); } }`}</style>
+        <p style={{ fontSize: 13 }}>Animation = contrôle actif, pas pourcentage de tests exécutés.</p>
+        {current && <p style={{ fontSize: 13 }}>Étape commencée : {current.startedAt ? new Date(current.startedAt).toLocaleTimeString() : "en cours"}{activityAge != null ? ` · Dernière sortie du test : il y a ${activityAge} s` : " · En attente des premiers résultats du test"}</p>}
+        {activityAge != null && activityAge > 90 && <p role="alert" style={{ color: "#fbbf24" }}>Aucune nouvelle sortie depuis plus de 90 secondes. Le contrôle peut être lent ou bloqué ; il s’arrêtera si son délai maximal est dépassé.</p>}
         <p style={{ fontSize: 13 }}>Le rapport final apparaîtra automatiquement dans l'onglet ouvert au démarrage.</p>
       </div>}
       {finished && <div role="status" aria-live="polite" style={{ marginTop: 16 }}>
