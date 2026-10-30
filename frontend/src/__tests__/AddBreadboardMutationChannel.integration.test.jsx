@@ -86,6 +86,40 @@ describe('MB-BREADBOARD-002 — canal de mutation cible : addBreadboard', () => 
         expect(result.current.breadboard.id).toBe(id)
     })
 
+    it('ajuste le viewport tablette si le breadboard dépasse le canvas dans la vue initiale', () => {
+        const previousWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth')
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: 768 })
+        const canvasRef = {
+            current: {
+                getBoundingClientRect: () => ({
+                    left: 0,
+                    top: 0,
+                    width: 388,
+                    height: 700,
+                }),
+            },
+        }
+        const tabletWrapper = ({ children }) => (
+            <CircuitProvider canvasRef={canvasRef}>{children}</CircuitProvider>
+        )
+
+        try {
+            const { result } = renderHook(
+                () => ({ ...useCircuit(), ...useCircuitInteraction() }),
+                { wrapper: tabletWrapper }
+            )
+
+            act(() => {
+                result.current.addBreadboard()
+            })
+
+            expect(result.current.viewport.zoom).toBeLessThan(1)
+            expect(result.current.viewport.translateX).toBeLessThan(0)
+        } finally {
+            Object.defineProperty(window, 'innerWidth', previousWidth)
+        }
+    })
+
     it('TEST 4 (INV round-trip) : addBreadboard puis addComponent (round-trip Core complet) ne perd pas le breadboard déjà posé', () => {
         const { result } = renderHook(() => ({ ...useCircuit(), ...useCircuitInteraction() }), { wrapper })
 

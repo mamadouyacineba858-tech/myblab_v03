@@ -1,6 +1,9 @@
 import { UpdateComponentPropertiesHandler } from "../core/handlers/component/UpdateComponentPropertiesHandler.js"
 import { resolveComponentProperties, validateComponentProperties, isPlainProperties } from "../config/componentProperties.js"
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
+// This hook maintains synchronous refs for mutation/event boundaries and
+// clears volatile simulation projections when the runtime stops.
+/* eslint-disable react-hooks/immutability, react-hooks/set-state-in-effect */
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { snapToGrid, GRID_SIZE } from "../utils/grid.js"
 // MB-BREADBOARD-003 (Blueprint §3) : snapping/validité de placement pendant le
@@ -598,6 +601,7 @@ const getUndoCount = useCallback(() => {
 
   useEffect(() => {
     if (!simulationActive) {
+      // Clear volatile presentation state as soon as simulation stops.
       setPinSignals(EMPTY_MAP)
       setRuntimeStates(EMPTY_MAP)
       return
@@ -653,6 +657,8 @@ const getUndoCount = useCallback(() => {
 
   const componentsRef = useRef(safeComponents)
   useEffect(() => {
+    // These refs are intentionally kept current for event handlers and the
+    // document API; they must not become a second source of truth.
     componentsRef.current = safeComponents
   }, [safeComponents])
 
@@ -741,6 +747,7 @@ const getUndoCount = useCallback(() => {
   // =========================================================================
   useEffect(() => {
     if (focusedComponentId && !safeComponents.some((c) => c.uid === focusedComponentId)) {
+      // Selection is invalid after deletion/import and must be cleared.
       setFocusedComponentId(null)
       setLocalScale(LOCAL_SCALE_DEFAULT)
     }
@@ -849,6 +856,8 @@ const getUndoCount = useCallback(() => {
       // (remplacement non fonctionnel de l'état). Vérifié empiriquement via
       // DeleteCommand.integration.test.jsx (deux addComponent() consécutifs
       // dans le même act()). Même raisonnement appliqué à breadboard(s)Ref.
+      // Keep synchronous refs aligned with the document API between batched
+      // React renders; these are intentionally mutable event-handler refs.
       componentsRef.current = nextComponents
       wiresRef.current = nextWires
       breadboardRef.current = nextBreadboard
@@ -1045,6 +1054,43 @@ const getUndoCount = useCallback(() => {
     }
   }, [documentApi])
 
+  const addComponentAtCanvasCenter = useCallback((type) => {
+    const def = getComponentDef(type)
+    if (!def) return
+
+    const canvas = canvasRef?.current
+    const rect = canvas?.getBoundingClientRect()
+    if (!rect || rect.width <= 0 || rect.height <= 0) {
+      addComponent(type)
+      return
+    }
+
+    const center = clientToCanvas(
+      {
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2,
+      },
+      rect,
+      viewportRef.current.zoom,
+      viewportRef.current.translateX,
+      viewportRef.current.translateY
+    )
+    const placementIndex = componentsRef.current.length
+    const offsets = [
+      { x: 0, y: 0 },
+      { x: 120, y: 0 },
+      { x: -120, y: 0 },
+      { x: 0, y: 120 },
+      { x: 0, y: -120 },
+    ]
+    const offset = offsets[placementIndex % offsets.length]
+    addComponent(
+      type,
+      center.x - def.width / 2 + offset.x,
+      center.y - def.height / 2 + offset.y
+    )
+  }, [addComponent, canvasRef])
+
   // =========================================================================
   // FIN MB-CF3-001 (GATE 3 — addComponent)
   // =========================================================================
@@ -1221,10 +1267,37 @@ const getUndoCount = useCallback(() => {
       const coreDocument = documentApi.getDocument()
       const command = new Command("ADD_BREADBOARD", { position })
       commandBusRef.current.dispatch(command, coreDocument)
+      if (typeof window !== "undefined") {
+        const rect = canvasRef?.current?.getBoundingClientRect()
+        if (!rect) return
+        const bounds = computeSceneBounds(
+          componentsRef.current,
+          wiresRef.current,
+          breadboardsRef.current
+        )
+        const viewport = viewportRef.current
+        const sceneExceedsCanvas = bounds && (
+          bounds.minX * viewport.zoom + viewport.translateX < 0 ||
+          bounds.minY * viewport.zoom + viewport.translateY < 0 ||
+          bounds.maxX * viewport.zoom + viewport.translateX > rect.width ||
+          bounds.maxY * viewport.zoom + viewport.translateY > rect.height
+        )
+        const viewportIsUnadjusted =
+          viewport.zoom === 1 &&
+          viewport.translateX === 0 &&
+          viewport.translateY === 0
+        if (window.innerWidth > 640 && (!viewportIsUnadjusted || !sceneExceedsCanvas)) return
+
+        const next = fitViewportToBounds(bounds, {
+          width: rect.width,
+          height: rect.height,
+        })
+        if (next) setViewport(next)
+      }
     } catch (error) {
       console.error("addBreadboard: échec du dispatch via CommandBus", error)
     }
-  }, [documentApi])
+  }, [canvasRef, documentApi])
   // =========================================================================
   // FIN MB-BREADBOARD-002 (ADD_BREADBOARD)
   // =========================================================================
@@ -2796,6 +2869,7 @@ if (import.meta.env.DEV) {
   adjustLocalScale,
 
   addComponent,
+  addComponentAtCanvasCenter,
   updateComponentProperties,
   updateComponentParameters,
   updateArduinoFirmware,
@@ -2920,6 +2994,7 @@ if (import.meta.env.DEV) {
   adjustLocalScale,
 
   addComponent,
+  addComponentAtCanvasCenter,
   updateComponentProperties,
   updateComponentParameters,
   updateArduinoFirmware,
@@ -2994,4 +3069,3 @@ if (import.meta.env.DEV) {
   getUndoCount,
 ])
 }
-
