@@ -1,0 +1,37 @@
+.instruments-panel {
+  position: fixed;
+  right: 12px;
+  bottom: 44px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: min(70vh, 560px);
+  overflow: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  z-index: 40;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #2f4a3c;
+  background: #101a15;
+  color: #e6f4ec;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+}
+.instruments-header { display: flex; justify-content: space-between; align-items: center; }
+.instruments-header h2 { margin: 0; font-size: 15px; }
+.instruments-header button { min-width: 32px; min-height: 32px; }
+.instruments-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.instruments-tabs button, .instruments-mode button { min-height: 32px; padding: 4px 8px; }
+.instruments-tabs button[aria-selected="true"], .instruments-mode button[aria-pressed="true"] { outline: 2px solid #4ade80; }
+.instruments-body { display: flex; flex-direction: column; gap: 8px; }
+.instruments-mode { display: flex; gap: 4px; }
+.instruments-field { display: flex; flex-direction: column; gap: 2px; }
+.instruments-field select { min-height: 32px; max-width: 100%; }
+.instruments-reading { display: flex; flex-direction: column; gap: 2px; }
+.instruments-reading output { font: 700 24px/1.2 ui-monospace, monospace; color: #4ade80; background: #07110c; padding: 6px 8px; border-radius: 6px; }
+.instruments-reading small, .instruments-hint { color: #9db8a8; }
+.instruments-alert { color: #ff8a80; margin: 4px 0; }
+.instruments-scope { width: 100%; height: auto; border-radius: 6px; border: 1px solid #1f4d34; }
+.instruments-scope-stats { color: #9db8a8; font-size: 12px; }
+@media (max-width: 520px) {
+  .instruments-panel { right: 6px; left: 6px; width: auto; bottom: 40px; max-height: 55vh; }
+}

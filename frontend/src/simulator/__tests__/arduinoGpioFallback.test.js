@@ -66,8 +66,11 @@ it("does not invent Arduino supply signals or alter an unrelated component", () 
     { uid: "led", type: "LED", x: 200, y: 0 },
   ]
   const { pinSignals } = resolveSignals(components, prepareCircuit(components, []))
-  for (const key of ["arduino:5V", "arduino:GND", "led:anode", "led:cathode"]) {
+  for (const key of ["arduino:5V", "led:anode", "led:cathode"]) {
     expect(pinSignals.get(key)).toBe(Signal.UNKNOWN)
   }
+  // TINKERCAD-004 : GND Arduino est une référence de masse déclarée (0 V) ;
+  // l'alimentation 5V n'est, elle, jamais inventée.
+  expect(pinSignals.get("arduino:GND")).toBe(Signal.LOW)
   expect(pinSignals.size).toBe(18)
 })

@@ -9,6 +9,7 @@ import { useCircuit } from "../context/useCircuit.js"
 import { SettingsPanel } from "./SettingsPanel.jsx";
 import { DevelopmentAuditPanel } from "./DevelopmentAuditPanel.jsx";
 import { LiveMeasurementPanel } from "../measurement/LiveMeasurementPanel.jsx";
+import { InstrumentsPanel } from "../instruments/InstrumentsPanel.jsx";
 import "./Navbar.css";
 import { ArduinoCodeWorkspace } from "../arduino/ui/ArduinoCodeWorkspace.jsx";
 export function Navbar() {
@@ -31,7 +32,14 @@ export function Navbar() {
   const [codeOpen, setCodeOpen] = useState(false);
   const [auditOpen, setAuditOpen] = useState(false);
   const isArduino = selectedComponent?.type === "ARDUINO";
-  useEffect(() => { if (!isArduino) setCodeOpen(false); }, [isArduino]);
+  useEffect(() => {
+    if (!isArduino) {
+      // Closing the Arduino editor when selection leaves the Arduino is a
+      // synchronization with the selected document component, not user input.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCodeOpen(false)
+    }
+  }, [isArduino]);
   const fileInputRef = useRef(null);
 const [settingsOpen, setSettingsOpen] = useState(false);
   // MB-MEASURE-002 : panneau léger, monté uniquement lorsqu'ouvert (§6 du
@@ -39,6 +47,7 @@ const [settingsOpen, setSettingsOpen] = useState(false);
   // (useCircuitInteraction, nécessaire à LiveMeasurementPanel pour lire
   // `components` à jour) tant que l'instrument est fermé.
   const [measurementOpen, setMeasurementOpen] = useState(false);
+  const [instrumentsOpen, setInstrumentsOpen] = useState(false);
   const handleNew = useCallback(() => {
     
     const confirmed = window.confirm(
@@ -169,6 +178,15 @@ const [settingsOpen, setSettingsOpen] = useState(false);
         >
           📊 Mesures
         </button>
+        <button
+          type="button"
+          className="instruments-toggle"
+          onClick={() => setInstrumentsOpen((open) => !open)}
+          aria-expanded={instrumentsOpen}
+          title="Voltmètre, ampèremètre, multimètre, oscilloscope"
+        >
+          🔬 Instruments
+        </button>
 
         {import.meta.env.DEV && (
           <button type="button" onClick={() => setAuditOpen(true)} aria-expanded={auditOpen} title="Pré-audit UI de développement (provisoire)">🧪 Audit DEV</button>
@@ -192,6 +210,7 @@ const [settingsOpen, setSettingsOpen] = useState(false);
       {measurementOpen && (
   <LiveMeasurementPanel onClose={() => setMeasurementOpen(false)} />
 )}
+      {instrumentsOpen && <InstrumentsPanel onClose={() => setInstrumentsOpen(false)} />}
     </header>
   );
 }

@@ -3,6 +3,7 @@ import { getDcVoltageDomainContribution } from "./dcVoltageDomainRegistry.js"
 import { getAnalogConditionalConduction } from "./analogConditionalConductionRegistry.js"
 import { getDcSource } from "./dcSourceRegistry.js"
 import { getCanonicalEntry } from "./canonicalRegistry.js"
+import { getGroundReferencePins } from "./groundReferenceRegistry.js"
 import { getDcContribution, getUnconditionalConductionPinPair } from "./dcContributionRegistry.js"
 import { getConditionalConduction } from "./conditionalConductionRegistry.js"
 import { resolveComponentParameters } from "./resolveComponentParameters.js"
@@ -268,6 +269,16 @@ function seedSourceDrivenPinSignals(components, prepared) {
     pinSignals.set(uf.key(comp.uid, source.positivePin), Signal.HIGH)
     pinSignals.set(uf.key(comp.uid, source.negativePin), Signal.LOW)
   }
+
+  // TINKERCAD-004 : une broche GND déclarée comme référence de masse (ex. Arduino)
+  // est à 0 V ; sans cela un retour de LED vers cette broche restait indéterminé.
+  for (const comp of components) {
+    for (const pinId of getGroundReferencePins(comp.type)) {
+      const key = uf.key(comp.uid, pinId)
+      if (pinSignals.get(key) === Signal.UNKNOWN) pinSignals.set(key, Signal.LOW)
+    }
+  }
+
 
   // Preserve non-ambiguous digital signals, including separate source terminals.
   // Opposing seeded levels refuse all source-driven digital signals, independent
