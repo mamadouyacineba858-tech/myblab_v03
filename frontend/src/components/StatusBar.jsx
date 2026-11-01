@@ -3,12 +3,14 @@ import { useCircuitInteraction } from "../context/useCircuitInteraction.js";
 import "./StatusBar.css";
 
 export function StatusBar() {
-  const { isWiringActive, simulationActive } = useCircuit();
+  const { isWiringActive, simulationActive, wires } = useCircuit();
   // MB-VIS-CANVAS-051 : `components`/`wirePaths` (comptage seul) relèvent du
   // state haute fréquence côté useCircuitState.js (componentsForRender/
   // wirePaths suivent le preview de drag) — inchangé fonctionnellement ici,
   // seule la source de lecture est désormais explicite.
-  const { components, wirePaths } = useCircuitInteraction();
+  const { components } = useCircuitInteraction();
+  // Les fils vers un trou de breadboard ne sont pas dans wirePaths : on compte les fils persistés.
+  const wireCount = Array.isArray(wires) ? wires.length : 0;
 
 
   return (
@@ -18,7 +20,7 @@ export function StatusBar() {
       </span>
 
       <span className="myblab-statusbar__item">
-        🔌 Fils : {wirePaths.length}
+        🔌 Fils : {wireCount}
       </span>
 
       <span className="myblab-statusbar__item">
