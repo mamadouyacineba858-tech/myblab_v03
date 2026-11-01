@@ -27,7 +27,7 @@ describe('A13-ARD-SURF2-REALISM-008 — separate electrical and presentation geo
     const def = getComponentDef('ARDUINO')
     const contract = manifest.geometryContract
     expect(contract.status).toBe('horizontal-candidate-not-qualified')
-    expect(def.pins).toHaveLength(16)
+    expect(def.pins).toHaveLength(22)
     expect(Object.keys(contract.presentationContacts).sort()).toEqual(def.pins.map(p => p.id).sort())
     for (const pin of def.pins) {
       expect(pin.contacts).toHaveLength(1)

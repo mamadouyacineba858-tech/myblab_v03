@@ -300,13 +300,37 @@ export class FirmwareExecutor {
         if (signal !== Signal.HIGH && signal !== Signal.LOW) {
           throw new FirmwareExecutionError("digitalRead received unresolved signal: " + signal)
         }
-        if (instruction.declare && this._variables.has(instruction.name)) {
-          throw new FirmwareExecutionError("variable already declared: " + instruction.name)
-        }
+        // `int v = analogRead(A0);` dans loop() est ré-exécuté à chaque tour : la déclaration réinitialise la variable locale.
         if (!instruction.declare && !this._variables.has(instruction.name)) {
           throw new FirmwareExecutionError("undeclared variable: " + instruction.name)
         }
         this._variables.set(instruction.name, signal === Signal.HIGH ? 1 : 0)
+        return
+      }
+      case "ANALOG_READ": {
+        if (typeof this._runtimePort.analogRead !== "function") {
+          throw new FirmwareExecutionError("analogRead runtime port is unavailable")
+        }
+        const raw = this._runtimePort.analogRead(instruction.pin)
+        if (!Number.isInteger(raw) || raw < 0 || raw > 1023) {
+          throw new FirmwareExecutionError("analogRead received no resolved voltage on " + instruction.pin)
+        }
+        if (!instruction.declare && !this._variables.has(instruction.name)) {
+          throw new FirmwareExecutionError("undeclared variable: " + instruction.name)
+        }
+        this._variables.set(instruction.name, raw)
+        return
+      }
+      case "ANALOG_WRITE": {
+        const value = /^\d+$/.test(instruction.value) ? Number(instruction.value) : this._variables.get(instruction.value)
+        if (!Number.isInteger(value)) throw new FirmwareExecutionError("analogWrite: undefined value " + instruction.value)
+        if (this._pinModes.get(instruction.pin) !== "OUTPUT") {
+          throw new FirmwareExecutionError(`analogWrite("${instruction.pin}") called before pinMode("${instruction.pin}", OUTPUT)`)
+        }
+        if (typeof this._runtimePort.analogWrite !== "function") {
+          throw new FirmwareExecutionError("analogWrite runtime port is unavailable")
+        }
+        this._runtimePort.analogWrite(instruction.pin, Math.min(255, Math.max(0, value)))
         return
       }
       case "PIN_MODE":

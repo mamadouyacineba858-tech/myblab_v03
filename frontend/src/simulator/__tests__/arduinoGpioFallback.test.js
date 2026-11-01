@@ -72,5 +72,5 @@ it("does not invent Arduino supply signals or alter an unrelated component", () 
   // TINKERCAD-004 : GND Arduino est une référence de masse déclarée (0 V) ;
   // l'alimentation 5V n'est, elle, jamais inventée.
   expect(pinSignals.get("arduino:GND")).toBe(Signal.LOW)
-  expect(pinSignals.size).toBe(18)
+  expect(pinSignals.size).toBe(24)
 })

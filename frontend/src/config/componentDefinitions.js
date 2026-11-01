@@ -101,6 +101,12 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "D13", label: "D13", dx: 59, dy: 33, contacts: [{ id: "D13", dx: 85.55, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
     { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [{ id: "GND", dx: 112.15, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
     { id: "5V", label: "5V", dx: 120, dy: 50, contacts: [{ id: "5V", dx: 106.41, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A0", label: "A0", dx: 140.41, dy: 110, contacts: [{ id: "A0", dx: 140.41, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A1", label: "A1", dx: 146.11, dy: 110, contacts: [{ id: "A1", dx: 146.11, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A2", label: "A2", dx: 151.81, dy: 110, contacts: [{ id: "A2", dx: 151.81, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A3", label: "A3", dx: 157.51, dy: 110, contacts: [{ id: "A3", dx: 157.51, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A4", label: "A4", dx: 163.21, dy: 110, contacts: [{ id: "A4", dx: 163.21, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A5", label: "A5", dx: 168.91, dy: 110, contacts: [{ id: "A5", dx: 168.91, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
   ],
   BUTTON: [
     { id: "pin1", label: "1", dx: 14, dy: 30, contacts: [{ id: "1a", dx: 14, dy: 58, wireConnectable: true, breadboardInsertable: true }, { id: "1b", dx: 14, dy: 2, wireConnectable: true, breadboardInsertable: true }] },

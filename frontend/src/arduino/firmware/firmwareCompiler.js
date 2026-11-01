@@ -126,6 +126,28 @@ function parseStatement(text, source, offset, diagnostics, constants) {
     }
     return Object.freeze({ op: "DIGITAL_READ", pin, name: readMatch[2], declare: Boolean(readMatch[1]) })
   }
+  // TINKERCAD-005 : entrée analogique 10 bits, valeur lue dans le moteur électrique.
+  const analogReadMatch = text.match(/^(?:(int)\s+)?([A-Za-z_]\w*)\s*=\s*analogRead\s*\(\s*(A[0-5]|1[4-9])\s*\)$/)
+  if (analogReadMatch) {
+    const channel = analogReadMatch[3].startsWith("A") ? analogReadMatch[3] : `A${Number(analogReadMatch[3]) - 14}`
+    return Object.freeze({ op: "ANALOG_READ", pin: channel, name: analogReadMatch[2], declare: Boolean(analogReadMatch[1]) })
+  }
+  // TINKERCAD-005 : analogWrite(pin PWM, 0..255 littéral ou variable). Broches PWM de l'UNO : 3, 5, 6, 9, 10, 11.
+  const analogWriteMatch = text.match(/^analogWrite\s*\(\s*(\d+|[A-Za-z_]\w*)\s*,\s*(\d+|[A-Za-z_]\w*)\s*\)$/)
+  if (analogWriteMatch) {
+    const [, pinStr, valueToken] = analogWriteMatch
+    const pin = resolveDigitalPin(pinStr, constants)
+    const pinNumber = pin ? Number(pin.slice(1)) : NaN
+    if (!pin || ![3, 5, 6, 9, 10, 11].includes(pinNumber)) {
+      diagnostics.push(createDiagnostic(DiagnosticCode.UNSUPPORTED_PIN, `analogWrite: pin ${pinStr} is not a PWM pin of the Arduino Uno (3, 5, 6, 9, 10, 11)`, line))
+      return null
+    }
+    if (/^\d+$/.test(valueToken) && Number(valueToken) > 255) {
+      diagnostics.push(createDiagnostic(DiagnosticCode.INVALID_LEVEL, `analogWrite value ${valueToken} is out of range 0..255`, line))
+      return null
+    }
+    return Object.freeze({ op: "ANALOG_WRITE", pin, value: valueToken })
+  }
   const integerDeclaration = text.match(/^int\s+([A-Za-z_]\w*)\s*=\s*(-?\d+)$/)
   if (integerDeclaration) {
     return Object.freeze({ op: "VAR_DECLARE", name: integerDeclaration[1], value: Number(integerDeclaration[2]) })

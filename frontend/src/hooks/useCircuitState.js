@@ -1,4 +1,5 @@
 import { UpdateComponentPropertiesHandler } from "../core/handlers/component/UpdateComponentPropertiesHandler.js"
+import { consumePinPick, snapshotInstruments, applyInstrumentsSnapshot, resetInstruments } from "../instruments/instrumentsStore.js"
 import { resolveComponentProperties, validateComponentProperties, isPlainProperties } from "../config/componentProperties.js"
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 // This hook maintains synchronous refs for mutation/event boundaries and
@@ -1466,6 +1467,8 @@ const getUndoCount = useCallback(() => {
     if (dragSessionRef.current !== null) return
     if (marqueeSessionRef.current !== null) return
     if (panSessionRef.current !== null) return
+    // TINKERCAD-005 : une sonde armée depuis le panneau d'instruments consomme le clic de broche.
+    if (consumePinPick(uid, pinId)) return
 
     // [FT-B-001-S2] `contactId` (ancre de contact physique) mémorisé dans
     // pendingPin puis transmis à addWire — même sémantique que le geste de
@@ -2567,6 +2570,7 @@ if (import.meta.env.DEV) {
   const deleteSelectedWire = useCallback(() => deleteSelection(), [deleteSelection])
 
   const clearCircuit = useCallback(() => {
+    resetInstruments()
     wireGestureRef.current = null
     setWireGesture(null)
     setComponents([])
@@ -2611,12 +2615,16 @@ if (import.meta.env.DEV) {
   // importable (importCircuit ci-dessous), mais tout nouvel export est
   // canonique et ne réémet jamais le singleton legacy.
   const exportCircuit = useCallback(
-    () => ({ version: 1, components: safeComponents, wires: safeWires, breadboards }),
+    () => {
+      const instruments = snapshotInstruments()
+      return { version: 1, components: safeComponents, wires: safeWires, breadboards, ...(instruments ? { instruments } : {}) }
+    },
     [safeComponents, safeWires, breadboards]
   )
 
   const importCircuit = useCallback((data) => {
     if (!data || typeof data !== "object") return
+    applyInstrumentsSnapshot(data.instruments)
     wireGestureRef.current = null
     setWireGesture(null)
     setComponents(Array.isArray(data.components) ? data.components.map(normalizeComponent).filter((c) => c !== null) : [])

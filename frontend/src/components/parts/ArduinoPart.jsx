@@ -63,9 +63,6 @@ const VISUAL_ONLY_HEADERS = [
   { id: '3.3V', x: 95.7 }, { id: '5V', x: 101.4 },
   { id: 'GND', x: 107.1 }, { id: 'GND', x: 112.8 },
   { id: 'VIN', x: 118.5 },
-  { id: 'A0', x: 135.4 }, { id: 'A1', x: 141.1 },
-  { id: 'A2', x: 146.8 }, { id: 'A3', x: 152.5 },
-  { id: 'A4', x: 158.2 }, { id: 'A5', x: 163.9 },
 ]
 
 // Three upper-left holes are visible on the approved raster but are not

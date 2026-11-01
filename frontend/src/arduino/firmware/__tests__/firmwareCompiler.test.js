@@ -175,7 +175,18 @@ describe("MB-L1-ARD-002 — firmwareCompiler — §19 cas d'erreur additionnels"
   it("analogWrite() est hors scope ARD-002 -> UNSUPPORTED_STATEMENT", () => {
     const result = compileFirmware("void setup() { pinMode(2, OUTPUT); }\nvoid loop() { analogWrite(2, 128); }")
     expect(result.ok).toBe(false)
-    expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_STATEMENT)
+    expect(result.diagnostics[0].code).toBe(DiagnosticCode.UNSUPPORTED_PIN)
+  })
+
+  it("analogWrite() sur une broche PWM et analogRead(A0..A5) compilent en IR typé", () => {
+    const pwm = compileFirmware("void setup() { pinMode(9, OUTPUT); }\nvoid loop() { analogWrite(9, 128); }")
+    expect(pwm.ok).toBe(true)
+    expect(pwm.ir.loop[0]).toMatchObject({ op: "ANALOG_WRITE", pin: "D9", value: "128" })
+    const adc = compileFirmware("void setup() {}\nvoid loop() { int v = analogRead(A3); }")
+    expect(adc.ok).toBe(true)
+    expect(adc.ir.loop[0]).toMatchObject({ op: "ANALOG_READ", pin: "A3", name: "v", declare: true })
+    expect(compileFirmware("void setup() {}\nvoid loop() { analogWrite(9, 256); }").ok).toBe(false)
+    expect(compileFirmware("void setup() {}\nvoid loop() { int v = analogRead(A6); }").ok).toBe(false)
   })
 
   it("digitalRead()/analogRead() hors scope -> UNSUPPORTED_STATEMENT", () => {
@@ -325,8 +336,8 @@ describe("A17-FULL — ten representative UNO sketch compatibility contracts", (
     ["Blink", true, "void setup(){pinMode(13,OUTPUT);} void loop(){digitalWrite(13,HIGH);delay(500);digitalWrite(13,LOW);delay(500);}"],
     ["button input", true, "void setup(){pinMode(2,INPUT);int pressed=0;} void loop(){pressed=digitalRead(2);delay(16);}"],
     ["button to LED", true, "void setup(){pinMode(2,INPUT_PULLUP);pinMode(13,OUTPUT);int pressed=0;} void loop(){pressed=digitalRead(2);if(pressed==0){digitalWrite(13,HIGH);}else{digitalWrite(13,LOW);}delay(16);}"],
-    ["PWM dimmer", false, "void setup(){pinMode(9,OUTPUT);} void loop(){analogWrite(9,128);delay(16);}"],
-    ["potentiometer ADC", false, "void setup(){} void loop(){int value=analogRead(A0);delay(16);}"],
+    ["PWM dimmer", true, "void setup(){pinMode(9,OUTPUT);} void loop(){analogWrite(9,128);delay(16);}"],
+    ["potentiometer ADC", true, "void setup(){} void loop(){int value=analogRead(A0);delay(16);}"],
     ["Serial monitor", false, "void setup(){Serial.begin(9600);} void loop(){Serial.println(42);delay(1000);}"],
     ["traffic lights", true, "void setup(){pinMode(2,OUTPUT);pinMode(3,OUTPUT);pinMode(4,OUTPUT);} void loop(){digitalWrite(2,HIGH);delay(100);digitalWrite(2,LOW);digitalWrite(3,HIGH);delay(100);digitalWrite(3,LOW);digitalWrite(4,HIGH);delay(100);digitalWrite(4,LOW);}"],
     ["variables and arithmetic", true, "void setup(){int counter=0;pinMode(13,OUTPUT);} void loop(){counter+=1;if(counter>5){counter=0;}delay(16);}"],

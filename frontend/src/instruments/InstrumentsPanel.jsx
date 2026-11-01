@@ -1,15 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useMemo, useState } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js"
 import { toEngineInput } from "../simulator/engineAdapter.js"
 import { solveDcNetwork } from "../simulator/nodalDcSolver.js"
-import { SIMULATION_STEP_MS } from "../simulator/simulationRuntimeIntegration.js"
+import { GeneratorTab, ProbesTab, ScopeLive } from "./InstrumentsLive.jsx"
 import "./InstrumentsPanel.css"
 
-const MAX_SAMPLES = 640
-const WINDOWS_MS = [160, 1000, 5000, 10000]
 const TWO_TERMINAL_TYPES = new Set(["RESISTOR", "LED", "DIODE", "POTENTIOMETER"])
 
 function formatValue(value, unit) {
@@ -166,107 +164,17 @@ function Multimeter({ components, solution }) {
   )
 }
 
-function Oscilloscope({ components, solution, pinSignals, simulationActive }) {
-  const options = useMemo(() => pinOptions(components), [components])
-  const [channel, setChannel] = useState("")
-  const [windowMs, setWindowMs] = useState(5000)
-  const [samples, setSamples] = useState([])
-  const canvasRef = useRef(null)
-  const target = splitPin(channel)
-  const targetUid = target?.uid
-  const targetPin = target?.pin
-
-  // Une nouvelle `pinSignals` = un pas de simulation de SIMULATION_STEP_MS
-  // (useCircuitState) ; l'axe temps est donc le temps simulé, pas l'horloge murale.
-  // L'acquisition écrit dans une ref (pas de setState dans l'effet : évite la
-  // boucle de mises à jour avec le pas de simulation) ; l'affichage est rafraîchi par un minuteur.
-  const bufferRef = useRef([])
-  useEffect(() => {
-    if (!simulationActive || !pinSignals || pinSignals.size === 0) {
-      bufferRef.current = []
-      return
-    }
-    if (!solution || !targetUid) return
-    const buffer = bufferRef.current
-    const v = solution.pinVoltage(targetUid, targetPin)
-    const t = (buffer.length ? buffer[buffer.length - 1].t : 0) + SIMULATION_STEP_MS
-    buffer.push({ t, v })
-    if (buffer.length > MAX_SAMPLES) buffer.splice(0, buffer.length - MAX_SAMPLES)
-    // Un échantillon par nouveau pas de simulation uniquement.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pinSignals, simulationActive])
-
-  useEffect(() => {
-    const id = setInterval(() => setSamples(bufferRef.current.slice()), 100)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext?.("2d")
-    if (!ctx) return
-    const { width, height } = canvas
-    ctx.fillStyle = "#0b1a12"
-    ctx.fillRect(0, 0, width, height)
-    ctx.strokeStyle = "#1f4d34"
-    ctx.lineWidth = 1
-    for (let i = 1; i < 10; i++) { ctx.beginPath(); ctx.moveTo((width * i) / 10, 0); ctx.lineTo((width * i) / 10, height); ctx.stroke() }
-    for (let i = 1; i < 8; i++) { ctx.beginPath(); ctx.moveTo(0, (height * i) / 8); ctx.lineTo(width, (height * i) / 8); ctx.stroke() }
-    const data = samples
-    if (data.length < 2) return
-    const tEnd = data[data.length - 1].t
-    const tStart = tEnd - windowMs
-    const visible = data.filter((s) => s.t >= tStart && s.v !== null)
-    const vMax = Math.max(5, ...visible.map((s) => s.v)) * 1.1
-    const vMin = Math.min(0, ...visible.map((s) => s.v))
-    ctx.strokeStyle = "#4ade80"
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    visible.forEach((s, i) => {
-      const x = ((s.t - tStart) / windowMs) * width
-      const y = height - ((s.v - vMin) / (vMax - vMin)) * height
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y)
-    })
-    ctx.stroke()
-  }, [samples, windowMs])
-
-  const data = samples
-  const last = data.length ? data[data.length - 1] : null
-  const visible = last ? data.filter((s) => s.t >= last.t - windowMs && s.v !== null) : []
-  const stats = visible.length
-    ? { min: Math.min(...visible.map((s) => s.v)), max: Math.max(...visible.map((s) => s.v)) }
-    : null
-
-  return (
-    <div className="instruments-body" data-testid="oscilloscope">
-      <PinSelect id="scope-channel" label="Voie 1 (nœud)" options={options}       value={channel} onChange={(value) => { setChannel(value); bufferRef.current = []; setSamples([]) }} />
-      <label className="instruments-field">
-        <span>Base de temps (fenêtre)</span>
-        <select data-testid="scope-window" value={windowMs} onChange={(e) => setWindowMs(Number(e.target.value))}>
-          {WINDOWS_MS.map((w) => <option key={w} value={w}>{w >= 1000 ? `${w / 1000} s` : `${w} ms`}</option>)}
-        </select>
-      </label>
-      <canvas ref={canvasRef} width={320} height={140} className="instruments-scope" data-testid="scope-canvas" aria-label="Oscilloscope" />
-      <div className="instruments-scope-stats" data-testid="scope-stats"
-        data-samples={visible.length} data-vmin={stats?.min ?? ""} data-vmax={stats?.max ?? ""} data-tend={last?.t ?? ""}>
-        {simulationActive
-          ? (stats ? `Échantillons : ${visible.length} · Vmin ${stats.min.toFixed(2)} V · Vmax ${stats.max.toFixed(2)} V · t = ${(last.t / 1000).toFixed(2)} s`
-            : target ? "Acquisition en attente…" : "Choisissez une voie")
-          : "Simulation arrêtée : lancez ▶ pour acquérir"}
-      </div>
-    </div>
-  )
-}
-
 const TABS = [
   { id: "voltmeter", label: "Voltmètre" },
   { id: "ammeter", label: "Ampèremètre" },
   { id: "multimeter", label: "Multimètre" },
   { id: "oscilloscope", label: "Oscilloscope" },
+  { id: "probes", label: "Sondes" },
+  { id: "generator", label: "Générateur" },
 ]
 
 export function InstrumentsPanel({ onClose }) {
-  const { solution, components, simulationActive, pinSignals } = useCircuitSolution()
+  const { solution, components, simulationActive } = useCircuitSolution()
   const [tab, setTab] = useState("multimeter")
   return (
     <aside className="instruments-panel" data-testid="instruments-panel" aria-label="Instruments de mesure">
@@ -286,7 +194,9 @@ export function InstrumentsPanel({ onClose }) {
       {tab === "voltmeter" && <Voltmeter components={components} solution={solution} />}
       {tab === "ammeter" && <Ammeter components={components} solution={solution} />}
       {tab === "multimeter" && <Multimeter components={components} solution={solution} />}
-      {tab === "oscilloscope" && <Oscilloscope components={components} solution={solution} pinSignals={pinSignals} simulationActive={simulationActive} />}
+      {tab === "oscilloscope" && <ScopeLive components={components} simulationActive={simulationActive} />}
+      {tab === "probes" && <ProbesTab components={components} simulationActive={simulationActive} />}
+      {tab === "generator" && <GeneratorTab components={components} />}
       {solution?.unqualifiedTypes?.length > 0 && (
         <p className="instruments-hint" data-testid="instruments-unqualified">
           Modèle DC non qualifié (ignoré dans la mesure) : {solution.unqualifiedTypes.join(", ")}

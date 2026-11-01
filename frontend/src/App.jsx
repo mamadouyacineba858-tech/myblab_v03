@@ -7,6 +7,7 @@ import { Sidebar } from "./components/Sidebar.jsx";
 import { SimulationCanvas } from "./canvas/SimulationCanvas.jsx";
 import { ComponentInspector } from "./components/ComponentInspector.jsx";
 import { StatusBar } from "./components/StatusBar.jsx";
+import { LiveSimulationDriver } from "./instruments/LiveSimulationDriver.jsx";
 
 import "./App.css";
 
@@ -20,6 +21,7 @@ function AppShell() {
   return (
     <div className={`myblab-root theme-${theme}`}>
       <Navbar />
+      <LiveSimulationDriver />
       <div className="myblab-app">
         <Sidebar />
         <SimulationCanvas />

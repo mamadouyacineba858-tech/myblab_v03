@@ -186,7 +186,8 @@ function buildIslands(elements, groundNodes) {
  * @param {Array} components composants au format moteur
  * @param {Array} wires fils au format moteur
  * @param {{ generators?: object[], ammeters?: object[], drive?: (uid:string, pin:string, t:number)=>number|null }} [options]
- *   drive : retourne 1 (HIGH), 0 (LOW) ou null (haute impédance) pour une broche D0–D13 d'un Arduino.
+ *   drive : retourne un niveau 0..1 (0 = LOW, 1 = HIGH, valeur intermédiaire = moyenne PWM sur le pas)
+ *   ou null (haute impédance) pour une broche D0–D13 d'un Arduino.
  */
 export function createTransientSession(components, wires, options = {}) {
   const generators = options.generators ?? []
@@ -218,7 +219,7 @@ export function createTransientSession(components, wires, options = {}) {
     const size = unknown.length + branches.length
     const idx = (n) => (n === null || n === ref ? undefined : index.get(n))
 
-    for (const e of island.elements) if (e.kind === "T") { const level = drive(e.uid, e.pin, tEnd); e.active = level === 0 || level === 1; e.v = level === 1 ? ARDUINO_LOGIC_HIGH_VOLTS : 0 }
+    for (const e of island.elements) if (e.kind === "T") { const level = drive(e.uid, e.pin, tEnd); e.active = Number.isFinite(level) && level >= 0 && level <= 1; e.v = e.active ? level * ARDUINO_LOGIC_HIGH_VOLTS : 0 }
     for (const e of branches) if (e.kind === "G") e.v = waveformValue(e.gen, tEnd)
 
     let solution = null

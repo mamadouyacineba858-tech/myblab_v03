@@ -32,6 +32,18 @@
 .instruments-alert { color: #ff8a80; margin: 4px 0; }
 .instruments-scope { width: 100%; height: auto; border-radius: 6px; border: 1px solid #1f4d34; }
 .instruments-scope-stats { color: #9db8a8; font-size: 12px; }
+.instruments-pinrow { display: flex; gap: 4px; align-items: stretch; }
+.instruments-pinrow select { flex: 1 1 auto; min-width: 0; min-height: 32px; }
+.instruments-pick { min-height: 32px; min-width: 32px; padding: 2px 8px; white-space: nowrap; }
+.instruments-pick[aria-pressed="true"] { outline: 2px solid #facc15; }
+.instruments-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.instruments-grid input, .instruments-grid select, .instruments-field input, .instruments-field select { min-height: 32px; min-width: 0; box-sizing: border-box; }
+.instruments-check { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.instruments-subtitle { margin: 6px 0 0; font-size: 13px; color: #cfe8d8; }
+.instruments-legend { color: #9db8a8; font-size: 12px; margin: 0; }
+@media (max-width: 520px) {
+  .instruments-grid { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 520px) {
   .instruments-panel { right: 6px; left: 6px; width: auto; bottom: 40px; max-height: 55vh; }
 }

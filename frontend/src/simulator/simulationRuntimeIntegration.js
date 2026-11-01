@@ -1,3 +1,4 @@
+import { recordDigital, recordPwm, clearPinTelemetry, readAnalogCode } from "./arduino/arduinoPinTelemetry.js"
 import { compileFirmware } from "../arduino/firmware/firmwareCompiler.js"
 import { FirmwareExecutor } from "../arduino/firmware/firmwareExecutor.js"
 import { FirmwareRuntimeController } from "../arduino/firmware/firmwareRuntimeController.js"
@@ -1252,7 +1253,8 @@ function computeElectricalStep(components, wires, options = {}) {
         if (firmware?.awaitingFirstElectricalSample) {
           // The previous frame has already resolved the circuit. Start only
           // after those authoritative signals have been published.
-          if (firmware.inputSignals.size > 0) {
+          const analogReady = firmware.analogPins.length === 0 || firmware.analogPins.every((pin) => readAnalogCode(comp.uid, pin) !== null)
+          if (analogReady && (firmware.inputSignals.size > 0 || firmware.analogPins.length > 0)) {
             firmware.awaitingFirstElectricalSample = false
             firmware.controller.start()
           }
@@ -1486,6 +1488,7 @@ function synchronizeFirmware(components, orchestrators, sessions) {
   for (const [uid, session] of sessions) {
     if (!live.has(uid)) {
       session.controller?.stop()
+      clearPinTelemetry(uid)
       orchestrators.get(uid)?.getRuntime().stop()
       sessions.delete(uid)
       orchestrators.delete(uid)
@@ -1497,6 +1500,7 @@ function synchronizeFirmware(components, orchestrators, sessions) {
     const previous = sessions.get(comp.uid)
     if (previous && previous.source === source) continue
     previous?.controller?.stop()
+    clearPinTelemetry(comp.uid)
     const orchestrator = orchestrators.get(comp.uid)
     const runtime = orchestrator.getRuntime()
     runtime.stop()
@@ -1510,7 +1514,18 @@ function synchronizeFirmware(components, orchestrators, sessions) {
     // The first sample is UNKNOWN until the circuit has been resolved.
     session.inputSignals = new Map()
     const runtimePort = {
-      digitalWrite: (pin, signal) => runtime.digitalWrite(pin, signal),
+      digitalWrite: (pin, signal) => {
+        recordDigital(comp.uid, pin, signal === Signal.HIGH)
+        runtime.digitalWrite(pin, signal)
+      },
+      analogWrite: (pin, value) => {
+        recordPwm(comp.uid, pin, value)
+        // Le moteur numérique ne connaît que HIGH/LOW : seuls les rapports extrêmes lui sont transmis.
+        if (value <= 0) runtime.digitalWrite(pin, Signal.LOW)
+        else if (value >= 255) runtime.digitalWrite(pin, Signal.HIGH)
+        else if (runtime.getPwmFrequencyHz?.() != null) runtime.analogWrite(pin, value)
+      },
+      analogRead: (pin) => readAnalogCode(comp.uid, pin),
       digitalRead: (pin, mode) => {
         const resolved = session.inputSignals.get(`${comp.uid}:${pin}`) ?? Signal.UNKNOWN
         // INPUT_PULLUP supplies a weak HIGH only when no external level is resolved.
@@ -1524,8 +1539,10 @@ function synchronizeFirmware(components, orchestrators, sessions) {
     runtime.start()
     // Firmware with digitalRead must not execute before the first circuit
     // resolution. Output-only Blink keeps its immediate-start semantics.
-    session.awaitingFirstElectricalSample = [...compiled.ir.setup, ...compiled.ir.loop]
-      .some(instruction => instruction.op === "DIGITAL_READ")
+    const allInstructions = [...compiled.ir.setup, ...compiled.ir.loop]
+    session.analogPins = [...new Set(allInstructions.filter(instruction => instruction.op === "ANALOG_READ").map(instruction => instruction.pin))]
+    session.awaitingFirstElectricalSample = allInstructions
+      .some(instruction => instruction.op === "DIGITAL_READ" || instruction.op === "ANALOG_READ")
     if (!session.awaitingFirstElectricalSample) session.controller.start()
   }
 }
