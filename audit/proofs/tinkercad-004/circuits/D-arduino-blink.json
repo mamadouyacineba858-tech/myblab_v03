@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "components": [
+    { "uid": "ard1", "type": "ARDUINO", "x": 100, "y": 150, "firmware": { "source": "void setup() {\n  pinMode(2, OUTPUT);\n}\n\nvoid loop() {\n  digitalWrite(2, HIGH);\n  delay(500);\n  digitalWrite(2, LOW);\n  delay(500);\n}\n" } },
+    { "uid": "r1", "type": "RESISTOR", "x": 420, "y": 120, "parameters": { "resistance": 220 } },
+    { "uid": "led1", "type": "LED", "x": 600, "y": 200 }
+  ],
+  "wires": [
+    { "id": "w1", "fromUid": "ard1", "fromPin": "D2", "toUid": "r1", "toPin": "A" },
+    { "id": "w2", "fromUid": "r1", "fromPin": "B", "toUid": "led1", "toPin": "anode" },
+    { "id": "w3", "fromUid": "led1", "fromPin": "cathode", "toUid": "ard1", "toPin": "GND" }
+  ],
+  "breadboards": []
+}

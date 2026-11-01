@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "components": [
+    { "uid": "bat1", "type": "BATTERY_9V", "x": 120, "y": 200 },
+    { "uid": "r1", "type": "RESISTOR", "x": 320, "y": 120, "parameters": { "resistance": 220 } },
+    { "uid": "led1", "type": "LED", "x": 520, "y": 200 }
+  ],
+  "wires": [
+    { "id": "w1", "fromUid": "bat1", "fromPin": "plus", "toUid": "r1", "toPin": "A" },
+    { "id": "w2", "fromUid": "r1", "fromPin": "B", "toUid": "led1", "toPin": "anode" },
+    { "id": "w3", "fromUid": "led1", "fromPin": "cathode", "toUid": "bat1", "toPin": "minus" }
+  ],
+  "breadboards": []
+}
