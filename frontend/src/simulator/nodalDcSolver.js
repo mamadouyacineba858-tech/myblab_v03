@@ -28,6 +28,7 @@ import { Signal } from "./signals.js"
 
 export const ARDUINO_OUTPUT_RESISTANCE_OHMS = 25
 export const ARDUINO_HIGH_VOLTS = 5
+export const ARDUINO_SUPPLY_RESISTANCE_OHMS = 1
 const GMIN = 1e-12
 const DEFAULT_LED_VF = 2.0
 const DEFAULT_LED_RON = 10
@@ -45,7 +46,7 @@ function positive(value, fallback) {
   return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : fallback
 }
 
-function solveLinear(matrix, rhs) {
+export function solveLinear(matrix, rhs) {
   const n = rhs.length
   const a = matrix.map((row, i) => [...row, rhs[i]])
   for (let col = 0; col < n; col++) {
@@ -110,6 +111,11 @@ function collectElements(components, prepared, pinSignals) {
       })
     } else if (type === "ARDUINO") {
       const gnd = node(uid, "GND")
+      const fiveVolt = node(uid, "5V")
+      // Alimentation USB de la carte : source 5 V à faible impédance, sauf si une source DC impose déjà ce net.
+      if (!sourceNets.has(fiveVolt)) {
+        elements.push({ kind: "T", uid, pin: "5V", p: fiveVolt, n: gnd, v: ARDUINO_HIGH_VOLTS, r: ARDUINO_SUPPLY_RESISTANCE_OHMS })
+      }
       for (let i = 0; i <= 13; i++) {
         const pin = `D${i}`
         const signal = pinSignals?.get(`${uid}:${pin}`)
