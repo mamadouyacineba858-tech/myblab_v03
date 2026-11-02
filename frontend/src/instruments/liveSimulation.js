@@ -31,13 +31,14 @@ let head = 0
 let count = 0
 let latestAmmeter = null
 let latestGenerator = null
+let lastError = null
 let sessionStamp = 0
 let currentStep = 0
 
 const pinKey = (p) => (p ? `${p.uid}|${p.pin}` : "-")
 
 function buildSignature(components, wires, instruments) {
-  const comps = components.map((c) => `${c.uid}:${c.type}:${JSON.stringify(c.parameters ?? {})}`).join(";")
+  const comps = components.map((c) => `${c.uid}:${c.type}:${JSON.stringify(c.parameters ?? {})}:${c.state ?? ""}:${JSON.stringify(c.channelStates ?? {})}`).join(";")
   const links = wires.map((w) => `${w.fromUid}.${w.fromPin}-${w.toUid}.${w.toPin}`).join(";")
   const g = instruments.generator
   const gen = g.enabled && g.plus ? `${g.waveform}/${g.frequencyHz}/${g.amplitude}/${g.offset}/${g.duty}/${pinKey(g.plus)}/${pinKey(g.minus)}` : "off"
@@ -51,6 +52,7 @@ export function configureLive(components, wires) {
   const instruments = getInstruments()
   const next = buildSignature(components, wires, instruments)
   if (next === signature && session) return false
+  const initialConditions = session?.getInitialConditions()
   signature = next
   const g = instruments.generator
   const generators = g.enabled && g.plus ? [{ ...g }] : []
@@ -59,14 +61,17 @@ export function configureLive(components, wires) {
   circuitHasDynamics = generators.length > 0 || components.some((c) => DYNAMIC_TYPES.has(c.type))
   try {
     session = createTransientSession(components, wires, {
-      generators, ammeters, drive: (uid, pin, t) => pinAverageLevel(uid, pin, t - currentStep, t),
+      generators, ammeters, initialConditions, drive: (uid, pin, t) => pinAverageLevel(uid, pin, t - currentStep, t),
     })
+    lastError = null
   } catch (error) {
     console.error("MYBlab transient solver error:", error)
+    lastError = error instanceof Error ? error.message : String(error)
     session = null
   }
   latestAmmeter = null
   latestGenerator = null
+  lastError = null
   resetBuffers()
   setAnalogReader((uid, pin) => (session ? session.pinVoltage(uid, pin) : null))
   return true
@@ -121,6 +126,7 @@ export function getLiveStatus() {
     status: session?.status ?? "NO_SESSION",
     nonConverged: session?.nonConverged ?? 0,
     unqualifiedTypes: session?.unqualifiedTypes ?? [],
+    error: lastError,
     ammeter: latestAmmeter,
     generator: latestGenerator,
     stamp: sessionStamp,

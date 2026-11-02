@@ -2,6 +2,7 @@ import { prepareCircuit } from "./preparation.js"
 import { getDcSource } from "./dcSourceRegistry.js"
 import { getGroundReferencePins } from "./groundReferenceRegistry.js"
 import { solveLinear } from "./nodalDcSolver.js"
+import { resolveComponentParameters, validateComponentParameters } from "./resolveComponentParameters.js"
 
 /**
  * TINKERCAD-005 — solveur transitoire nodal (MNA + schéma d'Euler implicite).
@@ -13,8 +14,8 @@ import { solveLinear } from "./nodalDcSolver.js"
  *
  * Modèles qualifiés (domaine de validité en commentaire) :
  *   - R, potentiomètre, sources DC, générateur de signaux (V(t) idéal)
- *   - CAPACITOR / POLARIZED_CAPACITOR : i = C·dv/dt (Euler implicite, v(0)=0)
- *   - INDUCTOR : v = L·di/dt (Euler implicite, i(0)=0)
+ *   - CAPACITOR / POLARIZED_CAPACITOR : i = C·dv/dt (Euler implicite, état initial explicite ou nul)
+ *   - INDUCTOR : v = L·di/dt (Euler implicite, courant initial explicite ou nul)
  *   - LED / DIODE : seuil Vf + Ron (linéaire par morceaux, sans capacité de jonction)
  *   - NPN / PNP : Vbe=0,7 V + Rbe, Ic = β·Ib en actif, Vce,sat = 0,2 V ; pas d'effet Early,
  *     pas de capacités, pas de claquage
@@ -35,6 +36,7 @@ export const ARDUINO_LOGIC_HIGH_VOLTS = 5
 
 const GMIN = 1e-12
 const MAX_ITERATIONS = 60
+const MAX_ADVANCE_STEPS = 1_000_000
 const BJT = Object.freeze({ beta: 100, vbe: 0.7, rbe: 10, vceSat: 0.2, rSat: 1 })
 const OPAMP = Object.freeze({ rOut: 50, lowHeadroom: 0.02, minSupply: 2 })
 const MODELED = new Set([
@@ -44,25 +46,127 @@ const MODELED = new Set([
   "BUTTON", "BUTTON_LATCHING", "SLIDE_SWITCH", "DIP_SWITCH",
 ])
 
-const positive = (value, fallback) => (typeof value === "number" && Number.isFinite(value) && value > 0 ? value : fallback)
-
 export const WAVEFORMS = Object.freeze(["dc", "sine", "square", "triangle"])
+const VALIDATED_COMPONENT_TYPES = new Set([
+  "POWER", "BATTERY_AA", "COIN_CELL_CR2032", "BATTERY_9V", "RESISTOR", "DIODE",
+  "CAPACITOR", "POLARIZED_CAPACITOR", "POTENTIOMETER", "INDUCTOR",
+  "NPN_TRANSISTOR", "PNP_TRANSISTOR", "LM358P",
+])
 
-/** Valeur instantanée (V) d'un générateur à l'instant t (s). */
-export function waveformValue(gen, t) {
-  const amp = Number.isFinite(gen.amplitude) ? gen.amplitude : 0
-  const off = Number.isFinite(gen.offset) ? gen.offset : 0
-  const f = positive(gen.frequencyHz, 1)
-  const phase = (t * f) % 1
-  switch (gen.waveform) {
-    case "sine": return off + amp * Math.sin(2 * Math.PI * t * f)
-    case "square": return off + (phase < (gen.duty ?? 0.5) ? amp : -amp)
-    case "triangle": return off + amp * (phase < 0.5 ? 4 * phase - 1 : 3 - 4 * phase)
-    default: return off
+function positiveParameter(params, key, fallback, uid) {
+  const value = params[key]
+  if (value === undefined) return fallback
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    throw new RangeError(`${uid}: ${key} must be a finite number greater than zero`)
+  }
+  return value
+}
+
+function nonnegativeParameter(params, key, fallback, uid) {
+  const value = params[key]
+  if (value === undefined) return fallback
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new RangeError(`${uid}: ${key} must be a finite non-negative number`)
+  }
+  return value
+}
+
+function getComponentParameters(component) {
+  const params = component.parameters ?? {}
+  if (typeof params !== "object" || Array.isArray(params)) {
+    throw new TypeError(`${component.uid}: parameters must be an object`)
+  }
+  if (!VALIDATED_COMPONENT_TYPES.has(component.type)) return params
+
+  const validation = validateComponentParameters(component.type, params)
+  if (!validation.valid) {
+    throw new RangeError(`${component.uid}: invalid ${component.type} parameters: ${validation.errors.join("; ")}`)
+  }
+  return resolveComponentParameters(component.type, params)
+}
+
+function normalizeInitialConditions(input) {
+  if (input === undefined) return { time: 0, capacitorVoltages: {}, inductorCurrents: {} }
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new TypeError("initialConditions must be an object")
+  }
+  const result = { time: input.time ?? 0, capacitorVoltages: {}, inductorCurrents: {} }
+  if (!Number.isFinite(result.time) || result.time < 0) {
+    throw new RangeError("initialConditions.time must be finite and non-negative")
+  }
+  for (const [field, label] of [["capacitorVoltages", "capacitor voltage"], ["inductorCurrents", "inductor current"]]) {
+    const values = input[field] ?? {}
+    if (!values || typeof values !== "object" || Array.isArray(values)) {
+      throw new TypeError(`initialConditions.${field} must be an object keyed by component uid`)
+    }
+    for (const [uid, value] of Object.entries(values)) {
+      if (!Number.isFinite(value)) throw new RangeError(`initial ${label} for ${uid} must be finite`)
+      result[field][uid] = value
+    }
+  }
+  return result
+}
+
+function validateGenerator(generator, index) {
+  const label = `generators[${index}]`
+  if (!generator || typeof generator !== "object" || Array.isArray(generator)) {
+    throw new TypeError(`${label} must be an object`)
+  }
+  if (typeof generator.id !== "string" || generator.id.length === 0) {
+    throw new TypeError(`${label}.id must be a non-empty string`)
+  }
+  if (!generator.plus || typeof generator.plus.uid !== "string" || typeof generator.plus.pin !== "string") {
+    throw new TypeError(`${label}.plus must identify a component uid and pin`)
+  }
+  if (generator.minus !== undefined && generator.minus !== null
+    && (typeof generator.minus.uid !== "string" || typeof generator.minus.pin !== "string")) {
+    throw new TypeError(`${label}.minus must be null or identify a component uid and pin`)
+  }
+  if (!WAVEFORMS.includes(generator.waveform)) {
+    throw new RangeError(`${label}.waveform must be one of: ${WAVEFORMS.join(", ")}`)
+  }
+  if (typeof generator.amplitude !== "number" || !Number.isFinite(generator.amplitude) || generator.amplitude < 0) {
+    throw new RangeError(`${label}.amplitude must be finite and non-negative`)
+  }
+  if (!Number.isFinite(generator.offset)) {
+    throw new RangeError(`${label}.offset must be finite`)
+  }
+  if (typeof generator.frequencyHz !== "number" || !Number.isFinite(generator.frequencyHz) || generator.frequencyHz <= 0) {
+    throw new RangeError(`${label}.frequencyHz must be finite and greater than zero`)
+  }
+  if (generator.waveform === "square"
+    && (!Number.isFinite(generator.duty) || generator.duty <= 0 || generator.duty >= 1)) {
+    throw new RangeError(`${label}.duty must be greater than zero and less than one for a square wave`)
   }
 }
 
-function buildElements(components, prepared, generators, ammeters) {
+/** Valeur instantanée (V) d'un générateur à l'instant t (s). */
+export function waveformValue(gen, t) {
+  if (!gen || typeof gen !== "object" || Array.isArray(gen)) throw new TypeError("generator must be an object")
+  if (!Number.isFinite(t) || t < 0) throw new RangeError("waveform time must be finite and non-negative")
+  const amp = gen.amplitude ?? 0
+  const off = gen.offset ?? 0
+  if (!Number.isFinite(amp) || amp < 0) throw new RangeError("generator amplitude must be finite and non-negative")
+  if (!Number.isFinite(off)) throw new RangeError("generator offset must be finite")
+  const f = gen.frequencyHz ?? 1
+  if (!Number.isFinite(f) || f <= 0 || !Number.isFinite(t * f)) {
+    throw new RangeError("generator frequency and time must produce a finite positive phase")
+  }
+  const phase = (t * f) % 1
+  switch (gen.waveform) {
+    case "sine": return off + amp * Math.sin(2 * Math.PI * t * f)
+    case "square": {
+      const duty = gen.duty ?? 0.5
+      if (!Number.isFinite(duty) || duty <= 0 || duty >= 1) throw new RangeError("square-wave duty must be greater than zero and less than one")
+      return off + (phase < duty ? amp : -amp)
+    }
+    case "triangle": return off + amp * (phase < 0.5 ? 4 * phase - 1 : 3 - 4 * phase)
+    case "dc": return off
+    default: throw new RangeError(`unsupported waveform: ${String(gen.waveform)}`)
+  }
+}
+
+function buildElements(components, prepared, generators, ammeters, initialConditions) {
   const { uf } = prepared
   const node = (uid, pin) => uf.find(uf.key(uid, pin))
   const elements = []
@@ -74,28 +178,38 @@ function buildElements(components, prepared, generators, ammeters) {
   }
   for (const comp of components) {
     const { uid, type } = comp
-    const params = comp.parameters ?? {}
-    const src = getDcSource(comp)
+    const params = getComponentParameters(comp)
+    const src = getDcSource({ ...comp, parameters: params })
     if (src) {
       elements.push({ kind: "V", uid, p: node(uid, src.positivePin), n: node(uid, src.negativePin), v: src.voltage })
     } else if (type === "RESISTOR") {
-      elements.push({ kind: "R", uid, seg: "A-B", a: node(uid, "A"), b: node(uid, "B"), r: positive(params.resistance, 220) })
+      elements.push({ kind: "R", uid, seg: "A-B", a: node(uid, "A"), b: node(uid, "B"), r: positiveParameter(params, "resistance", 220, uid) })
     } else if (type === "POTENTIOMETER") {
-      const total = positive(params.resistance, 10000)
-      const pos = typeof params.position === "number" ? Math.min(1, Math.max(0, params.position)) : 0.5
+      const total = positiveParameter(params, "resistance", 10000, uid)
+      const pos = params.position ?? 0.5
+      if (!Number.isFinite(pos) || pos < 0 || pos > 1) throw new RangeError(`${uid}: position must be between zero and one`)
       elements.push({ kind: "R", uid, seg: "left-wiper", a: node(uid, "left"), b: node(uid, "wiper"), r: Math.max(0.001, total * pos) })
       elements.push({ kind: "R", uid, seg: "wiper-right", a: node(uid, "wiper"), b: node(uid, "right"), r: Math.max(0.001, total * (1 - pos)) })
     } else if (type === "CAPACITOR" || type === "POLARIZED_CAPACITOR") {
       const [pa, pb] = type === "CAPACITOR" ? ["pinA", "pinB"] : ["plus", "minus"]
-      elements.push({ kind: "C", uid, seg: "pinA-pinB", a: node(uid, pa), b: node(uid, pb), c: positive(params.capacitance, type === "CAPACITOR" ? 1e-7 : 1e-4), v: 0, i: 0 })
+      elements.push({
+        kind: "C", uid, seg: "pinA-pinB", a: node(uid, pa), b: node(uid, pb),
+        c: positiveParameter(params, "capacitance", type === "CAPACITOR" ? 1e-7 : 1e-4, uid),
+        v: initialConditions.capacitorVoltages[uid] ?? 0, i: 0,
+      })
     } else if (type === "INDUCTOR") {
-      elements.push({ kind: "L", uid, seg: "A-B", a: node(uid, "A"), b: node(uid, "B"), l: positive(params.inductance, 1e-3), i: 0, v: 0 })
+      elements.push({
+        kind: "L", uid, seg: "A-B", a: node(uid, "A"), b: node(uid, "B"),
+        l: positiveParameter(params, "inductance", 1e-3, uid),
+        i: initialConditions.inductorCurrents[uid] ?? 0, v: 0,
+      })
     } else if (type === "LED" || type === "DIODE") {
       const led = type === "LED"
       elements.push({
         kind: "D", uid, seg: "anode-cathode", led, on: false,
         a: node(uid, "anode"), b: node(uid, "cathode"),
-        vf: positive(params.forwardVoltage, led ? 2.0 : 0.7), ron: positive(params.onResistance, 10), i: 0, v: 0,
+        vf: nonnegativeParameter(params, "forwardVoltage", led ? 2.0 : 0.7, uid),
+        ron: positiveParameter(params, "onResistance", 10, uid), i: 0, v: 0,
       })
     } else if (type === "NPN_TRANSISTOR" || type === "PNP_TRANSISTOR") {
       const c = node(uid, "collector"), b = node(uid, "base"), e = node(uid, "emitter")
@@ -103,10 +217,11 @@ function buildElements(components, prepared, generators, ammeters) {
       elements.push({
         kind: "Q", uid, mode: "off", npn, c, b, e,
         ja: npn ? b : e, jb: npn ? e : b, pa: npn ? c : e, pb: npn ? e : c, ic: 0, ib: 0, vj: 0, vpath: 0,
+        rSat: positiveParameter(params, "onResistance", BJT.rSat, uid),
       })
     } else if (type === "LM358P") {
-      const gain = positive(params.openLoopGain, 1e5)
-      const headroom = typeof params.outputHighHeadroom === "number" ? params.outputHighHeadroom : 1.5
+      const gain = positiveParameter(params, "openLoopGain", 1e5, uid)
+      const headroom = nonnegativeParameter(params, "outputHighHeadroom", 1.5, uid)
       for (const ch of [1, 2]) {
         elements.push({
           kind: "O", uid, ch, mode: "off", gain, headroom,
@@ -185,24 +300,39 @@ function buildIslands(elements, groundNodes) {
 /**
  * @param {Array} components composants au format moteur
  * @param {Array} wires fils au format moteur
- * @param {{ generators?: object[], ammeters?: object[], drive?: (uid:string, pin:string, t:number)=>number|null }} [options]
+ * @param {{
+ *   generators?: object[],
+ *   ammeters?: object[],
+ *   drive?: (uid:string, pin:string, t:number)=>number|null,
+ *   initialConditions?: { time?: number, capacitorVoltages?: Record<string,number>, inductorCurrents?: Record<string,number> }
+ * }} [options]
  *   drive : retourne un niveau 0..1 (0 = LOW, 1 = HIGH, valeur intermédiaire = moyenne PWM sur le pas)
  *   ou null (haute impédance) pour une broche D0–D13 d'un Arduino.
+ *   Les conditions initiales sont indexées par UID ; tout état non fourni vaut zéro.
  */
 export function createTransientSession(components, wires, options = {}) {
   const generators = options.generators ?? []
   const ammeters = options.ammeters ?? []
   const drive = options.drive ?? (() => null)
+  if (!Array.isArray(components) || !Array.isArray(wires)) {
+    throw new TypeError("components and wires must be arrays")
+  }
+  if (!Array.isArray(generators) || !Array.isArray(ammeters)) {
+    throw new TypeError("generators and ammeters must be arrays")
+  }
+  if (typeof drive !== "function") throw new TypeError("drive must be a function")
+  generators.forEach(validateGenerator)
+  const initialConditions = normalizeInitialConditions(options.initialConditions)
   const prepared = prepareCircuit(components, wires)
   const { uf } = prepared
-  const { elements, unqualifiedTypes } = buildElements(components, prepared, generators, ammeters)
+  const { elements, unqualifiedTypes } = buildElements(components, prepared, generators, ammeters, initialConditions)
 
   const groundNodes = new Set()
   for (const comp of components) for (const pin of getGroundReferencePins(comp.type)) groundNodes.add(uf.find(uf.key(comp.uid, pin)))
   const islands = buildIslands(elements, groundNodes)
 
   const state = {
-    time: 0,
+    time: initialConditions.time,
     nodeVoltage: new Map(),
     status: islands.length === 0 ? "NO_ELEMENTS" : "OK",
     nonConverged: 0,
@@ -249,7 +379,7 @@ export function createTransientSession(components, wires, options = {}) {
               add(e.pa, e.ja, gm); add(e.pa, e.jb, -gm); add(e.pb, e.ja, -gm); add(e.pb, e.jb, gm)
               inject(e.pa, gm * BJT.vbe); inject(e.pb, -gm * BJT.vbe)
             } else {
-              const gs = 1 / BJT.rSat
+              const gs = 1 / e.rSat
               conductance(e.pa, e.pb, gs); inject(e.pa, gs * BJT.vceSat); inject(e.pb, -gs * BJT.vceSat)
             }
             break
@@ -288,7 +418,7 @@ export function createTransientSession(components, wires, options = {}) {
           if (e.mode === "off") { if (vj > BJT.vbe) next = "active" }
           else if (vj <= BJT.vbe) next = "off"
           else if (e.mode === "active") { if (vpath < BJT.vceSat) next = "sat" }
-          else if ((vpath - BJT.vceSat) / BJT.rSat > (BJT.beta * (vj - BJT.vbe)) / BJT.rbe) next = "active"
+          else if ((vpath - BJT.vceSat) / e.rSat > (BJT.beta * (vj - BJT.vbe)) / BJT.rbe) next = "active"
           if (next !== e.mode) { e.mode = next; changed = true }
         } else if (e.kind === "O") {
           const supply = voltOf(e.vccp) - voltOf(e.vccn)
@@ -330,7 +460,7 @@ export function createTransientSession(components, wires, options = {}) {
         case "Q": {
           e.vj = voltOf(e.ja) - voltOf(e.jb); e.vpath = voltOf(e.pa) - voltOf(e.pb)
           e.ib = e.mode === "off" ? 0 : (e.vj - BJT.vbe) / BJT.rbe
-          e.ic = e.mode === "off" ? 0 : e.mode === "active" ? BJT.beta * e.ib : (e.vpath - BJT.vceSat) / BJT.rSat
+          e.ic = e.mode === "off" ? 0 : e.mode === "active" ? BJT.beta * e.ib : (e.vpath - BJT.vceSat) / e.rSat
           rec(e.uid, { segment: "collector-emitter", voltage: e.vpath, current: e.ic, base: e.ib, mode: e.mode })
           break
         }
@@ -345,7 +475,7 @@ export function createTransientSession(components, wires, options = {}) {
       else s.i = through
     })
     for (const s of branches) if (s.kind === "A") state.ammeterResults.set(s.id, { current: s.i, voltage: 0 })
-    return "OK"
+    return converged ? "OK" : "NON_CONVERGED"
   }
 
   function reachable(island, voltOf) {
@@ -375,23 +505,41 @@ export function createTransientSession(components, wires, options = {}) {
     get time() { return state.time },
     get status() { return state.status },
     get nonConverged() { return state.nonConverged },
+    getInitialConditions() {
+      return {
+        time: state.time,
+        capacitorVoltages: Object.fromEntries(elements.filter((e) => e.kind === "C").map((e) => [e.uid, e.v])),
+        inductorCurrents: Object.fromEntries(elements.filter((e) => e.kind === "L").map((e) => [e.uid, e.i])),
+      }
+    },
     /** Avance d'un pas de simulation de `dt` secondes. */
     step(dt) {
+      if (!Number.isFinite(dt) || dt <= 0) throw new RangeError("dt must be finite and greater than zero")
       const tEnd = state.time + dt
+      if (!Number.isFinite(tEnd)) throw new RangeError("simulation time overflow")
       state.results = new Map()
       let shorted = false
       let noRef = false
+      let nonConverged = false
       for (const island of islands) {
         if (island.ref === undefined) { noRef = true; continue }
-        if (stepIsland(island, tEnd, dt) === "SHORT_CIRCUIT") shorted = true
+        const result = stepIsland(island, tEnd, dt)
+        if (result === "SHORT_CIRCUIT") shorted = true
+        if (result === "NON_CONVERGED") nonConverged = true
       }
-      state.status = shorted ? "SHORT_CIRCUIT" : noRef ? "NO_REFERENCE" : "OK"
+      state.status = shorted ? "SHORT_CIRCUIT" : noRef ? "NO_REFERENCE" : nonConverged ? "NON_CONVERGED" : "OK"
       state.time = tEnd
       return state.status
     },
     /** Avance de `total` secondes par pas d'au plus `dtMax`. */
     advance(total, dtMax) {
+      if (!Number.isFinite(total) || total < 0) throw new RangeError("total must be finite and non-negative")
+      if (!Number.isFinite(dtMax) || dtMax <= 0) throw new RangeError("dtMax must be finite and greater than zero")
+      if (total === 0) return state.status
       const n = Math.max(1, Math.ceil(total / dtMax - 1e-9))
+      if (!Number.isSafeInteger(n) || n > MAX_ADVANCE_STEPS) {
+        throw new RangeError(`advance would require more than ${MAX_ADVANCE_STEPS} steps`)
+      }
       const dt = total / n
       for (let i = 0; i < n; i++) session.step(dt)
       return state.status
