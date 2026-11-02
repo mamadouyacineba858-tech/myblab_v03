@@ -189,6 +189,29 @@ describe("MB-L1-ARD-002 — firmwareCompiler — §19 cas d'erreur additionnels"
     expect(compileFirmware("void setup() {}\nvoid loop() { int v = analogRead(A6); }").ok).toBe(false)
   })
 
+  it("analogRead couvre les six entrées Uno A0..A5 et leurs alias de broches 14..19", () => {
+    for (let channel = 0; channel <= 5; channel++) {
+      for (const pin of [`A${channel}`, String(channel + 14)]) {
+        const result = compileFirmware(`void setup() {}\nvoid loop() { int value = analogRead(${pin}); }`)
+        expect(result.ok, `analogRead(${pin})`).toBe(true)
+        expect(result.ir.loop[0]).toMatchObject({
+          op: "ANALOG_READ",
+          pin: `A${channel}`,
+          name: "value",
+          declare: true,
+        })
+      }
+    }
+  })
+
+  it("analogWrite accepte uniquement les six broches PWM de l'Uno", () => {
+    for (const pin of [3, 5, 6, 9, 10, 11]) {
+      const result = compileFirmware(`void setup() { pinMode(${pin}, OUTPUT); }\nvoid loop() { analogWrite(${pin}, 128); }`)
+      expect(result.ok, `analogWrite(${pin})`).toBe(true)
+      expect(result.ir.loop[0]).toMatchObject({ op: "ANALOG_WRITE", pin: `D${pin}`, value: "128" })
+    }
+  })
+
   it("digitalRead()/analogRead() hors scope -> UNSUPPORTED_STATEMENT", () => {
     expect(compileFirmware("void setup() {}\nvoid loop() { digitalRead(2); }").ok).toBe(false)
     expect(compileFirmware("void setup() {}\nvoid loop() { analogRead(2); }").ok).toBe(false)

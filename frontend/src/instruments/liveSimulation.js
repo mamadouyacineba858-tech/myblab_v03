@@ -1,5 +1,9 @@
 import { createTransientSession } from "../simulator/transientSolver.js"
-import { pinAverageLevel, setAnalogReader } from "../simulator/arduino/arduinoPinTelemetry.js"
+import {
+  ARDUINO_PWM_MAX_FREQUENCY_HZ,
+  pinAverageLevel,
+  setAnalogReader,
+} from "../simulator/arduino/arduinoPinTelemetry.js"
 import { getInstruments } from "./instrumentsStore.js"
 
 /**
@@ -90,7 +94,7 @@ export function advanceLive(dtSeconds, pwmActive = false) {
   // Pas ≤ période/100 pour la source la plus rapide (la méthode d'Euler arrière suramortit sinon).
   let dtTarget = circuitHasDynamics || pwmActive ? dtSeconds / FRAME_FINE_STEPS : dtSeconds / FRAME_COARSE_STEPS
   if (generator.enabled && generator.plus) dtTarget = Math.min(dtTarget, 1 / (generator.frequencyHz * STEPS_PER_PERIOD))
-  if (pwmActive) dtTarget = Math.min(dtTarget, 1 / (490 * STEPS_PER_PERIOD))
+  if (pwmActive) dtTarget = Math.min(dtTarget, 1 / (ARDUINO_PWM_MAX_FREQUENCY_HZ * STEPS_PER_PERIOD))
   const steps = Math.min(MAX_STEPS_PER_FRAME, Math.max(1, Math.ceil(dtSeconds / dtTarget)))
   const dt = dtSeconds / steps
   currentStep = dt

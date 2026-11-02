@@ -1,11 +1,12 @@
-import { describe, it, expect, beforeEach } from "vitest"
+import { describe, it, expect, beforeEach, afterEach } from "vitest"
 import {
   getInstruments, updateInstruments, resetInstruments, snapshotInstruments, applyInstrumentsSnapshot,
   armPinPick, consumePinPick, GENERATOR_LIMITS,
 } from "../instrumentsStore.js"
 import { configureLive, advanceLive, readScopeWindow, getLiveStatus, stopLive, liveVoltage } from "../liveSimulation.js"
+import { runSimulationStep } from "../../simulator/simulationRuntimeIntegration.js"
 import {
-  recordPwm, recordDigital, pinLevelAt, clearPinTelemetry, setAnalogReader, readAnalogCode, ARDUINO_PWM_FREQUENCY_HZ,
+  recordPwm, recordDigital, pinLevelAt, clearPinTelemetry, getPinDrive, setAnalogReader, readAnalogCode, ARDUINO_PWM_FREQUENCY_HZ,
 } from "../../simulator/arduino/arduinoPinTelemetry.js"
 
 const c = (uid, type, parameters) => ({ uid, type, x: 0, y: 0, parameters })
@@ -72,6 +73,18 @@ describe("arduinoPinTelemetry", () => {
     expect(pinLevelAt("a", "D9", 0)).toBeNull()
   })
 
+  it("PWM Uno : D5/D6 fonctionnent à 980 Hz, les autres broches supportées à 490 Hz", () => {
+    for (const pin of ["D3", "D9", "D10", "D11"]) {
+      recordPwm("a", pin, 128)
+      expect(getPinDrive("a", pin).frequencyHz).toBe(490)
+    }
+    for (const pin of ["D5", "D6"]) {
+      recordPwm("a", pin, 128)
+      expect(getPinDrive("a", pin).frequencyHz).toBe(980)
+    }
+    clearPinTelemetry("a")
+  })
+
   it("analogRead : 0..1023 sur référence 5 V, null sans lecteur", () => {
     setAnalogReader(() => 2.5)
     expect(readAnalogCode("a", "A0")).toBe(512)
@@ -85,7 +98,8 @@ describe("arduinoPinTelemetry", () => {
 })
 
 describe("liveSimulation — générateur → RC → oscilloscope", () => {
-  beforeEach(() => { resetInstruments(); stopLive() })
+  beforeEach(() => { resetInstruments(); stopLive(); clearPinTelemetry() })
+  afterEach(() => { stopLive(); clearPinTelemetry() })
 
   it("l'amplitude crête lue à l'oscilloscope correspond au gain analytique du filtre RC", () => {
     const fc = 1000
@@ -122,6 +136,62 @@ describe("liveSimulation — générateur → RC → oscilloscope", () => {
     const mid = all.reduce((a, x) => a + (x.min1 + x.max1) / 2, 0) / all.length
     expect(Math.abs(mid - (5 * 64) / 255) / ((5 * 64) / 255)).toBeLessThan(0.03)
     clearPinTelemetry()
+  })
+
+  it("le firmware analogWrite réel pilote le PWM du solveur transitoire", () => {
+    const source = "void setup() { pinMode(9, OUTPUT); } void loop() { analogWrite(9, 64); delay(16); }"
+    const components = [
+      { uid: "ard", type: "ARDUINO", firmware: { source } },
+      c("r", "RESISTOR", { resistance: 1000 }),
+      c("c", "CAPACITOR", { capacitance: 1e-5 }),
+    ]
+    const wires = [
+      w("ard", "D9", "r", "A"),
+      w("r", "B", "c", "pinA"),
+      w("c", "pinB", "ard", "GND"),
+    ]
+    runSimulationStep(components, wires, {
+      orchestrators: new Map(),
+      firmwareSessions: new Map(),
+      dt: 0,
+    })
+    expect(getPinDrive("ard", "D9")).toMatchObject({ kind: "pwm", value: 64, frequencyHz: 490 })
+
+    updateInstruments((s) => {
+      s.scope.ch1 = { plus: { uid: "c", pin: "pinA" }, minus: { uid: "c", pin: "pinB" } }
+    })
+    configureLive(components, wires)
+    for (let i = 0; i < 60; i++) advanceLive(0.016, true)
+    const { columns } = readScopeWindow(0.0204, 10)
+    const samples = columns.filter((column) => Number.isFinite(column.min1))
+    const mean = samples.reduce((sum, column) => sum + (column.min1 + column.max1) / 2, 0) / samples.length
+    expect(Math.abs(mean - (5 * 64) / 255) / ((5 * 64) / 255)).toBeLessThan(0.03)
+  })
+
+  it("analogRead(A0) échantillonne le nœud électrique et pilote le firmware", () => {
+    const source = "void setup() { pinMode(13, OUTPUT); } void loop() { int value = analogRead(A0); if (value > 500) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+    const components = [
+      { uid: "ard", type: "ARDUINO", firmware: { source } },
+      c("top", "RESISTOR", { resistance: 1000 }),
+      c("bottom", "RESISTOR", { resistance: 3000 }),
+    ]
+    const wires = [
+      w("ard", "5V", "top", "A"),
+      w("top", "B", "ard", "A0"),
+      w("ard", "A0", "bottom", "A"),
+      w("bottom", "B", "ard", "GND"),
+    ]
+
+    configureLive(components, wires)
+    advanceLive(0.016)
+    expect(readAnalogCode("ard", "A0")).toBe(767)
+
+    const result = runSimulationStep(components, wires, {
+      orchestrators: new Map(),
+      firmwareSessions: new Map(),
+      dt: 0,
+    })
+    expect(result.pinSignals.get("ard:D13")).toBe("HIGH")
   })
 
   it("sans session, aucune donnée n'est fabriquée", () => {

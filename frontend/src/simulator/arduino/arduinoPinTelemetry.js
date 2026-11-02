@@ -9,6 +9,7 @@
  */
 
 export const ARDUINO_PWM_FREQUENCY_HZ = 490
+export const ARDUINO_PWM_MAX_FREQUENCY_HZ = 980
 export const ARDUINO_ADC_REFERENCE_VOLTS = 5
 
 const drives = new Map()
@@ -25,7 +26,10 @@ export function recordDigital(uid, pin, high) {
 
 export function recordPwm(uid, pin, value) {
   const duty = Math.min(255, Math.max(0, value)) / 255
-  drives.set(keyOf(uid, pin), { kind: "pwm", duty, value, frequencyHz: ARDUINO_PWM_FREQUENCY_HZ })
+  const frequencyHz = pin === "D5" || pin === "D6"
+    ? ARDUINO_PWM_MAX_FREQUENCY_HZ
+    : ARDUINO_PWM_FREQUENCY_HZ
+  drives.set(keyOf(uid, pin), { kind: "pwm", duty, value, frequencyHz })
   notify()
 }
 
