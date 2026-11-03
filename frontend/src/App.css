@@ -233,3 +233,56 @@
 .theme-light .measurement-live-panel dd {
   color: #0f172a;
 }
+
+.myblab-app,
+.myblab-app > * {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .myblab-sidebar { width: 184px; }
+  .component-inspector { width: 200px; }
+}
+
+@media (max-width: 620px) {
+  .myblab-root { height: 100dvh; }
+  .myblab-navbar { align-items: flex-start; flex-direction: column; gap: 6px; padding: 8px; }
+  .navbar-logo { font-size: 18px; }
+  .navbar-actions { justify-content: flex-start; gap: 4px; }
+  .navbar-actions button { min-height: 34px; padding: 6px 8px; font-size: 12px; }
+  .navbar-actions .separator { display: none; }
+  .myblab-app {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(260px, 1fr) 180px 140px;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .simulation-canvas { grid-row: 1; min-width: 0; min-height: 260px; }
+  .myblab-sidebar {
+    grid-row: 2;
+    width: 100%;
+    height: 180px;
+    padding: 10px;
+    border-right: 0;
+    border-top: 1px solid #1f2937;
+  }
+  .myblab-sidebar__header,
+  .myblab-sidebar__section:not(.myblab-sidebar__section--scroll),
+  .myblab-sidebar__footer { display: none; }
+  .myblab-sidebar__section:first-of-type { display: block; margin: 0 0 8px; }
+  .myblab-sidebar__section:first-of-type .myblab-btn { width: auto; min-height: 32px; }
+  .myblab-sidebar__section--scroll { margin: 0; }
+  .myblab-sidebar__title { margin-bottom: 6px; }
+  .myblab-palette { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .myblab-palette__item { min-width: 0; padding: 6px; }
+  .component-inspector {
+    grid-row: 3;
+    width: 100%;
+    height: auto;
+    min-height: 140px;
+    border-left: 0;
+    border-top: 1px solid #1f2937;
+  }
+  .myblab-statusbar { flex-wrap: wrap; gap: 6px 14px; padding: 6px 8px; }
+}

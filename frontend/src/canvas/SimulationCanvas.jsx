@@ -23,6 +23,7 @@ import { clientToCanvas } from "../utils/geometry.js"
 import { LOCAL_SCALE_STEP } from "../utils/localScale.js"
 import "./SimulationCanvas.css"
 import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
+import { ProbeOverlay } from "../instruments/ProbeOverlay.jsx"
 
 export function SimulationCanvas() {
   const {
@@ -364,6 +365,7 @@ export function SimulationCanvas() {
         )}
         <MarqueeOverlay rect={marqueeRect} />
       </div>
+      <ProbeOverlay canvasRef={canvasRef} components={components} viewport={viewport} />
       {!hasComponents && (
         <p className="simulation-canvas__hint">
           Glissez un composant depuis la barre latérale ou cliquez pour l&apos;ajouter au centre

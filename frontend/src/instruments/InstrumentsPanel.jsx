@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useState, useSyncExternalStore } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
@@ -6,6 +6,7 @@ import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js"
 import { toEngineInput } from "../simulator/engineAdapter.js"
 import { solveDcNetwork } from "../simulator/nodalDcSolver.js"
 import { GeneratorTab, ProbesTab, ScopeLive } from "./InstrumentsLive.jsx"
+import { getInstruments, getInstrumentsVersion, subscribeInstruments, updateInstruments } from "./instrumentsStore.js"
 import "./InstrumentsPanel.css"
 
 const TWO_TERMINAL_TYPES = new Set(["RESISTOR", "LED", "DIODE", "POTENTIOMETER"])
@@ -102,13 +103,15 @@ function Reading({ id, reading, unit }) {
 }
 
 function Voltmeter({ components, solution }) {
+  useSyncExternalStore(subscribeInstruments, getInstrumentsVersion)
+  const { voltmeter } = getInstruments()
   const options = useMemo(() => pinOptions(components), [components])
-  const [plus, setPlus] = useState("")
-  const [minus, setMinus] = useState("")
+  const plus = voltmeter.plus ? `${voltmeter.plus.uid}|${voltmeter.plus.pin}` : ""
+  const minus = voltmeter.minus ? `${voltmeter.minus.uid}|${voltmeter.minus.pin}` : ""
   return (
     <div className="instruments-body" data-testid="voltmeter">
-      <PinSelect id="voltmeter-plus" label="Borne +" options={options} value={plus} onChange={setPlus} />
-      <PinSelect id="voltmeter-minus" label="Borne − (optionnel)" options={options} value={minus} onChange={setMinus} />
+      <PinSelect id="voltmeter-plus" label="Borne +" options={options} value={plus} onChange={(value) => updateInstruments((s) => { s.voltmeter.plus = splitPin(value) })} />
+      <PinSelect id="voltmeter-minus" label="Borne − (optionnel)" options={options} value={minus} onChange={(value) => updateInstruments((s) => { s.voltmeter.minus = splitPin(value) })} />
       <Reading id="voltmeter-reading" reading={voltageReading(solution, splitPin(plus), splitPin(minus))} unit="V" />
     </div>
   )

@@ -1,6 +1,6 @@
 .instruments-panel {
   position: fixed;
-  right: 12px;
+  right: 252px;
   bottom: 44px;
   width: min(360px, calc(100vw - 24px));
   max-height: min(70vh, 560px);
@@ -47,3 +47,35 @@
 @media (max-width: 520px) {
   .instruments-panel { right: 6px; left: 6px; width: auto; bottom: 40px; max-height: 55vh; }
 }
+
+@media (max-width: 900px) {
+  .instruments-panel { right: 212px; }
+}
+@media (max-width: 620px) {
+  .instruments-panel { top: 200px; right: 6px; bottom: auto; left: 6px; width: auto; max-height: calc(100dvh - 240px); }
+}
+
+.probe-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  overflow: hidden;
+  pointer-events: none;
+}
+.probe-overlay__marker {
+  position: absolute;
+  min-width: 30px;
+  min-height: 24px;
+  padding: 2px 4px;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--probe-color);
+  border-radius: 12px;
+  background: #101820;
+  color: #fff;
+  font: 700 10px/1 ui-monospace, monospace;
+  cursor: grab;
+  touch-action: none;
+  pointer-events: auto;
+  user-select: none;
+}
+.probe-overlay__marker:active { cursor: grabbing; }

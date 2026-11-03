@@ -27,6 +27,10 @@ export function Navbar() {
     exportCircuit,
     importCircuit,
     clearCircuit,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   } = useCircuit();
 
   const [codeOpen, setCodeOpen] = useState(false);
@@ -128,6 +132,8 @@ const [settingsOpen, setSettingsOpen] = useState(false);
         <button onClick={handleNew}>Nouveau</button>
         <button onClick={handleOpenClick}>Ouvrir</button>
         <button onClick={handleSave}>Sauvegarder</button>
+        <button type="button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!canUndo()} onClick={undo}>↶</button>
+        <button type="button" aria-label="Rétablir" title="Rétablir (Ctrl+Y)" disabled={!canRedo()} onClick={redo}>↷</button>
 
         <input
           type="file"
