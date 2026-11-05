@@ -78,6 +78,7 @@ export function SimulationCanvas() {
       const assoc = resolveComponentBreadboardAssociation({
         breadboards: renderedBreadboards,
         componentType: comp.type,
+        rotation: comp.rotation,
         position: { x: comp.x, y: comp.y },
         mode: "ownership",
       })

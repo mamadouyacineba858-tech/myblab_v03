@@ -1,3 +1,4 @@
+import { getComponentRotation, orientComponentDefinition, rotateLocalPoint } from "./componentOrientation.js"
 /**
  * assemblyGeometry.js — FT-C-001-A "Through-Hole Assembly Geometry".
  *
@@ -131,7 +132,7 @@ export function resolveAssemblyGeometry(component, breadboard, options = {}) {
   let insertableCount = 0
   let insertableResolved = 0
   if (breadboard && breadboard.position) {
-    const { results } = resolveComponentContactHoles(breadboard, def.pins, { x: ox, y: oy })
+    const { results } = resolveComponentContactHoles(breadboard, orientComponentDefinition(def, getComponentRotation(component)).pins, { x: ox, y: oy })
     for (const r of results) {
       insertableCount += 1
       if (r.resolved && r.hole) {
@@ -161,9 +162,14 @@ export function resolveAssemblyGeometry(component, breadboard, options = {}) {
       const root = rootSource ? { x: ox + rootSource.dx, y: oy + rootSource.dy } : target
 
       const hole = holeByKey.get(contactKey(pin.id, physical.id)) ?? null
-      const holePosition = hole
+      let holePosition = hole
         ? getBreadboardHolePosition(breadboard, hole.column, hole.row)
         : null
+
+      if (holePosition && getComponentRotation(component)) {
+        const local = rotateLocalPoint(def, { dx: holePosition.x - ox, dy: holePosition.y - oy }, -getComponentRotation(component))
+        holePosition = { x: ox + local.dx, y: oy + local.dy }
+      }
 
       const style = LEAD_STYLES.has(contactProfile?.style)
         ? contactProfile.style

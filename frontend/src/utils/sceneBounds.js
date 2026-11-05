@@ -1,3 +1,4 @@
+import { canRotateComponent, getRotatedBounds } from "./componentOrientation.js"
 /**
  * Bounds Document de la scène — MB-VIS-CANVAS-050 (fit-to-content /
  * fit-to-selection, Décision CSA D7/D8).
@@ -41,6 +42,12 @@ export function computeSceneBounds(components = [], wires = [], breadboardOrBrea
 
   for (const c of components || []) {
     if (!c || !Number.isFinite(c.x) || !Number.isFinite(c.y)) continue
+    if (c.rotation !== undefined && canRotateComponent(c)) {
+      const box = getRotatedBounds(c)
+      bounds = extendBounds(bounds, box.x, box.y)
+      bounds = extendBounds(bounds, box.x + box.width, box.y + box.height)
+      continue
+    }
     const width = c.width || 80
     const height = c.height || 40
     bounds = extendBounds(bounds, c.x, c.y)

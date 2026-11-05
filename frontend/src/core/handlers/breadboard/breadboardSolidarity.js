@@ -1,4 +1,4 @@
-import { getComponentDef } from '../../../config/componentDefinitions.js';
+import { getOrientedComponentDef } from "../../../utils/componentOrientation.js"
 import { resolveComponentContactHoles } from '../../../utils/breadboardGeometry.js';
 import { resolveComponentBreadboardAssociation } from '../../../utils/breadboardAssociation.js';
 
@@ -66,7 +66,7 @@ export function resolveSolidaryComponentIds(breadboard, components, breadboards)
     const y = Number.isFinite(component.y) ? component.y : component.position?.y;
     if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
 
-    const def = getComponentDef(component.type);
+    const def = getOrientedComponentDef(component);
     if (!def || !Array.isArray(def.pins)) continue;
 
     if (boards) {
@@ -74,6 +74,7 @@ export function resolveSolidaryComponentIds(breadboard, components, breadboards)
       const assoc = resolveComponentBreadboardAssociation({
         breadboards: boards,
         componentType: component.type,
+        rotation: component.rotation,
         position: { x, y },
         mode: 'ownership',
       });

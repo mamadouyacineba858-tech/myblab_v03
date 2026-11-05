@@ -1,3 +1,5 @@
+import { RotateComponentCommand } from "../history/commands/RotateComponentCommand.js"
+import { canRotateComponent, getComponentRotation, getRotatedBounds } from "../utils/componentOrientation.js"
 import { UpdateComponentPropertiesHandler } from "../core/handlers/component/UpdateComponentPropertiesHandler.js"
 import { consumePinPick, snapshotInstruments, applyInstrumentsSnapshot, resetInstruments, getAmmeterBridgeWire, getInstrumentsVersion, subscribeInstruments } from "../instruments/instrumentsStore.js"
 import { resolveComponentProperties, validateComponentProperties, isPlainProperties } from "../config/componentProperties.js"
@@ -1615,6 +1617,14 @@ if (import.meta.env.DEV) {
   // DOCUMENT SYSTEM  & SRP (MB-003.2)
   // =========================================================================
 
+  const rotateComponent = useCallback((uid) => {
+    const component = componentsRef.current.find(c => c.uid === uid)
+    if (!canRotateComponent(component) || dragSessionRef.current || wireGestureRef.current) return false
+    const next = (getComponentRotation(component) + 90) % 360
+    historyManagerRef.current.execute(new RotateComponentCommand(documentApi, uid, component.rotation, next))
+    return true
+  }, [documentApi])
+
   const removeWire = useCallback((wireId) => {
     setWires((prev) => prev.filter((w) => w.id !== wireId))
   }, [])
@@ -1784,7 +1794,7 @@ if (import.meta.env.DEV) {
         // MB-BREADBOARD-003 (Blueprint §3) : `type` nécessaire à
         // computeBreadboardPlacement() dans handlePointerMove (absent avant
         // ce ticket, seule extension nécessaire côté capture de session).
-        componentsStart.set(id, { startX: comp.x, startY: comp.y, type: comp.type })
+        componentsStart.set(id, { startX: comp.x, startY: comp.y, type: comp.type, rotation: comp.rotation })
       }
     })
 
@@ -1937,7 +1947,7 @@ if (import.meta.env.DEV) {
     const componentIds = new Set()
     const componentMap = new Map(components.map(c => [c.uid, c]))
     componentMap.forEach((comp, uid) => {
-      const compRect = {
+      const compRect = comp.rotation !== undefined && canRotateComponent(comp) ? getRotatedBounds(comp) : {
         x: comp.x,
         y: comp.y,
         width: comp.width || 80,
@@ -2336,7 +2346,8 @@ if (import.meta.env.DEV) {
           dragBreadboards,
           startPos.type,
           raw,
-          componentsRef.current.filter((c) => c.uid !== uid)
+          componentsRef.current.filter((c) => c.uid !== uid),
+          startPos.rotation
         )
 
         if (placement.breadboardActive && placement.breadboardId) {
@@ -2881,6 +2892,7 @@ if (import.meta.env.DEV) {
 
   addComponent,
   addComponentAtCanvasCenter,
+  rotateComponent,
   updateComponentProperties,
   updateComponentParameters,
   updateArduinoFirmware,
@@ -3006,6 +3018,7 @@ if (import.meta.env.DEV) {
 
   addComponent,
   addComponentAtCanvasCenter,
+  rotateComponent,
   updateComponentProperties,
   updateComponentParameters,
   updateArduinoFirmware,

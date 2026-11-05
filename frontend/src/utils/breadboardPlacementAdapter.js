@@ -1,3 +1,4 @@
+import { getOrientedComponentDef, orientComponentDefinition } from "./componentOrientation.js"
 /**
  * breadboardPlacementAdapter.js — MB-BREADBOARD-003 (Blueprint §2).
  *
@@ -60,7 +61,7 @@ function resolveOccupiedHoleKeys(breadboard, components) {
   const occupied = new Set()
   for (const component of components || []) {
     if (!component || !Number.isFinite(component.x) || !Number.isFinite(component.y)) continue
-    const def = getComponentDef(component.type)
+    const def = getOrientedComponentDef(component)
     if (!def || !Array.isArray(def.pins)) continue
     // FT-B-001-S3 : classification CONTACT PHYSIQUE -> trou centralisée (delta
     // zéro pour les types mono-contact — un contact implicite en pin.dx/dy ;
@@ -147,13 +148,13 @@ function bestEffortPinZeroSnap(breadboard, pins, candidatePosition) {
   return { position, holes }
 }
 
-export function computeBreadboardPlacement(breadboard, componentType, candidatePosition, otherComponents) {
+export function computeBreadboardPlacement(breadboard, componentType, candidatePosition, otherComponents, rotation = 0) {
   const fallbackPosition =
     candidatePosition && Number.isFinite(candidatePosition.x) && Number.isFinite(candidatePosition.y)
       ? { x: candidatePosition.x, y: candidatePosition.y }
       : { x: 0, y: 0 }
 
-  const def = getComponentDef(componentType)
+  const def = orientComponentDefinition(getComponentDef(componentType), rotation)
   // FT-B-001-S5 : `compatible` dérive du nombre de CONTACTS physiques
   // enfichables (générique, aucun `type ===`), plus seulement de la présence
   // de pins. Un composant sans contact `breadboardInsertable` (POWER, ARDUINO,

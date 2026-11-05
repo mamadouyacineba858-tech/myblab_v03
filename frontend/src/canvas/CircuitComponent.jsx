@@ -1,3 +1,4 @@
+import { getComponentRotation } from "../utils/componentOrientation.js"
 // MB-COMPONENT-LIBRARY-002 (correction disclosed, hors périmètre strict des
 // Part renderers mais nécessaire) : import React explicite requis par la
 // config vitest secondaire (frontend/src/simulator/vitest.config.ts, sans
@@ -369,6 +370,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
   // calcul du drag (clientToCanvas/Document, useCircuitState.js) : purement
   // un effet visuel appliqué au-dessus d'un `left/top` inchangé.
   const appliedScale = focused ? localScale : 1
+  const rotation = getComponentRotation(component)
 
   return (
     <div
@@ -386,7 +388,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
         top: y,
         width: def.width ?? 80,
         height: def.height ?? 40,
-        transform: appliedScale !== 1 ? `scale(${appliedScale})` : undefined,
+        transform: rotation ? `rotate(${rotation}deg) scale(${appliedScale})` : appliedScale !== 1 ? `scale(${appliedScale})` : undefined,
         transformOrigin: 'center center',
         zIndex: focused ? 20 : undefined,
       }}
@@ -461,7 +463,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
         const explicitContacts = Array.isArray(pin.contacts) && pin.contacts.length > 0
         const contacts = resolveWireConnectableContacts(pin)
         return contacts.map((contact) => {
-          const presentationPosition = getPinPresentationPosition(component, pin, { contact })
+          const presentationPosition = getPinPresentationPosition({ ...component, rotation: 0 }, pin, { contact })
           const left = presentationPosition ? presentationPosition.x - x : contact.dx ?? 0
           const top = presentationPosition ? presentationPosition.y - y : contact.dy ?? 0
           return (

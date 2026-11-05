@@ -1,3 +1,4 @@
+import { getOrientedComponentDef } from "../utils/componentOrientation.js"
 // Import explicite de React, conformément à la convention déjà en usage
 // dans ce dépôt pour tout fichier .jsx rendu sous la configuration de test
 // jsdom secondaire (frontend/src/simulator/vitest.config.ts, sans plugin
@@ -6,7 +7,6 @@
 // directement un composant de frontend/src/canvas/, ce qui a révélé le
 // besoin (React.createElement implicite sinon indisponible sous esbuild).
 import React, { useCallback, useMemo, useRef } from "react"
-import { getComponentDef } from "../config/componentDefinitions.js"
 import {
   BREADBOARD_PITCH,
   STANDARD_V1_LAYOUT,
@@ -258,7 +258,7 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
     const map = new Map()
     if (!breadboard || !breadboard.position) return map
     for (const component of components || []) {
-      const def = getComponentDef(component?.type)
+      const def = getOrientedComponentDef(component)
       if (!def || !Array.isArray(def.pins)) continue
       const { results } = resolveComponentContactHoles(breadboard, def.pins, {
         x: component?.x,
