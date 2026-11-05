@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "components": [
+    {
+      "uid": "bbd9edda-1ea6-460f-b149-4fe9d45a5173",
+      "type": "POWER",
+      "x": 120,
+      "y": 140,
+      "pins": [],
+      "parameters": {
+        "voltage": 5
+      },
+      "properties": {
+        "name": ""
+      }
+    },
+    {
+      "uid": "7616cfa6-9734-4164-87d4-bddf08cbba16",
+      "type": "RESISTOR",
+      "x": 400,
+      "y": 200,
+      "rotation": 90,
+      "pins": [],
+      "parameters": {
+        "resistance": 220
+      },
+      "properties": {
+        "name": ""
+      }
+    },
+    {
+      "uid": "d39db5ad-f889-4b1c-9c75-d72943de149a",
+      "type": "LED",
+      "x": 620,
+      "y": 140,
+      "pins": [],
+      "parameters": {},
+      "properties": {
+        "name": "",
+        "color": "red"
+      }
+    }
+  ],
+  "wires": [
+    {
+      "id": "42afdfb9-056a-43fa-8e0d-b77de2a197d5",
+      "fromUid": "bbd9edda-1ea6-460f-b149-4fe9d45a5173",
+      "fromPin": "5V",
+      "toUid": "7616cfa6-9734-4164-87d4-bddf08cbba16",
+      "toPin": "A",
+      "fromContact": "5V",
+      "waypoints": []
+    },
+    {
+      "id": "d378c902-5d2f-4f79-b761-003bc9a18434",
+      "fromUid": "7616cfa6-9734-4164-87d4-bddf08cbba16",
+      "fromPin": "B",
+      "toUid": "d39db5ad-f889-4b1c-9c75-d72943de149a",
+      "toPin": "anode",
+      "waypoints": []
+    }
+  ],
+  "breadboards": [],
+  "instruments": {
+    "generator": {
+      "id": "gen1",
+      "enabled": false,
+      "waveform": "sine",
+      "frequencyHz": 100,
+      "amplitude": 2,
+      "offset": 0,
+      "duty": 0.5,
+      "plus": null,
+      "minus": null
+    },
+    "scope": {
+      "windowMs": 20,
+      "ch1": {
+        "plus": null,
+        "minus": null
+      },
+      "ch2": {
+        "plus": null,
+        "minus": null
+      }
+    },
+    "voltmeter": {
+      "plus": {
+        "uid": "d39db5ad-f889-4b1c-9c75-d72943de149a",
+        "pin": "anode"
+      },
+      "minus": {
+        "uid": "d39db5ad-f889-4b1c-9c75-d72943de149a",
+        "pin": "cathode"
+      }
+    },
+    "ammeter": {
+      "a": {
+        "uid": "d39db5ad-f889-4b1c-9c75-d72943de149a",
+        "pin": "cathode"
+      },
+      "b": {
+        "uid": "bbd9edda-1ea6-460f-b149-4fe9d45a5173",
+        "pin": "GND"
+      }
+    }
+  }
+}
