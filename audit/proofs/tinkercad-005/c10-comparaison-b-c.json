@@ -1,0 +1,167 @@
+{
+  "reference": "fa614d8f1d6c361e0b140a880afbbd543feee80e",
+  "candidate": "d3a86d0",
+  "scope": "Suite B complète et suite C complète répartie en deux sélections disjointes",
+  "b": {
+    "files": 374,
+    "failedFiles": 14,
+    "tests": 7131,
+    "passed": 7109,
+    "failed": 22,
+    "skipped": 0
+  },
+  "c": {
+    "files": 14,
+    "failedFiles": 14,
+    "tests": 601,
+    "passed": 579,
+    "failed": 22,
+    "skipped": 0
+  },
+  "historical": [
+    {
+      "file": "src/__tests__/PhysicalPropertyRendering.integration.test.jsx",
+      "test": "L1-PROP-003 — assets livrés, manifest et intégrité (T16/T17/T18) T18 — chaque fichier déclaré dans ASSET-INTEGRITY.json existe avec les bytes/SHA-256 réels",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) CAPACITOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) TILT_SENSOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) IR_RECEIVER : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) INDUCTOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) ZENER_DIODE : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonInteraction008.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-008 B2 ? apr?s un drag du BUTTON, une pin d?marre encore le wire gesture et jamais le drag composant",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonInteraction008.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-008 L1 ? un drag du BUTTON_LATCHING ne toggle pas son ?tat",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/CanvasHoverUX.test.jsx",
+      "test": "A13-HOVER-UX shared electrical pin behavior does not use delayed browser title or React hover state",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/CanvasHoverUX.test.jsx",
+      "test": "A13-HOVER-UX shared electrical pin behavior keeps markerless contacts targetable for hover and wiring",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "test": "MB-VIS-COMP-037 — pins : présentation projetée, électrique inchangé (TEST 7/8/9/10) TEST 8 — coordonnées électriques canoniques INCHANGÉES : D2 dx=0/dy=50, D3 dx=0/dy=75, GND dx=0/dy=110, 5V dx=120/dy=50",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation CircuitComponent rend 16 pins visibles dont D2/D3 sur le header physique ; asset raster",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation identifies every hovered GPIO and supply contact by its real electrical pin",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPinVisibility.test.jsx",
+      "test": "MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation expose D0-D13 plus GND/5V comme PhysicalContacts wire-only",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/BinaryCounter74HC161Part.raster.test.jsx",
+      "test": "A9-COUNTER1 — CTR-35 / CTR-36 asset pack FROZEN / CSA LOCKED CTR-36: SHA256SUMS cover every payload except itself and match; Founder SHA frozen",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/DFlipFlop74HC74Part.raster.test.jsx",
+      "test": "A9-DFF1 — asset pack FROZEN / CSA LOCKED SHA256SUMS and manifest hashes match the files; Founder and runtime 1x SHA unchanged",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/DLatch74HC75Part.raster.test.jsx",
+      "test": "A9-LATCH1 — asset pack FROZEN / CSA LOCKED (T17) SHA256SUMS match the files; Founder and runtime 1x SHA unchanged; manifest identity",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/HBridgePart.raster.test.jsx",
+      "test": "A8 H_BRIDGE frozen raster pack keeps the ASSET-INTEGRITY.json inventory truthful (LF blobs) and consistent with the manifest",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/JkFlipFlop74HC73Part.raster.test.jsx",
+      "test": "A9-JK1 — asset pack FROZEN / CSA LOCKED PHY-10: manifest and integrity are present and truthful (hashes, bytes, dimensions, budget)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/PowerCanvasReadability.test.jsx",
+      "test": "MB-L1-POWER-001 — Canvas readability utilise uniquement le raster 3x stable sans overlays DOM",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/PowerPart.raster.test.jsx",
+      "test": "MB-VIS-COMP-036 / MB-L1-POWER-001 — POWER raster rend uniquement la référence WebP approuvée, sans SVG ni overlay DOM",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/SevenSegmentDisplayPart.raster.test.jsx",
+      "test": "A10-DISP1 — pack d'assets FROZEN / CSA LOCKED SHA256SUMS couvre tout le pack sauf lui-même et correspond ; Founder et runtime 1x figés",
+      "status": "failed"
+    }
+  ],
+  "newFailures": [],
+  "baselineOnly": [],
+  "failedFilesWithoutFailedTestsInC": [],
+  "cRemainder": {
+    "files": 363,
+    "failedFiles": 0,
+    "tests": 6536,
+    "passed": 6536,
+    "failed": 0,
+    "skipped": 0
+  },
+  "cTotal": {
+    "files": 377,
+    "failedFiles": 14,
+    "tests": 7137,
+    "passed": 7115,
+    "failed": 22,
+    "skipped": 0
+  },
+  "fullComparison": {
+    "newFailures": [],
+    "missingTests": [],
+    "addedTests": [
+      "src/__tests__/CircuitFileRoundTripC08.integration.test.jsx :: C08 — sauvegarde sur fichier et réouverture conserve composants, fils, paramètres et réglages des instruments",
+      "src/instruments/__tests__/ammeterLedCoherence.test.js :: C03 — cohérence ampèremètre / courant / LED aucun pont sans ampèremètre complet",
+      "src/instruments/__tests__/ammeterLedCoherence.test.js :: C03 — cohérence ampèremètre / courant / LED circuit ouvert : LED éteinte",
+      "src/instruments/__tests__/ammeterLedCoherence.test.js :: C03 — cohérence ampèremètre / courant / LED le fil virtuel de l'ampèremètre allume la LED comme un fil réel",
+      "src/instruments/__tests__/ammeterLedCoherence.test.js :: C03 — cohérence ampèremètre / courant / LED le solveur transitoire mesure 13,043 mA dans ce même circuit",
+      "src/instruments/__tests__/ProbeOverlay.test.jsx :: ProbeOverlay affiche les sondes affectées et les déplace vers une broche par geste pointeur"
+    ],
+    "skippedInC": [],
+    "suiteErrorsInC": [],
+    "dynamicNamesMatched": 9
+  }
+}
