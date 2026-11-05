@@ -1,7 +1,7 @@
 import { UpdateComponentPropertiesHandler } from "../core/handlers/component/UpdateComponentPropertiesHandler.js"
-import { consumePinPick, snapshotInstruments, applyInstrumentsSnapshot, resetInstruments } from "../instruments/instrumentsStore.js"
+import { consumePinPick, snapshotInstruments, applyInstrumentsSnapshot, resetInstruments, getAmmeterBridgeWire, getInstrumentsVersion, subscribeInstruments } from "../instruments/instrumentsStore.js"
 import { resolveComponentProperties, validateComponentProperties, isPlainProperties } from "../config/componentProperties.js"
-import { useState, useCallback, useMemo, useRef, useEffect } from "react"
+import { useState, useCallback, useMemo, useRef, useEffect, useSyncExternalStore } from "react"
 // This hook maintains synchronous refs for mutation/event boundaries and
 // clears volatile simulation projections when the runtime stops.
 /* eslint-disable react-hooks/immutability, react-hooks/set-state-in-effect */
@@ -600,6 +600,7 @@ const getUndoCount = useCallback(() => {
   const wirePaths = useMemo(() => buildWirePaths(componentsForRender, wiresForGeometry, focusInfo), [componentsForRender, wiresForGeometry, focusInfo])
   const connectedPins = useMemo(() => buildConnectedPinsSet(safeWires), [safeWires])
 
+  const instrumentsVersion = useSyncExternalStore(subscribeInstruments, getInstrumentsVersion)
   useEffect(() => {
     if (!simulationActive) {
       // Clear volatile presentation state as soon as simulation stops.
@@ -613,7 +614,9 @@ const getUndoCount = useCallback(() => {
       try {
         const coreDoc = ReactDocumentMapper.toCore({ components: safeComponents, wires: safeWires, breadboards })
         const adapted = toEngineInput(coreDoc)
-        setPinSignals(runSimulationWithRuntime(adapted.components, adapted.wires, {
+        const bridge = getAmmeterBridgeWire()
+        const engineWires = bridge ? [...adapted.wires, bridge] : adapted.wires
+        setPinSignals(runSimulationWithRuntime(adapted.components, engineWires, {
           orchestrators, firmwareSessions, firmwareComponents: safeComponents, dt, environmentalStimuli, runtimeSession,
         }) ?? EMPTY_MAP)
         // A12-NEOPIXEL-FUNC-WS2812B-V6-001 : états timed ET événementiels (lecture seule).
@@ -643,7 +646,7 @@ const getUndoCount = useCallback(() => {
       cancelled = true
       if (frame !== undefined) cancelAnimationFrame(frame)
     }
-  }, [safeComponents, safeWires, breadboards, simulationActive, orchestrators, firmwareSessions, environmentalStimuli, runtimeSession])
+  }, [safeComponents, safeWires, breadboards, simulationActive, orchestrators, firmwareSessions, environmentalStimuli, runtimeSession, instrumentsVersion])
 
   useEffect(() => () => {
     stopFirmwareSimulation(orchestrators, firmwareSessions)

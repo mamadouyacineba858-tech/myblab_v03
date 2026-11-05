@@ -54,6 +54,18 @@ export function updateInstruments(mutator) {
 
 export function resetInstruments() { state = defaults(); notify() }
 
+/**
+ * Fil virtuel équivalent à l'ampèremètre série (0 V) pour le moteur de
+ * présentation : sans lui la LED resterait éteinte alors que le solveur
+ * transitoire mesure un courant. Jamais écrit dans le Document.
+ * @returns {{fromUid:string,fromPin:string,toUid:string,toPin:string}|null}
+ */
+export function getAmmeterBridgeWire() {
+  const { a, b } = state.ammeter
+  if (!a || !b || (a.uid === b.uid && a.pin === b.pin)) return null
+  return { fromUid: a.uid, fromPin: a.pin, toUid: b.uid, toPin: b.pin }
+}
+
 export function isDefaultInstruments() { return JSON.stringify(state) === JSON.stringify(defaults()) }
 
 /** @returns {object|undefined} instantané sérialisable, ou undefined si tout est par défaut. */
