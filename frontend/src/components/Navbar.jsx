@@ -9,10 +9,9 @@ import { useCircuit } from "../context/useCircuit.js"
 import { SettingsPanel } from "./SettingsPanel.jsx";
 import { DevelopmentAuditPanel } from "./DevelopmentAuditPanel.jsx";
 import { LiveMeasurementPanel } from "../measurement/LiveMeasurementPanel.jsx";
-import { InstrumentsPanel } from "../instruments/InstrumentsPanel.jsx";
 import "./Navbar.css";
 import { ArduinoCodeWorkspace } from "../arduino/ui/ArduinoCodeWorkspace.jsx";
-export function Navbar() {
+export function Navbar({ instrumentsOpen = false, onToggleInstruments } = {}) {
   const {
     selectedComponent,
     simulationActive,
@@ -51,7 +50,6 @@ const [settingsOpen, setSettingsOpen] = useState(false);
   // (useCircuitInteraction, nécessaire à LiveMeasurementPanel pour lire
   // `components` à jour) tant que l'instrument est fermé.
   const [measurementOpen, setMeasurementOpen] = useState(false);
-  const [instrumentsOpen, setInstrumentsOpen] = useState(false);
   const handleNew = useCallback(() => {
     
     const confirmed = window.confirm(
@@ -187,7 +185,7 @@ const [settingsOpen, setSettingsOpen] = useState(false);
         <button
           type="button"
           className="instruments-toggle"
-          onClick={() => setInstrumentsOpen((open) => !open)}
+          onClick={onToggleInstruments}
           aria-expanded={instrumentsOpen}
           title="Voltmètre, ampèremètre, multimètre, oscilloscope"
         >
@@ -216,7 +214,6 @@ const [settingsOpen, setSettingsOpen] = useState(false);
       {measurementOpen && (
   <LiveMeasurementPanel onClose={() => setMeasurementOpen(false)} />
 )}
-      {instrumentsOpen && <InstrumentsPanel onClose={() => setInstrumentsOpen(false)} />}
     </header>
   );
 }

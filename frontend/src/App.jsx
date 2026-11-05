@@ -7,6 +7,7 @@ import { Sidebar } from "./components/Sidebar.jsx";
 import { SimulationCanvas } from "./canvas/SimulationCanvas.jsx";
 import { ComponentInspector } from "./components/ComponentInspector.jsx";
 import { StatusBar } from "./components/StatusBar.jsx";
+import { InstrumentsPanel } from "./instruments/InstrumentsPanel.jsx";
 import { LiveSimulationDriver } from "./instruments/LiveSimulationDriver.jsx";
 
 import "./App.css";
@@ -17,15 +18,18 @@ import "./App.css";
  */
 function AppShell() {
   const { theme } = useCircuit();
+  const [instrumentsOpen, setInstrumentsOpen] = useState(false);
 
   return (
     <div className={`myblab-root theme-${theme}`}>
-      <Navbar />
+      <Navbar instrumentsOpen={instrumentsOpen} onToggleInstruments={() => setInstrumentsOpen((open) => !open)} />
       <LiveSimulationDriver />
       <div className="myblab-app">
         <Sidebar />
         <SimulationCanvas />
-        <ComponentInspector />
+        {instrumentsOpen
+          ? <InstrumentsPanel onClose={() => setInstrumentsOpen(false)} />
+          : <ComponentInspector />}
       </div>
       <StatusBar />
     </div>

@@ -1,19 +1,12 @@
 .instruments-panel {
-  position: fixed;
-  right: 252px;
-  bottom: 44px;
-  width: min(360px, calc(100vw - 24px));
-  max-height: min(70vh, 560px);
+  min-height: 0;
   overflow: auto;
   overflow-x: hidden;
   box-sizing: border-box;
-  z-index: 40;
   padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #2f4a3c;
+  border-left: 1px solid #2f4a3c;
   background: #101a15;
   color: #e6f4ec;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   font-size: 13px;
 }
 .instruments-header { display: flex; justify-content: space-between; align-items: center; }
@@ -44,15 +37,12 @@
 @media (max-width: 520px) {
   .instruments-grid { grid-template-columns: minmax(0, 1fr); }
 }
-@media (max-width: 520px) {
-  .instruments-panel { right: 6px; left: 6px; width: auto; bottom: 40px; max-height: 55vh; }
-}
-
-@media (max-width: 900px) {
-  .instruments-panel { right: 212px; }
-}
-@media (max-width: 620px) {
-  .instruments-panel { top: 200px; right: 6px; bottom: auto; left: 6px; width: auto; max-height: calc(100dvh - 240px); }
+@media (max-width: 740px) {
+  .instruments-panel {
+    overflow: visible;
+    border-left: 0;
+    border-top: 1px solid #2f4a3c;
+  }
 }
 
 .probe-overlay {

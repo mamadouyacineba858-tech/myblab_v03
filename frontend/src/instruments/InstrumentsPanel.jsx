@@ -182,6 +182,7 @@ const TABS = [
 export function InstrumentsPanel({ onClose }) {
   const { solution, components, simulationActive } = useCircuitSolution()
   const [tab, setTab] = useState("multimeter")
+  const usesDcReading = tab === "voltmeter" || tab === "ammeter" || tab === "multimeter"
   return (
     <aside className="instruments-panel" data-testid="instruments-panel" aria-label="Instruments de mesure">
       <header className="instruments-header">
@@ -203,7 +204,7 @@ export function InstrumentsPanel({ onClose }) {
       {tab === "oscilloscope" && <ScopeLive components={components} simulationActive={simulationActive} />}
       {tab === "probes" && <ProbesTab components={components} simulationActive={simulationActive} />}
       {tab === "generator" && <GeneratorTab components={components} />}
-      {solution?.unqualifiedTypes?.length > 0 && (
+      {usesDcReading && solution?.unqualifiedTypes?.length > 0 && (
         <p className="instruments-hint" data-testid="instruments-unqualified">
           Modèle DC non qualifié (ignoré dans la mesure) : {solution.unqualifiedTypes.join(", ")}
         </p>

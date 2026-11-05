@@ -239,12 +239,16 @@
   min-width: 0;
 }
 
-@media (max-width: 900px) {
-  .myblab-sidebar { width: 184px; }
-  .component-inspector { width: 200px; }
+.myblab-app > :is(.component-inspector, .instruments-panel) {
+  flex: 0 0 clamp(270px, 26vw, 360px);
+  width: clamp(270px, 26vw, 360px);
 }
 
-@media (max-width: 620px) {
+@media (max-width: 900px) {
+  .myblab-sidebar { width: 184px; }
+}
+
+@media (max-width: 740px) {
   .myblab-root { height: 100dvh; }
   .myblab-navbar { align-items: flex-start; flex-direction: column; gap: 6px; padding: 8px; }
   .navbar-logo { font-size: 18px; }
@@ -254,7 +258,7 @@
   .myblab-app {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(260px, 1fr) 180px 140px;
+    grid-template-rows: minmax(260px, 1fr) 180px minmax(140px, auto);
     overflow: auto;
     overscroll-behavior: contain;
   }
@@ -276,8 +280,11 @@
   .myblab-sidebar__title { margin-bottom: 6px; }
   .myblab-palette { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .myblab-palette__item { min-width: 0; padding: 6px; }
-  .component-inspector {
+  .myblab-app > :is(.component-inspector, .instruments-panel) {
     grid-row: 3;
+    width: 100%;
+  }
+  .component-inspector {
     width: 100%;
     height: auto;
     min-height: 140px;
