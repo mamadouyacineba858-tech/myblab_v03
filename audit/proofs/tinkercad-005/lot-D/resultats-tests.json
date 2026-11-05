@@ -1,10 +1,10 @@
 {
-  "command": "npm run test:ci -- --pool=threads --minWorkers=4 --maxWorkers=4 --reporter=json",
+  "command": "npm run test:ci -- --pool=threads --minWorkers=4 --maxWorkers=4 --reporter=json --outputFile=C:\\Users\\USER\\AppData\\Local\\Temp\\myblab-lot-d-current.json",
   "totals": {
-    "files": 377,
+    "files": 378,
     "failedFiles": 14,
-    "tests": 7137,
-    "passed": 7115,
+    "tests": 7145,
+    "passed": 7123,
     "failed": 22,
     "skipped": 0
   },
@@ -140,6 +140,13 @@
       "status": "passed",
       "total": 9,
       "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/ComponentRotationD.integration.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
       "failed": []
     },
     {
@@ -367,7 +374,7 @@
       "failed": [
         {
           "test": "L1-PROP-003 — assets livrés, manifest et intégrité (T16/T17/T18) T18 — chaque fichier déclaré dans ASSET-INTEGRITY.json existe avec les bytes/SHA-256 réels",
-          "message": "AssertionError: expected 9936 to be 9456 // Object.is equality"
+          "message": "AssertionError: expected 9936 to be 9456 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\PhysicalPropertyRendering.integration.test.jsx:282:26\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -407,23 +414,23 @@
       "failed": [
         {
           "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) CAPACITOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
-          "message": "AssertionError: capacitor.base.3x.png : sha256 réel ≠ ASSET-INTEGRITY: expected '2016ad9abeabbe71fda535c72330e65823731…' to be 'a8c856f4d5723914dfc0871d8efb3abcfff0c…' // Object.is equality"
+          "message": "AssertionError: capacitor.base.3x.png : sha256 réel ≠ ASSET-INTEGRITY: expected '2016ad9abeabbe71fda535c72330e65823731…' to be 'a8c856f4d5723914dfc0871d8efb3abcfff0c…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:547:80\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         },
         {
           "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) TILT_SENSOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
-          "message": "AssertionError: tilt-sensor.default.3x.png = 56.1 Ko > budget 30 Ko: expected 56.119140625 to be less than or equal to 30"
+          "message": "AssertionError: tilt-sensor.default.3x.png = 56.1 Ko > budget 30 Ko: expected 56.119140625 to be less than or equal to 30\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:554:11\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         },
         {
           "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) IR_RECEIVER : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
-          "message": "AssertionError: ir-receiver.default.3x.png = 55.0 Ko > budget 30 Ko: expected 55.00390625 to be less than or equal to 30"
+          "message": "AssertionError: ir-receiver.default.3x.png = 55.0 Ko > budget 30 Ko: expected 55.00390625 to be less than or equal to 30\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:554:11\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         },
         {
           "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) INDUCTOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
-          "message": "AssertionError: inductor.default.3x.png = 123.4 Ko > budget 30 Ko: expected 123.4365234375 to be less than or equal to 30"
+          "message": "AssertionError: inductor.default.3x.png = 123.4 Ko > budget 30 Ko: expected 123.4365234375 to be less than or equal to 30\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:554:11\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         },
         {
           "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) ZENER_DIODE : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
-          "message": "AssertionError: zener-diode.default.3x.png = 90.8 Ko > budget 30 Ko: expected 90.8037109375 to be less than or equal to 30"
+          "message": "AssertionError: zener-diode.default.3x.png = 90.8 Ko > budget 30 Ko: expected 90.8037109375 to be less than or equal to 30\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:554:11\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -638,11 +645,11 @@
       "failed": [
         {
           "test": "MB-VIS-BUTTON-INTERACTION-008 B2 ? apr?s un drag du BUTTON, une pin d?marre encore le wire gesture et jamais le drag composant",
-          "message": "AssertionError: expected 1 to be 2 // Object.is equality"
+          "message": "AssertionError: expected 1 to be 2 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\canvas\\__tests__\\ButtonInteraction008.integration.test.jsx:121:27\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         },
         {
           "test": "MB-VIS-BUTTON-INTERACTION-008 L1 ? un drag du BUTTON_LATCHING ne toggle pas son ?tat",
-          "message": "AssertionError: expected 1 to be 2 // Object.is equality"
+          "message": "AssertionError: expected 1 to be 2 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\canvas\\__tests__\\ButtonInteraction008.integration.test.jsx:183:27\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -654,11 +661,11 @@
       "failed": [
         {
           "test": "A13-HOVER-UX shared electrical pin behavior does not use delayed browser title or React hover state",
-          "message": "AssertionError: expected 'D3' to be null"
+          "message": "AssertionError: expected 'D3' to be null\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\canvas\\__tests__\\CanvasHoverUX.test.jsx:15:39\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         },
         {
           "test": "A13-HOVER-UX shared electrical pin behavior keeps markerless contacts targetable for hover and wiring",
-          "message": "AssertionError: expected '0' to be '' // Object.is equality"
+          "message": "AssertionError: expected '0' to be '' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\canvas\\__tests__\\CanvasHoverUX.test.jsx:37:31\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -698,34 +705,6 @@
       "failed": []
     },
     {
-      "file": "src/components/__tests__/ComponentPreview.test.jsx",
-      "status": "passed",
-      "total": 15,
-      "passed": 15,
-      "failed": []
-    },
-    {
-      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
-      "status": "passed",
-      "total": 12,
-      "passed": 12,
-      "failed": []
-    },
-    {
-      "file": "src/components/__tests__/Sidebar.test.jsx",
-      "status": "passed",
-      "total": 4,
-      "passed": 4,
-      "failed": []
-    },
-    {
-      "file": "src/components/__tests__/StatusBar.test.jsx",
-      "status": "passed",
-      "total": 2,
-      "passed": 2,
-      "failed": []
-    },
-    {
       "file": "src/config/__tests__/componentDefinitions.test.js",
       "status": "passed",
       "total": 7,
@@ -751,6 +730,34 @@
       "status": "passed",
       "total": 16,
       "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/components/__tests__/ComponentPreview.test.jsx",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/components/__tests__/Sidebar.test.jsx",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/components/__tests__/StatusBar.test.jsx",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
       "failed": []
     },
     {
@@ -2105,15 +2112,15 @@
       "failed": [
         {
           "test": "MB-VIS-COMP-037 — pins : présentation projetée, électrique inchangé (TEST 7/8/9/10) TEST 8 — coordonnées électriques canoniques INCHANGÉES : D2 dx=0/dy=50, D3 dx=0/dy=75, GND dx=0/dy=110, 5V dx=120/dy=50",
-          "message": "AssertionError: expected [ 'D0', 'D1', 'D2', 'D3', 'D4', …(17) ] to deeply equal [ 'D0', 'D1', 'D2', 'D3', 'D4', …(11) ]"
+          "message": "AssertionError: expected [ 'D0', 'D1', 'D2', 'D3', 'D4', …(17) ] to deeply equal [ 'D0', 'D1', 'D2', 'D3', 'D4', …(11) ]\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\ArduinoPart.raster.test.jsx:160:64\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         },
         {
           "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation CircuitComponent rend 16 pins visibles dont D2/D3 sur le header physique ; asset raster",
-          "message": "AssertionError: expected 22 to be 16 // Object.is equality"
+          "message": "AssertionError: expected 22 to be 16 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\ArduinoPart.raster.test.jsx:210:25\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         },
         {
           "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation identifies every hovered GPIO and supply contact by its real electrical pin",
-          "message": "AssertionError: expected [ <button …(9)></button>, …(21) ] to have a length of 16 but got 22"
+          "message": "AssertionError: expected [ <button …(9)></button>, …(21) ] to have a length of 16 but got 22\n    at Proxy.<anonymous> (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/expect/dist/index.js:1339:22)\n    at Proxy.<anonymous> (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/expect/dist/index.js:972:17)\n    at Proxy.methodWrapper (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/chai/index.js:1686:25)\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\ArduinoPart.raster.test.jsx:257:18\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)"
         }
       ]
     },
@@ -2125,7 +2132,7 @@
       "failed": [
         {
           "test": "MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation expose D0-D13 plus GND/5V comme PhysicalContacts wire-only",
-          "message": "AssertionError: expected [ …(22) ] to have a length of 16 but got 22"
+          "message": "AssertionError: expected [ …(22) ] to have a length of 16 but got 22\n    at Proxy.<anonymous> (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/expect/dist/index.js:1339:22)\n    at Proxy.<anonymous> (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/expect/dist/index.js:972:17)\n    at Proxy.methodWrapper (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/chai/index.js:1686:25)\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\ArduinoPinVisibility.test.jsx:111:22\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)"
         }
       ]
     },
@@ -2144,7 +2151,7 @@
       "failed": [
         {
           "test": "A9-COUNTER1 — CTR-35 / CTR-36 asset pack FROZEN / CSA LOCKED CTR-36: SHA256SUMS cover every payload except itself and match; Founder SHA frozen",
-          "message": "AssertionError: ASSET-INTEGRITY.json: expected '8687a5c275e978e2ba5769c7ffead21d71768…' to be '097ce6df64dfcd1adafa7f01863f26d247dbf…' // Object.is equality"
+          "message": "AssertionError: ASSET-INTEGRITY.json: expected '8687a5c275e978e2ba5769c7ffead21d71768…' to be '097ce6df64dfcd1adafa7f01863f26d247dbf…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\BinaryCounter74HC161Part.raster.test.jsx:138:85\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -2184,7 +2191,7 @@
       "failed": [
         {
           "test": "A9-DFF1 — asset pack FROZEN / CSA LOCKED SHA256SUMS and manifest hashes match the files; Founder and runtime 1x SHA unchanged",
-          "message": "AssertionError: manifest.json: expected '14915075208079d3505899505935219d005d7…' to be '39e4165dfd0324f296cbab926835f8d943cb9…' // Object.is equality"
+          "message": "AssertionError: manifest.json: expected '14915075208079d3505899505935219d005d7…' to be '39e4165dfd0324f296cbab926835f8d943cb9…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\DFlipFlop74HC74Part.raster.test.jsx:114:53\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -2217,7 +2224,7 @@
       "failed": [
         {
           "test": "A9-LATCH1 — asset pack FROZEN / CSA LOCKED (T17) SHA256SUMS match the files; Founder and runtime 1x SHA unchanged; manifest identity",
-          "message": "AssertionError: README.md: expected 'b22301e319f7c76769ea3c6ea94aa85e0bf0b…' to be 'af1c1bdab46b182a53bf6eae81adcd486a5c3…' // Object.is equality"
+          "message": "AssertionError: README.md: expected 'b22301e319f7c76769ea3c6ea94aa85e0bf0b…' to be 'af1c1bdab46b182a53bf6eae81adcd486a5c3…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\DLatch74HC75Part.raster.test.jsx:127:53\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -2236,7 +2243,7 @@
       "failed": [
         {
           "test": "A8 H_BRIDGE frozen raster pack keeps the ASSET-INTEGRITY.json inventory truthful (LF blobs) and consistent with the manifest",
-          "message": "AssertionError: SHA256SUMS.txt: expected 232 to be 230 // Object.is equality"
+          "message": "AssertionError: SHA256SUMS.txt: expected 232 to be 230 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\HBridgePart.raster.test.jsx:89:34\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -2248,7 +2255,7 @@
       "failed": [
         {
           "test": "A9-JK1 — asset pack FROZEN / CSA LOCKED PHY-10: manifest and integrity are present and truthful (hashes, bytes, dimensions, budget)",
-          "message": "AssertionError: FOUNDER-ASSET.json: expected '5968f67ba1bf4a6555a02d778b4c7731e9bc7…' to be '2d46e37f6036386dbce32771ca31de0282e49…' // Object.is equality"
+          "message": "AssertionError: FOUNDER-ASSET.json: expected '5968f67ba1bf4a6555a02d778b4c7731e9bc7…' to be '2d46e37f6036386dbce32771ca31de0282e49…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\JkFlipFlop74HC73Part.raster.test.jsx:122:31\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -2449,7 +2456,7 @@
       "failed": [
         {
           "test": "MB-L1-POWER-001 — Canvas readability utilise uniquement le raster 3x stable sans overlays DOM",
-          "message": "AssertionError: expected 'stable-raster-3x-plus-vector-labels' to be 'stable-raster-3x' // Object.is equality"
+          "message": "AssertionError: expected 'stable-raster-3x-plus-vector-labels' to be 'stable-raster-3x' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\PowerCanvasReadability.test.jsx:25:53\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -2461,7 +2468,7 @@
       "failed": [
         {
           "test": "MB-VIS-COMP-036 / MB-L1-POWER-001 — POWER raster rend uniquement la référence WebP approuvée, sans SVG ni overlay DOM",
-          "message": "AssertionError: expected null not to be null"
+          "message": "AssertionError: expected null not to be null\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\PowerPart.raster.test.jsx:47:21\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
@@ -2508,7 +2515,7 @@
       "failed": [
         {
           "test": "A10-DISP1 — pack d'assets FROZEN / CSA LOCKED SHA256SUMS couvre tout le pack sauf lui-même et correspond ; Founder et runtime 1x figés",
-          "message": "AssertionError: ASSET-INTEGRITY.json: expected '2392223bb402be9beb647990942cb40ac2c6d…' to be '70c03cc09bf75db36a86ec721ceb371d4f099…' // Object.is equality"
+          "message": "AssertionError: ASSET-INTEGRITY.json: expected '2392223bb402be9beb647990942cb40ac2c6d…' to be '70c03cc09bf75db36a86ec721ceb371d4f099…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\SevenSegmentDisplayPart.raster.test.jsx:117:85\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
         }
       ]
     },
