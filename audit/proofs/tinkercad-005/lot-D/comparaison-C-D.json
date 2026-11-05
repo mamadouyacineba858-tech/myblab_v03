@@ -1,0 +1,116 @@
+{
+  "reference": "8ae40600225618c8319c6fd6e9835c35e67cbba2",
+  "c": {
+    "files": 377,
+    "failedFiles": 14,
+    "tests": 7137,
+    "passed": 7115,
+    "failed": 22,
+    "skipped": 0
+  },
+  "d": {
+    "files": 377,
+    "failedFiles": 14,
+    "tests": 7137,
+    "passed": 7115,
+    "failed": 22,
+    "skipped": 0
+  },
+  "historical": [
+    {
+      "file": "src/__tests__/PhysicalPropertyRendering.integration.test.jsx",
+      "test": "L1-PROP-003 — assets livrés, manifest et intégrité (T16/T17/T18) T18 — chaque fichier déclaré dans ASSET-INTEGRITY.json existe avec les bytes/SHA-256 réels"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) CAPACITOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) TILT_SENSOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) IR_RECEIVER : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) INDUCTOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) ZENER_DIODE : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonInteraction008.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-008 B2 ? apr?s un drag du BUTTON, une pin d?marre encore le wire gesture et jamais le drag composant"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonInteraction008.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-008 L1 ? un drag du BUTTON_LATCHING ne toggle pas son ?tat"
+    },
+    {
+      "file": "src/canvas/__tests__/CanvasHoverUX.test.jsx",
+      "test": "A13-HOVER-UX shared electrical pin behavior does not use delayed browser title or React hover state"
+    },
+    {
+      "file": "src/canvas/__tests__/CanvasHoverUX.test.jsx",
+      "test": "A13-HOVER-UX shared electrical pin behavior keeps markerless contacts targetable for hover and wiring"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "test": "MB-VIS-COMP-037 — pins : présentation projetée, électrique inchangé (TEST 7/8/9/10) TEST 8 — coordonnées électriques canoniques INCHANGÉES : D2 dx=0/dy=50, D3 dx=0/dy=75, GND dx=0/dy=110, 5V dx=120/dy=50"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation CircuitComponent rend 16 pins visibles dont D2/D3 sur le header physique ; asset raster"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation identifies every hovered GPIO and supply contact by its real electrical pin"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPinVisibility.test.jsx",
+      "test": "MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation expose D0-D13 plus GND/5V comme PhysicalContacts wire-only"
+    },
+    {
+      "file": "src/components/parts/__tests__/BinaryCounter74HC161Part.raster.test.jsx",
+      "test": "A9-COUNTER1 — CTR-35 / CTR-36 asset pack FROZEN / CSA LOCKED CTR-36: SHA256SUMS cover every payload except itself and match; Founder SHA frozen"
+    },
+    {
+      "file": "src/components/parts/__tests__/DFlipFlop74HC74Part.raster.test.jsx",
+      "test": "A9-DFF1 — asset pack FROZEN / CSA LOCKED SHA256SUMS and manifest hashes match the files; Founder and runtime 1x SHA unchanged"
+    },
+    {
+      "file": "src/components/parts/__tests__/DLatch74HC75Part.raster.test.jsx",
+      "test": "A9-LATCH1 — asset pack FROZEN / CSA LOCKED (T17) SHA256SUMS match the files; Founder and runtime 1x SHA unchanged; manifest identity"
+    },
+    {
+      "file": "src/components/parts/__tests__/HBridgePart.raster.test.jsx",
+      "test": "A8 H_BRIDGE frozen raster pack keeps the ASSET-INTEGRITY.json inventory truthful (LF blobs) and consistent with the manifest"
+    },
+    {
+      "file": "src/components/parts/__tests__/JkFlipFlop74HC73Part.raster.test.jsx",
+      "test": "A9-JK1 — asset pack FROZEN / CSA LOCKED PHY-10: manifest and integrity are present and truthful (hashes, bytes, dimensions, budget)"
+    },
+    {
+      "file": "src/components/parts/__tests__/PowerCanvasReadability.test.jsx",
+      "test": "MB-L1-POWER-001 — Canvas readability utilise uniquement le raster 3x stable sans overlays DOM"
+    },
+    {
+      "file": "src/components/parts/__tests__/PowerPart.raster.test.jsx",
+      "test": "MB-VIS-COMP-036 / MB-L1-POWER-001 — POWER raster rend uniquement la référence WebP approuvée, sans SVG ni overlay DOM"
+    },
+    {
+      "file": "src/components/parts/__tests__/SevenSegmentDisplayPart.raster.test.jsx",
+      "test": "A10-DISP1 — pack d'assets FROZEN / CSA LOCKED SHA256SUMS couvre tout le pack sauf lui-même et correspond ; Founder et runtime 1x figés"
+    }
+  ],
+  "newFailures": [],
+  "referenceOnly": [],
+  "filesWithoutFailedTests": [],
+  "coverage": {
+    "missingTests": [],
+    "addedTests": []
+  }
+}
