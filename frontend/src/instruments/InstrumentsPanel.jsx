@@ -6,7 +6,7 @@ import { ReactDocumentMapper } from "../bridge/ReactDocumentMapper.js"
 import { toEngineInput } from "../simulator/engineAdapter.js"
 import { solveDcNetwork } from "../simulator/nodalDcSolver.js"
 import { GeneratorTab, ProbesTab, ScopeLive } from "./InstrumentsLive.jsx"
-import { getInstruments, getInstrumentsVersion, subscribeInstruments, updateInstruments } from "./instrumentsStore.js"
+import { getAmmeterBridgeWire, getInstruments, getInstrumentsVersion, subscribeInstruments, updateInstruments } from "./instrumentsStore.js"
 import "./InstrumentsPanel.css"
 
 const TWO_TERMINAL_TYPES = new Set(["RESISTOR", "LED", "DIODE", "POTENTIOMETER"])
@@ -24,6 +24,7 @@ function formatValue(value, unit) {
 function useCircuitSolution() {
   const { wires, pinSignals, simulationActive } = useCircuit()
   const { components, breadboards } = useCircuitInteraction()
+  const instrumentsVersion = useSyncExternalStore(subscribeInstruments, getInstrumentsVersion)
   const adapted = useMemo(() => {
     try {
       return toEngineInput(ReactDocumentMapper.toCore({ components, wires, breadboards }))
@@ -34,12 +35,14 @@ function useCircuitSolution() {
   const solution = useMemo(() => {
     if (!simulationActive) return null
     try {
-      return solveDcNetwork(adapted.components, adapted.wires, { pinSignals })
+      const bridge = getAmmeterBridgeWire()
+      const engineWires = bridge ? [...adapted.wires, bridge] : adapted.wires
+      return solveDcNetwork(adapted.components, engineWires, { pinSignals })
     } catch (error) {
       console.error("MYBlab solver error:", error)
       return null
     }
-  }, [adapted, pinSignals, simulationActive])
+  }, [adapted, pinSignals, simulationActive, instrumentsVersion])
   return { solution, components, simulationActive, pinSignals }
 }
 
