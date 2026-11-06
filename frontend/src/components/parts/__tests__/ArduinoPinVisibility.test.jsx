@@ -108,14 +108,31 @@ describe('MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation', () => {
 
   it('expose D0-D13 plus GND/5V comme PhysicalContacts wire-only', () => {
     const def = getComponentDef('ARDUINO')
-    expect(def.pins).toHaveLength(16)
+    // 14 digital + GND + 5V + 6 analog = 22 electrical pins.
+    // GND exposes three physical sockets but remains one electrical pin.
+    expect(def.pins).toHaveLength(22)
+    const ids = def.pins.map((pin) => pin.id)
+    expect(new Set(ids).size).toBe(22)
+    expect(ids).toEqual(expect.arrayContaining([
+      ...Array.from({ length: 14 }, (_, i) => `D${i}`),
+      'GND', '5V',
+      ...Array.from({ length: 6 }, (_, i) => `A${i}`),
+    ]))
     for (const pin of def.pins) {
-      expect(pin.contacts).toHaveLength(1)
-      const contact = pin.contacts[0]
-      expect([contact.dx, contact.dy]).toEqual(EXPECTED_CONTACTS[pin.id])
-      expect(contact.wireConnectable).toBe(true)
-      expect(contact.breadboardInsertable).toBe(false)
+      expect(pin.contacts).toHaveLength(pin.id === 'GND' ? 3 : 1)
+      for (const contact of pin.contacts) {
+        expect(contact.wireConnectable).toBe(true)
+        expect(contact.breadboardInsertable).toBe(false)
+        expect(Number.isFinite(contact.dx)).toBe(true)
+        expect(Number.isFinite(contact.dy)).toBe(true)
+      }
+      if (EXPECTED_CONTACTS[pin.id]) {
+        const contact = pin.contacts[0]
+        expect([contact.dx, contact.dy]).toEqual(EXPECTED_CONTACTS[pin.id])
+      }
     }
+    expect(def.pins.find((pin) => pin.id === 'GND').contacts.map((contact) => contact.id))
+      .toEqual(['GND', 'GND_POWER', 'GND_AREF'])
   })
 
   it('verrouille le mapping du header numérique et la migration physique D2/D3', () => {
