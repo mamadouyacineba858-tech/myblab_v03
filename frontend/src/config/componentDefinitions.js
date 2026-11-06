@@ -99,7 +99,13 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "D11", label: "D11", dx: 67, dy: 33, contacts: [{ id: "D11", dx: 96.91, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
     { id: "D12", label: "D12", dx: 63, dy: 33, contacts: [{ id: "D12", dx: 91.17, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
     { id: "D13", label: "D13", dx: 59, dy: 33, contacts: [{ id: "D13", dx: 85.55, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [{ id: "GND", dx: 112.15, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    // One electrical ground, three physical UNO sockets. The default contact
+    // remains the original lower POWER GND for existing saved circuits.
+    { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [
+      { id: "GND", dx: 112.15, dy: 107.96, wireConnectable: true, breadboardInsertable: false },
+      { id: "GND_POWER", dx: 117.85, dy: 107.96, wireConnectable: true, breadboardInsertable: false },
+      { id: "GND_AREF", dx: 79.7, dy: 8.35, wireConnectable: true, breadboardInsertable: false },
+    ] },
     { id: "5V", label: "5V", dx: 120, dy: 50, contacts: [{ id: "5V", dx: 106.41, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
     { id: "A0", label: "A0", dx: 140.41, dy: 110, contacts: [{ id: "A0", dx: 140.41, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
     { id: "A1", label: "A1", dx: 146.11, dy: 110, contacts: [{ id: "A1", dx: 146.11, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },

@@ -56,3 +56,13 @@
 .myblab-pin--markerless:hover,
 .myblab-pin--markerless:focus-visible,
 .myblab-pin--markerless.myblab-pin--pending { opacity: 1; }
+
+/* MYBLAB-GND-FIX: Arduino UNO sockets are 5.7px apart. The generic 12px
+   targets overlap and steal clicks from neighbouring GND/D2 sockets. */
+.circuit-component[data-component-type="ARDUINO"] .myblab-pin {
+  width: 5.4px;
+  height: 5.4px;
+  margin-left: -2.7px;
+  margin-top: -2.7px;
+  border-width: 1px;
+}

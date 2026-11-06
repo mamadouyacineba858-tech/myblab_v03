@@ -382,6 +382,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
       // clair (aucun nouveau système).
       className={`circuit-component${selected ? " circuit-component--selected" : ""}`}
       data-backend={presentation.backend}
+      data-component-type={type}
       data-focused={focused ? "" : undefined}
       style={{
         left: x,

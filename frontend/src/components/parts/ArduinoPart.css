@@ -215,3 +215,8 @@
   white-space: nowrap;
   pointer-events: none;
 }
+
+/* MYBLAB-GND-FIX: silkscreen labels must not consume clicks intended for
+   real electrical <Pin> hit targets. The tooltip is supplied by <Pin>. */
+.part-arduino__visual-identifier,
+.part-arduino__auxiliary-identifier { pointer-events: none; }
