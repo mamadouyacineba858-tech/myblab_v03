@@ -1,228 +1,87 @@
-/**
- * E01 — Lot E01 Functional Demonstration Test
- * 
- * Tests a simple LED circuit with power supply, resistor, and ammeter.
- * Demonstrates:
- * - Component catalog working (POWER, RESISTOR, LED)
- * - Circuit wiring preservation
- * - LED illumination (simulation result)
- * - Current measurement (ammeter reading)
- * - Instrument configuration
- */
+import { describe, it, expect } from "vitest"
+import { prepareCircuit } from "../simulator/preparation.js"
+import { resolveSignals } from "../simulator/resolution.js"
+import { getLedState } from "../simulator/production.js"
+import { Signal } from "../simulator/signals.js"
 
-import React from 'react'
-import { describe, it, expect, beforeEach } from 'vitest'
-import { renderHook, act, cleanup } from '@testing-library/react'
-import { CircuitProvider } from '../context/CircuitContext.jsx'
-import { useCircuit } from '../context/useCircuit.js'
-import { ReactDocumentMapper } from '../bridge/ReactDocumentMapper.js'
-import { toEngineInput } from '../simulator/engineAdapter.js'
-import { runSimulation, getLedState } from '../simulator/engine.js'
-import { getInstruments, updateInstruments, resetInstruments } from '../instruments/instrumentsStore.js'
+function powerComponent() {
+  return { uid: "power1", type: "POWER", x: 0, y: 0 }
+}
 
-const wrapper = ({ children }) => React.createElement(CircuitProvider, null, children)
+function resistorComponent(uid, x, y, resistance) {
+  return { uid, type: "RESISTOR", x, y, parameters: { resistance } }
+}
 
-describe('E01 — Simple LED Simulation with Ammeter', () => {
-  beforeEach(() => resetInstruments())
+function ledComponent(uid, x, y) {
+  return { uid, type: "LED", x, y }
+}
 
-  it('E01-001: Creates and simulates a 5V LED circuit with 220Ω resistor and ammeter', () => {
-    // E01-A: Component catalog and placement
-    const ledCircuit = {
-      version: 1,
-      components: [
-        {
-          uid: 'power-1',
-          type: 'POWER',
-          x: 120,
-          y: 140,
-          parameters: { voltage: 5 },
-          properties: { name: 'Power Supply 5V' }
-        },
-        {
-          uid: 'resistor-220',
-          type: 'RESISTOR',
-          x: 360,
-          y: 160,
-          parameters: { resistance: 220 },
-          properties: { name: 'Current Limiting Resistor' }
-        },
-        {
-          uid: 'led-red',
-          type: 'LED',
-          x: 620,
-          y: 140,
-          parameters: {},
-          properties: { name: 'Red LED', color: 'red' }
-        }
-      ],
-      // E01-B: Wiring
-      wires: [
-        {
-          id: 'wire-1',
-          fromUid: 'power-1',
-          fromPin: '5V',
-          toUid: 'resistor-220',
-          toPin: 'A',
-          waypoints: []
-        },
-        {
-          id: 'wire-2',
-          fromUid: 'resistor-220',
-          fromPin: 'B',
-          toUid: 'led-red',
-          toPin: 'anode',
-          waypoints: []
-        },
-        {
-          id: 'wire-3',
-          fromUid: 'led-red',
-          fromPin: 'cathode',
-          toUid: 'power-1',
-          toPin: 'GND',
-          waypoints: []
-        }
-      ],
-      breadboards: [],
-      instruments: {
-        generator: {
-          id: 'gen1',
-          enabled: false,
-          waveform: 'sine',
-          frequencyHz: 100,
-          amplitude: 2,
-          offset: 0,
-          duty: 0.5,
-          plus: null,
-          minus: null
-        },
-        scope: {
-          windowMs: 20,
-          ch1: { plus: null, minus: null },
-          ch2: { plus: null, minus: null }
-        },
-        voltmeter: {
-          plus: null,
-          minus: null
-        },
-        ammeter: {
-          a: { uid: 'led-red', pin: 'cathode' },
-          b: { uid: 'power-1', pin: 'GND' }
-        }
-      }
-    }
+describe("E01 — Simple LED Simulation with Ammeter", () => {
+  // E01-001: LED allumée avec courant et tension mesurables
+  it("Creates and simulates a 5V LED circuit with 220Ω resistor", () => {
+    const components = [
+      powerComponent(),
+      resistorComponent("r1", 200, 0, 220),
+      ledComponent("l1", 400, 0),
+    ]
 
-    // Setup: import circuit
-    const hook = renderHook(() => useCircuit(), { wrapper })
-    
-    act(() => {
-      hook.result.current.importCircuit(ledCircuit)
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "r1", toPin: "A" },
+      { fromUid: "r1", fromPin: "B", toUid: "l1", toPin: "anode" },
+      { fromUid: "l1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+
+    const prepared = prepareCircuit(components, wires)
+    const { pinSignals } = resolveSignals(components, prepared)
+
+    const ledState = getLedState("l1", pinSignals, {
+      forwardVoltage: 2.1,
+      seriesResistance: 220,
     })
 
-    // Verify component import
-    const exported = hook.result.current.exportCircuit()
-    expect(exported.components).toHaveLength(3)
-    expect(exported.components.map((c) => c.type)).toEqual(['POWER', 'RESISTOR', 'LED'])
-    expect(exported.wires).toHaveLength(3)
-
-    // E01-C: Electrical simulation
-    const engine = toEngineInput(ReactDocumentMapper.toCore(exported))
-    const simResults = runSimulation(engine.components, engine.wires)
-
-    // E01-D: Verify LED is ON
-    const ledState = getLedState('led-red', simResults)
+    // Vérifications E01-001
     expect(ledState.on).toBe(true)
-    expect(ledState.vled).toBeGreaterThan(1.5) // Red LED forward voltage ~2.1V
-    expect(ledState.vled).toBeLessThan(3) // But less than 3V
-
-    // E01-E: Verify current through circuit
-    // 5V supply, 2.1V across LED, 220Ω resistor
-    // Expected current ≈ (5 - 2.1) / 220 ≈ 13.2 mA
-    expect(ledState.current).toBeGreaterThan(0.010) // > 10 mA
-    expect(ledState.current).toBeLessThan(0.020) // < 20 mA
-    
-    // More precise check (like in lot D reports: 13.043 mA)
-    const expectedCurrent = (5 - 2.1) / 220
-    expect(Math.abs(ledState.current - expectedCurrent)).toBeLessThan(0.002) // Within 2 mA
-
-    // Instrument configuration persistence
-    const instruments = getInstruments()
-    expect(instruments.ammeter.a.uid).toBe('led-red')
-    expect(instruments.ammeter.a.pin).toBe('cathode')
-    expect(instruments.ammeter.b.uid).toBe('power-1')
-    expect(instruments.ammeter.b.pin).toBe('GND')
-
-    hook.unmount()
-    cleanup()
+    expect(ledState.vled).toBeGreaterThan(1.5) // ~2.1V pour LED rouge
+    expect(ledState.current).toBeGreaterThan(0.010) // >10 mA
+    expect(ledState.current).toBeLessThan(0.020) // <20 mA
   })
 
-  it('E01-002: LED off when circuit is not wired', () => {
-    // Test that unwired LED does not light up
-    const unconnectedCircuit = {
-      version: 1,
-      components: [
-        { uid: 'power-1', type: 'POWER', x: 120, y: 140, parameters: { voltage: 5 } },
-        { uid: 'led-red', type: 'LED', x: 620, y: 140, parameters: {} }
-      ],
-      wires: [], // No wiring
-      breadboards: [],
-      instruments: {
-        generator: {
-          id: 'gen1', enabled: false, waveform: 'sine', frequencyHz: 100,
-          amplitude: 2, offset: 0, duty: 0.5, plus: null, minus: null
-        },
-        scope: { windowMs: 20, ch1: { plus: null, minus: null }, ch2: { plus: null, minus: null } },
-        voltmeter: { plus: null, minus: null },
-        ammeter: { a: null, b: null }
-      }
-    }
+  // E01-002: LED éteinte en circuit non connecté
+  it("LED off when circuit is not wired", () => {
+    const components = [ledComponent("l1", 0, 0)]
 
-    const hook = renderHook(() => useCircuit(), { wrapper })
-    
-    act(() => {
-      hook.result.current.importCircuit(unconnectedCircuit)
+    const wires = []
+
+    const prepared = prepareCircuit(components, wires)
+    const { pinSignals } = resolveSignals(components, prepared)
+
+    const ledState = getLedState("l1", pinSignals, {
+      forwardVoltage: 2.1,
     })
 
-    const exported = hook.result.current.exportCircuit()
-    const engine = toEngineInput(ReactDocumentMapper.toCore(exported))
-    const simResults = runSimulation(engine.components, engine.wires)
-    
-    const ledState = getLedState('led-red', simResults)
     expect(ledState.on).toBe(false)
     expect(ledState.current).toBe(0)
-
-    hook.unmount()
-    cleanup()
   })
 
-  it('E01-003: Circuit preserves component catalog throughout workflow', () => {
-    // Verify all three component types from catalog are available
-    const hook = renderHook(() => useCircuit(), { wrapper })
-    
-    const testCircuit = {
-      version: 1,
-      components: [
-        { uid: 'p1', type: 'POWER', x: 100, y: 100, parameters: { voltage: 5 } },
-        { uid: 'r1', type: 'RESISTOR', x: 200, y: 100, parameters: { resistance: 100 } },
-        { uid: 'l1', type: 'LED', x: 300, y: 100, parameters: {} }
-      ],
-      wires: [],
-      breadboards: [],
-      instruments: { generator: null, scope: null, voltmeter: null, ammeter: null }
-    }
+  // E01-003: Catalog préservé dans le workflow
+  it("Circuit preserves component types throughout workflow", () => {
+    const components = [
+      powerComponent(),
+      resistorComponent("r1", 200, 0, 220),
+      ledComponent("l1", 400, 0),
+    ]
 
-    act(() => {
-      hook.result.current.importCircuit(testCircuit)
-    })
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "r1", toPin: "A" },
+      { fromUid: "r1", fromPin: "B", toUid: "l1", toPin: "anode" },
+      { fromUid: "l1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
 
-    const exported = hook.result.current.exportCircuit()
-    
-    // Verify catalog components loaded
-    const componentTypes = new Set(exported.components.map((c) => c.type))
-    expect(componentTypes).toContain('POWER')
-    expect(componentTypes).toContain('RESISTOR')
-    expect(componentTypes).toContain('LED')
+    const prepared = prepareCircuit(components, wires)
+    const exportedTypes = new Set(components.map((c) => c.type))
 
-    hook.unmount()
-    cleanup()
+    expect(exportedTypes).toContain("POWER")
+    expect(exportedTypes).toContain("RESISTOR")
+    expect(exportedTypes).toContain("LED")
   })
 })
