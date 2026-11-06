@@ -57,3 +57,11 @@
 .myblab-btn--primary { background: #38bdf8; color: #0f172a; font-weight: 600; }
 .myblab-btn--primary:hover:not(:disabled) { background: #7dd3fc; }
 .myblab-btn--primary:disabled { background: #1e293b; color: #64748b; cursor: default; }
+
+/* Searchable component library, compact category navigation. */
+.myblab-sidebar__search-label { font-size: .75rem; margin-bottom: 5px; }
+.myblab-sidebar__search { width: 100%; min-height: 36px; border-radius: 7px; padding: 6px 9px; border: 1px solid #64748b; background: #f8fafc; color: #0f172a; margin-bottom: 9px; }
+.myblab-sidebar__categories { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 7px; }
+.myblab-sidebar__categories button { border: 1px solid #64748b; border-radius: 7px; padding: 5px 8px; background: transparent; color: inherit; cursor: pointer; font-size: .75rem; }
+.myblab-sidebar__categories button[aria-pressed="true"] { background: #0284c7; color: #fff; border-color: #0284c7; }
+.myblab-sidebar__count { font-size: .7rem; margin: 0 0 8px; opacity: .8; }
