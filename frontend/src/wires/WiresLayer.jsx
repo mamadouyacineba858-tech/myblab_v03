@@ -9,6 +9,7 @@
 import React, { useCallback, useMemo, useState } from "react"
 import "./WiresLayer.css"
 import { roundedWirePath } from "./roundedWirePath.js"
+import { resolveWireDisplayColor } from "./wireAppearance.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { getWireStrokeColor, getWireStateClassName } from "./wirePath.js"
@@ -42,6 +43,7 @@ function WireVisual({
   toUid,
   toPin,
   pinSignals,
+  insulationColor,
   selected,
   onSelect,
   waypoints,
@@ -53,7 +55,11 @@ function WireVisual({
   const cableD = roundedWirePath(d)
 
   const { signal } = getWireLogicalState({ fromUid, fromPin, toUid, toPin }, pinSignals)
-  const stroke = getWireStrokeColor({ selected, signal })
+  const stroke = resolveWireDisplayColor({
+    color: insulationColor,
+    selected,
+    fallback: getWireStrokeColor({ selected, signal }),
+  })
   const stateClassName = getWireStateClassName({ signal })
   const isFloating = signal === Signal.FLOATING
 
@@ -263,6 +269,7 @@ export function WiresLayer({ wirePaths = [] }) {
             toUid={wire?.toUid}
             toPin={wire?.toPin}
             pinSignals={pinSignals}
+            insulationColor={wire?.color}
             selected={selected}
             onSelect={handleSelect(p.id)}
             waypoints={wire?.waypoints}
