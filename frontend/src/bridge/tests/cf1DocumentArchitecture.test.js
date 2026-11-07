@@ -237,6 +237,7 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
       '.register("ADD_COMPONENT"',
       '.register("ADD_WIRE"',
       '.register("UPDATE_WIRE_WAYPOINTS"',
+      '.register("UPDATE_WIRE_COLOR"',
       '.register("MOVE_COMPONENT"',
       '.register("ADD_BREADBOARD"',
       '.register("MOVE_BREADBOARD"',
@@ -254,6 +255,10 @@ describe("MB-CF1-001 — AC-011 [AMENDÉ par CSA-CF3-001-A, puis CSA-CF3-002-ADD
       fs.existsSync(waypointsHandlerPath),
       "UpdateWireWaypointsHandler doit exister (MB-VIS-005, ruling CSA du 2026-08-21)"
     ).toBe(true)
+
+    // WIRE-010: the only newly authorized command is an insulation-only edit.
+    const wireColorHandlerPath = path.join(dir, "..", "..", "core", "handlers", "wire", "UpdateWireColorHandler.js")
+    expect(fs.existsSync(wireColorHandlerPath)).toBe(true)
 
     const moveComponentHandlerPath = path.join(dir, "..", "..", "core", "handlers", "component", "MoveComponentHandler.js")
     expect(
