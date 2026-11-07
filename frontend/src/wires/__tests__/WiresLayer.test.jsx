@@ -90,6 +90,15 @@ describe('WIRE-011 — color picker interactions', () => {
     fireEvent.click(swatches[8])
     expect(updateWireColor).toHaveBeenCalledWith('wire-1', null)
   })
+  it('keeps palette controls the same screen size at 50% and 200% zoom', () => {
+    const updateWireColor = vi.fn()
+    const half = renderWithContext({ isSelected: () => true, updateWireColor, viewport: { zoom: 0.5 } })
+    expect(half.container.querySelector('.wires-layer__palette').getAttribute('transform')).toBe('translate(0 -24) scale(2)')
+    half.unmount()
+    const double = renderWithContext({ isSelected: () => true, updateWireColor, viewport: { zoom: 2 } })
+    expect(double.container.querySelector('.wires-layer__palette').getAttribute('transform')).toBe('translate(0 -24) scale(0.5)')
+    expect(double.container.querySelectorAll('.wires-layer__palette circle')).toHaveLength(9)
+  })
   it('supports keyboard selection and automatic reset without reselecting the wire', () => {
     const updateWireColor = vi.fn()
     const selectOnly = vi.fn()
