@@ -24,7 +24,7 @@ def main():
     checked = 0
     for integrity_path in sorted(ROOT.rglob("ASSET-INTEGRITY.json")):
         try:
-            records = entries(json.loads(integrity_path.read_text(encoding="utf-8")))
+            records = entries(json.loads(integrity_path.read_text(encoding="utf-8-sig")))
             for record in records:
                 if not isinstance(record, dict):
                     failures.append(f"{integrity_path}: unsupported record {record!r}")
