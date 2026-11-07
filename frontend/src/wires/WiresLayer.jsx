@@ -105,7 +105,7 @@ function WireVisual({
       />
 
       {selected && typeof onColorChange === 'function' && (() => {
-        const match = /^M\\s+(-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)/.exec(d)
+        const match = /^M\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/.exec(d)
         if (!match) return null
         const x = Number(match[1])
         const y = Number(match[2]) - 24
