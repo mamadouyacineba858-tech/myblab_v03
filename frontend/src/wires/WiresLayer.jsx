@@ -63,6 +63,12 @@ function WireVisual({
   })
   const stateClassName = getWireStateClassName({ signal })
   const isFloating = signal === Signal.FLOATING
+  const applyColorFromKeyboard = (color) => (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    event.stopPropagation()
+    onColorChange?.(color)
+  }
 
   const visibleClassName = [
     "wires-layer__wire",
@@ -110,10 +116,13 @@ function WireVisual({
         const x = Number(match[1])
         const y = Number(match[2]) - 24
         return (
-          <g className="wires-layer__palette" aria-label="Couleur du fil">
+          <g className="wires-layer__palette" role="group" aria-label="Couleur du fil">
             {WIRE_INSULATION_OPTIONS.map(({ name, hex }, index) => (
               <circle
                 key={name}
+                role="button"
+                tabIndex={0}
+                onKeyDown={applyColorFromKeyboard(hex)}
                 cx={x + index * 17}
                 cy={y}
                 r={7}
@@ -126,6 +135,9 @@ function WireVisual({
               />
             ))}
             <circle
+              role="button"
+              tabIndex={0}
+              onKeyDown={applyColorFromKeyboard(null)}
               cx={x + WIRE_INSULATION_OPTIONS.length * 17}
               cy={y}
               r={7}
@@ -291,7 +303,7 @@ export function WiresLayer({ wirePaths = [] }) {
   )
 
   return (
-    <svg className="wires-layer" aria-hidden="true">
+    <svg className="wires-layer" role="group" aria-label="Câbles du circuit">
       {preview && <path className="wires-layer__preview" d={preview} />}
       {paths.map((p) => {
         if (!p?.id || !p?.d) return null
