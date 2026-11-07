@@ -63,7 +63,21 @@
 }
 
 .wires-layer__wire--hover {
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.75)) drop-shadow(0 1px 0 rgba(15, 23, 42, 0.6));
+  /* Clear selection affordance without changing the electrical signal color. */
+  filter:
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 1.25px 0 rgba(15, 23, 42, 0.65));
+}
+
+.wires-layer__wire--floating {
+  /* Floating remains distinguishable without dimming the physical cable. */
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wires-layer__wire {
+    transition: none;
+  }
 }
 
 /*
