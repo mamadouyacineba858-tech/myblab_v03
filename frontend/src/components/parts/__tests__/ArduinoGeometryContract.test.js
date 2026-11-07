@@ -30,8 +30,14 @@ describe('A13-ARD-SURF2-REALISM-008 — separate electrical and presentation geo
     expect(def.pins).toHaveLength(22)
     expect(Object.keys(contract.presentationContacts).sort()).toEqual(def.pins.map(p => p.id).sort())
     for (const pin of def.pins) {
-      expect(pin.contacts).toHaveLength(1)
+      // GND is one canonical electrical pin with three physical UNO sockets.
+      expect(pin.contacts).toHaveLength(pin.id === 'GND' ? 3 : 1)
       expect(contract.presentationContacts[pin.id]).toEqual([pin.contacts[0].dx, pin.contacts[0].dy])
+      if (pin.id === 'GND') {
+        expect(pin.contacts.map(contact => contact.id)).toEqual(['GND', 'GND_POWER', 'GND_AREF'])
+        expect(new Set(pin.contacts.map(contact => contact.id)).size).toBe(3)
+        expect(pin.contacts.every(contact => contact.wireConnectable && !contact.breadboardInsertable)).toBe(true)
+      }
       if (Object.hasOwn(contract.electricalPins, pin.id)) {
         expect(contract.electricalPins[pin.id]).toEqual([pin.dx, pin.dy])
       } else {
