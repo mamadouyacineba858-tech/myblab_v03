@@ -29,6 +29,10 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install locked dependencies
         run: npm ci
+      - name: Audit raster integrity (read-only)
+        id: raster_integrity
+        continue-on-error: true
+        run: python3 scripts/audit-raster-integrity.py
       - name: Production build
         run: npm run build
       - name: Arduino and workspace regression tests
@@ -39,5 +43,5 @@ jobs:
       - name: Report qualification result
         if: always()
         run: |
-          echo "MYBLAB Arduino workspace: production build, targeted regressions, full frontend suite."
+          echo "MYBLAB Arduino workspace: raster integrity, production build, targeted regressions, full frontend suite."\n          echo "Raster integrity outcome: \${{ steps.raster_integrity.outcome }}"
           echo "Inspect the individual steps for PASS/FAIL; a successful build alone does not qualify the full suite."
