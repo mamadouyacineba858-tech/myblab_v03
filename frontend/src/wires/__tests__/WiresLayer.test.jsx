@@ -33,6 +33,7 @@ function renderWithContext({
   toggleSelection = vi.fn(),
   canvasRef,
   updateWireWaypoints,
+  updateWireColor,
   startWaypointDrag,
   viewport,
 } = {}) {
@@ -44,6 +45,7 @@ function renderWithContext({
     pinSignals,
     canvasRef,
     updateWireWaypoints,
+    updateWireColor,
     startWaypointDrag,
   }
   // MB-VIS-CANVAS-051 : WiresLayer lit désormais `viewport` via un second
@@ -69,6 +71,30 @@ function renderWithContext({
 function makeCanvasRef() {
   return { current: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }) } }
 }
+
+describe('WIRE-011 — color picker interactions', () => {
+  it('shows the eight swatches and automatic reset only for selected wires', () => {
+    const updateWireColor = vi.fn()
+    const hidden = renderWithContext({ updateWireColor })
+    expect(hidden.container.querySelectorAll('.wires-layer__palette circle')).toHaveLength(0)
+    hidden.unmount()
+    const selected = renderWithContext({ isSelected: () => true, updateWireColor })
+    expect(selected.container.querySelectorAll('.wires-layer__palette circle')).toHaveLength(9)
+  })
+  it('dispatches chosen insulation through the circuit command API', () => {
+    const updateWireColor = vi.fn()
+    const { container } = renderWithContext({ isSelected: () => true, updateWireColor })
+    const swatches = container.querySelectorAll('.wires-layer__palette circle')
+    fireEvent.click(swatches[0])
+    expect(updateWireColor).toHaveBeenCalledWith('wire-1', '#dc2626')
+    fireEvent.click(swatches[8])
+    expect(updateWireColor).toHaveBeenCalledWith('wire-1', null)
+  })
+  it('keeps color controls hidden when mutation API is unavailable', () => {
+    const { container } = renderWithContext({ isSelected: () => true })
+    expect(container.querySelector('.wires-layer__palette')).toBeNull()
+  })
+})
 
 describe('WIRE-006 — physical insulation rendering', () => {
   it('shows an explicit insulation color without overriding the electrical state', () => {
