@@ -1,3 +1,4 @@
+import { resolveWireInsulationColor } from '../wires/wireAppearance.js'
 import { getComponentRotation } from "./componentOrientation.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 
@@ -228,5 +229,8 @@ export function normalizeWire(wire) {
     // les corriger tous les trois revient donc à corriger ce seul point,
     // exactement comme le prévoit la dépendance obligatoire du ticket.
     waypoints: normalizeWaypoints(wire.waypoints),
+    ...(resolveWireInsulationColor(wire.color)
+      ? { color: resolveWireInsulationColor(wire.color) }
+      : {}),
   }
 }
