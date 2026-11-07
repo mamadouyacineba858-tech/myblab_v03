@@ -67,9 +67,9 @@ function WireVisual({
 
   return (
     <g>
-      {/* Hitzone invisible pour faciliter le clic et détecter le survol */}
+      {/* Hitzone alignée sur la gaine arrondie réellement affichée. */}
       <path
-        d={d}
+        d={cableD}
         fill="none"
         stroke="transparent"
         strokeWidth={32}
