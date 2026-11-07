@@ -73,6 +73,7 @@ function WireVisual({
 
   const visibleClassName = [
     "wires-layer__wire",
+    selected && "wires-layer__wire--selected",
     stateClassName,
     hover && "wires-layer__wire--hover",
   ]
