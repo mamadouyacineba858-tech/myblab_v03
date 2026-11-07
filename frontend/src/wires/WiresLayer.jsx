@@ -132,6 +132,7 @@ function WireVisual({
                 stroke={insulationColor === hex ? '#fff' : '#0f172a'}
                 strokeWidth={insulationColor === hex ? 3 : 1}
                 style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                onPointerDown={(event) => event.stopPropagation()}
                 onClick={(event) => { event.stopPropagation(); onColorChange(hex) }}
                 aria-label={`Fil ${name}`}
               />
@@ -147,6 +148,7 @@ function WireVisual({
               stroke="#0f172a"
               strokeWidth={2}
               style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => { event.stopPropagation(); onColorChange(null) }}
               aria-label="Couleur automatique"
             />
