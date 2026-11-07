@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeWire } from '../utils/circuitModel.js'
+import { ReactDocumentMapper } from '../bridge/ReactDocumentMapper.js'
 import { resolveWireDisplayColor, resolveWireInsulationColor, WIRE_INSULATION_COLORS } from './wireAppearance.js'
 
 describe('WIRE-006 physical insulation color contract', () => {
@@ -34,5 +35,32 @@ describe('WIRE-007 — insulation import and normalization', () => {
   })
   it('keeps legacy wire normalization unchanged without a color', () => {
     expect(normalizeWire(wire)).not.toHaveProperty('color')
+  })
+})
+
+describe('WIRE-008 — document round-trip insulation persistence', () => {
+  const reactDocument = {
+    components: [],
+    wires: [{
+      id: 'wire-color-1',
+      fromUid: 'arduino-1',
+      fromPin: 'D13',
+      toUid: 'led-1',
+      toPin: 'anode',
+      color: '#2563eb',
+      waypoints: [{ x: 10, y: 20 }],
+    }],
+  }
+  it('preserves insulation through React → Core → React mapping', () => {
+    const core = ReactDocumentMapper.toCore(reactDocument)
+    const restored = ReactDocumentMapper.toReact(core)
+    expect(restored.wires[0].color).toBe('#2563eb')
+    expect(restored.wires[0].waypoints).toEqual([{ x: 10, y: 20 }])
+    expect(restored.wires[0].fromUid).toBe('arduino-1')
+    expect(restored.wires[0].toUid).toBe('led-1')
+  })
+  it('keeps insulation after normalizing the restored document', () => {
+    const restored = ReactDocumentMapper.toReact(ReactDocumentMapper.toCore(reactDocument))
+    expect(normalizeWire(restored.wires[0]).color).toBe('#2563eb')
   })
 })
