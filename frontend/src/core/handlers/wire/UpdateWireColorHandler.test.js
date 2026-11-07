@@ -25,6 +25,16 @@ describe('WIRE-009 — physical wire color command invariants', () => {
     const redone = handler._applyRedo(command, undone.document, first)
     expect(redone.document.wires[0].color).toBe('#dc2626')
   })
+  it('undo restores the previous physical color after recoloring', () => {
+    const blueDocument = { ...document, wires: [{ ...document.wires[0], color: '#2563eb' }, document.wires[1]] }
+    const command = { payload: { wireId: 'w1', color: 'yellow' } }
+    const changed = handler._applyMutation(command, blueDocument)
+    expect(changed.document.wires[0].color).toBe('#eab308')
+    const undone = handler._applyInverse(command, changed.document, changed)
+    expect(undone.document.wires[0].color).toBe('#2563eb')
+    expect(undone.document.wires[0].pinA).toEqual(document.wires[0].pinA)
+    expect(undone.document.wires[0].waypoints).toEqual(document.wires[0].waypoints)
+  })
   it('supports removing a physical override', () => {
     const colored = { ...document, wires: [{ ...document.wires[0], color: '#2563eb' }, document.wires[1]] }
     const result = handler._applyMutation({ payload: { wireId: 'w1', color: null } }, colored)
