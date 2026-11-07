@@ -65,3 +65,17 @@
 .myblab-sidebar__categories button { border: 1px solid #64748b; border-radius: 7px; padding: 5px 8px; background: transparent; color: inherit; cursor: pointer; font-size: .75rem; }
 .myblab-sidebar__categories button[aria-pressed="true"] { background: #0284c7; color: #fff; border-color: #0284c7; }
 .myblab-sidebar__count { font-size: .7rem; margin: 0 0 8px; opacity: .8; }
+
+/* FIX: reserve real space for search/categories and scroll only the palette. */
+.myblab-sidebar__section--scroll { overflow: hidden; }
+.myblab-sidebar__section--scroll > :not(.myblab-palette) { flex-shrink: 0; }
+.myblab-sidebar__section--scroll .myblab-palette {
+  flex: 1 1 auto;
+  min-height: 56px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.myblab-sidebar__categories { max-height: 82px; overflow-y: auto; align-content: flex-start; }
+.myblab-sidebar__search { flex-shrink: 0; }
+.myblab-sidebar__section--scroll { margin-bottom: 8px; }
+.myblab-sidebar__section--scroll .myblab-sidebar__count { margin-bottom: 5px; }
