@@ -23,8 +23,10 @@ describe('WIRE-006 physical insulation color contract', () => {
     expect(resolveWireDisplayColor({ color: undefined, fallback: '#ef4444' })).toBe('#ef4444')
     expect(resolveWireDisplayColor({ color: 'bad', fallback: '#ef4444' })).toBe('#ef4444')
   })
-  it('preserves the selected-wire highlight', () => {
-    expect(resolveWireDisplayColor({ color: 'black', selected: true, fallback: '#22c55e' })).toBe('#22c55e')
+  it('keeps the chosen insulation visible while a wire is selected', () => {
+    expect(resolveWireDisplayColor({ color: 'black', selected: true, fallback: '#22c55e' })).toBe(WIRE_INSULATION_COLORS.black)
+    expect(resolveWireDisplayColor({ color: 'red', selected: true, fallback: '#22c55e' })).toBe(WIRE_INSULATION_COLORS.red)
+    expect(resolveWireDisplayColor({ color: null, selected: true, fallback: '#22c55e' })).toBe('#22c55e')
   })
 })
 
