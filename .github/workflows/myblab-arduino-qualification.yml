@@ -11,7 +11,7 @@ on:
       - '.github/workflows/myblab-arduino-qualification.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   arduino-workspace:
@@ -29,13 +29,6 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install locked dependencies
         run: npm ci
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install Pillow for guarded raster optimization
-        run: python -m pip install 'Pillow==11.3.0'
-      - name: Optimize four over-budget PNGs before qualification
-        run: python scripts/optimize-four-raster-pngs.py
       - name: Audit raster integrity (read-only)
         id: raster_integrity
         continue-on-error: true
@@ -47,16 +40,6 @@ jobs:
       - name: Full frontend regression suite
         timeout-minutes: 35
         run: npm run test:ci -- --maxWorkers=2 --minWorkers=1 --reporter=default
-      - name: Commit optimized PNGs only after full test success
-        if: success()
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add public/assets/components/{tilt-sensor,ir-receiver,inductor,zener-diode}
-          if ! git diff --cached --quiet; then
-            git commit -m 'fix(assets): qualify and commit four optimized PNGs'
-            git push origin HEAD:codex/myblab-e01-reprise-securisee
-          fi
       - name: Report qualification result
         if: always()
         run: |
