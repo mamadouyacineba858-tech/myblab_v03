@@ -358,7 +358,7 @@ describe('MB-VIS-COMP-033 — RGB_LED : backend raster + 8 états visuels dériv
 })
 
 describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRenderer (VIS-TEST-02/03, AC-04/AC-05/AC-06)', () => {
-  it('ARDUINO (4 pins) : les 4 pins existants restent rendus aux positions de PRÉSENTATION (MB-VIS-COMP-037 : projection sur le silhouette réel de la carte, cf. ARDUINO_VISUAL_PINS)', () => {
+  it('ARDUINO : les 24 contacts physiques des 22 broches restent rendus aux positions de présentation', () => {
     let circuitApi = null
     render(
       <CanvasHarness onReady={(api) => { circuitApi = api }} />,
@@ -372,7 +372,7 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
     const def = getComponentDef('ARDUINO')
     const component = { type: 'ARDUINO', x: 0, y: 0 }
     const pinButtons = document.querySelectorAll('.myblab-pin')
-    expect(pinButtons.length).toBe(def.pins.length)
+    expect(pinButtons.length).toBe(def.pins.reduce((count, pin) => count + pin.contacts.length, 0))
     def.pins.forEach((pin) => {
       const expected = getPinPresentationPosition(component, pin)
       const match = Array.from(pinButtons).find(
