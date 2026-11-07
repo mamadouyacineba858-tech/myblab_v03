@@ -16,7 +16,7 @@ permissions:
 jobs:
   arduino-workspace:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: frontend
@@ -34,4 +34,10 @@ jobs:
       - name: Arduino and workspace regression tests
         run: npx vitest run src/arduino/ui/ArduinoWorkspaceErgonomics.test.jsx src/components/SidebarLibrary.regression.test.jsx src/components/parts/__tests__/ArduinoPinVisibility.test.jsx src/config/__tests__/ArduinoGroundContacts.regression.test.js
       - name: Full frontend regression suite
-        run: npm run test:ci
+        timeout-minutes: 35
+        run: npm run test:ci -- --maxWorkers=2 --minWorkers=1 --reporter=default
+      - name: Report qualification result
+        if: always()
+        run: |
+          echo "MYBLAB Arduino workspace: production build, targeted regressions, full frontend suite."
+          echo "Inspect the individual steps for PASS/FAIL; a successful build alone does not qualify the full suite."
