@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { normalizeWire } from '../utils/circuitModel.js'
 import { resolveWireDisplayColor, resolveWireInsulationColor, WIRE_INSULATION_COLORS } from './wireAppearance.js'
 
 describe('WIRE-006 physical insulation color contract', () => {
@@ -18,5 +19,20 @@ describe('WIRE-006 physical insulation color contract', () => {
   })
   it('preserves the selected-wire highlight', () => {
     expect(resolveWireDisplayColor({ color: 'black', selected: true, fallback: '#22c55e' })).toBe('#22c55e')
+  })
+})
+
+describe('WIRE-007 — insulation import and normalization', () => {
+  const wire = { id: 'w1', fromUid: 'A', fromPin: '1', toUid: 'B', toPin: '2' }
+  it('retains canonical insulation in normalized circuits', () => {
+    expect(normalizeWire({ ...wire, color: 'RED' }).color).toBe('#dc2626')
+  })
+  it('ignores invalid colors without removing the wire', () => {
+    const normalized = normalizeWire({ ...wire, color: 'url(#unsafe)' })
+    expect(normalized).not.toBeNull()
+    expect(normalized).not.toHaveProperty('color')
+  })
+  it('keeps legacy wire normalization unchanged without a color', () => {
+    expect(normalizeWire(wire)).not.toHaveProperty('color')
   })
 })
