@@ -127,7 +127,7 @@ function WireVisual({
                 onKeyDown={applyColorFromKeyboard(hex)}
                 cx={index * 17}
                 cy={0}
-                r={7}
+                r={8}
                 fill={hex}
                 stroke={insulationColor === hex ? '#fff' : '#0f172a'}
                 strokeWidth={insulationColor === hex ? 3 : 1}
@@ -143,14 +143,24 @@ function WireVisual({
               onKeyDown={applyColorFromKeyboard(null)}
               cx={WIRE_INSULATION_OPTIONS.length * 17}
               cy={0}
-              r={7}
-              fill="transparent"
+              r={8}
+              fill="#f8fafc"
               stroke="#0f172a"
               strokeWidth={2}
               style={{ pointerEvents: 'auto', cursor: 'pointer' }}
               onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => { event.stopPropagation(); onColorChange(null) }}
               aria-label="Couleur automatique"
+            />
+            <line
+              x1={WIRE_INSULATION_OPTIONS.length * 17 - 4}
+              y1={4}
+              x2={WIRE_INSULATION_OPTIONS.length * 17 + 4}
+              y2={-4}
+              stroke="#dc2626"
+              strokeWidth={2}
+              pointerEvents="none"
+              aria-hidden="true"
             />
           </g>
         )
