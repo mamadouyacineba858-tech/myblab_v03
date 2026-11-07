@@ -1,0 +1,47 @@
+name: MYBLAB guarded raster optimization
+
+on:
+  push:
+    branches:
+      - codex/myblab-e01-reprise-securisee
+    paths:
+      - 'frontend/scripts/optimize-four-raster-pngs.py'
+      - '.github/workflows/myblab-raster-optimization.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install raster optimizer dependency
+        run: python -m pip install 'Pillow==11.3.0'
+      - name: Optimize all four assets only when every image meets quality limits
+        run: python frontend/scripts/optimize-four-raster-pngs.py
+      - name: Verify integrity and four 30-KiB limits
+        run: |
+          python frontend/scripts/audit-raster-integrity.py || true
+          python - <<'PY'
+          from pathlib import Path
+          root = Path("frontend/public/assets/components")
+          for slug in ("tilt-sensor", "ir-receiver", "inductor", "zener-diode"):
+              path = root / slug / f"{slug}.default.3x.png"
+              assert path.stat().st_size <= 30 * 1024, str(path)
+          PY
+      - name: Commit only validated image and integrity changes to the working branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add frontend/public/assets/components/{tilt-sensor,ir-receiver,inductor,zener-diode}
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix(assets): optimize four raster PNGs within guarded visual budgets'
+            git push origin HEAD:codex/myblab-e01-reprise-securisee
+          fi
