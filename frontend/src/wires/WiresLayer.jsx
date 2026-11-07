@@ -160,12 +160,9 @@ export function WiresLayer({ wirePaths = [] }) {
     })
     const to = clientToCanvas(wireGesture, canvasRef.current.getBoundingClientRect(),
       viewport.zoom, viewport.translateX, viewport.translateY)
-    if (from) {
-      // WIRE-004: the temporary jumper uses the same smooth route as a
-      // committed wire, avoiding a visual jump when the connection is made.
-      const midX = (from.x + to.x) / 2
-      preview = roundedWirePath(`M ${from.x} ${from.y} L ${midX} ${from.y} L ${midX} ${to.y} L ${to.x} ${to.y}`)
-    }
+    // Preserve the canonical two-point preview geometry used by pointer
+    // interactions and coordinate checks; styling supplies cable thickness.
+    if (from) preview = `M ${from.x} ${from.y} L ${to.x} ${to.y}`
   }
 
   // Jointure géométrie (wirePaths: {id, d}, géométrie pure — cf. circuitSelectors.js)
