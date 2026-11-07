@@ -18,6 +18,17 @@ describe('WIRE-001 rounded cable geometry', () => {
     expect(roundedWirePath('M 0 0 L 10 10', 0)).toBe('M 0 0 L 10 10')
     expect(roundedWirePath('')).toBe('')
   })
+  it('does not invent bends on collinear segments', () => {
+    const result = roundedWirePath('M 0 0 L 20 0 L 40 0 L 60 0')
+    expect(result).not.toContain(' Q ')
+    expect(result.endsWith('L 60 0')).toBe(true)
+  })
+  it('handles tight angles without overshooting either segment', () => {
+    const result = roundedWirePath('M 0 0 L 3 0 L 3 3 L 100 3', 30)
+    expect(result).not.toContain('NaN')
+    expect(result).toContain(' Q ')
+    expect(result.endsWith('L 100 3')).toBe(true)
+  })
   it('keeps finite output for coincident segments', () => {
     const result = roundedWirePath('M 0 0 L 0 0 L 40 0 L 40 40')
     expect(result).not.toContain('NaN')
