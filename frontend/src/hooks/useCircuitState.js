@@ -99,6 +99,8 @@ import { AddWireHandler } from "../core/handlers/wire/AddWireHandler.js"
 // frontend/src/bridge/tests/cf1DocumentArchitecture.test.js pour le verrou
 // amendé en conséquence.
 import { UpdateWireWaypointsHandler } from "../core/handlers/wire/UpdateWireWaypointsHandler.js"
+import { UpdateWireColorHandler } from "../core/handlers/wire/UpdateWireColorHandler.js"
+import { resolveWireInsulationColor } from "../wires/wireAppearance.js"
 // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001, 2026-08-22 — traçable dans
 // docs/pmo/tickets/MB-CF3-003.md §R) : quatrième et dernier type
 // actuellement autorisé sur ce canal — déplacement d'un ou plusieurs
@@ -925,6 +927,8 @@ const getUndoCount = useCallback(() => {
       // granulaire de waypoint) n'est autorisée par ce ruling — voir
       // cf1DocumentArchitecture.test.js.
       registry.register("UPDATE_WIRE_WAYPOINTS", new UpdateWireWaypointsHandler({ historyService, documentApi }))
+      // WIRE-010: explicit, scoped extension for insulation-only edits.
+      registry.register("UPDATE_WIRE_COLOR", new UpdateWireColorHandler({ historyService, documentApi }))
       // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001 du 2026-08-22) : quatrième
       // type autorisé sur ce canal — déplacement d'un ou plusieurs
       // composants, contrat canonique { moves: [...] } (voir
@@ -1316,6 +1320,19 @@ const getUndoCount = useCallback(() => {
   // wiresRef.current (référence synchrone, même précédent que addWire) évite
   // toute stale closure.
   // =========================================================================
+  const updateWireColor = useCallback((wireId, color) => {
+    if (!wireId || !commandBusRef.current) return
+    if (!wiresRef.current.some((wire) => wire.id === wireId)) return
+    const normalized = color === null ? null : resolveWireInsulationColor(color)
+    if (color !== null && !normalized) return
+    try {
+      const command = new Command("UPDATE_WIRE_COLOR", { wireId, color: normalized })
+      commandBusRef.current.dispatch(command, documentApi.getDocument())
+    } catch (error) {
+      console.error("updateWireColor: CommandBus dispatch failed", error)
+    }
+  }, [documentApi])
+
   const updateWireWaypoints = useCallback((wireId, waypoints) => {
     if (!wireId || !Array.isArray(waypoints)) return
     if (!commandBusRef.current) return
@@ -2916,6 +2933,7 @@ if (import.meta.env.DEV) {
   // le nouveau tableau complet côté Presentation puis appellent cette seule
   // fonction) et déclenchement du drag d'un waypoint existant.
   updateWireWaypoints,
+  updateWireColor,
   startWaypointDrag,
 
   startDrag,
