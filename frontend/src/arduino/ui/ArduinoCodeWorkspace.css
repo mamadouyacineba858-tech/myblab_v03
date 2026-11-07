@@ -11,3 +11,23 @@
 .arduino-code-actions { flex-wrap: wrap; justify-content: flex-start; }
 .arduino-code-actions button { border: 1px solid #64748b; border-radius: 6px; background: #26374e; color: #f8fafc; }
 .arduino-code-actions button:hover:not(:disabled), .arduino-code-actions button:focus-visible { background: #355474; }
+
+/* Wider, usable coding workspace without obscuring the entire circuit. */
+.arduino-code-workspace {
+  top: 112px;
+  right: 12px;
+  bottom: 38px;
+  width: clamp(360px, 38vw, 680px);
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+  overflow-y: auto;
+  gap: 9px;
+}
+.arduino-code-heading { flex: 0 0 auto; }
+.arduino-code-workspace textarea { flex: 1 0 210px; min-height: 210px; width: 100%; box-sizing: border-box; }
+.arduino-code-actions { flex: 0 0 auto; gap: 7px; }
+.arduino-code-actions button { font-size: 12px; }
+.arduino-code-workspace [role="status"] { flex: 0 0 auto; }
+@media (max-width: 740px) {
+  .arduino-code-workspace { top: 100px; left: 8px; right: 8px; width: auto; bottom: 12px; padding: 12px; }
+}
