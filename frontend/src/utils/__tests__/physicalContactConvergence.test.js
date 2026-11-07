@@ -325,10 +325,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     }
   })
 
-  it('Autres types : exactement 1 contact physique par pin (hors GND de H_BRIDGE, COM de SEVEN_SEGMENT_DISPLAY)', () => {
+  it('Autres types : exactement 1 contact physique par pin (hors GND d'ARDUINO et H_BRIDGE, COM de SEVEN_SEGMENT_DISPLAY)', () => {
     // A8-H-BRIDGE : L293D DIP-16, les 4 broches physiques GND sont 4 contacts du pin electrique GND.
     // A10-DISP1 : SC56-11EWA, les broches physiques 3 et 8 sont 2 contacts du pin electrique COM.
-    const MULTI_CONTACT_PINS = { 'H_BRIDGE:GND': 4, 'SEVEN_SEGMENT_DISPLAY:COM': 2 }
+    const MULTI_CONTACT_PINS = { 'ARDUINO:GND': 3, 'H_BRIDGE:GND': 4, 'SEVEN_SEGMENT_DISPLAY:COM': 2 }
     for (const type of CATALOGUE.filter((t) => t !== 'BUTTON' && t !== 'BUTTON_LATCHING')) {
       for (const pin of getComponentDef(type).pins) {
         const expected = MULTI_CONTACT_PINS[`${type}:${pin.id}`] ?? 1
