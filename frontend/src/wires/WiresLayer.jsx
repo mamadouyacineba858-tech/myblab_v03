@@ -8,6 +8,7 @@
 // tsconfig.app.json "jsx": "react-jsx") — build non affecté (voir rapport).
 import React, { useCallback, useMemo, useState } from "react"
 import "./WiresLayer.css"
+import { roundedWirePath } from "./roundedWirePath.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { getWireStrokeColor, getWireStateClassName } from "./wirePath.js"
@@ -49,6 +50,7 @@ function WireVisual({
   onHitzoneDoubleClick,
 }) {
   const [hover, setHover] = useState(false)
+  const cableD = roundedWirePath(d)
 
   const { signal } = getWireLogicalState({ fromUid, fromPin, toUid, toPin }, pinSignals)
   const stroke = getWireStrokeColor({ selected, signal })
@@ -81,12 +83,12 @@ function WireVisual({
         onMouseLeave={() => setHover(false)}
       />
 
-      {/* Rendu visuel du fil */}
+      {/* Gaine arrondie; hitzone et waypoints restent sur la géométrie canonique. */}
       <path
-        d={d}
+        d={cableD}
         fill="none"
         stroke={stroke}
-        strokeWidth={3}
+        strokeWidth={5}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeDasharray={isFloating ? "6 4" : undefined}
