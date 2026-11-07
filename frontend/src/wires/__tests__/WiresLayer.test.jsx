@@ -70,6 +70,24 @@ function makeCanvasRef() {
   return { current: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }) } }
 }
 
+describe('WIRE-006 — physical insulation rendering', () => {
+  it('shows an explicit insulation color without overriding the electrical state', () => {
+    const { visiblePath } = renderWithContext({
+      wires: [{ ...WIRE, color: 'black' }],
+      pinSignals: new Map([['A:anode', Signal.HIGH]]),
+    })
+    expect(visiblePath.getAttribute('stroke')).toBe('#1f2937')
+    expect(visiblePath.getAttribute('class')).toContain('wires-layer__wire--high')
+  })
+  it('keeps the green selection highlight even with custom insulation', () => {
+    const { visiblePath } = renderWithContext({
+      wires: [{ ...WIRE, color: 'black' }],
+      isSelected: () => true,
+    })
+    expect(visiblePath.getAttribute('stroke')).toBe('#22c55e')
+  })
+})
+
 describe('WIRE-002 — cable realism and interaction alignment', () => {
   it('renders a rounded cable and a matching clickable path without changing endpoints', () => {
     const { visiblePath, hitzone } = renderWithContext()
