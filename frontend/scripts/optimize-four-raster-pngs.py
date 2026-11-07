@@ -31,6 +31,7 @@ def candidate(original):
         diff = ImageChops.difference(rgba, restored)
         mean = sum(ImageStat.Stat(diff).mean[:3]) / 3
         changed = sum(1 for px in diff.getdata() if px[0] or px[1] or px[2]) / (rgba.width * rgba.height)
+        print(f"  colors={colors} bytes={len(data)} mean={mean:.3f} changed={changed:.2%}", flush=True)
         if len(data) <= LIMIT and mean <= MAX_MEAN_CHANNEL_ERROR and changed <= MAX_CHANGED_PIXEL_RATIO:
             results.append((len(data), mean, changed, data))
     return min(results, key=lambda r: (r[1], r[2], r[0])) if results else None
