@@ -9,13 +9,13 @@ describe('A13-HOVER-UX shared electrical pin behavior', () => {
     onPinClick: vi.fn(), startWireGesture: vi.fn(),
   }
 
-  it('does not use delayed browser title or React hover state', () => {
+  it('exposes pin title and immediate hover feedback', () => {
     const { container } = render(<Pin {...props} label="D3" />)
     const pin = container.querySelector('.myblab-pin')
-    expect(pin.getAttribute('title')).toBeNull()
+    expect(pin.getAttribute('title')).toBe('D3')
     expect(pin.dataset.hoverLabel).toBe('D3')
     fireEvent.mouseEnter(pin)
-    expect(pin.classList.contains('myblab-pin--hover')).toBe(false)
+    expect(pin.classList.contains('myblab-pin--hover')).toBe(true)
   })
 
   it('preserves wire gesture and contact identity', () => {
@@ -34,7 +34,7 @@ describe('A13-HOVER-UX shared electrical pin behavior', () => {
     const { container } = render(<Pin {...props} hideVisualMarker />)
     const pin = container.querySelector('.myblab-pin')
     expect(pin.classList.contains('myblab-pin--markerless')).toBe(true)
-    expect(pin.style.opacity).toBe('')
+    expect(pin.style.opacity).toBe('0')
     expect(pin.dataset.hoverLabel).toBe('D3')
   })
 })
