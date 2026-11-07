@@ -51,6 +51,7 @@ function WireVisual({
   onWaypointDoubleClick,
   onHitzoneDoubleClick,
   onColorChange,
+  zoom = 1,
 }) {
   const [hover, setHover] = useState(false)
   const cableD = roundedWirePath(d)
@@ -115,16 +116,17 @@ function WireVisual({
         if (!match) return null
         const x = Number(match[1])
         const y = Number(match[2]) - 24
+        const safeZoom = Number.isFinite(zoom) && zoom > 0 ? zoom : 1
         return (
-          <g className="wires-layer__palette" role="group" aria-label="Couleur du fil">
+          <g className="wires-layer__palette" role="group" aria-label="Couleur du fil" transform={`translate(${x} ${y}) scale(${1 / safeZoom})`}>
             {WIRE_INSULATION_OPTIONS.map(({ name, hex }, index) => (
               <circle
                 key={name}
                 role="button"
                 tabIndex={0}
                 onKeyDown={applyColorFromKeyboard(hex)}
-                cx={x + index * 17}
-                cy={y}
+                cx={index * 17}
+                cy={0}
                 r={7}
                 fill={hex}
                 stroke={insulationColor === hex ? '#fff' : '#0f172a'}
@@ -138,8 +140,8 @@ function WireVisual({
               role="button"
               tabIndex={0}
               onKeyDown={applyColorFromKeyboard(null)}
-              cx={x + WIRE_INSULATION_OPTIONS.length * 17}
-              cy={y}
+              cx={WIRE_INSULATION_OPTIONS.length * 17}
+              cy={0}
               r={7}
               fill="transparent"
               stroke="#0f172a"
@@ -320,6 +322,7 @@ export function WiresLayer({ wirePaths = [] }) {
             toPin={wire?.toPin}
             pinSignals={pinSignals}
             insulationColor={wire?.color}
+            zoom={viewport?.zoom}
             onColorChange={typeof updateWireColor === "function" ? (color) => updateWireColor(p.id, color) : undefined}
             selected={selected}
             onSelect={handleSelect(p.id)}
