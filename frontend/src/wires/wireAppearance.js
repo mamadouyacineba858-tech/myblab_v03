@@ -14,6 +14,10 @@ export const WIRE_INSULATION_COLORS = Object.freeze({
   purple: '#9333ea',
 })
 
+export const WIRE_INSULATION_OPTIONS = Object.freeze(
+  Object.entries(WIRE_INSULATION_COLORS).map(([name, hex]) => Object.freeze({ name, hex }))
+)
+
 const VALID_COLORS = new Set(Object.values(WIRE_INSULATION_COLORS))
 
 export function resolveWireInsulationColor(color) {
