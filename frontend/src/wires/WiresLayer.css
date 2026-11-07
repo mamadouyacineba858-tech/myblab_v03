@@ -58,10 +58,6 @@
   opacity: 0.75;
 }
 
-.wires-layer__wire--floating {
-  opacity: 0.85;
-}
-
 .wires-layer__wire--hover {
   /* Clear selection affordance without changing the electrical signal color. */
   filter:
