@@ -81,6 +81,14 @@ describe('WIRE-011 — color picker interactions', () => {
     const selected = renderWithContext({ isSelected: () => true, updateWireColor })
     expect(selected.container.querySelectorAll('.wires-layer__palette circle')).toHaveLength(9)
   })
+  it('renders a clearly visible reset control with a non-interactive slash', () => {
+    const { container } = renderWithContext({ isSelected: () => true, updateWireColor: vi.fn() })
+    const palette = container.querySelector('.wires-layer__palette')
+    const reset = palette.querySelector('circle[aria-label="Couleur automatique"]')
+    expect(reset.getAttribute('fill')).toBe('#f8fafc')
+    expect(reset.getAttribute('r')).toBe('8')
+    expect(palette.querySelector('line').getAttribute('pointer-events')).toBe('none')
+  })
   it('dispatches chosen insulation through the circuit command API', () => {
     const updateWireColor = vi.fn()
     const { container } = renderWithContext({ isSelected: () => true, updateWireColor })
