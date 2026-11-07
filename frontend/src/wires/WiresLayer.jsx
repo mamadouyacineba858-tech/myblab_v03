@@ -9,7 +9,7 @@
 import React, { useCallback, useMemo, useState } from "react"
 import "./WiresLayer.css"
 import { roundedWirePath } from "./roundedWirePath.js"
-import { resolveWireDisplayColor } from "./wireAppearance.js"
+import { resolveWireDisplayColor, WIRE_INSULATION_OPTIONS } from "./wireAppearance.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { getWireStrokeColor, getWireStateClassName } from "./wirePath.js"
@@ -50,6 +50,7 @@ function WireVisual({
   onWaypointPointerDown,
   onWaypointDoubleClick,
   onHitzoneDoubleClick,
+  onColorChange,
 }) {
   const [hover, setHover] = useState(false)
   const cableD = roundedWirePath(d)
@@ -103,6 +104,42 @@ function WireVisual({
         aria-label={id}
       />
 
+      {selected && typeof onColorChange === 'function' && (() => {
+        const match = /^M\\s+(-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)/.exec(d)
+        if (!match) return null
+        const x = Number(match[1])
+        const y = Number(match[2]) - 24
+        return (
+          <g className="wires-layer__palette" aria-label="Couleur du fil">
+            {WIRE_INSULATION_OPTIONS.map(({ name, hex }, index) => (
+              <circle
+                key={name}
+                cx={x + index * 17}
+                cy={y}
+                r={7}
+                fill={hex}
+                stroke={insulationColor === hex ? '#fff' : '#0f172a'}
+                strokeWidth={insulationColor === hex ? 3 : 1}
+                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                onClick={(event) => { event.stopPropagation(); onColorChange(hex) }}
+                aria-label={`Fil ${name}`}
+              />
+            ))}
+            <circle
+              cx={x + WIRE_INSULATION_OPTIONS.length * 17}
+              cy={y}
+              r={7}
+              fill="transparent"
+              stroke="#0f172a"
+              strokeWidth={2}
+              style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              onClick={(event) => { event.stopPropagation(); onColorChange(null) }}
+              aria-label="Couleur automatique"
+            />
+          </g>
+        )
+      })()}
+
       {/*
         MB-VIS-005 (Phase E) : poignées de waypoint existant — déplacement
         (pointerdown, délégué à startWaypointDrag) et suppression
@@ -142,6 +179,7 @@ export function WiresLayer({ wirePaths = [] }) {
     pinSignals,
     canvasRef,
     updateWireWaypoints,
+    updateWireColor,
     startWaypointDrag,
     focusedComponentId,
   } = useCircuit()
@@ -270,6 +308,7 @@ export function WiresLayer({ wirePaths = [] }) {
             toPin={wire?.toPin}
             pinSignals={pinSignals}
             insulationColor={wire?.color}
+            onColorChange={typeof updateWireColor === "function" ? (color) => updateWireColor(p.id, color) : undefined}
             selected={selected}
             onSelect={handleSelect(p.id)}
             waypoints={wire?.waypoints}
