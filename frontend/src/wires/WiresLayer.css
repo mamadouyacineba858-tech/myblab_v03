@@ -108,3 +108,11 @@
   filter: drop-shadow(0 1px 0 rgba(15, 23, 42, 0.45));
   pointer-events: none;
 }
+
+/* Tinkercad-like editing: selection is a halo, never a replacement cable color. */
+.wires-layer__wire--selected {
+  filter:
+    drop-shadow(0 0 2.5px #ffffff)
+    drop-shadow(0 0 4px #0284c7)
+    drop-shadow(0 1.25px 0 rgba(15, 23, 42, 0.65));
+}
