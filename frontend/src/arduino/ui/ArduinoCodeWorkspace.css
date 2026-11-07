@@ -35,3 +35,16 @@
 .arduino-code-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .arduino-code-toolbar button { border: 1px solid #64748b; border-radius: 6px; background: #26374e; color: #f8fafc; }
 .arduino-code-examples { padding: 9px; border: 1px solid #475569; border-radius: 8px; background: #111c2b; }
+
+/* Third collapsible workspace zone: preserve editor draft while minimized. */
+.arduino-code-heading__buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+.arduino-code-heading__buttons button { border: 1px solid #64748b; border-radius: 6px; background: #26374e; color: #f8fafc; }
+.arduino-code-workspace--minimized {
+  top: auto;
+  bottom: 40px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: 72px;
+  overflow: hidden;
+  padding: 10px 12px;
+}
+.arduino-code-workspace--minimized .arduino-code-heading h2 { font-size: 15px; }
