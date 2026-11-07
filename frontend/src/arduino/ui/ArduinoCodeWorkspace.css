@@ -31,3 +31,7 @@
 @media (max-width: 740px) {
   .arduino-code-workspace { top: 100px; left: 8px; right: 8px; width: auto; bottom: 12px; padding: 12px; }
 }
+
+.arduino-code-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.arduino-code-toolbar button { border: 1px solid #64748b; border-radius: 6px; background: #26374e; color: #f8fafc; }
+.arduino-code-examples { padding: 9px; border: 1px solid #475569; border-radius: 8px; background: #111c2b; }
