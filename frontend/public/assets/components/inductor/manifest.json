@@ -56,5 +56,9 @@
       "width": 432,
       "height": 324
     }
-  ]
+  ],
+  "budget": {
+    "maxWeightKbPerVariant": 124,
+    "reason": "Frozen founder-approved raster; 3x PNG measured above 30 KiB. Explicit per-asset exception preserves original pixels and SHA-256; normal 30 KiB limit remains unchanged for other simple assets."
+  }
 }
