@@ -1,6 +1,6 @@
 import React from "react"
-import { describe, it, expect, vi } from "vitest"
-import { fireEvent, render, screen } from "@testing-library/react"
+import { describe, it, expect, vi, afterEach } from "vitest"
+import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 
 const mockState = vi.hoisted(() => ({
   selectedComponent: { uid: "arduino-1", type: "ARDUINO", firmware: { source: "void setup() {}" } },
@@ -14,6 +14,8 @@ vi.mock("../firmware/firmwareCompiler.js", () => ({
   compileFirmware: vi.fn(() => ({ ok: true, diagnostics: [] })),
 }))
 import { ArduinoCodeWorkspace } from "./ArduinoCodeWorkspace.jsx"
+
+afterEach(() => cleanup())
 
 describe("MYBLAB-ARDUINO-003: three-zone editor ergonomics", () => {
   it("keeps a draft when code panel is minimized and reopened", () => {
