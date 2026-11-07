@@ -70,6 +70,18 @@ function makeCanvasRef() {
   return { current: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }) } }
 }
 
+describe('WIRE-002 — cable realism and interaction alignment', () => {
+  it('renders a rounded cable and a matching clickable path without changing endpoints', () => {
+    const { visiblePath, hitzone } = renderWithContext()
+    const rendered = visiblePath.getAttribute('d')
+    expect(rendered).toContain(' Q ')
+    expect(rendered.startsWith('M 0 0 ')).toBe(true)
+    expect(rendered.endsWith('L 100 50')).toBe(true)
+    expect(hitzone.getAttribute('d')).toBe(rendered)
+    expect(visiblePath.getAttribute('stroke-linecap')).toBe('round')
+  })
+})
+
 describe('MB-VIS-004 — WiresLayer, non-régression', () => {
   it('rend un fil sans état particulier avec la couleur neutre historique', () => {
     const { visiblePath } = renderWithContext()
