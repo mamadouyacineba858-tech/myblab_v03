@@ -32,7 +32,7 @@ jobs:
       - name: Production build
         run: npm run build
       - name: Arduino and workspace regression tests
-        run: npx vitest run src/arduino/ui/ArduinoWorkspaceErgonomics.test.jsx src/arduino/ui/__tests__/ArduinoCodeWorkspace.test.jsx src/components/SidebarLibrary.regression.test.jsx src/components/parts/__tests__/ArduinoPinVisibility.test.jsx src/config/__tests__/ArduinoGroundContacts.regression.test.js
+        run: npx vitest run src/arduino/ui/ArduinoWorkspaceErgonomics.test.jsx src/arduino/ui/__tests__/ArduinoCodeWorkspace.test.jsx src/components/SidebarLibrary.regression.test.jsx src/components/parts/__tests__/ArduinoPinVisibility.test.jsx src/components/parts/__tests__/ArduinoGeometryContract.test.js src/components/parts/__tests__/ArduinoPart.raster.test.jsx src/utils/__tests__/physicalContactConvergence.test.js src/simulator/__tests__/resolutionPassivePropagation.test.js src/config/__tests__/ArduinoGroundContacts.regression.test.js
       - name: Full frontend regression suite
         timeout-minutes: 35
         run: npm run test:ci -- --maxWorkers=2 --minWorkers=1 --reporter=default
