@@ -20,6 +20,21 @@ export function roundedWirePath(pathData, radius = 9) {
       out.push(`L ${fmt(b.x)} ${fmt(b.y)}`)
       continue
     }
+    // Avoid artificial bulges on straight sections; a real cable bends only
+    // where its direction changes. A near-180-degree reversal remains a
+    // sharp fold rather than a degenerate quadratic curve.
+    const ux = (b.x - a.x) / ab, uy = (b.y - a.y) / ab
+    const vx = (c.x - b.x) / bc, vy = (c.y - b.y) / bc
+    const cross = ux * vy - uy * vx
+    const dot = ux * vx + uy * vy
+    if (Math.abs(cross) < 0.00001 && dot > 0.99999) {
+      out.push(`L ${fmt(b.x)} ${fmt(b.y)}`)
+      continue
+    }
+    if (Math.abs(cross) < 0.00001 && dot < -0.99999) {
+      out.push(`L ${fmt(b.x)} ${fmt(b.y)}`)
+      continue
+    }
     const r = Math.min(radius, ab / 3, bc / 3)
     const start = { x: b.x + (a.x - b.x) * r / ab, y: b.y + (a.y - b.y) * r / ab }
     const end = { x: b.x + (c.x - b.x) * r / bc, y: b.y + (c.y - b.y) * r / bc }
