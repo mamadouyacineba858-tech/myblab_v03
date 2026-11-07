@@ -79,3 +79,31 @@
 .myblab-sidebar__search { flex-shrink: 0; }
 .myblab-sidebar__section--scroll { margin-bottom: 8px; }
 .myblab-sidebar__section--scroll .myblab-sidebar__count { margin-bottom: 5px; }
+
+/* MYBLAB-ARDUINO-002: keep the whole library scrollable, never overlay wiring. */
+.myblab-sidebar { gap: 0; }
+.myblab-sidebar__header { flex: 0 0 auto; margin-bottom: 12px; }
+.myblab-sidebar__section:not(.myblab-sidebar__section--scroll) { flex: 0 0 auto; margin-bottom: 12px; }
+.myblab-sidebar__section--scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block;
+  margin-bottom: 12px;
+  overscroll-behavior: contain;
+}
+.myblab-sidebar__section--scroll .myblab-palette {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  min-height: 0;
+  padding-right: 2px;
+}
+.myblab-sidebar__categories { max-height: none; overflow: visible; gap: 4px; }
+.myblab-sidebar__categories button { padding: 4px 6px; font-size: .7rem; }
+.myblab-sidebar__footer { flex: 0 0 auto; padding-top: 8px; }
+.myblab-sidebar__search { box-sizing: border-box; }
+@media (max-width: 740px) {
+  .myblab-sidebar__section--scroll .myblab-palette { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
