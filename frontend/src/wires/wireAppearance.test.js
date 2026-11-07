@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeWire } from '../utils/circuitModel.js'
 import { ReactDocumentMapper } from '../bridge/ReactDocumentMapper.js'
-import { resolveWireDisplayColor, resolveWireInsulationColor, WIRE_INSULATION_COLORS } from './wireAppearance.js'
+import { resolveWireDisplayColor, resolveWireInsulationColor, WIRE_INSULATION_COLORS, WIRE_INSULATION_OPTIONS } from './wireAppearance.js'
 
 describe('WIRE-006 physical insulation color contract', () => {
+  it('exposes eight stable and unique palette options for UI controls', () => {
+    expect(WIRE_INSULATION_OPTIONS).toHaveLength(8)
+    expect(new Set(WIRE_INSULATION_OPTIONS.map(option => option.hex)).size).toBe(8)
+    expect(WIRE_INSULATION_OPTIONS.every(option => resolveWireInsulationColor(option.name) === option.hex)).toBe(true)
+  })
   it('accepts named colors and canonical palette hex values', () => {
     expect(resolveWireInsulationColor(' red ')).toBe(WIRE_INSULATION_COLORS.red)
     expect(resolveWireInsulationColor('#DC2626')).toBe(WIRE_INSULATION_COLORS.red)
