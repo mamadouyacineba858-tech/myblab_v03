@@ -11,7 +11,12 @@ def entries(document):
     if isinstance(document, list):
         return document
     if isinstance(document, dict):
-        return document.get("files", [])
+        files = document.get("files", [])
+        if isinstance(files, list):
+            return files
+        if isinstance(files, dict):
+            return [dict(value, file=name) for name, value in files.items() if isinstance(value, dict)]
+        return []
     return []
 
 def main():
@@ -21,6 +26,9 @@ def main():
         try:
             records = entries(json.loads(integrity_path.read_text(encoding="utf-8")))
             for record in records:
+                if not isinstance(record, dict):
+                    failures.append(f"{integrity_path}: unsupported record {record!r}")
+                    continue
                 name = record.get("file")
                 if not isinstance(name, str) or Path(name).name != name:
                     failures.append(f"{integrity_path}: invalid file name {name!r}")
@@ -39,7 +47,7 @@ def main():
                         f"{asset.relative_to(ROOT)}: bytes {len(data)} (expected {expected_bytes}); "
                         f"sha256 {actual_hash} (expected {expected_hash})"
                     )
-        except (OSError, ValueError, TypeError) as exc:
+        except (OSError, ValueError, TypeError, AttributeError) as exc:
             failures.append(f"{integrity_path}: {exc}")
     print(f"Raster integrity: {checked} files checked, {len(failures)} discrepancies")
     for failure in failures:
