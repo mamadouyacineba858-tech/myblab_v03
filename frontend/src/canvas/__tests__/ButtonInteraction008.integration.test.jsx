@@ -117,14 +117,14 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
       clientY: 110,
     })
     mouseDown(body, 110, 110)
-    // Le viewport produit est à 200 % : 80/40 px écran = 40/20 unités Document.
-    expect(getApi().zoom).toBe(2)
+    // Le viewport de test démarre à 100 % : 80/40 px écran = 80/40 unités Document.
+    expect(getApi().zoom).toBe(1)
     pointerMove(190, 150, 51)
     pointerUp(190, 150, 51)
 
     const moved = getApi().components.find((c) => c.uid === button.uid)
-    expect(moved.x, `B2 drag: zoom=${getApi().zoom}, selected=${JSON.stringify([...getApi().selection ?? []])}`).toBe(140)
-    expect(moved.y).toBe(120)
+    expect(moved.x, `B2 drag: zoom=${getApi().zoom}, selected=${JSON.stringify([...getApi().selection ?? []])}`).toBe(180)
+    expect(moved.y).toBe(140)
 
     // Le release momentary appartient au handler React du corps du bouton.
     // Ce test cible exclusivement la non-r?tention du pointeur et le
@@ -158,8 +158,8 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     })
 
     const afterPinGesture = getApi().components.find((c) => c.uid === button.uid)
-    expect(afterPinGesture.x).toBe(140)
-    expect(afterPinGesture.y).toBe(120)
+    expect(afterPinGesture.x).toBe(180)
+    expect(afterPinGesture.y).toBe(140)
   })
 
   it("L1 ? un drag du BUTTON_LATCHING ne toggle pas son ?tat", () => {
@@ -179,8 +179,8 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
       clientY: 110,
     })
     mouseDown(body, 110, 110)
-    // Même conversion écran → Document à zoom 2 ; conserver les assertions x=140/y=120.
-    expect(getApi().zoom).toBe(2)
+    // Même conversion écran → Document à zoom 1 ; déplacement attendu x=180/y=140.
+    expect(getApi().zoom).toBe(1)
     pointerMove(190, 150, 61)
     pointerUp(190, 150, 61)
 
@@ -190,8 +190,8 @@ describe("MB-VIS-BUTTON-INTERACTION-008", () => {
     })
 
     const moved = getApi().components.find((c) => c.uid === latch.uid)
-    expect(moved.x).toBe(140)
-    expect(moved.y).toBe(120)
+    expect(moved.x).toBe(180)
+    expect(moved.y).toBe(140)
     expect(moved.state).toBe("off")
 
     // Un vrai drag reste un drag m?me si le pointeur revient ? son
