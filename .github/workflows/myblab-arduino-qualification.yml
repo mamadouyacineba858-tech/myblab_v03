@@ -32,4 +32,4 @@ jobs:
       - name: Production build
         run: npm run build
       - name: Arduino and workspace regression tests
-        run: npx vitest run src/arduino/ui/ArduinoWorkspaceErgonomics.test.jsx src/components/parts/__tests__/ArduinoPinVisibility.test.jsx src/config/__tests__/ArduinoGroundContacts.regression.test.js
+        run: npx vitest run src/arduino/ui/ArduinoWorkspaceErgonomics.test.jsx src/components/SidebarLibrary.regression.test.jsx src/components/parts/__tests__/ArduinoPinVisibility.test.jsx src/config/__tests__/ArduinoGroundContacts.regression.test.js
