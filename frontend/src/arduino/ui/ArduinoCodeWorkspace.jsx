@@ -57,6 +57,7 @@ function Editor({ component, apply, onClose, runtimeDiagnostics }) {
   const [draft, setDraft] = useState(source)
   const [compilation, setCompilation] = useState(null)
   const [showExamples, setShowExamples] = useState(false)
+  const [minimized, setMinimized] = useState(false)
   useEffect(() => {
     const onKeyDown = event => { if (event.key === "Escape") onClose() }
     window.addEventListener("keydown", onKeyDown)
@@ -82,8 +83,9 @@ function Editor({ component, apply, onClose, runtimeDiagnostics }) {
     const result = compileDraft()
     if (result.ok && draft !== source) apply(component.uid, draft)
   }
-  return <aside className="arduino-code-workspace" aria-label="Arduino Code">
-    <div className="arduino-code-heading"><h2>Code Arduino</h2><button type="button" onClick={onClose} aria-label="Fermer Arduino Code">Fermer ×</button></div>
+  return <aside className={"arduino-code-workspace" + (minimized ? " arduino-code-workspace--minimized" : "")} aria-label="Arduino Code">
+    <div className="arduino-code-heading"><h2>Code Arduino</h2><div className="arduino-code-heading__buttons"><button type="button" aria-expanded={!minimized} onClick={() => setMinimized(value => !value)}>{minimized ? "Agrandir" : "Réduire"}</button><button type="button" onClick={onClose} aria-label="Fermer Arduino Code">Fermer ×</button></div></div>
+    {!minimized && <>
     <small>Arduino {component.uid}</small>
     <p className="arduino-code-help">Programme Arduino D0 à D13 : pinMode(OUTPUT, INPUT, INPUT_PULLUP), digitalWrite(), digitalRead(), delay() et LED_BUILTIN. Pour le bouton : connecter D2 au bouton, puis le bouton à GND ; LED externe sur D13 avec résistance vers GND.</p>
     <div className="arduino-code-toolbar"><label htmlFor="arduino-sketch">Programme Arduino</label><button type="button" aria-expanded={showExamples} onClick={() => setShowExamples(value => !value)}>{showExamples ? "Masquer les exemples" : "Choisir un exemple"}</button></div>
@@ -102,5 +104,6 @@ function Editor({ component, apply, onClose, runtimeDiagnostics }) {
       {compilation?.ok && <p>Compilation réussie</p>}
       {diagnostics.map((d, i) => <p key={i}>Ligne {d.line ?? "?"} / {d.code} / {d.message}</p>)}
     </div>
+    </>}
   </aside>
 }
