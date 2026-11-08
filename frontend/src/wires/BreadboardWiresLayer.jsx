@@ -75,5 +75,5 @@ export function BreadboardWiresLayer() {
   // visual and interaction surface: insulation palette, rounded bends,
   // selection, waypoint insertion, drag and removal. Geometry above remains
   // anchored to the canonical breadboard hole and physical contact.
-  return <WiresLayer wirePaths={paths} className="wires-layer--breadboard" />
+  return <WiresLayer wirePaths={paths} className="wires-layer--breadboard" showPreview={false} />
 }
