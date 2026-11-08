@@ -391,3 +391,29 @@ describe('WIRE-FINAL — persistence of edited physical breadboard cables', () =
     expect(fresh.result.current.wires[0].waypoints).toEqual(bends)
   })
 })
+
+describe('WIRE-FINAL — displayed cable count agrees with persisted circuit', () => {
+  it('shows no real cable or component on an empty document, then one real cable after connection', () => {
+    const { container, getApi } = renderCanvas()
+    expect(getApi().components).toHaveLength(0)
+    expect(getApi().wires).toHaveLength(0)
+    expect(container.querySelectorAll('.circuit-component')).toHaveLength(0)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+    })
+    const [a, b] = getApi().breadboards
+    expect(container.querySelectorAll('svg.breadboard-wire-endpoints')).toHaveLength(2)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    act(() => getApi().addWire(
+      `__breadboard_hole__:${encodeURIComponent(a.id)}:5:3`, '__BREADBOARD_HOLE__',
+      `__breadboard_hole__:${encodeURIComponent(b.id)}:5:3`, '__BREADBOARD_HOLE__'
+    ))
+    expect(getApi().wires).toHaveLength(1)
+    expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(1)
+    act(() => getApi().undo())
+    expect(getApi().wires).toHaveLength(0)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+  })
+})
