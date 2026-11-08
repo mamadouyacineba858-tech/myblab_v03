@@ -126,3 +126,19 @@ describe('FT-B-001-S3 — TEST S3-L : document/fil legacy sans champ de contact'
     expect(componentEndpointOf(container)).toEqual({ x: 0, y: 36 })
   })
 })
+
+describe('WIRE-FINAL — breadboard cables use the same editor as ordinary cables', () => {
+  it('renders the persisted insulation color on a breadboard connection', () => {
+    const { container } = renderLayer({
+      id: 'w1',
+      fromUid: 'btn1', fromPin: 'pin1',
+      toUid: targetHole.uid, toPin: targetHole.pinId,
+      color: '#2563eb',
+    })
+    const cable = container.querySelector('.wires-layer--breadboard path[aria-label="w1"]')
+    expect(cable).not.toBeNull()
+    expect(cable.getAttribute('stroke')).toBe('#2563eb')
+    expect(cable.getAttribute('stroke-width')).toBe('5')
+    expect(container.querySelector('.wires-layer__hitzone')).not.toBeNull()
+  })
+})
