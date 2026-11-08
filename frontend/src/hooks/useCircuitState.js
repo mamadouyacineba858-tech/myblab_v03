@@ -2844,6 +2844,8 @@ if (import.meta.env.DEV) {
   }, [components, documentApi])
   const setThemeMode = useCallback((mode) => { if (mode !== "dark" && mode !== "light") return; setTheme(mode) }, [])
 
+  const documentCounts = useMemo(() => ({ components: safeComponents.length, wires: safeWires.length, breadboards: breadboards.length }), [safeComponents.length, safeWires.length, breadboards.length])
+
   return useMemo(() => ({
   wireGesture,
   startWireGesture,
@@ -2853,7 +2855,7 @@ if (import.meta.env.DEV) {
   // sinon le rendu ne refléterait pas l'aperçu de drag en cours.
   components: componentsForRender,
   // Counts are derived from the persisted document, not drag previews.
-  documentCounts: { components: safeComponents.length, wires: safeWires.length, breadboards: breadboards.length },
+  documentCounts,
   wires: safeWires,
   // MB-BREADBOARD-002 (Blueprint §8) : exposé pour Breadboard.jsx (Presentation,
   // lecture seule) — null tant qu'aucun ADD_BREADBOARD n'a été dispatché.
@@ -3007,6 +3009,7 @@ if (import.meta.env.DEV) {
   startWireGesture,
   canvasRef,
   componentsForRender,
+  documentCounts,
   safeWires,
   breadboardForRender,
   breadboards,
