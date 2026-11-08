@@ -41,7 +41,7 @@ function contrast(foreground, background) {
   if (a === null || b === null) return null;
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
-function auditBrowser(canonical) {
+function auditBrowser(canonical, selectedComponent) {
   const checks = STRUCTURE.map(([id, label, selector]) => {
     const node = document.querySelector(selector);
     return result(id, label, visible(node) ? "PASS" : "FAIL",
@@ -106,6 +106,26 @@ function auditBrowser(canonical) {
       "Affichés=" + dom[key] + " ; enregistrés=" + (expected ?? "indisponible"),
       "circuit-integrity"));
   }
+  // A selected inspector component must belong to the same canonical document.
+  // This catches the reported case "Résistance selected, Composants : 0".
+  const selectedUid = selectedComponent?.uid ?? null;
+  const componentUids = canonical?.componentUids ?? [];
+  const selectedIsPersisted = !selectedUid || componentUids.includes(selectedUid);
+  checks.push(result("circuit-selected-component", "Inspecteur / Document : sélection valide",
+    selectedIsPersisted ? "PASS" : "FAIL",
+    selectedUid
+      ? "Sélection uid=" + selectedUid + (selectedIsPersisted ? " présente dans le Document" : " ABSENTE du Document")
+      : "Aucun composant sélectionné",
+    "circuit-integrity"));
+  const statusText = document.querySelector(".myblab-statusbar")?.textContent ?? "";
+  for (const [key, label] of [["components", "Composants"], ["breadboards", "Plaques"], ["wires", "Fils"]]) {
+    const match = statusText.match(new RegExp(label + "\\s*:\\s*(\\d+)", "i"));
+    const shown = match ? Number(match[1]) : null;
+    checks.push(result("circuit-status-" + key, label + " : barre / Document",
+      shown === null ? "BLOCKED" : shown === canonical[key] ? "PASS" : "FAIL",
+      "Barre=" + (shown ?? "absent") + " ; Document=" + canonical[key],
+      "circuit-integrity"));
+  }
   // A background image can depict electronic parts without producing any
   // canonical components or wires. Report such evidence separately; do not
   // silently count pixels as document objects.
@@ -141,10 +161,11 @@ function auditBrowser(canonical) {
   };
 }
 export function DevelopmentAuditPanel({ onClose }) {
-  const { wires } = useCircuit();
+  const { wires, selectedComponent } = useCircuit();
   const { components, breadboards } = useCircuitInteraction();
   const canonical = {
     components: Array.isArray(components) ? components.length : 0,
+    componentUids: Array.isArray(components) ? components.map(c => c.uid) : [],
     breadboards: Array.isArray(breadboards) ? breadboards.length : 0,
     wires: Array.isArray(wires) ? wires.length : 0,
   };
@@ -162,7 +183,7 @@ export function DevelopmentAuditPanel({ onClose }) {
   const lastOpenedRun = useRef(null);
   const reportTab = useRef(null);
   const auditStartedHere = useRef(false);
-  const run = useCallback(() => setReport(auditBrowser(canonical)), [canonical.components, canonical.breadboards, canonical.wires]);
+  const run = useCallback(() => setReport(auditBrowser(canonical, selectedComponent)), [canonical.components, canonical.breadboards, canonical.wires]);
   const refresh = useCallback(async () => {
     try {
       const response = await fetch("/__myblab_dev_audit/status", { cache: "no-store" });
