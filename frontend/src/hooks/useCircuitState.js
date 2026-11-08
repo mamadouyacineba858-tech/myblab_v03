@@ -2852,6 +2852,8 @@ if (import.meta.env.DEV) {
   // de drag superposé à safeComponents) — jamais safeComponents seul,
   // sinon le rendu ne refléterait pas l'aperçu de drag en cours.
   components: componentsForRender,
+  // Counts are derived from the persisted document, not drag previews.
+  documentCounts: { components: safeComponents.length, wires: safeWires.length, breadboards: breadboards.length },
   wires: safeWires,
   // MB-BREADBOARD-002 (Blueprint §8) : exposé pour Breadboard.jsx (Presentation,
   // lecture seule) — null tant qu'aucun ADD_BREADBOARD n'a été dispatché.
