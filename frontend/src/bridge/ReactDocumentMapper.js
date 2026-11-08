@@ -261,14 +261,14 @@ export class ReactDocumentMapper {
     if (typeof structuredClone === 'function') {
       try {
         return structuredClone(value);
-      } catch (_) {
+      } catch {
         // Fallback
       }
     }
 
     try {
       return JSON.parse(JSON.stringify(value));
-    } catch (_) {
+    } catch {
       if (Array.isArray(value)) {
         return [...value];
       }
