@@ -13,6 +13,17 @@ export default defineConfig([
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
     ],
+    // React 19 automatic JSX runtime does not reference the React import directly.
+    // Keep all other unused-variable diagnostics active.
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^React
+      globals: globals.browser,
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
+])
+ }],
+    },
     languageOptions: {
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
