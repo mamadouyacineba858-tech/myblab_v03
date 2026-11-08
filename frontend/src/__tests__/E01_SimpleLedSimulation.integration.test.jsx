@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest"
 import { prepareCircuit } from "../simulator/preparation.js"
 import { resolveSignals } from "../simulator/resolution.js"
 import { getLedState } from "../simulator/production.js"
-import { Signal } from "../simulator/signals.js"
 
 function powerComponent() {
   return { uid: "power1", type: "POWER", x: 0, y: 0 }
@@ -31,7 +30,6 @@ describe("E01 — Simple LED Simulation with Ammeter", () => {
       { fromUid: "l1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
     ]
 
-    const prepared = prepareCircuit(components, wires)
     const { pinSignals } = resolveSignals(components, prepared)
 
     const ledState = getLedState("l1", pinSignals, {
