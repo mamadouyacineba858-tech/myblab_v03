@@ -410,7 +410,6 @@ export function compileFirmware(source) {
   // when the entire top-level declaration was recognized.
   let helperTopLevel = topLevel
   for (const [name, helper] of helpers) {
-    const header = new RegExp("void\\s+" + name + "\\s*\\(\\s*\\)\\s*\\{")
     const original = clean.slice(helper.headerIndex, helper.bodyStartOffset + helper.body.length + 1)
     helperTopLevel = helperTopLevel.replace(original, "")
   }
