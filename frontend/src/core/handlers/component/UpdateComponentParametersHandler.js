@@ -82,7 +82,7 @@ export class UpdateComponentParametersHandler extends BaseCommandHandler {
     };
   }
 
-  _applyRedo(command, document, lastResult) {
+  _applyRedo(command, document) {
     const { componentId, afterParameters } = command.payload;
     if (!this._componentExists(document, componentId)) {
       return { success: true, document, componentId };
