@@ -183,7 +183,7 @@ export function DevelopmentAuditPanel({ onClose }) {
   const lastOpenedRun = useRef(null);
   const reportTab = useRef(null);
   const auditStartedHere = useRef(false);
-  const run = useCallback(() => setReport(auditBrowser(canonical, selectedComponent)), [canonical.components, canonical.breadboards, canonical.wires]);
+  const run = useCallback(() => setReport(auditBrowser(canonical, selectedComponent)), [canonical.components, canonical.componentUids, canonical.breadboards, canonical.wires, selectedComponent]);
   const refresh = useCallback(async () => {
     try {
       const response = await fetch("/__myblab_dev_audit/status", { cache: "no-store" });
@@ -209,7 +209,7 @@ export function DevelopmentAuditPanel({ onClose }) {
       reportTab.current.document.body.textContent = "MYBlab : audit en cours. Le JSON final apparaîtra ici automatiquement après tous les contrôles.";
     }
     auditStartedHere.current = true;
-    setReport(auditBrowser(canonical));
+    setReport(auditBrowser(canonical, selectedComponent));
     window.dispatchEvent(new Event("myblab:run-visual-audit"));
     try {
       const response = await fetch("/__myblab_dev_audit/run", { method: "POST" });
@@ -220,7 +220,7 @@ export function DevelopmentAuditPanel({ onClose }) {
       if (reportTab.current && !reportTab.current.closed) reportTab.current.document.body.textContent = "Audit non démarré : " + String(error.message || error);
       setRunnerError(String(error.message || error));
     }
-  }, [refresh]);
+  }, [refresh, canonical.components, canonical.componentUids, canonical.breadboards, canonical.wires, selectedComponent]);
   const download = useCallback(() => {
     if (runner?.phase !== "DONE") return;
     if (!report && !runner) return;
