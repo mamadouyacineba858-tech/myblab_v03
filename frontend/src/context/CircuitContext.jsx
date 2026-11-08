@@ -46,6 +46,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
   const stableValue = useMemo(() => ({
     canvasRef: state.canvasRef,
     wires: state.wires,
+    documentCounts: state.documentCounts,
     connectedPins: state.connectedPins,
     pinSignals: state.pinSignals,
     // A10-DISP2 : projection lecture seule des états runtime timed, rafraîchie
@@ -154,7 +155,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     canRedo: state.canRedo,
     getUndoCount: state.getUndoCount,
   }), [
-    state.canvasRef, state.wires, state.connectedPins, state.pinSignals, state.runtimeStates,
+    state.canvasRef, state.wires, state.documentCounts, state.connectedPins, state.pinSignals, state.runtimeStates,
     state.pendingPin, state.isWiringActive, state.selection, state.activeItem,
     state.selectedComponent, state.rotateComponent, state.updateComponentProperties, state.updateComponentParameters, state.updateArduinoFirmware,
     state.firmwareDiagnostics, state.simulationActive, state.showGrid, state.theme,
