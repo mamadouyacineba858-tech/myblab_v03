@@ -140,5 +140,8 @@ describe('WIRE-FINAL — breadboard cables use the same editor as ordinary cable
     expect(cable.getAttribute('stroke')).toBe('#2563eb')
     expect(cable.getAttribute('stroke-width')).toBe('5')
     expect(container.querySelector('.wires-layer__hitzone')).not.toBeNull()
+    // Only the primary WiresLayer owns the live cable preview; the
+    // breadboard layer must never duplicate it during wiring.
+    expect(container.querySelector('.wires-layer--breadboard .wires-layer__preview')).toBeNull()
   })
 })
