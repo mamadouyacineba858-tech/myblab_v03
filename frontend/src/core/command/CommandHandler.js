@@ -13,7 +13,7 @@ export class CommandHandler {
    * @returns {object} Résultat contenant le nouveau document et métadonnées
    * @throws {CommandExecutionError} Si l'exécution échoue
    */
-  execute(command, document) {
+  execute() {
     throw new Error('CommandHandler.execute() must be implemented by subclass');
   }
 }
