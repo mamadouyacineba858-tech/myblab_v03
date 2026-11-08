@@ -1,6 +1,5 @@
 import { Command } from './Command.js';
 import {
-  CommandNotFoundError,
   HandlerNotFoundError,
   CommandExecutionError,
 } from './errors/index.js';
