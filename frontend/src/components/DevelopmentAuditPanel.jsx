@@ -161,13 +161,13 @@ function auditBrowser(canonical, selectedComponent) {
   };
 }
 export function DevelopmentAuditPanel({ onClose }) {
-  const { wires, selectedComponent } = useCircuit();
+  const { wires, selectedComponent, documentCounts } = useCircuit();
   const { components, breadboards } = useCircuitInteraction();
   const canonical = {
-    components: Array.isArray(components) ? components.length : 0,
+    components: documentCounts?.components ?? (Array.isArray(components) ? components.length : 0),
     componentUids: Array.isArray(components) ? components.map(c => c.uid) : [],
-    breadboards: Array.isArray(breadboards) ? breadboards.length : 0,
-    wires: Array.isArray(wires) ? wires.length : 0,
+    breadboards: documentCounts?.breadboards ?? (Array.isArray(breadboards) ? breadboards.length : 0),
+    wires: documentCounts?.wires ?? (Array.isArray(wires) ? wires.length : 0),
   };
   const [report, setReport] = useState(null);
   const [visualEvidence, setVisualEvidence] = useState(null);
