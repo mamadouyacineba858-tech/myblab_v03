@@ -351,9 +351,12 @@ describe('WIRE-FINAL — browser-level breadboard hole drag affordance', () => {
     expect(hole).not.toBeNull()
     expect(hole.getAttribute('data-wire-uid')).toContain(board.id)
     expect(hole.getAttribute('data-wire-pin')).toBe('__BREADBOARD_HOLE__')
-    const bubbled = []
-    container.addEventListener('pointerdown', () => bubbled.push(true))
+    // React's delegated synthetic stopPropagation runs at the root, after
+    // native listeners on descendants; native bubbling is not a valid oracle.
+    // Exercise the pointer gesture and verify it leaves the persisted circuit
+    // unchanged until a destination is selected.
+    const before = getApi().wires.length
     fireEvent.pointerDown(hole, { button: 0, pointerId: 1, clientX: 20, clientY: 20 })
-    expect(bubbled).toHaveLength(0)
+    expect(getApi().wires).toHaveLength(before)
   })
 })
