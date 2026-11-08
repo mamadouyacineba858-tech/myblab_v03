@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "components": [
+    {
+      "uid": "24a65d73-0536-41c9-8bfd-9be141f562e2",
+      "type": "POWER",
+      "x": 80,
+      "y": 140,
+      "pins": [],
+      "parameters": {
+        "voltage": 5
+      },
+      "properties": {
+        "name": ""
+      }
+    },
+    {
+      "uid": "51d9679d-b73f-42ec-9834-3ece494e6c08",
+      "type": "RESISTOR",
+      "x": 320,
+      "y": 140,
+      "pins": [],
+      "parameters": {
+        "resistance": 1000
+      },
+      "properties": {
+        "name": ""
+      }
+    },
+    {
+      "uid": "0f6fbab3-a16c-465f-8662-09fb91ddcd23",
+      "type": "POLARIZED_CAPACITOR",
+      "x": 560,
+      "y": 140,
+      "pins": [],
+      "parameters": {
+        "capacitance": 0.0001
+      },
+      "properties": {
+        "name": ""
+      }
+    }
+  ],
+  "wires": [
+    {
+      "id": "f19801bd-dc8e-466c-895f-b68ebc3803d4",
+      "fromUid": "51d9679d-b73f-42ec-9834-3ece494e6c08",
+      "fromPin": "B",
+      "toUid": "0f6fbab3-a16c-465f-8662-09fb91ddcd23",
+      "toPin": "plus",
+      "toContact": "plus",
+      "waypoints": []
+    },
+    {
+      "id": "2b5edf48-c650-4953-a5ad-d9420e0e98db",
+      "fromUid": "0f6fbab3-a16c-465f-8662-09fb91ddcd23",
+      "fromPin": "minus",
+      "toUid": "24a65d73-0536-41c9-8bfd-9be141f562e2",
+      "toPin": "GND",
+      "fromContact": "minus",
+      "toContact": "GND",
+      "waypoints": []
+    }
+  ],
+  "breadboards": [],
+  "instruments": {
+    "generator": {
+      "id": "gen1",
+      "enabled": true,
+      "waveform": "square",
+      "frequencyHz": 2,
+      "amplitude": 1,
+      "offset": 1,
+      "duty": 0.5,
+      "plus": {
+        "uid": "51d9679d-b73f-42ec-9834-3ece494e6c08",
+        "pin": "A"
+      },
+      "minus": {
+        "uid": "24a65d73-0536-41c9-8bfd-9be141f562e2",
+        "pin": "GND"
+      }
+    },
+    "scope": {
+      "windowMs": 1000,
+      "ch1": {
+        "plus": {
+          "uid": "51d9679d-b73f-42ec-9834-3ece494e6c08",
+          "pin": "B"
+        },
+        "minus": {
+          "uid": "24a65d73-0536-41c9-8bfd-9be141f562e2",
+          "pin": "GND"
+        }
+      },
+      "ch2": {
+        "plus": null,
+        "minus": null
+      }
+    },
+    "voltmeter": {
+      "plus": null,
+      "minus": null
+    },
+    "ammeter": {
+      "a": null,
+      "b": null
+    }
+  }
+}

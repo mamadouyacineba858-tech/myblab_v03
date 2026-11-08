@@ -8,6 +8,8 @@
 // tsconfig.app.json "jsx": "react-jsx") — build non affecté (voir rapport).
 import React, { useCallback, useMemo, useState } from "react"
 import "./WiresLayer.css"
+import { roundedWirePath } from "./roundedWirePath.js"
+import { resolveWireDisplayColor, WIRE_INSULATION_OPTIONS } from "./wireAppearance.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { getWireStrokeColor, getWireStateClassName } from "./wirePath.js"
@@ -41,22 +43,37 @@ function WireVisual({
   toUid,
   toPin,
   pinSignals,
+  insulationColor,
   selected,
   onSelect,
   waypoints,
   onWaypointPointerDown,
   onWaypointDoubleClick,
   onHitzoneDoubleClick,
+  onColorChange,
+  zoom = 1,
 }) {
   const [hover, setHover] = useState(false)
+  const cableD = roundedWirePath(d)
 
   const { signal } = getWireLogicalState({ fromUid, fromPin, toUid, toPin }, pinSignals)
-  const stroke = getWireStrokeColor({ selected, signal })
+  const stroke = resolveWireDisplayColor({
+    color: insulationColor,
+    selected,
+    fallback: getWireStrokeColor({ selected, signal }),
+  })
   const stateClassName = getWireStateClassName({ signal })
   const isFloating = signal === Signal.FLOATING
+  const applyColorFromKeyboard = (color) => (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    event.stopPropagation()
+    onColorChange?.(color)
+  }
 
   const visibleClassName = [
     "wires-layer__wire",
+    selected && "wires-layer__wire--selected",
     stateClassName,
     hover && "wires-layer__wire--hover",
   ]
@@ -65,9 +82,9 @@ function WireVisual({
 
   return (
     <g>
-      {/* Hitzone invisible pour faciliter le clic et détecter le survol */}
+      {/* Hitzone alignée sur la gaine arrondie réellement affichée. */}
       <path
-        d={d}
+        d={cableD}
         fill="none"
         stroke="transparent"
         strokeWidth={32}
@@ -75,18 +92,24 @@ function WireVisual({
         strokeLinejoin="round"
         className="wires-layer__hitzone"
         style={{ pointerEvents: 'stroke' }}
+        onPointerDown={(event) => {
+          // A cable is an interactive object, not empty canvas. Without this
+          // guard the canvas starts a marquee on pointerdown before the cable
+          // click selects it, leaving two competing gestures.
+          event.stopPropagation()
+        }}
         onClick={onSelect}
-        onDoubleClick={selected ? onHitzoneDoubleClick : undefined}
+        onDoubleClick={onHitzoneDoubleClick}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
       />
 
-      {/* Rendu visuel du fil */}
+      {/* Gaine arrondie; hitzone et waypoints restent sur la géométrie canonique. */}
       <path
-        d={d}
+        d={cableD}
         fill="none"
         stroke={stroke}
-        strokeWidth={3}
+        strokeWidth={5}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeDasharray={isFloating ? "6 4" : undefined}
@@ -94,6 +117,61 @@ function WireVisual({
         style={{ pointerEvents: 'none' }}
         aria-label={id}
       />
+
+      {selected && typeof onColorChange === 'function' && (() => {
+        const match = /^M\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/.exec(d)
+        if (!match) return null
+        const x = Number(match[1])
+        const y = Number(match[2]) - 24
+        const safeZoom = Number.isFinite(zoom) && zoom > 0 ? zoom : 1
+        return (
+          <g className="wires-layer__palette" role="group" aria-label="Couleur du fil" transform={`translate(${x} ${y}) scale(${1 / safeZoom})`}>
+            {WIRE_INSULATION_OPTIONS.map(({ name, hex }, index) => (
+              <circle
+                key={name}
+                role="button"
+                tabIndex={0}
+                onKeyDown={applyColorFromKeyboard(hex)}
+                cx={index * 17}
+                cy={0}
+                r={8}
+                fill={hex}
+                stroke={insulationColor === hex ? '#fff' : '#0f172a'}
+                strokeWidth={insulationColor === hex ? 3 : 1}
+                style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={(event) => { event.stopPropagation(); onColorChange(hex) }}
+                aria-label={`Fil ${name}`}
+              />
+            ))}
+            <circle
+              role="button"
+              tabIndex={0}
+              onKeyDown={applyColorFromKeyboard(null)}
+              cx={WIRE_INSULATION_OPTIONS.length * 17}
+              cy={0}
+              r={8}
+              fill="#f8fafc"
+              stroke="#0f172a"
+              strokeWidth={2}
+              style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => { event.stopPropagation(); onColorChange(null) }}
+              aria-label="Couleur automatique"
+            />
+            <line
+              x1={WIRE_INSULATION_OPTIONS.length * 17 - 4}
+              y1={4}
+              x2={WIRE_INSULATION_OPTIONS.length * 17 + 4}
+              y2={-4}
+              stroke="#dc2626"
+              strokeWidth={2}
+              pointerEvents="none"
+              aria-hidden="true"
+            />
+          </g>
+        )
+      })()}
 
       {/*
         MB-VIS-005 (Phase E) : poignées de waypoint existant — déplacement
@@ -117,7 +195,7 @@ function WireVisual({
   )
 }
 
-export function WiresLayer({ wirePaths = [] }) {
+export function WiresLayer({ wirePaths = [], className = '', showPreview = true }) {
   const paths = Array.isArray(wirePaths) ? wirePaths : []
 
   // pinSignals et wires sont déjà exposés par useCircuit() (useCircuitState.js) —
@@ -134,6 +212,7 @@ export function WiresLayer({ wirePaths = [] }) {
     pinSignals,
     canvasRef,
     updateWireWaypoints,
+    updateWireColor,
     startWaypointDrag,
     focusedComponentId,
   } = useCircuit()
@@ -142,7 +221,7 @@ export function WiresLayer({ wirePaths = [] }) {
   // du même Context que CircuitComponent.jsx (qui n'en a, lui, jamais besoin).
   const { viewport, wireGesture, components, localScale } = useCircuitInteraction()
   let preview = null
-  if (wireGesture && canvasRef?.current) {
+  if (showPreview && wireGesture && canvasRef?.current) {
     const component = components?.find((c) => c.uid === wireGesture.uid)
     const pin = component && getComponentDef(component.type)?.pins?.find((p) => p.id === wireGesture.pinId)
     // [FT-B-001-S4] Aperçu ancré au CONTACT PHYSIQUE via résolution générique :
@@ -158,6 +237,8 @@ export function WiresLayer({ wirePaths = [] }) {
     })
     const to = clientToCanvas(wireGesture, canvasRef.current.getBoundingClientRect(),
       viewport.zoom, viewport.translateX, viewport.translateY)
+    // Preserve the canonical two-point preview geometry used by pointer
+    // interactions and coordinate checks; styling supplies cable thickness.
     if (from) preview = `M ${from.x} ${from.y} L ${to.x} ${to.y}`
   }
 
@@ -216,9 +297,8 @@ export function WiresLayer({ wirePaths = [] }) {
     [updateWireWaypoints, wiresById]
   )
 
-  // MB-VIS-005 (Phase E) : création — double-clic sur le tracé (hitzone),
-  // uniquement lorsque le wire est déjà sélectionné (WireVisual ne câble
-  // ce gestionnaire que dans ce cas). Index d'insertion dérivé du tracé
+  // WIRE-FINAL: un double-clic insère directement un point de passage,
+  // sans exiger une sélection préalable du fil. Index d'insertion dérivé du tracé
   // effectivement rendu (extractPointsFromPathData, réutilisé — pas de
   // résolution indépendante de position de pin ici), via
   // nearestSegmentInsertIndex (waypointInsertion.js). Composition locale
@@ -243,7 +323,7 @@ export function WiresLayer({ wirePaths = [] }) {
   )
 
   return (
-    <svg className="wires-layer" aria-hidden="true">
+    <svg className={`wires-layer ${className}`.trim()} role="group" aria-label="Câbles du circuit">
       {preview && <path className="wires-layer__preview" d={preview} />}
       {paths.map((p) => {
         if (!p?.id || !p?.d) return null
@@ -259,6 +339,9 @@ export function WiresLayer({ wirePaths = [] }) {
             toUid={wire?.toUid}
             toPin={wire?.toPin}
             pinSignals={pinSignals}
+            insulationColor={wire?.color}
+            zoom={viewport?.zoom}
+            onColorChange={typeof updateWireColor === "function" ? (color) => updateWireColor(p.id, color) : undefined}
             selected={selected}
             onSelect={handleSelect(p.id)}
             waypoints={wire?.waypoints}

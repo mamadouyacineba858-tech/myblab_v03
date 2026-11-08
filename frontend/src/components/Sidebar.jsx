@@ -4,7 +4,7 @@
 // / Pin.jsx / les Part renderers. Sidebar.test.jsx est le premier test à
 // rendre ce composant directement. Ajout d'import pur, aucun changement de
 // comportement.
-import React, { useCallback } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import { PALETTE_ITEMS } from "../config/componentDefinitions.js"
 import { useCircuit } from "../context/useCircuit.js"
 import { ComponentPreview } from "./ComponentPreview.jsx"
@@ -20,6 +20,22 @@ export function Sidebar() {
     // natif depuis la Sidebar — voir useCircuitState.js pour le détail.
     startSidebarComponentDrag, endSidebarComponentDrag,
   } = useCircuit()
+
+
+  const [search, setSearch] = useState("")
+  const [category, setCategory] = useState("Tous")
+  const categories = ["Tous", "Cartes", "Alimentation", "Entrées", "Sorties", "Composants"]
+  const categoryFor = (id) => {
+    if (/ARDUINO|ESP32|RASPBERRY|MICROBIT|ATMEGA/.test(id)) return "Cartes"
+    if (/LED|DISPLAY|LCD|SEGMENT|BUZZER|SPEAKER|MOTOR|SERVO/.test(id)) return "Sorties"
+    if (/BUTTON|SWITCH|LDR|THERMISTOR|POTENTIOMETER|SENSOR|JOYSTICK/.test(id)) return "Entrées"
+    if (/BATTERY|POWER|CELL|SOLAR/.test(id)) return "Alimentation"
+    return "Composants"
+  }
+  const visibleItems = useMemo(() => PALETTE_ITEMS.filter(item =>
+    (category === "Tous" || categoryFor(item.id) === category) &&
+    (item.label + " " + item.id).toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())
+  ), [category, search])
 
   const handlePaletteClick = useCallback((type) => {
     if (type) addComponent(type, 200, 180)
@@ -63,8 +79,14 @@ export function Sidebar() {
 
       <section className="myblab-sidebar__section myblab-sidebar__section--scroll">
         <h2 className="myblab-sidebar__title">Composants</h2>
+        <label className="myblab-sidebar__search-label" htmlFor="myblab-component-search">Rechercher</label>
+        <input id="myblab-component-search" className="myblab-sidebar__search" type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="LED, Arduino, résistance…" />
+        <div className="myblab-sidebar__categories" role="group" aria-label="Catégories de composants">
+          {categories.map(name => <button type="button" key={name} aria-pressed={category === name} onClick={() => setCategory(name)}>{name}</button>)}
+        </div>
+        <p className="myblab-sidebar__count">{visibleItems.length} composant(s)</p>
         <ul className="myblab-palette">
-          {PALETTE_ITEMS.map((item) => (
+          {visibleItems.map((item) => (
             <li key={item.id}>
               <button
                 type="button"
@@ -83,6 +105,7 @@ export function Sidebar() {
             </li>
           ))}
         </ul>
+        {visibleItems.length === 0 && <p role="status">Aucun composant trouvé.</p>}
       </section>
 
       <section className="myblab-sidebar__section">

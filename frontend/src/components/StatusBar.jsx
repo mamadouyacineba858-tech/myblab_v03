@@ -1,33 +1,43 @@
+import React from 'react'
 import { useCircuit } from "../context/useCircuit.js";
-import { useCircuitInteraction } from "../context/useCircuitInteraction.js";
 import "./StatusBar.css";
 
 export function StatusBar() {
-  const { isWiringActive, simulationActive } = useCircuit();
-  // MB-VIS-CANVAS-051 : `components`/`wirePaths` (comptage seul) relèvent du
-  // state haute fréquence côté useCircuitState.js (componentsForRender/
-  // wirePaths suivent le preview de drag) — inchangé fonctionnellement ici,
-  // seule la source de lecture est désormais explicite.
-  const { components, wirePaths } = useCircuitInteraction();
+  const { isWiringActive, simulationActive, documentCounts } = useCircuit();
+  // Always count persisted document objects, never transient drag previews.
+  const componentCount = documentCounts?.components ?? 0;
+  const wireCount = documentCounts?.wires ?? 0;
+  const boardCount = documentCounts?.breadboards ?? 0;
+  const circuitEmpty = componentCount === 0 && wireCount === 0 && boardCount === 0;
 
 
   return (
     <footer className="myblab-statusbar">
       <span className="myblab-statusbar__item">
-        🧩 Composants : {components.length}
+        🧩 Composants : {componentCount}
       </span>
 
       <span className="myblab-statusbar__item">
-        🔌 Fils : {wirePaths.length}
+        🔌 Fils : {wireCount}
       </span>
 
       <span className="myblab-statusbar__item">
-        {isWiringActive ? "✏️ Câblage en cours..." : "✅ Prêt"}
+        Plaques : {boardCount}
+      </span>
+
+      <span className="myblab-statusbar__item">
+        {isWiringActive ? "✏️ Câblage en cours..." : "✅ Prêt (éditeur)"}
       </span>
 
       <span className="myblab-statusbar__item">
         {simulationActive ? "▶ Simulation active" : "⏹ Simulation arrêtée"}
       </span>
+
+      {circuitEmpty && (
+        <span className="myblab-statusbar__item" role="status">
+          Circuit vide — aucun élément enregistré
+        </span>
+      )}
     </footer>
   );
 }

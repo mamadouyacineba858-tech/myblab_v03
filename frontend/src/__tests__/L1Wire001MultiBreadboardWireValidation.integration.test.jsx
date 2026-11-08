@@ -14,11 +14,12 @@
  */
 import React from 'react'
 import { describe, it, expect } from 'vitest'
-import { render, renderHook, act } from '@testing-library/react'
+import { render, renderHook, act, fireEvent } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
 import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 import { SimulationCanvas } from '../canvas/SimulationCanvas.jsx'
+import { StatusBar } from '../components/StatusBar.jsx'
 import { ReactDocumentMapper } from '../bridge/ReactDocumentMapper.js'
 import { deriveBreadboardVirtualWires } from '../utils/breadboardConnectivity.js'
 import { BREADBOARD_PITCH } from '../utils/breadboardGeometry.js'
@@ -42,7 +43,7 @@ function renderCanvas() {
       <div ref={(n) => { canvasRef.current = n }}>{children}</div>
     </CircuitProvider>
   )
-  const utils = render(<><Probe /><SimulationCanvas /></>, { wrapper: wrapperCanvas })
+  const utils = render(<><Probe /><SimulationCanvas /><StatusBar /></>, { wrapper: wrapperCanvas })
   return { ...utils, getApi: () => api }
 }
 
@@ -339,5 +340,272 @@ describe('L1-WIRE-001 — Gate W9 : round-trip export/import/export du wire inte
     for (const c of fresh.result.current.components) {
       expect(Object.prototype.hasOwnProperty.call(c, 'breadboardId')).toBe(false)
     }
+  })
+})
+
+describe('WIRE-FINAL — browser-level breadboard hole drag affordance', () => {
+  it('exposes real wire endpoint identity and isolates pointerdown from canvas marquee', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => getApi().addBreadboard(0, 0))
+    const board = getApi().breadboards[0]
+    const hole = findHoleCircle(container, board, 5, 3)
+    expect(hole).not.toBeNull()
+    expect(hole.getAttribute('data-wire-uid')).toContain(board.id)
+    expect(hole.getAttribute('data-wire-pin')).toBe('__BREADBOARD_HOLE__')
+    // React's delegated synthetic stopPropagation runs at the root, after
+    // native listeners on descendants; native bubbling is not a valid oracle.
+    // Exercise the pointer gesture and verify it leaves the persisted circuit
+    // unchanged until a destination is selected.
+    const before = getApi().wires.length
+    fireEvent.pointerDown(hole, { button: 0, pointerId: 1, clientX: 20, clientY: 20 })
+    expect(getApi().wires).toHaveLength(before)
+  })
+})
+
+describe('WIRE-FINAL — persistence of edited physical breadboard cables', () => {
+  it('preserves selected insulation and waypoints through undo, redo and export/import', () => {
+    const { result } = renderApi()
+    act(() => {
+      result.current.addBreadboard(0, 0)
+      result.current.addBreadboard(480, 0)
+    })
+    const [a, b] = result.current.breadboards
+    const from = { uid: `__breadboard_hole__:${encodeURIComponent(a.id)}:5:3`, pinId: '__BREADBOARD_HOLE__' }
+    const to = { uid: `__breadboard_hole__:${encodeURIComponent(b.id)}:5:3`, pinId: '__BREADBOARD_HOLE__' }
+    act(() => result.current.addWire(from.uid, from.pinId, to.uid, to.pinId))
+    expect(result.current.wires).toHaveLength(1)
+    const id = result.current.wires[0].id
+    act(() => result.current.updateWireColor(id, '#dc2626'))
+    expect(result.current.wires[0].color).toBe('#dc2626')
+    const bends = [{ x: 160, y: 90 }, { x: 320, y: 90 }]
+    act(() => result.current.updateWireWaypoints(id, bends))
+    expect(result.current.wires[0].waypoints).toEqual(bends)
+    act(() => result.current.undo())
+    expect(result.current.wires[0].color).toBe('#dc2626')
+    act(() => result.current.redo())
+    expect(result.current.wires[0].waypoints).toEqual(bends)
+    const saved = result.current.exportCircuit()
+    const fresh = renderApi()
+    act(() => fresh.result.current.importCircuit(saved))
+    expect(fresh.result.current.exportCircuit()).toEqual(saved)
+    expect(fresh.result.current.wires[0].color).toBe('#dc2626')
+    expect(fresh.result.current.wires[0].waypoints).toEqual(bends)
+  })
+})
+
+describe('WIRE-FINAL — displayed cable count agrees with persisted circuit', () => {
+  it('shows no real cable or component on an empty document, then one real cable after connection', () => {
+    const { container, getApi } = renderCanvas()
+    expect(getApi().components).toHaveLength(0)
+    expect(getApi().wires).toHaveLength(0)
+    expect(container.querySelectorAll('.circuit-component')).toHaveLength(0)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+    })
+    const [a, b] = getApi().breadboards
+    expect(container.querySelectorAll('svg.breadboard-wire-endpoints')).toHaveLength(2)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    act(() => getApi().addWire(
+      `__breadboard_hole__:${encodeURIComponent(a.id)}:5:3`, '__BREADBOARD_HOLE__',
+      `__breadboard_hole__:${encodeURIComponent(b.id)}:5:3`, '__BREADBOARD_HOLE__'
+    ))
+    expect(getApi().wires).toHaveLength(1)
+    expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(1)
+    act(() => getApi().undo())
+    expect(getApi().wires).toHaveLength(0)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+  })
+})
+
+describe('WIRE-FINAL — canonical status counts follow the real canvas', () => {
+  it('updates the visible component, board and wire counts on create, undo and redo', () => {
+    const { container, getApi } = renderCanvas()
+    const footer = () => container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(footer()).toContain('Composants : 0')
+    expect(footer()).toContain('Fils : 0')
+    expect(footer()).toContain('Plaques : 0')
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+      getApi().addComponent('LED', 900, 100)
+    })
+    expect(footer()).toContain('Composants : 1')
+    expect(footer()).toContain('Plaques : 2')
+    const [a, b] = getApi().breadboards
+    act(() => getApi().addWire(
+      `__breadboard_hole__:${encodeURIComponent(a.id)}:5:3`, '__BREADBOARD_HOLE__',
+      `__breadboard_hole__:${encodeURIComponent(b.id)}:5:3`, '__BREADBOARD_HOLE__'
+    ))
+    expect(footer()).toContain('Fils : 1')
+    expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(1)
+    act(() => getApi().undo())
+    expect(footer()).toContain('Fils : 0')
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    act(() => getApi().redo())
+    expect(footer()).toContain('Fils : 1')
+    expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(1)
+  })
+})
+
+describe('WIRE-FINAL — physical pointer drag between breadboards', () => {
+  it('creates a persisted wire through the real pointerdown/move/up path, with undo and redo', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+    })
+    const [a, b] = getApi().breadboards
+    const source = findHoleCircle(container, a, 5, 3)
+    const destination = findHoleCircle(container, b, 5, 3)
+    expect(source).not.toBeNull()
+    expect(destination).not.toBeNull()
+    const originalHitTest = document.elementFromPoint
+    document.elementFromPoint = () => destination
+    try {
+      fireEvent.pointerDown(source, { button: 0, pointerId: 7, clientX: 50, clientY: 50 })
+      expect(getApi().wires).toHaveLength(0)
+      fireEvent.pointerMove(window, { pointerId: 7, clientX: 510, clientY: 50 })
+      fireEvent.pointerUp(window, { pointerId: 7, clientX: 510, clientY: 50 })
+      expect(getApi().wires).toHaveLength(1)
+      expect(getApi().wires[0].fromUid).toBe(source.dataset.wireUid)
+      expect(getApi().wires[0].toUid).toBe(destination.dataset.wireUid)
+      expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(1)
+      act(() => getApi().undo())
+      expect(getApi().wires).toHaveLength(0)
+      act(() => getApi().redo())
+      expect(getApi().wires).toHaveLength(1)
+    } finally {
+      if (originalHitTest === undefined) delete document.elementFromPoint
+      else document.elementFromPoint = originalHitTest
+    }
+  })
+})
+
+describe('WIRE-FINAL — aborted pointer gestures never create phantom wires', () => {
+  it('discards a drop outside the circuit and permits the next valid connection', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+    })
+    const [a, b] = getApi().breadboards
+    const source = findHoleCircle(container, a, 5, 3)
+    const destination = findHoleCircle(container, b, 5, 3)
+    expect(source).not.toBeNull()
+    expect(destination).not.toBeNull()
+    const originalHitTest = document.elementFromPoint
+    try {
+      document.elementFromPoint = () => document.body
+      fireEvent.pointerDown(source, { button: 0, pointerId: 11, clientX: 50, clientY: 50 })
+      fireEvent.pointerMove(window, { pointerId: 11, clientX: 800, clientY: 600 })
+      fireEvent.pointerUp(window, { pointerId: 11, clientX: 800, clientY: 600 })
+      expect(getApi().wires).toHaveLength(0)
+      expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(0)
+      document.elementFromPoint = () => destination
+      fireEvent.pointerDown(source, { button: 0, pointerId: 12, clientX: 50, clientY: 50 })
+      fireEvent.pointerMove(window, { pointerId: 12, clientX: 510, clientY: 50 })
+      fireEvent.pointerUp(window, { pointerId: 12, clientX: 510, clientY: 50 })
+      expect(getApi().wires).toHaveLength(1)
+    } finally {
+      if (originalHitTest === undefined) delete document.elementFromPoint
+      else document.elementFromPoint = originalHitTest
+    }
+  })
+
+  it('cancels a started wire on Escape without adding a cable', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => getApi().addBreadboard(0, 0))
+    const source = findHoleCircle(container, getApi().breadboards[0], 5, 3)
+    expect(source).not.toBeNull()
+    fireEvent.pointerDown(source, { button: 0, pointerId: 13, clientX: 50, clientY: 50 })
+    fireEvent.keyDown(window, { key: 'Escape' })
+    fireEvent.pointerUp(window, { pointerId: 13, clientX: 100, clientY: 100 })
+    expect(getApi().wires).toHaveLength(0)
+  })
+})
+
+describe('WIRE-FINAL — no decorative circuit may masquerade as persisted objects', () => {
+  it('renders an actually empty canvas when all canonical counters are zero', () => {
+    const { container, getApi } = renderCanvas()
+    expect(getApi().components).toHaveLength(0)
+    expect(getApi().breadboards).toHaveLength(0)
+    expect(getApi().wires).toHaveLength(0)
+    expect(container.querySelectorAll('svg.breadboard-wire-endpoints')).toHaveLength(0)
+    expect(container.querySelectorAll('.breadboard')).toHaveLength(0)
+    expect(container.querySelectorAll('.circuit-component')).toHaveLength(0)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    const status = container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(status).toContain('Composants : 0')
+    expect(status).toContain('Fils : 0')
+    expect(status).toContain('Plaques : 0')
+    expect(status).toContain('Circuit vide')
+    expect(status).toContain('Prêt (éditeur)')
+    expect(status).toContain('Simulation arrêtée')
+  })
+
+  it('does not claim an empty document after creating an actual breadboard', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => getApi().addBreadboard(0, 0))
+    const status = container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(status).toContain('Plaques : 1')
+    expect(status).not.toContain('Circuit vide')
+    expect(container.querySelectorAll('svg.breadboard-wire-endpoints')).toHaveLength(1)
+  })
+})
+
+describe('WIRE-FINAL — Nouveau clears the actual displayed document', () => {
+  it('removes the board, component and wire together with all three counters', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+      getApi().addComponent('LED', 900, 100)
+    })
+    const [a, b] = getApi().breadboards
+    act(() => getApi().addWire(
+      `__breadboard_hole__:${encodeURIComponent(a.id)}:5:3`, '__BREADBOARD_HOLE__',
+      `__breadboard_hole__:${encodeURIComponent(b.id)}:5:3`, '__BREADBOARD_HOLE__'
+    ))
+    expect(getApi().components).toHaveLength(1)
+    expect(getApi().breadboards).toHaveLength(2)
+    expect(getApi().wires).toHaveLength(1)
+    act(() => getApi().clearCircuit())
+    expect(getApi().components).toHaveLength(0)
+    expect(getApi().breadboards).toHaveLength(0)
+    expect(getApi().wires).toHaveLength(0)
+    expect(container.querySelectorAll('svg.breadboard-wire-endpoints')).toHaveLength(0)
+    expect(container.querySelectorAll('.circuit-component')).toHaveLength(0)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    const status = container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(status).toContain('Composants : 0')
+    expect(status).toContain('Plaques : 0')
+    expect(status).toContain('Fils : 0')
+    expect(status).toContain('Circuit vide')
+  })
+})
+
+describe('WIRE-FINAL — real assembled circuit counters', () => {
+  it('counts a visible board, LED, resistor, coin cell and persisted cable from one document', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addComponent('LED', 700, 80)
+      getApi().addComponent('RESISTOR', 850, 80)
+      getApi().addComponent('COIN_CELL_CR2032', 1000, 80)
+    })
+    expect(getApi().components.map(c => c.type)).toEqual(['LED', 'RESISTOR', 'COIN_CELL_CR2032'])
+    const led = getApi().components[0]
+    const resistor = getApi().components[1]
+    act(() => getApi().addWire(led.uid, 'anode', resistor.uid, 'A'))
+    expect(getApi().wires).toHaveLength(1)
+    const status = container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(status).toContain('Composants : 3')
+    expect(status).toContain('Fils : 1')
+    expect(status).toContain('Plaques : 1')
+    expect(status).not.toContain('Circuit vide')
+    expect(container.querySelectorAll('.circuit-component')).toHaveLength(3)
+    expect(container.querySelectorAll('svg.breadboard')).toHaveLength(1)
   })
 })

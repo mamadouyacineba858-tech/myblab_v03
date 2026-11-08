@@ -7,6 +7,8 @@ import { Sidebar } from "./components/Sidebar.jsx";
 import { SimulationCanvas } from "./canvas/SimulationCanvas.jsx";
 import { ComponentInspector } from "./components/ComponentInspector.jsx";
 import { StatusBar } from "./components/StatusBar.jsx";
+import { InstrumentsPanel } from "./instruments/InstrumentsPanel.jsx";
+import { LiveSimulationDriver } from "./instruments/LiveSimulationDriver.jsx";
 
 import "./App.css";
 
@@ -16,14 +18,26 @@ import "./App.css";
  */
 function AppShell() {
   const { theme } = useCircuit();
+  const [instrumentsOpen, setInstrumentsOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(true);
+  const [propertiesOpen, setPropertiesOpen] = useState(true);
 
   return (
     <div className={`myblab-root theme-${theme}`}>
-      <Navbar />
+      <Navbar instrumentsOpen={instrumentsOpen} onToggleInstruments={() => setInstrumentsOpen((open) => !open)} />
+      <LiveSimulationDriver />
       <div className="myblab-app">
-        <Sidebar />
+        <div className={"myblab-side-slot myblab-side-slot--left" + (libraryOpen ? "" : " myblab-side-slot--closed")}>
+          <button type="button" className="myblab-side-toggle" aria-expanded={libraryOpen} aria-label={libraryOpen ? "Replier la bibliothèque" : "Déplier la bibliothèque"} onClick={() => setLibraryOpen(open => !open)}>{libraryOpen ? "◀" : "▶"}</button>
+          {libraryOpen && <Sidebar />}
+        </div>
         <SimulationCanvas />
-        <ComponentInspector />
+        <div className={"myblab-side-slot myblab-side-slot--right" + (propertiesOpen ? "" : " myblab-side-slot--closed")}>
+          <button type="button" className="myblab-side-toggle" aria-expanded={propertiesOpen} aria-label={propertiesOpen ? "Replier le panneau droit" : "Déplier le panneau droit"} onClick={() => setPropertiesOpen(open => !open)}>{propertiesOpen ? "▶" : "◀"}</button>
+          {propertiesOpen && (instrumentsOpen
+            ? <InstrumentsPanel onClose={() => setInstrumentsOpen(false)} />
+            : <ComponentInspector />)}
+        </div>
       </div>
       <StatusBar />
     </div>

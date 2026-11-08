@@ -18,23 +18,23 @@ export class BaseCommandHandler extends CommandHandler {
     this._documentApi = options.documentApi || null;
   }
 
-  execute(command, document) {
+  execute() {
     throw new Error('execute() must be implemented by subclass');
   }
 
-  _applyMutation(command, document) {
+  _applyMutation() {
     throw new Error('_applyMutation() must be implemented by subclass');
   }
 
-  _applyRedo(command, document, lastResult) {
+  _applyRedo(command, document) {
     return this._applyMutation(command, document);
   }
 
-  _applyInverse(command, document, lastResult) {
+  _applyInverse() {
     throw new Error('_applyInverse() must be implemented by subclass');
   }
 
-  _executeWithHistory(command, document) {
+  _executeWithHistory(command) {
     if (!this._historyService) {
       throw new HandlerError('HistoryService not configured for this handler');
     }

@@ -1,3 +1,4 @@
+import { getComponentRotation } from "../utils/componentOrientation.js"
 // MB-COMPONENT-LIBRARY-002 (correction disclosed, hors périmètre strict des
 // Part renderers mais nécessaire) : import React explicite requis par la
 // config vitest secondaire (frontend/src/simulator/vitest.config.ts, sans
@@ -114,6 +115,18 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
     },
     [startDrag, uid, x, y, selectOnly, toggleSelection]
   )
+
+  // MB-VIS-BUTTON-INTERACTION-009 : Pointer Events est la source du drag
+  // sur le boîtier. Ne dépend plus de la génération optionnelle de mousedown
+  // de compatibilité (touch, stylus, preventDefault d'un enfant).
+  const handleBodyPointerDown = useCallback((e) => {
+    if (e.button !== 0 || !uid || def?.interaction?.type !== "momentary") return
+    if (e.target.closest?.(".myblab-pin, .part-button__actuator")) return
+    if (e.ctrlKey || e.metaKey) return
+    e.stopPropagation()
+    selectOnly({ type: "component", id: uid })
+    startDrag(e, uid, x, y)
+  }, [uid, def, x, y, selectOnly, startDrag])
 
   const handlePinClick = useCallback(
     (pinId, contactId) => {
@@ -357,6 +370,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
   // calcul du drag (clientToCanvas/Document, useCircuitState.js) : purement
   // un effet visuel appliqué au-dessus d'un `left/top` inchangé.
   const appliedScale = focused ? localScale : 1
+  const rotation = getComponentRotation(component)
 
   return (
     <div
@@ -368,16 +382,18 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
       // clair (aucun nouveau système).
       className={`circuit-component${selected ? " circuit-component--selected" : ""}`}
       data-backend={presentation.backend}
+      data-component-type={type}
       data-focused={focused ? "" : undefined}
       style={{
         left: x,
         top: y,
         width: def.width ?? 80,
         height: def.height ?? 40,
-        transform: appliedScale !== 1 ? `scale(${appliedScale})` : undefined,
+        transform: rotation ? `rotate(${rotation}deg) scale(${appliedScale})` : appliedScale !== 1 ? `scale(${appliedScale})` : undefined,
         transformOrigin: 'center center',
         zIndex: focused ? 20 : undefined,
       }}
+      onPointerDown={handleBodyPointerDown}
       onMouseDown={handleBodyMouseDown}
       onClick={(e) => e.stopPropagation()}
     >
@@ -448,7 +464,7 @@ function CircuitComponentImpl({ component, breadboard = null, focused = false, l
         const explicitContacts = Array.isArray(pin.contacts) && pin.contacts.length > 0
         const contacts = resolveWireConnectableContacts(pin)
         return contacts.map((contact) => {
-          const presentationPosition = getPinPresentationPosition(component, pin, { contact })
+          const presentationPosition = getPinPresentationPosition({ ...component, rotation: 0 }, pin, { contact })
           const left = presentationPosition ? presentationPosition.x - x : contact.dx ?? 0
           const top = presentationPosition ? presentationPosition.y - y : contact.dy ?? 0
           return (

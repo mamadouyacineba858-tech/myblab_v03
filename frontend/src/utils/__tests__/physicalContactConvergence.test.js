@@ -202,8 +202,8 @@ describe('FT-B-001-S5 — TEST S4-F/G/S5 : POWER / ARDUINO / NPN présentation v
   it('ARDUINO : hit target / endpoint sur les CONTACTS raster ; pin.dx/dy canonique intacte', () => {
     const comp = { uid: 'a', type: 'ARDUINO', x: 0, y: 0 }
     const def = getComponentDef('ARDUINO')
-    const expected = { D0: [165, 8.35], D1: [159.38, 8.35], D2: [153.75, 8.35], D3: [148.12, 8.35], D4: [142.38, 8.35], D5: [136.76, 8.35], D6: [131.13, 8.35], D7: [125.51, 8.35], D8: [114.61, 8.35], D9: [108.75, 8.35], D10: [102.77, 8.35], D11: [96.91, 8.35], D12: [91.17, 8.35], D13: [85.55, 8.35], GND: [112.15, 107.96], '5V': [106.41, 107.96] }
-    const canon = { D0: [110, 33], D1: [106, 33], D2: [0, 50], D3: [0, 75], D4: [94, 33], D5: [90, 33], D6: [86, 33], D7: [82, 33], D8: [79, 33], D9: [75, 33], D10: [71, 33], D11: [67, 33], D12: [63, 33], D13: [59, 33], GND: [0, 110], '5V': [120, 50] }
+    const expected = { D0: [165, 8.35], D1: [159.38, 8.35], D2: [153.75, 8.35], D3: [148.12, 8.35], D4: [142.38, 8.35], D5: [136.76, 8.35], D6: [131.13, 8.35], D7: [125.51, 8.35], D8: [114.61, 8.35], D9: [108.75, 8.35], D10: [102.77, 8.35], D11: [96.91, 8.35], D12: [91.17, 8.35], D13: [85.55, 8.35],     GND: [112.15, 107.96], '5V': [106.41, 107.96], A0: [140.41, 107.96], A1: [146.11, 107.96], A2: [151.81, 107.96], A3: [157.51, 107.96], A4: [163.21, 107.96], A5: [168.91, 107.96] }
+    const canon = { D0: [110, 33], D1: [106, 33], D2: [0, 50], D3: [0, 75], D4: [94, 33], D5: [90, 33], D6: [86, 33], D7: [82, 33], D8: [79, 33], D9: [75, 33], D10: [71, 33], D11: [67, 33], D12: [63, 33], D13: [59, 33], GND: [0, 110], '5V': [120, 50], A0: [140.41, 110], A1: [146.11, 110], A2: [151.81, 110], A3: [157.51, 110], A4: [163.21, 110], A5: [168.91, 110] }
     for (const pin of def.pins) {
       const pos = getPinPresentationPosition(comp, pin)
       expect([pos.x, pos.y]).toEqual(expected[pin.id])
@@ -325,10 +325,10 @@ describe('FT-B-001-S4 — TEST S4-K/N : matrice API PhysicalContact du catalogue
     }
   })
 
-  it('Autres types : exactement 1 contact physique par pin (hors GND de H_BRIDGE, COM de SEVEN_SEGMENT_DISPLAY)', () => {
+  it("Autres types : exactement 1 contact physique par pin (hors GND d'ARDUINO et H_BRIDGE, COM de SEVEN_SEGMENT_DISPLAY)", () => {
     // A8-H-BRIDGE : L293D DIP-16, les 4 broches physiques GND sont 4 contacts du pin electrique GND.
     // A10-DISP1 : SC56-11EWA, les broches physiques 3 et 8 sont 2 contacts du pin electrique COM.
-    const MULTI_CONTACT_PINS = { 'H_BRIDGE:GND': 4, 'SEVEN_SEGMENT_DISPLAY:COM': 2 }
+    const MULTI_CONTACT_PINS = { 'ARDUINO:GND': 3, 'H_BRIDGE:GND': 4, 'SEVEN_SEGMENT_DISPLAY:COM': 2 }
     for (const type of CATALOGUE.filter((t) => t !== 'BUTTON' && t !== 'BUTTON_LATCHING')) {
       for (const pin of getComponentDef(type).pins) {
         const expected = MULTI_CONTACT_PINS[`${type}:${pin.id}`] ?? 1

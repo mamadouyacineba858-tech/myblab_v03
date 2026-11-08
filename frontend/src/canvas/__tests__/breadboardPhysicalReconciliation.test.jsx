@@ -158,9 +158,10 @@ describe('MB-VIS-BREAD-041 — géométrie & topologie INCHANGÉES', () => {
 
   it('T20 — aucune nouvelle dépendance d\'architecture dans Breadboard.jsx', () => {
     const imports = [...BB_JSX.matchAll(/\bfrom\s+["']([^"']+)["']/g)].map((m) => m[1])
+    // Rotation replaces the direct catalogue read with shared presentation geometry.
     expect(new Set(imports)).toEqual(new Set([
       'react',
-      '../config/componentDefinitions.js',
+      '../utils/componentOrientation.js',
       '../utils/breadboardGeometry.js',
       '../context/useCircuit.js',
     ]))

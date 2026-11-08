@@ -34,7 +34,7 @@ describe('MB-BREADBOARD-WIRE-CRASH-013 — real split context', () => {
       const path = () => container.querySelector('.wires-layer--breadboard path[aria-label]')
       expect(path()).not.toBeNull()
       expect(path().getAttribute('stroke')).toBe('#f97316')
-      expect(path().getAttribute('stroke-width')).toBe('3')
+      expect(path().getAttribute('stroke-width')).toBe('5')
       const before = path().getAttribute('d')
       const count = stable.getUndoCount()
       fireEvent.mouseDown(container.querySelector('.circuit-component'), { button: 0, clientX: 910, clientY: 510 })

@@ -28,6 +28,8 @@ import { clientToCanvas } from "./geometry.js"
 export const ZOOM_MIN = 0.5
 export const ZOOM_MAX = 2
 
+// Product default: 100% viewport. Arduino and breadboard dimensions are
+// component-specific and must never be simulated by zooming the whole canvas.
 export const DEFAULT_VIEWPORT = Object.freeze({ zoom: 1, translateX: 0, translateY: 0 })
 
 export function createDefaultViewport() {

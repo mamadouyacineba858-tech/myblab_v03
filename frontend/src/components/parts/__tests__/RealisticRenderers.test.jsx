@@ -161,7 +161,7 @@ describe('MB-VIS-002 — premier lot de renderers réalistes (rendu, contrat gé
     expect(root.style.width).toBe(`${def.width}px`)
     expect(root.style.height).toBe(`${def.height}px`)
     expect(container.querySelector('svg')).toBeNull()
-    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('img')).not.toBeNull()
   })
 
   it('RESISTOR : aria-label correct, aucune prop dynamique requise', () => {
@@ -252,12 +252,12 @@ describe('MB-COMPONENT-LIBRARY-002 — second lot (rendu, contrat géométrique,
     expect(root.style.width).toBe(`${def.width}px`)
     expect(root.style.height).toBe(`${def.height}px`)
     expect(container.querySelector('svg')).toBeNull()
-    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('img')).not.toBeNull()
   })
 
   it.each(LOT2.filter((entry) => entry.label !== null))(
     '$type : aria-label correct',
-    ({ type, Component, label }) => {
+    ({ Component, label }) => {
       const { container } = render(<Component />)
       expect(container.querySelector(`[aria-label="${label}"]`)).not.toBeNull()
     }
@@ -358,7 +358,7 @@ describe('MB-VIS-COMP-033 — RGB_LED : backend raster + 8 états visuels dériv
 })
 
 describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRenderer (VIS-TEST-02/03, AC-04/AC-05/AC-06)', () => {
-  it('ARDUINO (4 pins) : les 4 pins existants restent rendus aux positions de PRÉSENTATION (MB-VIS-COMP-037 : projection sur le silhouette réel de la carte, cf. ARDUINO_VISUAL_PINS)', () => {
+  it('ARDUINO : les 24 contacts physiques des 22 broches restent rendus aux positions de présentation', () => {
     let circuitApi = null
     render(
       <CanvasHarness onReady={(api) => { circuitApi = api }} />,
@@ -372,7 +372,7 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
     const def = getComponentDef('ARDUINO')
     const component = { type: 'ARDUINO', x: 0, y: 0 }
     const pinButtons = document.querySelectorAll('.myblab-pin')
-    expect(pinButtons.length).toBe(def.pins.length)
+    expect(pinButtons.length).toBe(def.pins.reduce((count, pin) => count + pin.contacts.length, 0))
     def.pins.forEach((pin) => {
       const expected = getPinPresentationPosition(component, pin)
       const match = Array.from(pinButtons).find(
@@ -384,7 +384,7 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
 
   it("BUTTON : le clic réel (pointerdown/pointerup) sur le rendu raster (MB-VIS-PROTOTYPE-008) met bien à jour l'état pressé dans le Document (interaction non régressée, AC-06)", () => {
     let circuitApi = null
-    render(
+    const { container } = render(
       <CanvasHarness onReady={(api) => { circuitApi = api }} />,
       { wrapper: circuitWrapper }
     )
@@ -393,16 +393,17 @@ describe('MB-COMPONENT-LIBRARY-002 — pipeline réel CircuitComponent -> PartRe
       circuitApi.addComponent('BUTTON', 0, 0)
     })
 
-    const root = document.querySelector('.part-button')
-    expect(root).not.toBeNull()
+    const root = container.querySelector('.part-button')
+    const actuator = root?.querySelector('[data-button-actuator="true"]')
+    expect(actuator).not.toBeNull()
 
     act(() => {
-      fireEvent.pointerDown(root)
+      fireEvent.pointerDown(actuator)
     })
     expect(circuitApi.components[0].state).toBe('pressed')
 
     act(() => {
-      fireEvent.pointerUp(root)
+      fireEvent.pointerUp(actuator)
     })
     expect(circuitApi.components[0].state).toBe('released')
   })

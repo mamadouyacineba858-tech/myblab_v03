@@ -7,10 +7,11 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useCircuit } from "../context/useCircuit.js"
 import { SettingsPanel } from "./SettingsPanel.jsx";
+import { DevelopmentAuditPanel } from "./DevelopmentAuditPanel.jsx";
 import { LiveMeasurementPanel } from "../measurement/LiveMeasurementPanel.jsx";
 import "./Navbar.css";
 import { ArduinoCodeWorkspace } from "../arduino/ui/ArduinoCodeWorkspace.jsx";
-export function Navbar() {
+export function Navbar({ instrumentsOpen = false, onToggleInstruments } = {}) {
   const {
     selectedComponent,
     simulationActive,
@@ -25,11 +26,23 @@ export function Navbar() {
     exportCircuit,
     importCircuit,
     clearCircuit,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   } = useCircuit();
 
   const [codeOpen, setCodeOpen] = useState(false);
+  const [auditOpen, setAuditOpen] = useState(false);
   const isArduino = selectedComponent?.type === "ARDUINO";
-  useEffect(() => { if (!isArduino) setCodeOpen(false); }, [isArduino]);
+  useEffect(() => {
+    if (!isArduino) {
+      // Closing the Arduino editor when selection leaves the Arduino is a
+      // synchronization with the selected document component, not user input.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCodeOpen(false)
+    }
+  }, [isArduino]);
   const fileInputRef = useRef(null);
 const [settingsOpen, setSettingsOpen] = useState(false);
   // MB-MEASURE-002 : panneau léger, monté uniquement lorsqu'ouvert (§6 du
@@ -117,6 +130,8 @@ const [settingsOpen, setSettingsOpen] = useState(false);
         <button onClick={handleNew}>Nouveau</button>
         <button onClick={handleOpenClick}>Ouvrir</button>
         <button onClick={handleSave}>Sauvegarder</button>
+        <button type="button" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled={!canUndo()} onClick={undo}>↶</button>
+        <button type="button" aria-label="Rétablir" title="Rétablir (Ctrl+Y)" disabled={!canRedo()} onClick={redo}>↷</button>
 
         <input
           type="file"
@@ -167,15 +182,31 @@ const [settingsOpen, setSettingsOpen] = useState(false);
         >
           📊 Mesures
         </button>
+        <button
+          type="button"
+          className="instruments-toggle"
+          onClick={onToggleInstruments}
+          aria-expanded={instrumentsOpen}
+          title="Voltmètre, ampèremètre, multimètre, oscilloscope"
+        >
+          🔬 Instruments
+        </button>
+
+        {import.meta.env.DEV && (
+          <button type="button" onClick={() => setAuditOpen(true)} aria-expanded={auditOpen} title="Pré-audit UI de développement (provisoire)">🧪 Audit DEV</button>
+        )}
 
         <button
           className="settings"
           onClick={() => setSettingsOpen(true)}
-          title="Paramètres"
+          title="Ouvrir les paramètres"
+          aria-label="Ouvrir les paramètres"
+          aria-expanded={settingsOpen}
         >
-          ⚙
+          <span aria-hidden="true">⚙</span> Paramètres
         </button>
       </nav>
+      {import.meta.env.DEV && auditOpen && <DevelopmentAuditPanel onClose={() => setAuditOpen(false)} />}
       {codeOpen && isArduino && <ArduinoCodeWorkspace onClose={() => setCodeOpen(false)} />}
       {settingsOpen && (
   <SettingsPanel onClose={() => setSettingsOpen(false)} />

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { CommandRegistry, CommandHandler } from '../../index.js';
 
 class MockHandler extends CommandHandler {
-  execute(command) {
+  execute() {
     return { success: true };
   }
 }

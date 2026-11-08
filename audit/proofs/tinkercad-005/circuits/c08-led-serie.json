@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "components": [
+    {
+      "uid": "aae6016e-5bf6-4a2c-9aec-eddcc043a7b5",
+      "type": "POWER",
+      "x": 120,
+      "y": 140,
+      "pins": [],
+      "parameters": {
+        "voltage": 5
+      },
+      "properties": {
+        "name": ""
+      }
+    },
+    {
+      "uid": "6887431b-15eb-47e7-be2c-0861ae5a83b3",
+      "type": "RESISTOR",
+      "x": 360,
+      "y": 160,
+      "pins": [],
+      "parameters": {
+        "resistance": 220
+      },
+      "properties": {
+        "name": ""
+      }
+    },
+    {
+      "uid": "02551308-3e75-4c56-b2b1-2bd4bffaf931",
+      "type": "LED",
+      "x": 620,
+      "y": 140,
+      "pins": [],
+      "parameters": {},
+      "properties": {
+        "name": "",
+        "color": "red"
+      }
+    }
+  ],
+  "wires": [
+    {
+      "id": "4514ba8b-cf42-4c9f-99a4-d1bcbeb262b8",
+      "fromUid": "aae6016e-5bf6-4a2c-9aec-eddcc043a7b5",
+      "fromPin": "5V",
+      "toUid": "6887431b-15eb-47e7-be2c-0861ae5a83b3",
+      "toPin": "A",
+      "fromContact": "5V",
+      "waypoints": []
+    },
+    {
+      "id": "5c872873-0172-4607-8bcb-a625996d3c33",
+      "fromUid": "6887431b-15eb-47e7-be2c-0861ae5a83b3",
+      "fromPin": "B",
+      "toUid": "02551308-3e75-4c56-b2b1-2bd4bffaf931",
+      "toPin": "anode",
+      "waypoints": []
+    }
+  ],
+  "breadboards": [],
+  "instruments": {
+    "generator": {
+      "id": "gen1",
+      "enabled": false,
+      "waveform": "sine",
+      "frequencyHz": 100,
+      "amplitude": 2,
+      "offset": 0,
+      "duty": 0.5,
+      "plus": null,
+      "minus": null
+    },
+    "scope": {
+      "windowMs": 20,
+      "ch1": {
+        "plus": null,
+        "minus": null
+      },
+      "ch2": {
+        "plus": null,
+        "minus": null
+      }
+    },
+    "voltmeter": {
+      "plus": null,
+      "minus": null
+    },
+    "ammeter": {
+      "a": {
+        "uid": "02551308-3e75-4c56-b2b1-2bd4bffaf931",
+        "pin": "cathode"
+      },
+      "b": {
+        "uid": "aae6016e-5bf6-4a2c-9aec-eddcc043a7b5",
+        "pin": "GND"
+      }
+    }
+  }
+}

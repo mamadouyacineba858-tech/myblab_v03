@@ -36,12 +36,12 @@
     {
       "file": "capacitor.base.3x.png",
       "bytes": 10448,
-      "sha256": "a8c856f4d5723914dfc0871d8efb3abcfff0cb83799a6592f1d8675ae52fa955"
+      "sha256": "2016ad9abeabbe71fda535c72330e658237319707b74c78705829d88b1ff4c4e"
     },
     {
       "file": "capacitor.base.3x.webp",
       "bytes": 5962,
-      "sha256": "23db61b426014460a82ca8681b1db21abbafb2888c844bfce2a09e3389620419"
+      "sha256": "93541bf1e1e4c50a4648a88ee19446101922f4c425f2a4016a2be57d448b8519"
     }
   ]
 }

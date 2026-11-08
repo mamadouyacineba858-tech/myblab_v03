@@ -363,3 +363,102 @@ describe("MB-L1-ARD-003 — firmwareExecutor.resume() — TEST T1-T15 (API tempo
     expect(runtime.digitalWrite).toHaveBeenCalledTimes(3)
   })
 })
+
+describe("A17.3-B — deterministic integer execution", () => {
+  it("persists integer state across loop ticks and resets it", () => {
+    const ir = compileOk("void setup() { int count = 0; } void loop() { count++; count += 2; }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    executor.resume(0)
+    expect(executor._variables.get("count")).toBe(3)
+    executor.resume(1)
+    expect(executor._variables.get("count")).toBe(6)
+    executor.reset()
+    expect(executor._variables.size).toBe(0)
+    executor.resume(0)
+    expect(executor._variables.get("count")).toBe(3)
+  })
+  it("rejects undeclared variables rather than inventing state", () => {
+    const ir = compileOk("void setup() {} void loop() { missing++; }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    expect(() => executor.resume(0)).toThrow(FirmwareExecutionError)
+  })
+})
+
+describe("A17.4 — structured control flow integration", () => {
+  it("executes while, nested if/else and variable updates", () => {
+    const source = "void setup() { int count = 0; pinMode(13, OUTPUT); } void loop() { while (count < 3) { count++; } if (count == 3) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } }"
+    const ir = compileOk(source)
+    const runtime = fakeRuntime()
+    const executor = new FirmwareExecutor(ir, runtime)
+    executor.resume(0)
+    expect(executor._variables.get("count")).toBe(3)
+    expect(runtime.digitalWrite).toHaveBeenCalledWith("D13", Signal.HIGH)
+  })
+  it("rejects infinite while loops using the execution budget", () => {
+    const ir = compileOk("void setup() { int count = 0; } void loop() { while (count < 1) { count += 0; } }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    expect(() => executor.resume(0)).toThrow(/budget exceeded/)
+  })
+  it("supports delay within a while loop across scheduler ticks", () => {
+    const ir = compileOk("void setup() { int count = 0; } void loop() { while (count < 2) { count++; delay(100); } }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    executor.resume(0)
+    expect(executor._variables.get("count")).toBe(1)
+    executor.resume(50)
+    expect(executor._variables.get("count")).toBe(1)
+    executor.resume(100)
+    expect(executor._variables.get("count")).toBe(2)
+  })
+})
+
+describe("A17.5 — integrated for loops and integer expressions", () => {
+  it("executes a for loop and resets its counter on the next loop tick", () => {
+    const ir = compileOk("void setup() { int total = 0; } void loop() { for (int i = 0; i < 3; i++) { total += 2; } }")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    executor.resume(0)
+    expect(executor._variables.get("total")).toBe(6)
+    executor.resume(1)
+    expect(executor._variables.get("total")).toBe(12)
+  })
+  it("evaluates addition, multiplication, integer division and modulo", () => {
+    const ir = compileOk("void setup() { int a = 4; int b = 3; int c = a * b; c = c + 5; c = c / 2; c = c % 3; } void loop() {}")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    executor.resume(0)
+    expect(executor._variables.get("c")).toBe(2)
+  })
+  it("rejects division by zero without freezing the runtime", () => {
+    const ir = compileOk("void setup() { int a = 10; int b = 0; a = a / b; } void loop() {}")
+    const executor = new FirmwareExecutor(ir, fakeRuntime())
+    expect(() => executor.resume(0)).toThrow(/division by zero/)
+  })
+  it("executes a for loop with an if branch and physical digitalWrite", () => {
+    const ir = compileOk("void setup() { pinMode(13, OUTPUT); int count = 0; } void loop() { for (int i = 0; i < 4; i++) { count++; } if (count >= 4) { digitalWrite(13, HIGH); } }")
+    const port = fakeRuntime()
+    const executor = new FirmwareExecutor(ir, port)
+    executor.resume(0)
+    expect(port.digitalWrite).toHaveBeenCalledWith("D13", Signal.HIGH)
+  })
+})
+
+describe("A17.7 — digital input runtime port", () => {
+  it("reads HIGH and drives LED from a button", () => {
+    const ir = compileOk("void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } }")
+    const port = { digitalRead: vi.fn(() => Signal.HIGH), digitalWrite: vi.fn() }
+    const executor = new FirmwareExecutor(ir, port)
+    executor.resume(0)
+    expect(port.digitalWrite).toHaveBeenCalledWith("D13", Signal.HIGH)
+    port.digitalRead.mockReturnValue(Signal.LOW)
+    executor.resume(1)
+    expect(port.digitalWrite).toHaveBeenLastCalledWith("D13", Signal.LOW)
+  })
+  it("rejects unresolved FLOATING signals instead of inventing a voltage", () => {
+    const ir = compileOk("void setup() { pinMode(2, INPUT); int pressed = digitalRead(2); } void loop() {}")
+    const executor = new FirmwareExecutor(ir, { digitalRead: () => Signal.FLOATING, digitalWrite: vi.fn() })
+    expect(() => executor.resume(0)).toThrow(/unresolved signal/)
+  })
+  it("rejects input reads without pinMode", () => {
+    const ir = compileOk("void setup() { int pressed = digitalRead(2); } void loop() {}")
+    const executor = new FirmwareExecutor(ir, { digitalRead: () => Signal.HIGH, digitalWrite: vi.fn() })
+    expect(() => executor.resume(0)).toThrow(/requires INPUT/)
+  })
+})

@@ -1,5 +1,5 @@
 [
-  {"file":"manifest.json","bytes":5454,"sha256":"ac5ca071690cbe7a46d84cf3ab2aacd73c877f13f7eb820e05202fa538b0804b"},
+  {"file":"manifest.json","bytes":3596,"sha256":"3880a146c38d4b3b809298e48d8fef09ee2e663dccbd9b5d274a8e903cf3f70e"},
   {"file":"rgb-led.blue.1x.png","bytes":7329,"sha256":"cda154699ad85142878b5d05e1beb9b5f69cb4e887aa2ea9d03dc1a1becd7ff6"},
   {"file":"rgb-led.blue.1x.webp","bytes":3510,"sha256":"c7009ed3e1c890890d77a6e75837ffeead8a8d7105e591327e365e3e68cdfccf"},
   {"file":"rgb-led.blue.3x.png","bytes":42430,"sha256":"06992bdf741c213436c84bace99b5000429c01b8bd4a0f3c35e932ced62e1da2"},

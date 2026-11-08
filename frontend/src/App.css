@@ -233,3 +233,83 @@
 .theme-light .measurement-live-panel dd {
   color: #0f172a;
 }
+
+.myblab-app,
+.myblab-app > * {
+  min-width: 0;
+}
+
+.myblab-app > :is(.component-inspector, .instruments-panel) {
+  flex: 0 0 clamp(270px, 26vw, 360px);
+  width: clamp(270px, 26vw, 360px);
+}
+
+@media (max-width: 900px) {
+  .myblab-sidebar { width: 184px; }
+}
+
+@media (max-width: 740px) {
+  .myblab-root { height: 100dvh; }
+  .myblab-navbar { align-items: flex-start; flex-direction: column; gap: 6px; padding: 8px; }
+  .navbar-logo { font-size: 18px; }
+  .navbar-actions { justify-content: flex-start; gap: 4px; }
+  .navbar-actions button { min-height: 34px; padding: 6px 8px; font-size: 12px; }
+  .navbar-actions .separator { display: none; }
+  .myblab-app {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(260px, 1fr) 180px minmax(140px, auto);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .simulation-canvas { grid-row: 1; min-width: 0; min-height: 260px; }
+  .myblab-sidebar {
+    grid-row: 2;
+    width: 100%;
+    height: 180px;
+    padding: 10px;
+    border-right: 0;
+    border-top: 1px solid #1f2937;
+  }
+  .myblab-sidebar__header,
+  .myblab-sidebar__section:not(.myblab-sidebar__section--scroll),
+  .myblab-sidebar__footer { display: none; }
+  .myblab-sidebar__section:first-of-type { display: block; margin: 0 0 8px; }
+  .myblab-sidebar__section:first-of-type .myblab-btn { width: auto; min-height: 32px; }
+  .myblab-sidebar__section--scroll { margin: 0; }
+  .myblab-sidebar__title { margin-bottom: 6px; }
+  .myblab-palette { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .myblab-palette__item { min-width: 0; padding: 6px; }
+  .myblab-app > :is(.component-inspector, .instruments-panel) {
+    grid-row: 3;
+    width: 100%;
+  }
+  .component-inspector {
+    width: 100%;
+    height: auto;
+    min-height: 140px;
+    border-left: 0;
+    border-top: 1px solid #1f2937;
+  }
+  .myblab-statusbar { flex-wrap: wrap; gap: 6px 14px; padding: 6px 8px; }
+}
+/* Workspace: independent collapsible side slots keep canvas flexible. */
+.myblab-side-slot { position: relative; display: flex; flex: 0 0 auto; min-width: 0; min-height: 0; }
+.myblab-side-slot--left { width: 220px; }
+.myblab-side-slot--right { width: clamp(270px, 26vw, 360px); }
+.myblab-side-slot > :is(.myblab-sidebar, .component-inspector, .instruments-panel) { width: 100%; min-width: 0; flex: 1 1 auto; }
+.myblab-side-slot--closed { width: 34px !important; }
+.myblab-side-toggle { position: absolute; z-index: 8; top: 8px; right: 4px; width: 28px; height: 30px; border-radius: 6px; border: 1px solid #94a3b8; background: #e2e8f0; color: #0f172a; cursor: pointer; }
+.myblab-side-slot--left:not(.myblab-side-slot--closed) .myblab-side-toggle { right: 5px; }
+.myblab-side-slot--right:not(.myblab-side-slot--closed) .myblab-side-toggle { right: auto; left: 5px; }
+.myblab-side-slot--right.myblab-side-slot--closed .myblab-side-toggle { right: 3px; }
+.myblab-side-slot--left .myblab-sidebar__header { padding-right: 32px; }
+.myblab-side-slot--right .component-inspector__header { padding-left: 30px; }
+@media (max-width: 900px) { .myblab-side-slot--left:not(.myblab-side-slot--closed) { width: 184px; } }
+@media (max-width: 740px) {
+  .myblab-side-slot { width: 100% !important; }
+  .myblab-side-slot--left { grid-row: 2; min-height: 180px; }
+  .myblab-side-slot--right { grid-row: 3; min-height: 140px; }
+  .myblab-side-slot--closed { min-height: 36px; height: 36px; }
+  .myblab-app { grid-template-rows: minmax(260px, 1fr) auto auto; }
+}

@@ -46,6 +46,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
   const stableValue = useMemo(() => ({
     canvasRef: state.canvasRef,
     wires: state.wires,
+    documentCounts: state.documentCounts,
     connectedPins: state.connectedPins,
     pinSignals: state.pinSignals,
     // A10-DISP2 : projection lecture seule des états runtime timed, rafraîchie
@@ -62,6 +63,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     // si la sélection ou le composant sélectionné change réellement, pas à
     // chaque pixel de drag/pan/marquee.
     selectedComponent: state.selectedComponent,
+    rotateComponent: state.rotateComponent,
     updateComponentProperties: state.updateComponentProperties,
     updateComponentParameters: state.updateComponentParameters,
     // MB-L1-ARD-001 : action stable (basse fréquence, même statut que
@@ -107,6 +109,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     updateSidebarComponentDragPosition: state.updateSidebarComponentDragPosition,
     endSidebarComponentDrag: state.endSidebarComponentDrag,
     updateWireWaypoints: state.updateWireWaypoints,
+    updateWireColor: state.updateWireColor,
     startWaypointDrag: state.startWaypointDrag,
     startDrag: state.startDrag,
     startBreadboardDrag: state.startBreadboardDrag,
@@ -152,9 +155,9 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     canRedo: state.canRedo,
     getUndoCount: state.getUndoCount,
   }), [
-    state.canvasRef, state.wires, state.connectedPins, state.pinSignals, state.runtimeStates,
+    state.canvasRef, state.wires, state.documentCounts, state.connectedPins, state.pinSignals, state.runtimeStates,
     state.pendingPin, state.isWiringActive, state.selection, state.activeItem,
-    state.selectedComponent, state.updateComponentProperties, state.updateComponentParameters, state.updateArduinoFirmware,
+    state.selectedComponent, state.rotateComponent, state.updateComponentProperties, state.updateComponentParameters, state.updateArduinoFirmware,
     state.firmwareDiagnostics, state.simulationActive, state.showGrid, state.theme,
     state.environmentalStimuli, state.setEnvironmentalStimulus, state.clearEnvironmentalStimulus,
     state.focusedComponentId, state.focusComponent, state.exitFocus, state.adjustLocalScale,
@@ -162,7 +165,7 @@ export function CircuitProvider({ children, canvasRef, orchestrators }) {
     state.startWireGesture,
     state.onPinClick, state.cancelWiring, state.isPinPending, state.isPinConnected,
     state.startSidebarComponentDrag, state.updateSidebarComponentDragPosition, state.endSidebarComponentDrag,
-    state.updateWireWaypoints, state.startWaypointDrag,
+    state.updateWireWaypoints, state.updateWireColor, state.startWaypointDrag,
     state.startDrag, state.startBreadboardDrag,
     state.startSimulation, state.stopSimulation,
     state.zoomIn, state.zoomOut, state.startPan, state.zoomAtScreenPoint, state.zoomByFactorAtScreenPoint,

@@ -1,3 +1,4 @@
+import { getOrientedComponentDef } from "../utils/componentOrientation.js"
 // Import explicite de React, conformément à la convention déjà en usage
 // dans ce dépôt pour tout fichier .jsx rendu sous la configuration de test
 // jsdom secondaire (frontend/src/simulator/vitest.config.ts, sans plugin
@@ -5,8 +6,7 @@
 // components/parts/*.jsx) : Breadboard.test.jsx est le premier test à rendre
 // directement un composant de frontend/src/canvas/, ce qui a révélé le
 // besoin (React.createElement implicite sinon indisponible sous esbuild).
-import React, { useCallback, useMemo } from "react"
-import { getComponentDef } from "../config/componentDefinitions.js"
+import React, { useCallback, useMemo, useRef } from "react"
 import {
   BREADBOARD_PITCH,
   STANDARD_V1_LAYOUT,
@@ -127,6 +127,38 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
   // (selectOnly/isSelected : selection.js générique, inchangé ; startBreadboardDrag :
   // useCircuitState.js, même session pointer que le drag de composant).
   const { selectOnly, isSelected, startBreadboardDrag } = useCircuit()
+  // One imperative SVG tooltip for the entire board: no React state update
+  // and no full 800-hole rerender on each pointer movement.
+  const hoverGroupRef = useRef(null)
+  const hoverTextRef = useRef(null)
+  const hoverBackgroundRef = useRef(null)
+  const hoveredHoleRef = useRef(null)
+  const clearHoleHover = useCallback(() => {
+    hoveredHoleRef.current?.classList.remove("breadboard__hole-hit--active")
+    hoveredHoleRef.current = null
+    if (hoverGroupRef.current) hoverGroupRef.current.style.display = "none"
+  }, [])
+  const handleHoleHover = useCallback((event) => {
+    const hit = event.target.closest?.(".breadboard__hole-hit")
+    if (hit === hoveredHoleRef.current) return
+    hoveredHoleRef.current?.classList.remove("breadboard__hole-hit--active")
+    hoveredHoleRef.current = hit || null
+    if (!hit) {
+      if (hoverGroupRef.current) hoverGroupRef.current.style.display = "none"
+      return
+    }
+    hit.classList.add("breadboard__hole-hit--active")
+    const label = hit.getAttribute("data-hole-label") || ""
+    const cx = Number(hit.getAttribute("cx"))
+    const cy = Number(hit.getAttribute("cy"))
+    if (hoverTextRef.current) hoverTextRef.current.textContent = label
+    if (hoverBackgroundRef.current) hoverBackgroundRef.current.setAttribute("width", String(Math.max(30, label.length * 6.4 + 10)))
+    if (hoverGroupRef.current) {
+      hoverGroupRef.current.setAttribute("transform", `translate(${cx + 7},${cy - 21})`)
+      hoverGroupRef.current.style.display = ""
+    }
+  }, [])
+
   const selected = isSelected({ type: "breadboard", id: breadboard?.id })
 
   const handleMouseDown = useCallback(
@@ -226,7 +258,7 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
     const map = new Map()
     if (!breadboard || !breadboard.position) return map
     for (const component of components || []) {
-      const def = getComponentDef(component?.type)
+      const def = getOrientedComponentDef(component)
       if (!def || !Array.isArray(def.pins)) continue
       const { results } = resolveComponentContactHoles(breadboard, def.pins, {
         x: component?.x,
@@ -303,6 +335,8 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
       aria-hidden="true"
       onMouseDown={handleMouseDown}
       onClick={(e) => e.stopPropagation()}
+      onPointerMove={handleHoleHover}
+      onPointerLeave={clearHoleHover}
     >
       <rect className="breadboard__body" x={0} y={0} width={width} height={height} rx={6} />
 
@@ -496,7 +530,14 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
               cy={cy}
               r={HOLE_RADIUS}
             />
-            {/* D3 : second <circle> purement décoratif, coaxial (même cx/cy
+            <circle
+              className="breadboard__hole-hit"
+              cx={cx}
+              cy={cy}
+              r={Math.min(BREADBOARD_PITCH * 0.43, 4.9)}
+              data-hole-label={`${hole.kind === "RAIL" ? "Rail" : "Trou"} ${hole.column + 1} / ${hole.row + 1}`}
+            />
+                        {/* D3 : second <circle> purement décoratif, coaxial (même cx/cy
                 que le trou canonique ci-dessus) — jamais un remplacement du
                 trou, jamais un second hit-test (fill:none, pointer-events:
                 none). N'existe que sur les quelques trous cibles actifs. */}
@@ -513,6 +554,10 @@ export function Breadboard({ breadboard, components, breadboardFeedback, breadbo
           </React.Fragment>
         )
       })}
+      <g ref={hoverGroupRef} className="breadboard__hover-tooltip" style={{ display: "none" }} pointerEvents="none">
+        <rect ref={hoverBackgroundRef} x={0} y={0} width={38} height={16} rx={3} />
+        <text ref={hoverTextRef} x={5} y={11} />
+      </g>
     </svg>
   )
 }

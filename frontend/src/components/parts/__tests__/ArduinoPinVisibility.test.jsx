@@ -89,16 +89,50 @@ describe('MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation', () => {
     expect(led.style.boxShadow).not.toBe('none')
   })
 
+  it('USB Type-B reste une décoration locale insérée sous le port, sans cible électrique', () => {
+    const { container } = renderArduino(true)
+    const cable = container.querySelector('.part-arduino__usb-cable')
+    expect(cable.dataset.usbType).toBe('B')
+    expect(cable.style.position).toBe('absolute')
+    // Port left face x=2, centre y≈36.5 in the unchanged 180×120 raster.
+    expect(parseFloat(cable.style.left) + parseFloat(cable.style.width)).toBeGreaterThan(2)
+    expect(parseFloat(cable.style.top) + parseFloat(cable.style.height) / 2).toBe(36.5)
+    expect(Number(cable.style.zIndex)).toBeLessThan(Number(container.querySelector('img').style.zIndex))
+    expect(cable.style.pointerEvents).toBe('none')
+    expect(cable.getAttribute('aria-hidden')).toBe('true')
+    expect(cable.querySelector('button, [data-wire-pin]')).toBeNull()
+    for (const part of ['cord', 'strain-relief', 'shell', 'grip']) {
+      expect(cable.querySelector(`.part-arduino__usb-${part}`)).not.toBeNull()
+    }
+  })
+
   it('expose D0-D13 plus GND/5V comme PhysicalContacts wire-only', () => {
     const def = getComponentDef('ARDUINO')
-    expect(def.pins).toHaveLength(16)
+    // 14 digital + GND + 5V + 6 analog = 22 electrical pins.
+    // GND exposes three physical sockets but remains one electrical pin.
+    expect(def.pins).toHaveLength(22)
+    const ids = def.pins.map((pin) => pin.id)
+    expect(new Set(ids).size).toBe(22)
+    expect(ids).toEqual(expect.arrayContaining([
+      ...Array.from({ length: 14 }, (_, i) => `D${i}`),
+      'GND', '5V',
+      ...Array.from({ length: 6 }, (_, i) => `A${i}`),
+    ]))
     for (const pin of def.pins) {
-      expect(pin.contacts).toHaveLength(1)
-      const contact = pin.contacts[0]
-      expect([contact.dx, contact.dy]).toEqual(EXPECTED_CONTACTS[pin.id])
-      expect(contact.wireConnectable).toBe(true)
-      expect(contact.breadboardInsertable).toBe(false)
+      expect(pin.contacts).toHaveLength(pin.id === 'GND' ? 3 : 1)
+      for (const contact of pin.contacts) {
+        expect(contact.wireConnectable).toBe(true)
+        expect(contact.breadboardInsertable).toBe(false)
+        expect(Number.isFinite(contact.dx)).toBe(true)
+        expect(Number.isFinite(contact.dy)).toBe(true)
+      }
+      if (EXPECTED_CONTACTS[pin.id]) {
+        const contact = pin.contacts[0]
+        expect([contact.dx, contact.dy]).toEqual(EXPECTED_CONTACTS[pin.id])
+      }
     }
+    expect(def.pins.find((pin) => pin.id === 'GND').contacts.map((contact) => contact.id))
+      .toEqual(['GND', 'GND_POWER', 'GND_AREF'])
   })
 
   it('verrouille le mapping du header numérique et la migration physique D2/D3', () => {

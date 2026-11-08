@@ -1,3 +1,5 @@
+import { resolveWireInsulationColor } from '../wires/wireAppearance.js'
+import { getComponentRotation } from "./componentOrientation.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 
 /**
@@ -58,6 +60,7 @@ export function normalizeComponent(component) {
     type: String(component.type),
     x: Number.isFinite(component.x) ? component.x : 0,
     y: Number.isFinite(component.y) ? component.y : 0,
+    ...(component.rotation !== undefined ? { rotation: getComponentRotation(component) } : {}),
     pins: Array.isArray(component.pins) ? [...component.pins] : [],
     // FT-C-BAT-001-R2: structural transport only; parameter semantics belong to models.
     ...(component.parameters && typeof component.parameters === "object" && !Array.isArray(component.parameters)
@@ -226,5 +229,8 @@ export function normalizeWire(wire) {
     // les corriger tous les trois revient donc à corriger ce seul point,
     // exactement comme le prévoit la dépendance obligatoire du ticket.
     waypoints: normalizeWaypoints(wire.waypoints),
+    ...(resolveWireInsulationColor(wire.color)
+      ? { color: resolveWireInsulationColor(wire.color) }
+      : {}),
   }
 }

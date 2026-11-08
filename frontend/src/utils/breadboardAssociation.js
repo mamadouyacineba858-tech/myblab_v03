@@ -1,3 +1,4 @@
+import { orientComponentDefinition } from "./componentOrientation.js"
 /**
  * breadboardAssociation.js — FT-C-BREAD-MULTI-001-C (CSA D1).
  *
@@ -41,7 +42,7 @@ function finitePosition(position) {
 }
 
 /** Évalue le composant contre UN breadboard candidat. */
-function evaluateCandidate(breadboard, index, { def, componentType, position, otherComponents, mode }) {
+function evaluateCandidate(breadboard, index, { def, componentType, position, otherComponents, mode, rotation }) {
   const totalInsertableContactCount = countInsertableContacts(def)
 
   if (mode === 'ownership') {
@@ -65,7 +66,7 @@ function evaluateCandidate(breadboard, index, { def, componentType, position, ot
   }
 
   // Placement : snap + collision via la primitive mono-breadboard EXISTANTE.
-  const placement = computeBreadboardPlacement(breadboard, componentType, position, otherComponents)
+  const placement = computeBreadboardPlacement(breadboard, componentType, position, otherComponents, rotation)
   const holes = Array.isArray(placement.holes) ? placement.holes : []
   const resolvedContactCount = holes.filter((h) => h && h.column !== null && h.column !== undefined).length
   const fullyResolved = holes.length > 0 && holes.every((h) => h && h.column !== null && h.column !== undefined)
@@ -131,8 +132,9 @@ export function resolveComponentBreadboardAssociation({
   position,
   otherComponents = [],
   mode = 'ownership',
+  rotation = 0,
 }) {
-  const def = getComponentDef(componentType)
+  const def = orientComponentDefinition(getComponentDef(componentType), rotation)
   const totalInsertableContactCount = countInsertableContacts(def)
 
   const list = Array.isArray(breadboards) ? breadboards.filter((b) => b && b.position) : []
@@ -141,7 +143,7 @@ export function resolveComponentBreadboardAssociation({
   }
 
   const pos = finitePosition(position)
-  const ctx = { def, componentType, position: pos, otherComponents, mode }
+  const ctx = { def, componentType, position: pos, otherComponents, mode, rotation }
 
   const candidates = list
     .map((breadboard, index) => evaluateCandidate(breadboard, index, ctx))
@@ -173,8 +175,8 @@ export function resolveComponentBreadboardAssociation({
  * résultat gagnant — même contrat que `computeBreadboardPlacement` + `breadboardId`.
  * Garantit que preview et drop choisissent le MÊME breadboard (I-C5).
  */
-export function computeMultiBreadboardPlacement(breadboards, componentType, candidatePosition, otherComponents) {
-  const def = getComponentDef(componentType)
+export function computeMultiBreadboardPlacement(breadboards, componentType, candidatePosition, otherComponents, rotation = 0) {
+  const def = orientComponentDefinition(getComponentDef(componentType), rotation)
   const compatible = !!def && Array.isArray(def.pins) && countInsertableContacts(def) > 0
   const fallbackPosition = finitePosition(candidatePosition)
   const inactive = {
@@ -196,6 +198,7 @@ export function computeMultiBreadboardPlacement(breadboards, componentType, cand
     position: candidatePosition,
     otherComponents,
     mode: 'placement',
+    rotation,
   })
   if (!assoc.breadboard || !assoc.placement) return inactive
 

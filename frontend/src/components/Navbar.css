@@ -76,8 +76,39 @@
 /* MB-VIS-LAB-046 (O2) : bouton utilitaire icône-seule (Paramètres),
    distinct visuellement des commandes de workflow libellées. */
 .navbar-actions button.settings {
-    padding: 8px 10px;
-    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex-shrink: 0;
+    min-height: 38px;
+    padding: 8px 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid #7dd3fc;
+    background: #164e63;
+    color: #f0f9ff;
+}
+
+.navbar-actions button.settings:hover {
+    background: #0369a1;
+    border-color: #bae6fd;
+}
+
+.navbar-actions button.settings:focus-visible {
+    outline: 3px solid #7dd3fc;
+    outline-offset: 2px;
+}
+
+.theme-light .navbar-actions button.settings {
+    background: #dbeafe;
+    color: #0c4a6e;
+    border-color: #0284c7;
+}
+
+.theme-light .navbar-actions button.settings:hover {
+    background: #bae6fd;
 }
 
 .separator{
@@ -87,4 +118,35 @@
 
     background:#55657c;
 
+}
+/* MB-UI-AUDIT-003 : le rapport 1280px montrait Paramètres hors écran.
+   Autoriser deux rangées au lieu de masquer des actions dans un défilement. */
+.myblab-navbar {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 60px;
+    gap: 12px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+.navbar-logo {
+    flex: 0 0 auto;
+}
+.navbar-actions {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+}
+.navbar-actions > button,
+.navbar-actions > .separator {
+    flex-shrink: 0;
+}
+.navbar-actions button:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 1px;
 }

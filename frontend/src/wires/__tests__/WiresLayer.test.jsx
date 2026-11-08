@@ -33,6 +33,7 @@ function renderWithContext({
   toggleSelection = vi.fn(),
   canvasRef,
   updateWireWaypoints,
+  updateWireColor,
   startWaypointDrag,
   viewport,
 } = {}) {
@@ -44,6 +45,7 @@ function renderWithContext({
     pinSignals,
     canvasRef,
     updateWireWaypoints,
+    updateWireColor,
     startWaypointDrag,
   }
   // MB-VIS-CANVAS-051 : WiresLayer lit désormais `viewport` via un second
@@ -69,6 +71,110 @@ function renderWithContext({
 function makeCanvasRef() {
   return { current: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }) } }
 }
+
+describe('WIRE-011 — color picker interactions', () => {
+  it('shows the eight swatches and automatic reset only for selected wires', () => {
+    const updateWireColor = vi.fn()
+    const hidden = renderWithContext({ updateWireColor })
+    expect(hidden.container.querySelectorAll('.wires-layer__palette circle')).toHaveLength(0)
+    hidden.unmount()
+    const selected = renderWithContext({ isSelected: () => true, updateWireColor })
+    expect(selected.container.querySelectorAll('.wires-layer__palette circle')).toHaveLength(9)
+  })
+  it('renders a clearly visible reset control with a non-interactive slash', () => {
+    const { container } = renderWithContext({ isSelected: () => true, updateWireColor: vi.fn() })
+    const palette = container.querySelector('.wires-layer__palette')
+    const reset = palette.querySelector('circle[aria-label="Couleur automatique"]')
+    expect(reset.getAttribute('fill')).toBe('#f8fafc')
+    expect(reset.getAttribute('r')).toBe('8')
+    expect(palette.querySelector('line').getAttribute('pointer-events')).toBe('none')
+  })
+  it('dispatches chosen insulation through the circuit command API', () => {
+    const updateWireColor = vi.fn()
+    const { container } = renderWithContext({ isSelected: () => true, updateWireColor })
+    const swatches = container.querySelectorAll('.wires-layer__palette circle')
+    fireEvent.click(swatches[0])
+    expect(updateWireColor).toHaveBeenCalledWith('wire-1', '#dc2626')
+    fireEvent.click(swatches[8])
+    expect(updateWireColor).toHaveBeenCalledWith('wire-1', null)
+  })
+  it('keeps palette controls the same screen size at 50% and 200% zoom', () => {
+    const updateWireColor = vi.fn()
+    const half = renderWithContext({ isSelected: () => true, updateWireColor, viewport: { zoom: 0.5 } })
+    expect(half.container.querySelector('.wires-layer__palette').getAttribute('transform')).toBe('translate(0 -24) scale(2)')
+    half.unmount()
+    const double = renderWithContext({ isSelected: () => true, updateWireColor, viewport: { zoom: 2 } })
+    expect(double.container.querySelector('.wires-layer__palette').getAttribute('transform')).toBe('translate(0 -24) scale(0.5)')
+    expect(double.container.querySelectorAll('.wires-layer__palette circle')).toHaveLength(9)
+  })
+  it('supports keyboard selection and automatic reset without reselecting the wire', () => {
+    const updateWireColor = vi.fn()
+    const selectOnly = vi.fn()
+    const { container } = renderWithContext({ isSelected: () => true, updateWireColor, selectOnly })
+    const swatches = container.querySelectorAll('.wires-layer__palette circle')
+    expect(swatches).toHaveLength(9)
+    expect(swatches[0].getAttribute('tabindex')).toBe('0')
+    fireEvent.keyDown(swatches[0], { key: 'Enter' })
+    fireEvent.keyDown(swatches[8], { key: ' ' })
+    expect(updateWireColor).toHaveBeenNthCalledWith(1, 'wire-1', '#dc2626')
+    expect(updateWireColor).toHaveBeenNthCalledWith(2, 'wire-1', null)
+    expect(selectOnly).not.toHaveBeenCalled()
+  })
+  it('stops palette pointer gestures before they reach the canvas', () => {
+    const updateWireColor = vi.fn()
+    const { container } = renderWithContext({ isSelected: () => true, updateWireColor })
+    const palette = container.querySelector('.wires-layer__palette')
+    const swatches = palette.querySelectorAll('circle')
+    const canvasPointerDown = vi.fn()
+    const canvasClick = vi.fn()
+    document.addEventListener('pointerdown', canvasPointerDown)
+    document.addEventListener('click', canvasClick)
+    fireEvent.pointerDown(swatches[0])
+    fireEvent.click(swatches[0])
+    fireEvent.pointerDown(swatches[8])
+    fireEvent.click(swatches[8])
+    expect(canvasPointerDown).not.toHaveBeenCalled()
+    expect(canvasClick).not.toHaveBeenCalled()
+    expect(updateWireColor).toHaveBeenCalledTimes(2)
+    document.removeEventListener('pointerdown', canvasPointerDown)
+    document.removeEventListener('click', canvasClick)
+  })
+  it('keeps color controls hidden when mutation API is unavailable', () => {
+    const { container } = renderWithContext({ isSelected: () => true })
+    expect(container.querySelector('.wires-layer__palette')).toBeNull()
+  })
+})
+
+describe('WIRE-006 — physical insulation rendering', () => {
+  it('shows an explicit insulation color without overriding the electrical state', () => {
+    const { visiblePath } = renderWithContext({
+      wires: [{ ...WIRE, color: 'black' }],
+      pinSignals: new Map([['A:anode', Signal.HIGH]]),
+    })
+    expect(visiblePath.getAttribute('stroke')).toBe('#1f2937')
+    expect(visiblePath.getAttribute('class')).toContain('wires-layer__wire--high')
+  })
+  it('keeps the chosen insulation color and adds a selection halo', () => {
+    const { visiblePath } = renderWithContext({
+      wires: [{ ...WIRE, color: 'black' }],
+      isSelected: () => true,
+    })
+    expect(visiblePath.getAttribute('stroke')).toBe('#1f2937')
+    expect(visiblePath.getAttribute('class')).toContain('wires-layer__wire--selected')
+  })
+})
+
+describe('WIRE-002 — cable realism and interaction alignment', () => {
+  it('renders a rounded cable and a matching clickable path without changing endpoints', () => {
+    const { visiblePath, hitzone } = renderWithContext()
+    const rendered = visiblePath.getAttribute('d')
+    expect(rendered).toContain(' Q ')
+    expect(rendered.startsWith('M 0 0 ')).toBe(true)
+    expect(rendered.endsWith('L 100 50')).toBe(true)
+    expect(hitzone.getAttribute('d')).toBe(rendered)
+    expect(visiblePath.getAttribute('stroke-linecap')).toBe('round')
+  })
+})
 
 describe('MB-VIS-004 — WiresLayer, non-régression', () => {
   it('rend un fil sans état particulier avec la couleur neutre historique', () => {
@@ -247,7 +353,7 @@ describe('MB-VIS-005 (ruling CSA du 2026-08-21, Phase E) — poignées de waypoi
     expect(nextWaypoints).toEqual([{ x: 50, y: 0 }])
   })
 
-  it('double-clic sur le tracé d\'un wire NON sélectionné ne fait rien (création réservée à un wire déjà sélectionné)', () => {
+  it('double-clic sur un fil non sélectionné insère directement un waypoint', () => {
     const updateWireWaypoints = vi.fn()
     const { hitzone } = renderWithContext({
       wires: [{ ...WIRE, waypoints: [] }],
@@ -256,7 +362,7 @@ describe('MB-VIS-005 (ruling CSA du 2026-08-21, Phase E) — poignées de waypoi
       canvasRef: makeCanvasRef(),
     })
     fireEvent.doubleClick(hitzone, { clientX: 50, clientY: 0 })
-    expect(updateWireWaypoints).not.toHaveBeenCalled()
+    expect(updateWireWaypoints).toHaveBeenCalledWith('wire-1', [{ x: 50, y: 0 }])
   })
 
   it('sans canvasRef/updateWireWaypoints/startWaypointDrag fournis par le contexte (garde défensive), aucune interaction ne lève d\'erreur', () => {
@@ -270,5 +376,18 @@ describe('MB-VIS-005 (ruling CSA du 2026-08-21, Phase E) — poignées de waypoi
       fireEvent.doubleClick(handle)
       fireEvent.doubleClick(hitzone, { clientX: 50, clientY: 0 })
     }).not.toThrow()
+  })
+})
+
+describe('WIRE-FINAL — wire pointer gestures are isolated from the canvas', () => {
+  it('stops pointerdown propagation so a marquee cannot steal a wire selection', () => {
+    const selectOnly = vi.fn()
+    const { hitzone } = renderWithContext({ selectOnly })
+    // React delegates synthetic events at the root; a native listener on an
+    // inner SVG ancestor observes the event before React's stopPropagation.
+    // Assert the real user-facing selection path instead of that false oracle.
+    fireEvent.pointerDown(hitzone)
+    fireEvent.click(hitzone)
+    expect(selectOnly).toHaveBeenCalledWith({ type: 'wire', id: 'wire-1' })
   })
 })

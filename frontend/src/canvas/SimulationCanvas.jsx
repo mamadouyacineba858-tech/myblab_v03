@@ -23,6 +23,7 @@ import { clientToCanvas } from "../utils/geometry.js"
 import { LOCAL_SCALE_STEP } from "../utils/localScale.js"
 import "./SimulationCanvas.css"
 import { useKeyboardSystem } from "../keyboard/useKeyboardSystem.js"
+import { ProbeOverlay } from "../instruments/ProbeOverlay.jsx"
 
 export function SimulationCanvas() {
   const {
@@ -77,6 +78,7 @@ export function SimulationCanvas() {
       const assoc = resolveComponentBreadboardAssociation({
         breadboards: renderedBreadboards,
         componentType: comp.type,
+        rotation: comp.rotation,
         position: { x: comp.x, y: comp.y },
         mode: "ownership",
       })
@@ -282,7 +284,9 @@ export function SimulationCanvas() {
     endSidebarComponentDrag()
   }, [endSidebarComponentDrag])
 
-  const hasComponents = components.length > 0
+  // An empty-state hint is valid only when no board or component is on the canvas.
+  // A board-only circuit is already a real document, not an empty workspace.
+  const isCanvasEmpty = components.length === 0 && renderedBreadboards.length === 0
 
   return (
     <div
@@ -364,7 +368,8 @@ export function SimulationCanvas() {
         )}
         <MarqueeOverlay rect={marqueeRect} />
       </div>
-      {!hasComponents && (
+      <ProbeOverlay canvasRef={canvasRef} components={components} viewport={viewport} />
+      {isCanvasEmpty && (
         <p className="simulation-canvas__hint">
           Glissez un composant depuis la barre latérale ou cliquez pour l&apos;ajouter au centre
         </p>

@@ -1,0 +1,336 @@
+{
+  "reference": "fa614d8f1d6c361e0b140a880afbbd543feee80e",
+  "candidate": "cabdaee",
+  "scope": "Sélection Copilot de 1 520 tests avec la configuration Vitest par défaut",
+  "b": {
+    "files": 62,
+    "failedFiles": 24,
+    "tests": 1520,
+    "passed": 1458,
+    "failed": 62,
+    "skipped": 0
+  },
+  "c": {
+    "files": 62,
+    "failedFiles": 24,
+    "tests": 1520,
+    "passed": 1458,
+    "failed": 62,
+    "skipped": 0
+  },
+  "historical": [
+    {
+      "file": "src/__tests__/ComponentValueEditing.integration.test.jsx",
+      "test": "MB-L1-CVE-001 — TEST T12/T13 : ComponentInspector.jsx T12 — aucune sélection : panneau neutre \"Aucun composant sélectionné\"",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/ComponentValueEditing.integration.test.jsx",
+      "test": "MB-L1-CVE-001 — TEST T12/T13 : ComponentInspector.jsx sélection perdue (composant supprimé) : selectedComponent redevient null, panneau neutre",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/ComponentValueEditing.integration.test.jsx",
+      "test": "MB-L1-CVE-001 — TEST T14 : généricité (POTENTIOMETER, aucune branche par type) POTENTIOMETER expose ses deux paramètres (resistance + position) sans logique spécifique",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/ComponentValueEditing.integration.test.jsx",
+      "test": "MB-L1-CVE-001 — TEST T15 : commit UX (blur/Enter = une seule commande History) édition 220 -> 1000 via blur produit exactement une entrée History, Undo restaure 220, Redo réapplique 1000",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/ComponentValueEditing.integration.test.jsx",
+      "test": "MB-L1-CVE-001 — TEST T15 : commit UX (blur/Enter = une seule commande History) re-taper la même valeur (220 -> 220) ne produit aucune nouvelle commande History (idempotence §8.5)",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/ComponentValueEditing.integration.test.jsx",
+      "test": "MB-L1-CVE-001 — TEST T15 : commit UX (blur/Enter = une seule commande History) une valeur invalide (hors range) est rejetée avant toute mutation persistante (CV-12)",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/ComponentValueEditing.integration.test.jsx",
+      "test": "MB-L1-CVE-001 — TEST T20 : export/import préserve component.parameters 220 -> 1000 -> export -> import -> Inspector affiche 1000, Document.parameters.resistance === 1000",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/PhysicalPropertyRendering.integration.test.jsx",
+      "test": "L1-PROP-003 — assets livrés, manifest et intégrité (T16/T17/T18) T18 — chaque fichier déclaré dans ASSET-INTEGRITY.json existe avec les bytes/SHA-256 réels",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) CAPACITOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) TILT_SENSOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) IR_RECEIVER : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) INDUCTOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) ZENER_DIODE : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonDragInteraction.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-003 — A/B bout en bout : le drag fonctionne à nouveau A — BUTTON : un mousedown réel sur le corps sélectionne puis déplace le composant (Document mis à jour au relâchement)",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonDragInteraction.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-003 — A/B bout en bout : le drag fonctionne à nouveau B — BUTTON_LATCHING : un mousedown réel sur le corps sélectionne puis déplace le composant",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonDragInteraction.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-003 — A/B bout en bout : le drag fonctionne à nouveau A — BUTTON : un second drag consécutif fonctionne encore (pas de régression d'état après le premier)",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonDragInteraction.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-003 — C/D : comportements momentary/latching non régressés C — BUTTON : pointerdown -> state pressed, pointerup -> state released (indépendant du drag)",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonDragInteraction.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-003 — C/D : comportements momentary/latching non régressés D — BUTTON_LATCHING : click bascule ON puis OFF (indépendant du drag)",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonDragInteraction.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-003 — E : câblage BUTTON/BUTTON_LATCHING non régressé E — le composant reste déplaçable après câblage, le wire suit (extrémité recalculée)",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonDragInteraction.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-003 — G : non-régression d'un composant passif (RESISTOR) G — RESISTOR reste sélectionnable, déplaçable, et accepte les wires (comportement générique non cassé)",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonInteraction008.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-008 B2 ? apr?s un drag du BUTTON, une pin d?marre encore le wire gesture et jamais le drag composant",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonInteraction008.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-008 L1 ? un drag du BUTTON_LATCHING ne toggle pas son ?tat",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonInteraction008.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-008 L2 ? un vrai clic immobile toggle exactement une fois, puis le suivant revient OFF",
+      "status": "failed"
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonInteraction008.integration.test.jsx",
+      "test": "MB-VIS-BUTTON-INTERACTION-008 R1 ? les pins du BUTTON_LATCHING restent ind?pendantes du drag du corps",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "test": "MB-VIS-LAB-046 — Navbar : commandes existantes inchangées (O2, T19-T27) T20 — \"Nouveau\" conserve son comportement (confirmation puis clearCircuit uniquement si confirmé)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "test": "MB-VIS-LAB-046 — Navbar : commandes existantes inchangées (O2, T19-T27) T21 — \"Ouvrir\" conserve son comportement (déclenche le input file caché, aucune mutation directe)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "test": "MB-VIS-LAB-046 — Navbar : commandes existantes inchangées (O2, T19-T27) T22 — \"Sauvegarder\" conserve son comportement (exporte le circuit réel, ne mute rien)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "test": "MB-VIS-LAB-046 — Navbar : commandes existantes inchangées (O2, T19-T27) T24 — Zoom +/- conservent leur comportement (viewport.zoom réel modifié)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "test": "MB-VIS-LAB-046 — Navbar : commandes existantes inchangées (O2, T19-T27) T25 — \"Vue\" (reset) conserve son comportement (revient au viewport par défaut)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "test": "MB-VIS-LAB-046 — Navbar : commandes existantes inchangées (O2, T19-T27) T26/T27 — \"Contenu\"/\"Sélection\" (fit) conservent leur comportement (aucune erreur, aucune mutation Document)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "test": "MB-VIS-LAB-046 — SettingsPanel : ouverture/fermeture + cohérence thème (O7/F13, T28-T30) T28 — Settings s'ouvre/se ferme correctement (comportement inchangé)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "test": "MB-VIS-LAB-046 — SettingsPanel : ouverture/fermeture + cohérence thème (O7/F13, T28-T30) T29 — Settings respecte theme-light : App.css déclare une surcharge réelle de fond clair pour .settings-panel (F13, avant ce ticket : aucune)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "test": "MB-VIS-LAB-046 — SettingsPanel : ouverture/fermeture + cohérence thème (O7/F13, T28-T30) T30 — Settings respecte theme-dark : le rendu sombre historique de SettingsPanel.css reste strictement inchangé (non-régression)",
+      "status": "failed"
+    },
+    {
+      "file": "src/measurement/__tests__/LiveMeasurementPanel.test.jsx",
+      "test": "MB-MEASURE-002 — TEST T2 : circuit vide (AC-05) aucune target sélectionnable, aucune exception, bouton Measure désactivé",
+      "status": "failed"
+    },
+    {
+      "file": "src/measurement/__tests__/LiveMeasurementPanel.test.jsx",
+      "test": "MB-MEASURE-002 — TEST T3/T8 : targets réelles dérivées du circuit (AC-04/AC-06) un circuit avec RESISTOR expose une target par pin réel (A, B), aucune target statique",
+      "status": "failed"
+    },
+    {
+      "file": "src/measurement/__tests__/LiveMeasurementPanel.test.jsx",
+      "test": "MB-MEASURE-002 — TEST T3/T8 : targets réelles dérivées du circuit (AC-04/AC-06) T8 — ajouter un second composant fait grandir la liste de targets ; le supprimer la fait rétrécir",
+      "status": "failed"
+    },
+    {
+      "file": "src/measurement/__tests__/LiveMeasurementPanel.test.jsx",
+      "test": "MB-MEASURE-002 — TEST T4/T6 : VOLTAGE VALID (AC-07) mesurer VOLTAGE sur RESISTOR.A dans un circuit POWER->RESISTOR->GND affiche value + V + VALID",
+      "status": "failed"
+    },
+    {
+      "file": "src/measurement/__tests__/LiveMeasurementPanel.test.jsx",
+      "test": "MB-MEASURE-002 — TEST T5/T6 : CURRENT VALID (AC-08) mesurer CURRENT sur RESISTOR.A dans le même circuit affiche value + A + VALID = 5/220",
+      "status": "failed"
+    },
+    {
+      "file": "src/measurement/__tests__/LiveMeasurementPanel.test.jsx",
+      "test": "MB-MEASURE-002 — TEST T7 : UNAVAILABLE (AC-09) mesurer CURRENT sur une LED (type non enregistré dans dcContributionRegistry) affiche UNAVAILABLE + reason, sans crash ni valeur inventée",
+      "status": "failed"
+    },
+    {
+      "file": "src/measurement/__tests__/LiveMeasurementPanel.test.jsx",
+      "test": "MB-MEASURE-002 — TEST T9/T10/T13/T14 : non-mutation Document et History effectuer une mesure ne modifie ni components, ni wires, ni la sélection, ni l'historique",
+      "status": "failed"
+    },
+    {
+      "file": "src/measurement/__tests__/LiveMeasurementPanel.test.jsx",
+      "test": "MB-MEASURE-002 — TEST T11 : compatibilité Component Values (MB-L1-CVE-001, AC-18) un RESISTOR dont la résistance a été éditée via updateComponentParameters produit un courant mesuré différent, sans calcul I=V/R dans l'UI",
+      "status": "failed"
+    },
+    {
+      "file": "src/simulator/__tests__/andGateA9.test.js",
+      "test": "A9-AND canonical and contribution contract T24: generic engine has no AND-specific knowledge",
+      "status": "failed"
+    },
+    {
+      "file": "src/simulator/__tests__/batterySources.test.js",
+      "test": "FT-C-BAT-001 generic DC sources resolution has no source-specific type or voltage hardcode",
+      "status": "failed"
+    },
+    {
+      "file": "src/simulator/__tests__/dcContributionRegistry.test.js",
+      "test": "createControlledDcSwitchContribution — A8-PREQ keeps generic engines independent of future A8 component types",
+      "status": "failed"
+    },
+    {
+      "file": "src/simulator/__tests__/dcVoltageDomains.test.js",
+      "test": "A8 derived DC voltage domains guards generic registry use and simulation-only dependencies",
+      "status": "failed"
+    },
+    {
+      "file": "src/simulator/__tests__/relay.test.js",
+      "test": "A8-RELAY fixed-point integration keeps relay-specific branches out of protected simulation and geometry consumers",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "test": "MB-VIS-COMP-037 — pins : présentation projetée, électrique inchangé (TEST 7/8/9/10) TEST 8 — coordonnées électriques canoniques INCHANGÉES : D2 dx=0/dy=50, D3 dx=0/dy=75, GND dx=0/dy=110, 5V dx=120/dy=50",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation CircuitComponent rend 16 pins visibles dont D2/D3 sur le header physique ; asset raster",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation identifies every hovered GPIO and supply contact by its real electrical pin",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPinVisibility.test.jsx",
+      "test": "MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation expose D0-D13 plus GND/5V comme PhysicalContacts wire-only",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/BinaryCounter74HC161Part.raster.test.jsx",
+      "test": "A9-COUNTER1 — CTR-35 / CTR-36 asset pack FROZEN / CSA LOCKED CTR-36: SHA256SUMS cover every payload except itself and match; Founder SHA frozen",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/ButtonPart.raster.test.jsx",
+      "test": "MB-VIS-PROTOTYPE-008 — pipeline réel : pins et interactions BUTTON inchangés 11 — pointerdown/pointerup réels sur le wrapper mettent à jour component.state (interaction non régressée)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/DFlipFlop74HC74Part.raster.test.jsx",
+      "test": "A9-DFF1 — asset pack FROZEN / CSA LOCKED SHA256SUMS and manifest hashes match the files; Founder and runtime 1x SHA unchanged",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/DLatch74HC75Part.raster.test.jsx",
+      "test": "A9-LATCH1 — asset pack FROZEN / CSA LOCKED (T17) SHA256SUMS match the files; Founder and runtime 1x SHA unchanged; manifest identity",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/HBridgePart.raster.test.jsx",
+      "test": "A8 H_BRIDGE frozen raster pack keeps the ASSET-INTEGRITY.json inventory truthful (LF blobs) and consistent with the manifest",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/JkFlipFlop74HC73Part.raster.test.jsx",
+      "test": "A9-JK1 — asset pack FROZEN / CSA LOCKED PHY-10: manifest and integrity are present and truthful (hashes, bytes, dimensions, budget)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/LatchingButtonPart.raster.test.jsx",
+      "test": "MB-VIS-PROTOTYPE-008 — pipeline réel : pins, click et undo/redo BUTTON_LATCHING inchangés 11 — un clic réel sur le wrapper bascule component.state off -> on -> off (ToggleLatchingButtonCommand non régressé)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/LatchingButtonPart.raster.test.jsx",
+      "test": "MB-VIS-PROTOTYPE-008 — pipeline réel : pins, click et undo/redo BUTTON_LATCHING inchangés 12 — undo/redo restent fonctionnels après le clic sur le rendu raster (mécanisme de commande inchangé)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/PowerPart.raster.test.jsx",
+      "test": "MB-VIS-COMP-036 / MB-L1-POWER-001 — POWER raster rend uniquement la référence WebP approuvée, sans SVG ni overlay DOM",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/SevenSegmentDisplayPart.raster.test.jsx",
+      "test": "A10-DISP1 — pack d'assets FROZEN / CSA LOCKED SHA256SUMS couvre tout le pack sauf lui-même et correspond ; Founder et runtime 1x figés",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/SlideSwitchPart.raster.test.jsx",
+      "test": "A3-SW1-R1 — pipeline réel : pins, click et undo/redo SLIDE_SWITCH inchangés 11 — un clic réel sur le wrapper bascule component.state left -> right -> left (SetComponentStateCommand non régressé)",
+      "status": "failed"
+    },
+    {
+      "file": "src/components/parts/__tests__/SlideSwitchPart.raster.test.jsx",
+      "test": "A3-SW1-R1 — pipeline réel : pins, click et undo/redo SLIDE_SWITCH inchangés 12 — undo/redo restent fonctionnels après le clic sur le rendu raster (mécanisme de commande inchangé)",
+      "status": "failed"
+    }
+  ],
+  "newFailures": [],
+  "baselineOnly": [],
+  "failedFilesWithoutFailedTestsInC": []
+}

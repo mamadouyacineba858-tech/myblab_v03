@@ -38,6 +38,19 @@
  */
 
 .wires-layer__wire {
+  /*
+   * WIRE-001: insulated cable surface. Keep the existing single visible SVG
+   * path and transparent hitzone (two-path invariant), with a subtle
+   * cylindrical highlight and dark contact shadow. No electrical model change.
+   * The highlight is a CSS shadow of the same path, not a clickable overlay.
+   */
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  filter:
+    drop-shadow(0 1.25px 0 rgba(15, 23, 42, 0.62))
+    drop-shadow(0 -0.8px 0 rgba(255, 255, 255, 0.48));
   transition: stroke 0.12s ease, opacity 0.12s ease, filter 0.12s ease;
 }
 
@@ -45,12 +58,22 @@
   opacity: 0.75;
 }
 
-.wires-layer__wire--floating {
-  opacity: 0.85;
+.wires-layer__wire--hover {
+  /* Clear selection affordance without changing the electrical signal color. */
+  filter:
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 1.25px 0 rgba(15, 23, 42, 0.65));
 }
 
-.wires-layer__wire--hover {
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.65));
+.wires-layer__wire--floating {
+  /* Floating remains distinguishable without dimming the physical cable. */
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wires-layer__wire {
+    transition: none;
+  }
 }
 
 /*
@@ -75,9 +98,21 @@
 }
 
 .wires-layer__preview {
+  /* Pending connection: clearly temporary, but physically cable-shaped. */
   fill: none;
   stroke: #38bdf8;
-  stroke-width: 3;
-  stroke-dasharray: 6 4;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 8 5;
+  filter: drop-shadow(0 1px 0 rgba(15, 23, 42, 0.45));
   pointer-events: none;
+}
+
+/* Tinkercad-like editing: selection is a halo, never a replacement cable color. */
+.wires-layer__wire--selected {
+  filter:
+    drop-shadow(0 0 2.5px #ffffff)
+    drop-shadow(0 0 4px #0284c7)
+    drop-shadow(0 1.25px 0 rgba(15, 23, 42, 0.65));
 }

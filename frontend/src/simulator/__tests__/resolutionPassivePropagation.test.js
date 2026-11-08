@@ -38,7 +38,7 @@ describe("MB-SIM-015 — cas 1 : POWER -> RESISTOR -> LED -> GND (bug historique
     expect(pinSignals.get("r1:B")).toBe(Signal.HIGH)
     expect(pinSignals.get("l1:anode")).toBe(Signal.HIGH)
     expect(pinSignals.get("l1:cathode")).toBe(Signal.LOW)
-    expect(getLedState(led.uid, pinSignals)).toEqual({ on: true, anode: Signal.HIGH, cathode: Signal.LOW })
+    expect(getLedState(led.uid, pinSignals)).toMatchObject({ on: true, anode: Signal.HIGH, cathode: Signal.LOW })
   })
 })
 

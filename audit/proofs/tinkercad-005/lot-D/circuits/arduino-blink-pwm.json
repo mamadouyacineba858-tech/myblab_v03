@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "components": [
+    {
+      "uid": "411db5db-8be8-4b73-8de1-b8dffb1c1b3c",
+      "type": "ARDUINO",
+      "x": 180,
+      "y": 160,
+      "pins": [],
+      "parameters": {},
+      "firmware": {
+        "source": "void setup() { pinMode(2, OUTPUT); pinMode(9, OUTPUT); } void loop() { digitalWrite(2, HIGH); analogWrite(9, 64); delay(500); digitalWrite(2, LOW); analogWrite(9, 192); delay(500); }"
+      },
+      "properties": {
+        "name": ""
+      }
+    },
+    {
+      "uid": "9cba661b-e8bb-4b3d-8005-0f7909daab40",
+      "type": "RESISTOR",
+      "x": 460,
+      "y": 160,
+      "pins": [],
+      "parameters": {
+        "resistance": 220
+      },
+      "properties": {
+        "name": ""
+      }
+    },
+    {
+      "uid": "949a8f72-7754-411c-a0a4-c576373e58cc",
+      "type": "LED",
+      "x": 580,
+      "y": 160,
+      "pins": [],
+      "parameters": {},
+      "properties": {
+        "name": "",
+        "color": "red"
+      }
+    }
+  ],
+  "wires": [
+    {
+      "id": "057722ec-4057-4ad7-bdee-6a8110c4db8a",
+      "fromUid": "411db5db-8be8-4b73-8de1-b8dffb1c1b3c",
+      "fromPin": "D2",
+      "toUid": "9cba661b-e8bb-4b3d-8005-0f7909daab40",
+      "toPin": "A",
+      "fromContact": "D2",
+      "waypoints": []
+    },
+    {
+      "id": "84a679f2-a591-4975-9da5-416326582ad7",
+      "fromUid": "9cba661b-e8bb-4b3d-8005-0f7909daab40",
+      "fromPin": "B",
+      "toUid": "949a8f72-7754-411c-a0a4-c576373e58cc",
+      "toPin": "anode",
+      "waypoints": []
+    },
+    {
+      "id": "02327778-fb1a-4d55-8c14-d2dc2981ea7c",
+      "fromUid": "949a8f72-7754-411c-a0a4-c576373e58cc",
+      "fromPin": "cathode",
+      "toUid": "411db5db-8be8-4b73-8de1-b8dffb1c1b3c",
+      "toPin": "GND",
+      "toContact": "GND",
+      "waypoints": []
+    }
+  ],
+  "breadboards": [],
+  "instruments": {
+    "generator": {
+      "id": "gen1",
+      "enabled": false,
+      "waveform": "sine",
+      "frequencyHz": 100,
+      "amplitude": 2,
+      "offset": 0,
+      "duty": 0.5,
+      "plus": null,
+      "minus": null
+    },
+    "scope": {
+      "windowMs": 20,
+      "ch1": {
+        "plus": {
+          "uid": "411db5db-8be8-4b73-8de1-b8dffb1c1b3c",
+          "pin": "D9"
+        },
+        "minus": {
+          "uid": "411db5db-8be8-4b73-8de1-b8dffb1c1b3c",
+          "pin": "GND"
+        }
+      },
+      "ch2": {
+        "plus": null,
+        "minus": null
+      }
+    },
+    "voltmeter": {
+      "plus": null,
+      "minus": null
+    },
+    "ammeter": {
+      "a": null,
+      "b": null
+    }
+  }
+}

@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ReactCoreBridge } from '../ReactCoreBridge.js';
-import { ReactDocumentMapper } from '../ReactDocumentMapper.js';
 import { DiffEngine } from '../DiffEngine.js';
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 
 describe('ReactCoreBridge', () => {
   let commandBus;
@@ -296,8 +294,7 @@ it('T8: should handle dispatch with no document change', () => {
 
   it('T9: should not import React', () => {
     // Vérification statique : le fichier ne contient pas d'import React
-    const fs = require('fs');
-    const content = fs.readFileSync('src/bridge/ReactCoreBridge.js', 'utf8');
+    const content = readFileSync('src/bridge/ReactCoreBridge.js', 'utf8');
     expect(content).not.toContain("from 'react'");
     expect(content).not.toContain('import React');
   });
@@ -307,8 +304,7 @@ it('T8: should handle dispatch with no document change', () => {
   // ============================================================
 
   it('T10: should not contain business knowledge', () => {
-    const fs = require('fs');
-    const content = fs.readFileSync('src/bridge/ReactCoreBridge.js', 'utf8');
+    const content = readFileSync('src/bridge/ReactCoreBridge.js', 'utf8');
     expect(content).not.toContain('resistor');
     expect(content).not.toContain('capacitor');
     expect(content).not.toContain('LED');

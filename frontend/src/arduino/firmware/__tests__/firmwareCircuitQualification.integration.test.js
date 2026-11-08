@@ -88,3 +88,189 @@ describe("MB-L1-ARD-005 — canonical Arduino -> resistor -> LED -> POWER.GND ci
     expect(getLedState("led1", pinSignals).on).toBe(false)
   })
 })
+
+describe("A17.7-B — firmware digitalRead through electrical resolution", () => {
+  it("samples a powered D2 input from the preceding resolved electrical frame", () => {
+    const source = "void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+    const { components, wires } = canonicalCircuit(source)
+    wires.splice(0, wires.length,
+      { fromUid: "power1", fromPin: "5V", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" })
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    step(0)
+    const session = firmwareSessions.get("arduino1")
+    expect(session.inputSignals.get("arduino1:D2")).toBe("HIGH")
+    const signals = step()
+    expect(getLedState("led1", signals).on).toBe(true)
+  })
+})
+
+describe("A17.7-C — physical button topology to Arduino input", () => {
+  const SOURCE = "void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+
+  function buttonCircuit(state = "pressed") {
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", x: 0, y: 0, firmware: { source: SOURCE } },
+      { uid: "button1", type: "BUTTON", x: 0, y: 0, state },
+      { uid: "resistor1", type: "RESISTOR", x: 0, y: 0 },
+      { uid: "led1", type: "LED", x: 0, y: 0 },
+      { uid: "power1", type: "POWER", x: 0, y: 0 },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "button1", toPin: "pin1" },
+      { fromUid: "button1", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    return { components, orchestrators, firmwareSessions, step }
+  }
+
+  it("pressed button propagates physical POWER.5V through closed contacts to D2 and lights D13 LED", () => {
+    const { firmwareSessions, step } = buttonCircuit()
+    const initial = step(0)
+    expect(initial.get("arduino1:D2")).toBe("HIGH")
+    expect(firmwareSessions.get("arduino1").awaitingFirstElectricalSample).toBe(true)
+    expect(getLedState("led1", step()).on).toBe(true)
+  })
+
+  it("released button does not fabricate HIGH on an electrically disconnected input", () => {
+    const { firmwareSessions, step } = buttonCircuit("released")
+    const signals = step(0)
+    expect(signals.get("arduino1:D2")).not.toBe("HIGH")
+    expect(firmwareSessions.get("arduino1").inputSignals.get("arduino1:D2")).not.toBe("HIGH")
+  })
+})
+
+describe("A17.7-D — real switched electrical HIGH / LOW / HIGH cycle", () => {
+  it("reacts to successive physical contact changes without replacing the firmware session", () => {
+    const source = "void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", x: 0, y: 0, firmware: { source } },
+      { uid: "highButton", type: "BUTTON", state: "pressed" },
+      { uid: "lowButton", type: "BUTTON", state: "released" },
+      { uid: "power1", type: "POWER" },
+      { uid: "resistor1", type: "RESISTOR" },
+      { uid: "led1", type: "LED" },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "highButton", toPin: "pin1" },
+      { fromUid: "highButton", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "power1", fromPin: "GND", toUid: "lowButton", toPin: "pin1" },
+      { fromUid: "lowButton", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    expect(step(0).get("arduino1:D2")).toBe("HIGH")
+    expect(getLedState("led1", step()).on).toBe(true)
+    const session = firmwareSessions.get("arduino1")
+
+    // Break before make: never short POWER.5V to GND.
+    components[1].state = "released"
+    components[2].state = "pressed"
+    expect(step().get("arduino1:D2")).toBe("LOW")
+    expect(getLedState("led1", step()).on).toBe(false)
+    expect(firmwareSessions.get("arduino1")).toBe(session)
+
+    components[2].state = "released"
+    components[1].state = "pressed"
+    expect(step().get("arduino1:D2")).toBe("HIGH")
+    expect(getLedState("led1", step()).on).toBe(true)
+    expect(firmwareSessions.get("arduino1")).toBe(session)
+  })
+})
+
+describe("A17.7-E — switch lifecycle, floating safety and restart", () => {
+  const source = "void setup() { pinMode(2, INPUT); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 1) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+  function setup(state = "pressed") {
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", firmware: { source } },
+      { uid: "button1", type: "BUTTON", state },
+      { uid: "resistor1", type: "RESISTOR" },
+      { uid: "led1", type: "LED" },
+      { uid: "power1", type: "POWER" },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "5V", toUid: "button1", toPin: "pin1" },
+      { fromUid: "button1", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    return { components, orchestrators, firmwareSessions, step }
+  }
+
+  it("an open, unpolarized button never fabricates a valid HIGH reading", () => {
+    const { firmwareSessions, step } = setup("released")
+    const frame = step(0)
+    expect(frame.get("arduino1:D2")).not.toBe("HIGH")
+    expect(firmwareSessions.get("arduino1").inputSignals.get("arduino1:D2")).not.toBe("HIGH")
+  })
+
+  it("stop discards the input sampling session and restart re-reads the current physical contact", () => {
+    const { components, orchestrators, firmwareSessions, step } = setup()
+    expect(step(0).get("arduino1:D2")).toBe("HIGH")
+    expect(getLedState("led1", step()).on).toBe(true)
+    const first = firmwareSessions.get("arduino1")
+    stopFirmwareSimulation(orchestrators, firmwareSessions)
+    expect(firmwareSessions.size).toBe(0)
+    expect(orchestrators.size).toBe(0)
+    expect(getLedState("led1", new Map()).on).toBe(false)
+
+    components[1].state = "released"
+    const restarted = step(0)
+    expect(restarted.get("arduino1:D2")).not.toBe("HIGH")
+    const second = firmwareSessions.get("arduino1")
+    expect(second).not.toBe(first)
+    expect(second.awaitingFirstElectricalSample).toBe(true)
+    expect(second.inputSignals.get("arduino1:D2")).not.toBe("HIGH")
+  })
+})
+
+describe("A17.7-F — INPUT_PULLUP Arduino interactive button circuit", () => {
+  it("reads released HIGH and pressed LOW through the physical BUTTON, then releases HIGH", () => {
+    const source = "void setup() { pinMode(2, INPUT_PULLUP); pinMode(13, OUTPUT); int pressed = 0; } void loop() { pressed = digitalRead(2); if (pressed == 0) { digitalWrite(13, HIGH); } else { digitalWrite(13, LOW); } delay(16); }"
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", firmware: { source } },
+      { uid: "button1", type: "BUTTON", state: "released" },
+      { uid: "resistor1", type: "RESISTOR" },
+      { uid: "led1", type: "LED" },
+      { uid: "power1", type: "POWER" },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "GND", toUid: "button1", toPin: "pin1" },
+      { fromUid: "button1", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    step(0)
+    expect(getLedState("led1", step()).on).toBe(false)
+    components[1].state = "pressed"
+    expect(step().get("arduino1:D2")).toBe("LOW")
+    expect(getLedState("led1", step()).on).toBe(true)
+    components[1].state = "released"
+    // The controller samples the preceding resolved electrical frame.
+    // First resolve the opened contact, then allow the next loop read.
+    const releasedFrame = step()
+    expect(releasedFrame.get("arduino1:D2")).not.toBe("LOW")
+    expect(getLedState("led1", step()).on).toBe(false)
+  })
+})

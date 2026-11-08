@@ -287,8 +287,8 @@ describe("L — CAPACITOR : profil through-hole réel, target vient de contacts[
     expect(g.contacts).toHaveLength(2)
     const pinA = g.contacts.find((c) => c.pinId === "pinA")
     const pinB = g.contacts.find((c) => c.pinId === "pinB")
-    expect(pinA).toMatchObject({ contactId: "pinA", target: { x: 23, y: 62 }, root: { x: 23, y: 27 }, style: "wire", hole: null, holePosition: null })
-    expect(pinB).toMatchObject({ contactId: "pinB", target: { x: 47, y: 62 }, root: { x: 47, y: 27 }, style: "wire", hole: null, holePosition: null })
+    expect(pinA).toMatchObject({ pinId: "pinA", target: { x: 23, y: 62 }, root: { x: 23, y: 27 }, style: "metallic-wire", hole: null, holePosition: null })
+    expect(pinB).toMatchObject({ pinId: "pinB", target: { x: 47, y: 62 }, root: { x: 47, y: 27 }, style: "metallic-wire", hole: null, holePosition: null })
   })
 
   it("inséré : les deux contacts résolvent sur des trous distincts (géométrie ancrée sur contacts[], pas sur pin.dx/dy)", () => {

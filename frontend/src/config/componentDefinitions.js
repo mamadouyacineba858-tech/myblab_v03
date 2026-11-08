@@ -99,8 +99,20 @@ const PIN_PRESENTATION_BY_TYPE = {
     { id: "D11", label: "D11", dx: 67, dy: 33, contacts: [{ id: "D11", dx: 96.91, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
     { id: "D12", label: "D12", dx: 63, dy: 33, contacts: [{ id: "D12", dx: 91.17, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
     { id: "D13", label: "D13", dx: 59, dy: 33, contacts: [{ id: "D13", dx: 85.55, dy: 8.35, wireConnectable: true, breadboardInsertable: false }] },
-    { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [{ id: "GND", dx: 112.15, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    // One electrical ground, three physical UNO sockets. The default contact
+    // remains the original lower POWER GND for existing saved circuits.
+    { id: "GND", label: "GND", dx: 0, dy: 110, contacts: [
+      { id: "GND", dx: 112.15, dy: 107.96, wireConnectable: true, breadboardInsertable: false },
+      { id: "GND_POWER", dx: 117.85, dy: 107.96, wireConnectable: true, breadboardInsertable: false },
+      { id: "GND_AREF", dx: 79.7, dy: 8.35, wireConnectable: true, breadboardInsertable: false },
+    ] },
     { id: "5V", label: "5V", dx: 120, dy: 50, contacts: [{ id: "5V", dx: 106.41, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A0", label: "A0", dx: 140.41, dy: 110, contacts: [{ id: "A0", dx: 140.41, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A1", label: "A1", dx: 146.11, dy: 110, contacts: [{ id: "A1", dx: 146.11, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A2", label: "A2", dx: 151.81, dy: 110, contacts: [{ id: "A2", dx: 151.81, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A3", label: "A3", dx: 157.51, dy: 110, contacts: [{ id: "A3", dx: 157.51, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A4", label: "A4", dx: 163.21, dy: 110, contacts: [{ id: "A4", dx: 163.21, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
+    { id: "A5", label: "A5", dx: 168.91, dy: 110, contacts: [{ id: "A5", dx: 168.91, dy: 107.96, wireConnectable: true, breadboardInsertable: false }] },
   ],
   BUTTON: [
     { id: "pin1", label: "1", dx: 14, dy: 30, contacts: [{ id: "1a", dx: 14, dy: 58, wireConnectable: true, breadboardInsertable: true }, { id: "1b", dx: 14, dy: 2, wireConnectable: true, breadboardInsertable: true }] },
@@ -778,10 +790,10 @@ function buildPins(type) {
 export const COMPONENT_TYPES = {
   LED: { id: "LED", label: "LED", icon: "💡", width: 80, height: 64, pins: buildPins("LED") },
   RESISTOR: { id: "RESISTOR", label: "Résistance", icon: "〰️", width: 84, height: 28, pins: buildPins("RESISTOR") },
-  ARDUINO: { id: "ARDUINO", label: "Arduino UNO", icon: "🤖", width: 180, height: 120, pins: buildPins("ARDUINO") },
+  ARDUINO: { rotatable: false, id: "ARDUINO", label: "Arduino UNO", icon: "🤖", width: 180, height: 120, pins: buildPins("ARDUINO") },
   BUTTON: { id: "BUTTON", label: "Bouton", icon: "🔘", width: 60, height: 60, pins: buildPins("BUTTON"), interaction: { type: "momentary" }, initialState: "released" },
   BUTTON_LATCHING: { id: "BUTTON_LATCHING", label: "Interrupteur", icon: "🔲", width: 60, height: 60, pins: buildPins("BUTTON_LATCHING"), interaction: { type: "latching" }, initialState: "off" },
-  POWER: { id: "POWER", label: "Alimentation", icon: "⚡", width: 70, height: 90, pins: buildPins("POWER") },
+  POWER: { rotatable: false, id: "POWER", label: "Alimentation", icon: "⚡", width: 70, height: 90, pins: buildPins("POWER") },
   BATTERY_AA: { id: "BATTERY_AA", label: "Pile AA 1,5 V", icon: "🔋", width: 40, height: 100, pins: buildPins("BATTERY_AA") },
   COIN_CELL_CR2032: { id: "COIN_CELL_CR2032", label: "Pile CR2032 3 V", icon: "🔋", width: 60, height: 60, pins: buildPins("COIN_CELL_CR2032") },
   BATTERY_9V: { id: "BATTERY_9V", label: "Pile 9 V", icon: "🔋", width: 70, height: 90, pins: buildPins("BATTERY_9V") },

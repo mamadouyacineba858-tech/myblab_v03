@@ -1,3 +1,4 @@
+import { getComponentRotation, rotateLocalPoint } from "./componentOrientation.js"
 /**
  * Presentation-only pin coordinates.
  *
@@ -89,10 +90,15 @@ export function getPinPresentationPosition(component, pinDef, { scale = 1, conta
     const y = component.y + contact.dy
     basePos = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null
   } else {
-    basePos = getPinPosition(component, pinDef)
+    basePos = getPinPosition({ ...component, rotation: 0 }, pinDef)
   }
 
   if (!basePos) return null
+  const rotation = getComponentRotation(component)
+  if (rotation) {
+    const offset = rotateLocalPoint(getComponentDef(component.type), { dx: basePos.x - component.x, dy: basePos.y - component.y }, rotation)
+    basePos = { x: component.x + offset.dx, y: component.y + offset.dy }
+  }
   if (!Number.isFinite(scale) || scale === 1) return basePos
 
   // [MB-VIS-CANVAS-052] Centre de mise à l'échelle : dérivé des dimensions

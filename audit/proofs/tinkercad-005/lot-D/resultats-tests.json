@@ -1,0 +1,2761 @@
+{
+  "command": "npm run test:ci -- --pool=threads --minWorkers=4 --maxWorkers=4 --reporter=json --outputFile=C:\\Users\\USER\\AppData\\Local\\Temp\\myblab-lot-d-current.json",
+  "totals": {
+    "files": 378,
+    "failedFiles": 14,
+    "tests": 7145,
+    "passed": 7123,
+    "failed": 22,
+    "skipped": 0
+  },
+  "files": [
+    {
+      "file": "src/__tests__/A1ButtonModel.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/AddBreadboardMutationChannel.integration.test.jsx",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/AddComponentBreadboardPlacement.integration.test.jsx",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/AddComponentMutationChannel.integration.test.jsx",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/AddWireMutationChannel.integration.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/App.test.js",
+      "status": "passed",
+      "total": 1,
+      "passed": 1,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/ArduinoFirmwareDocument.integration.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/BreadboardInsertionMutationChannel.integration.test.jsx",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/BreadboardMovementDeletion.integration.test.jsx",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/buzzerRealisticReconciliation.test.js",
+      "status": "passed",
+      "total": 35,
+      "passed": 35,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/CanvasInteractionDepth.test.jsx",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/CanvasPerformanceIsolation.test.jsx",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/CanvasWorkspaceReconciliation.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/capabilities.test.js",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/CF4ValidationIntegration.test.js",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/CircuitFileRoundTripC08.integration.test.jsx",
+      "status": "passed",
+      "total": 1,
+      "passed": 1,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/ComponentFocusLocalZoom.integration.test.jsx",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/componentLibraryRolloutGate.test.js",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/ComponentProperties.integration.test.jsx",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/ComponentRotationD.integration.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/ComponentValueEditing.integration.test.jsx",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/ContactFoundationPinWireCoherence.integration.test.jsx",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/CoordinateZoomInteraction.integration.test.jsx",
+      "status": "passed",
+      "total": 19,
+      "passed": 19,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/DeleteCommand.integration.test.jsx",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/DeleteCommand.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/forceFlexSensorA7C2.test.js",
+      "status": "passed",
+      "total": 97,
+      "passed": 97,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/forceFlexSensorA7C2.test.jsx",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/hBridgeA8.test.js",
+      "status": "passed",
+      "total": 87,
+      "passed": 87,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/hcSr04A7C5.test.js",
+      "status": "passed",
+      "total": 70,
+      "passed": 70,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/HistoryManager.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/hobbyGearmotorA6Out3.test.js",
+      "status": "passed",
+      "total": 46,
+      "passed": 46,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/hobbyGearmotorA6Out3.test.jsx",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/inductorA4.test.js",
+      "status": "passed",
+      "total": 60,
+      "passed": 60,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/irReceiverA7C4.test.js",
+      "status": "passed",
+      "total": 63,
+      "passed": 63,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/irReceiverA7C4.test.jsx",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/KeyboardSystem.test.js",
+      "status": "passed",
+      "total": 1,
+      "passed": 1,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/L1Bread001PhysicalInsertionClarity.integration.test.jsx",
+      "status": "passed",
+      "total": 18,
+      "passed": 18,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/L1Bread002CanonicalBreadboardPersistence.integration.test.jsx",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/L1Env001EnvironmentalStimulus.integration.test.jsx",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/L1Wire001MultiBreadboardWireValidation.integration.test.jsx",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/latchingButton.test.jsx",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/lightBulbA6Out2.test.js",
+      "status": "passed",
+      "total": 41,
+      "passed": 41,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/lightBulbA6Out2.test.jsx",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/MB-VIS-BREAD-042-InsertionSnapFeedback.integration.test.jsx",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/MBL1PROP004ResistorColorCodeIntegration.test.jsx",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/MBL1PROP005CapacitorMarkingIntegration.test.jsx",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/MBL1PROP006ThermistorMarkingIntegration.test.jsx",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/MBVIS005WaypointsMutationChannel.integration.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/MoveCommand.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/MoveComponentMutationChannel.integration.test.jsx",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/multiBreadboardPresentation.integration.test.jsx",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/PhysicalPropertyRendering.integration.test.jsx",
+      "status": "failed",
+      "total": 24,
+      "passed": 23,
+      "failed": [
+        {
+          "test": "L1-PROP-003 — assets livrés, manifest et intégrité (T16/T17/T18) T18 — chaque fichier déclaré dans ASSET-INTEGRITY.json existe avec les bytes/SHA-256 réels",
+          "message": "AssertionError: expected 9936 to be 9456 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\PhysicalPropertyRendering.integration.test.jsx:282:26\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/__tests__/pirMotionSensorA7C4.test.js",
+      "status": "passed",
+      "total": 46,
+      "passed": 46,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/pirMotionSensorA7C4.test.jsx",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/polarizedCapacitorFoundation.test.js",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/potentiometerRotaryReconciliation.test.js",
+      "status": "passed",
+      "total": 24,
+      "passed": 24,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/renderQualityGate.test.jsx",
+      "status": "failed",
+      "total": 368,
+      "passed": 363,
+      "failed": [
+        {
+          "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) CAPACITOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+          "message": "AssertionError: capacitor.base.3x.png : sha256 réel ≠ ASSET-INTEGRITY: expected '2016ad9abeabbe71fda535c72330e65823731…' to be 'a8c856f4d5723914dfc0871d8efb3abcfff0c…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:547:80\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        },
+        {
+          "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) TILT_SENSOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+          "message": "AssertionError: tilt-sensor.default.3x.png = 56.1 Ko > budget 30 Ko: expected 56.119140625 to be less than or equal to 30\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:554:11\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        },
+        {
+          "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) IR_RECEIVER : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+          "message": "AssertionError: ir-receiver.default.3x.png = 55.0 Ko > budget 30 Ko: expected 55.00390625 to be less than or equal to 30\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:554:11\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        },
+        {
+          "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) INDUCTOR : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+          "message": "AssertionError: inductor.default.3x.png = 123.4 Ko > budget 30 Ko: expected 123.4365234375 to be less than or equal to 30\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:554:11\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        },
+        {
+          "test": "MB-VIS-INDUSTRIAL-001 — TEST T10 : intégrité + budget des assets raster (RENDER_BUDGET.raster) ZENER_DIODE : paquet d'assets présent, sha256/octets/dimensions cohérents, sous le budget",
+          "message": "AssertionError: zener-diode.default.3x.png = 90.8 Ko > budget 30 Ko: expected 90.8037109375 to be less than or equal to 30\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\__tests__\\renderQualityGate.test.jsx:554:11\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/__tests__/rgbLed.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/RichComponentInspector.integration.test.jsx",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/SimulationStatePresentationCoexistence.test.jsx",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/soilMoistureSensorA7C3.test.js",
+      "status": "passed",
+      "total": 49,
+      "passed": 49,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/soilMoistureSensorA7C3.test.jsx",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/SourceParametersImport.integration.test.jsx",
+      "status": "passed",
+      "total": 1,
+      "passed": 1,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/tiltSensorA7C4.test.js",
+      "status": "passed",
+      "total": 49,
+      "passed": 49,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/tiltSensorA7C4.test.jsx",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/tiltSensorA7C4R1.test.js",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/tmp36A7C1.test.js",
+      "status": "passed",
+      "total": 46,
+      "passed": 46,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/tmp36A7C1.test.jsx",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/UpdateWireWaypointsMutationChannel.integration.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/vibrationMotorA6Out1.test.js",
+      "status": "passed",
+      "total": 31,
+      "passed": 31,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/vibrationMotorA6Out1R1.test.jsx",
+      "status": "passed",
+      "total": 33,
+      "passed": 33,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/ViewportNavigation.integration.test.jsx",
+      "status": "passed",
+      "total": 19,
+      "passed": 19,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/voltageRegulatorA8.test.js",
+      "status": "passed",
+      "total": 32,
+      "passed": 32,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/WireGesture.integration.test.jsx",
+      "status": "passed",
+      "total": 17,
+      "passed": 17,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/zenerDiodeA5.test.js",
+      "status": "passed",
+      "total": 56,
+      "passed": 56,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/__tests__/firmwareDefaults.test.js",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/bridge/tests/cf1DocumentArchitecture.test.js",
+      "status": "passed",
+      "total": 14,
+      "passed": 14,
+      "failed": []
+    },
+    {
+      "file": "src/bridge/tests/DiffEngine.test.js",
+      "status": "passed",
+      "total": 19,
+      "passed": 19,
+      "failed": []
+    },
+    {
+      "file": "src/bridge/tests/DocumentAdapter.test.js",
+      "status": "passed",
+      "total": 17,
+      "passed": 17,
+      "failed": []
+    },
+    {
+      "file": "src/bridge/tests/documentCoreProjection.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/bridge/tests/multiBreadboardBridgeSimulation.integration.test.js",
+      "status": "passed",
+      "total": 14,
+      "passed": 14,
+      "failed": []
+    },
+    {
+      "file": "src/bridge/tests/ReactCoreBridge.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/bridge/tests/ReactDocumentMapper.test.js",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/canvas/__tests__/Breadboard.test.jsx",
+      "status": "passed",
+      "total": 27,
+      "passed": 27,
+      "failed": []
+    },
+    {
+      "file": "src/canvas/__tests__/breadboardPhysicalReconciliation.test.jsx",
+      "status": "passed",
+      "total": 25,
+      "passed": 25,
+      "failed": []
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonDragInteraction.integration.test.jsx",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/canvas/__tests__/ButtonInteraction008.integration.test.jsx",
+      "status": "failed",
+      "total": 5,
+      "passed": 3,
+      "failed": [
+        {
+          "test": "MB-VIS-BUTTON-INTERACTION-008 B2 ? apr?s un drag du BUTTON, une pin d?marre encore le wire gesture et jamais le drag composant",
+          "message": "AssertionError: expected 1 to be 2 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\canvas\\__tests__\\ButtonInteraction008.integration.test.jsx:121:27\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        },
+        {
+          "test": "MB-VIS-BUTTON-INTERACTION-008 L1 ? un drag du BUTTON_LATCHING ne toggle pas son ?tat",
+          "message": "AssertionError: expected 1 to be 2 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\canvas\\__tests__\\ButtonInteraction008.integration.test.jsx:183:27\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/canvas/__tests__/CanvasHoverUX.test.jsx",
+      "status": "failed",
+      "total": 3,
+      "passed": 1,
+      "failed": [
+        {
+          "test": "A13-HOVER-UX shared electrical pin behavior does not use delayed browser title or React hover state",
+          "message": "AssertionError: expected 'D3' to be null\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\canvas\\__tests__\\CanvasHoverUX.test.jsx:15:39\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        },
+        {
+          "test": "A13-HOVER-UX shared electrical pin behavior keeps markerless contacts targetable for hover and wiring",
+          "message": "AssertionError: expected '0' to be '' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\canvas\\__tests__\\CanvasHoverUX.test.jsx:37:31\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/canvas/__tests__/CircuitComponent.interaction.test.jsx",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/canvas/__tests__/circuitComponentRasterChrome.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/canvas/__tests__/ComponentInsertGhost.test.jsx",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/canvas/__tests__/DipSwitchInteraction.test.jsx",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/canvas/__tests__/SlideSwitchInteraction.test.jsx",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/config/__tests__/componentDefinitions.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/config/__tests__/componentDefinitionsBoundary.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/config/__tests__/componentInstanceState.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/config/__tests__/componentProperties.test.js",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/components/__tests__/ComponentPreview.test.jsx",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/components/__tests__/LaboratoryWorkspaceCohesion.test.jsx",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/components/__tests__/Sidebar.test.jsx",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/components/__tests__/StatusBar.test.jsx",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/hooks/__tests__/useCircuitStateArduinoBridge.test.jsx",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/hooks/__tests__/useCircuitStateInteraction.test.jsx",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/hooks/__tests__/useCircuitStateInteractionCapabilityIsolated.test.jsx",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/hooks/__tests__/useCircuitStateInteractionGuard.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/hooks/__tests__/useCircuitStateInteractionRealPipeline.test.jsx",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/hooks/__tests__/useCircuitStateLcdRuntimeProjection.test.jsx",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/hooks/__tests__/useCircuitStateRuntimeArchitecture.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/hooks/__tests__/useCircuitStateTimedRuntime.test.jsx",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/instruments/__tests__/ammeterLedCoherence.test.js",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/instruments/__tests__/instrumentsLive.test.js",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/instruments/__tests__/ProbeOverlay.test.jsx",
+      "status": "passed",
+      "total": 1,
+      "passed": 1,
+      "failed": []
+    },
+    {
+      "file": "src/measurement/__tests__/breadboardMeasurementIntegration.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/measurement/__tests__/LiveMeasurementPanel.test.jsx",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/measurement/__tests__/measurementArchitecture.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/measurement/__tests__/measurementContract.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/measurement/__tests__/MeasurementPanel.test.jsx",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/observation/__tests__/observationArchitecture.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/observation/__tests__/observationContract.test.js",
+      "status": "passed",
+      "total": 27,
+      "passed": 27,
+      "failed": []
+    },
+    {
+      "file": "src/observation/__tests__/temporalObservationArchitecture.test.js",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/observation/__tests__/temporalObservationContract.test.js",
+      "status": "passed",
+      "total": 26,
+      "passed": 26,
+      "failed": []
+    },
+    {
+      "file": "src/observation/__tests__/TemporalObservationPanel.test.jsx",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/observation/__tests__/TemporalObservationPanelArchitecture.test.js",
+      "status": "passed",
+      "total": 14,
+      "passed": 14,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/4n35A11.test.js",
+      "status": "passed",
+      "total": 28,
+      "passed": 28,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/analogControlledConditionalConduction.test.js",
+      "status": "passed",
+      "total": 49,
+      "passed": 49,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/analogControlledFeedbackDomains.test.js",
+      "status": "passed",
+      "total": 28,
+      "passed": 28,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/analogControlledSupplyContext.test.js",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/analogControlledVoltageDomains.test.js",
+      "status": "passed",
+      "total": 37,
+      "passed": 37,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/andGateA9.test.js",
+      "status": "passed",
+      "total": 29,
+      "passed": 29,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/arduinoGpioFallback.test.js",
+      "status": "passed",
+      "total": 57,
+      "passed": 57,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/batterySources.test.js",
+      "status": "passed",
+      "total": 26,
+      "passed": 26,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/binaryCounter74HC161A9.test.js",
+      "status": "passed",
+      "total": 85,
+      "passed": 85,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/breadboardSimulationIntegration.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/canonicalRegistry.test.js",
+      "status": "passed",
+      "total": 34,
+      "passed": 34,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/canonicalRegistryArchitecture.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/cf2RegistryConformance.test.js",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/clock.test.js",
+      "status": "passed",
+      "total": 23,
+      "passed": 23,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/combinationalDigitalPropagation.test.js",
+      "status": "passed",
+      "total": 24,
+      "passed": 24,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/computedDigitalOutputs.test.js",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/conditionalConduction.test.js",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/dcContributionRegistry.test.js",
+      "status": "passed",
+      "total": 126,
+      "passed": 126,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/dcVoltageDomains.test.js",
+      "status": "passed",
+      "total": 20,
+      "passed": 20,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/dFlipFlop74HC74A9.test.js",
+      "status": "passed",
+      "total": 42,
+      "passed": 42,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/digitalContributionRegistry.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/digitalEventContributionRegistry.test.js",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/digitalEventRuntimeIntegration.test.js",
+      "status": "passed",
+      "total": 23,
+      "passed": 23,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/digitalTransitionEventTiming.test.js",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/dipSwitchTopology.test.js",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/dLatch74HC75A9.test.js",
+      "status": "passed",
+      "total": 43,
+      "passed": 43,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/electricalAnalysis.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/engineAdapter.test.js",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/environmentalStimulus.test.js",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/environmentalStimulusRegistry.test.js",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/environmentArchitecture.test.js",
+      "status": "passed",
+      "total": 17,
+      "passed": 17,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/jkFlipFlop74HC73A9.test.js",
+      "status": "passed",
+      "total": 40,
+      "passed": 40,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/lcd16x2WH1602BA10.test.js",
+      "status": "passed",
+      "total": 60,
+      "passed": 60,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/lm339ne4A11.test.js",
+      "status": "passed",
+      "total": 29,
+      "passed": 29,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/lm358pA11.test.js",
+      "status": "passed",
+      "total": 25,
+      "passed": 25,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/lm393pA11.test.js",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/mixedSignalStepContract.test.js",
+      "status": "passed",
+      "total": 28,
+      "passed": 28,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/multiPrimaryDc.test.js",
+      "status": "passed",
+      "total": 29,
+      "passed": 29,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/nandGateA9.test.js",
+      "status": "passed",
+      "total": 31,
+      "passed": 31,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/ne555pA11.test.js",
+      "status": "passed",
+      "total": 26,
+      "passed": 26,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/ne555pA11Circuits.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/ne556nA11.test.js",
+      "status": "passed",
+      "total": 53,
+      "passed": 53,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/ne556nA11Circuits.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/nodalDcSolver.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/norGateA9.test.js",
+      "status": "passed",
+      "total": 33,
+      "passed": 33,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/notGateA9.test.js",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/orGateA9.test.js",
+      "status": "passed",
+      "total": 31,
+      "passed": 31,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/poweredDigitalContext.test.js",
+      "status": "passed",
+      "total": 21,
+      "passed": 21,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/preparationArchitecture.test.js",
+      "status": "passed",
+      "total": 1,
+      "passed": 1,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/pwmFrequencyConfiguration.test.js",
+      "status": "passed",
+      "total": 25,
+      "passed": 25,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/pwmRuntime.test.js",
+      "status": "passed",
+      "total": 26,
+      "passed": 26,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/pwmSignal.test.js",
+      "status": "passed",
+      "total": 36,
+      "passed": 36,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/registrySimulationCoherence.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/relay.test.js",
+      "status": "passed",
+      "total": 39,
+      "passed": 39,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/resistiveDriveContext.test.js",
+      "status": "passed",
+      "total": 28,
+      "passed": 28,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/resolutionArchitecture.test.js",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/resolutionDc.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/resolutionDcAnalog.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/resolutionDcExtended.test.js",
+      "status": "passed",
+      "total": 19,
+      "passed": 19,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/resolutionEffectiveParameters.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/resolutionExternalSignals.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/resolutionPassivePropagation.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/resolveComponentParameters.test.js",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/runtimeArchitecture.test.js",
+      "status": "passed",
+      "total": 17,
+      "passed": 17,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/runtimeIntegration.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/runtimeOrchestrator.test.js",
+      "status": "passed",
+      "total": 18,
+      "passed": 18,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/scheduler.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/sequentialDigitalA9Preq.test.js",
+      "status": "passed",
+      "total": 30,
+      "passed": 30,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/sevenSegmentDisplayA10.test.js",
+      "status": "passed",
+      "total": 33,
+      "passed": 33,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/simulationModelsArchitecture.test.js",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/simulationRegistry.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/simulationRuntimeIntegration.test.js",
+      "status": "passed",
+      "total": 18,
+      "passed": 18,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/slideSwitchTopology.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/switchTopology.test.js",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/timeArchitecture.test.js",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/timedDigitalContributionRegistry.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/timedDigitalRuntimeIntegration.test.js",
+      "status": "passed",
+      "total": 35,
+      "passed": 35,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/tinkercad005LotB.test.js",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/transientContributionRegistry.test.js",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/transientElectricalResolutionIntegration.test.js",
+      "status": "passed",
+      "total": 19,
+      "passed": 19,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/transientElectricalRuntimeIntegration.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/transientSolver.test.js",
+      "status": "passed",
+      "total": 21,
+      "passed": 21,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/transientVoltageFactBridge.test.js",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/ws2812bV6Protocol.test.js",
+      "status": "passed",
+      "total": 23,
+      "passed": 23,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/ws2812bV6RuntimeIntegration.test.js",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/simulator/__tests__/xorGateA9.test.js",
+      "status": "passed",
+      "total": 33,
+      "passed": 33,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/assemblyGeometry.test.js",
+      "status": "passed",
+      "total": 23,
+      "passed": 23,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/assemblyGeometryPerContact.test.js",
+      "status": "passed",
+      "total": 14,
+      "passed": 14,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/assemblyLeadsDarkWireR2.test.js",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardAssociation.test.js",
+      "status": "passed",
+      "total": 23,
+      "passed": 23,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardAttachmentModelS5.test.js",
+      "status": "passed",
+      "total": 19,
+      "passed": 19,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardConnectivity.test.js",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardContactTopology.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardElectricalIdentity.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardGeometry.test.js",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardPlacementAdapter.test.js",
+      "status": "passed",
+      "total": 26,
+      "passed": 26,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardSwitchFit.test.jsx",
+      "status": "passed",
+      "total": 25,
+      "passed": 25,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardWireConnectivity.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/breadboardWireEndpoint.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/canvasDefaultScaleA13.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/circuitModel.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/circuitModelInteractionGuard.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/circuitModelInteractionState.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/circuitSelectors.test.js",
+      "status": "passed",
+      "total": 14,
+      "passed": 14,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/clientToCanvasZoom.test.js",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/componentParameters.test.js",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/contactModel.test.js",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/coordinateConversionSingleModelGuard.test.js",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/geometryPinCanonical.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/geometryPinCanonicalGuard.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/localScale.test.js",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/multiBreadboardConnectivity.test.js",
+      "status": "passed",
+      "total": 17,
+      "passed": 17,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/normalizeDocumentBreadboards.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/physicalContactConvergence.test.js",
+      "status": "passed",
+      "total": 144,
+      "passed": 144,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/pinFootprintConsumersGuard.test.js",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/pinFootprintContract.test.js",
+      "status": "passed",
+      "total": 244,
+      "passed": 244,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/pinPresentationGeometry.test.js",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/resolveComponentContactHoles.test.js",
+      "status": "passed",
+      "total": 68,
+      "passed": 68,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/resolveComponentPinHoles.test.js",
+      "status": "passed",
+      "total": 41,
+      "passed": 41,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/sceneBounds.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/viewportModel.test.js",
+      "status": "passed",
+      "total": 17,
+      "passed": 17,
+      "failed": []
+    },
+    {
+      "file": "src/utils/__tests__/wireContactAnchor.persistence.test.js",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/__tests__/capacitorMarking.test.js",
+      "status": "passed",
+      "total": 35,
+      "passed": 35,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/__tests__/polarizedCapacitorMarking.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/__tests__/potentiometerPosition.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/__tests__/rasterBudget.test.js",
+      "status": "passed",
+      "total": 31,
+      "passed": 31,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/__tests__/resistorColorCode.test.js",
+      "status": "passed",
+      "total": 45,
+      "passed": 45,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/__tests__/thermistorMarking.test.js",
+      "status": "passed",
+      "total": 18,
+      "passed": 18,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/__tests__/visualContract.test.js",
+      "status": "passed",
+      "total": 33,
+      "passed": 33,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/__tests__/visualStateRegistry.test.js",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/__tests__/ws2812bV6Projection.test.js",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/wires/__tests__/BreadboardWiresLayer.integration.test.jsx",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/wires/__tests__/BreadboardWiresLayerContact.test.jsx",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/wires/__tests__/waypointInsertion.test.js",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/wires/__tests__/wirePath.test.js",
+      "status": "passed",
+      "total": 17,
+      "passed": 17,
+      "failed": []
+    },
+    {
+      "file": "src/wires/__tests__/WiresLayer.test.jsx",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/wires/__tests__/WiresLayerPreviewContactConvergence.test.jsx",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/wires/__tests__/wireState.test.js",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/CapacitorModel.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/DcMotorModel.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/DiodeModel.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/LdrModel.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/NmosModel.test.js",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/NpnTransistorModel.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/PmosModel.test.js",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/PnpTransistorModel.test.js",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/PotentiometerModel.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/PowerModel.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/ResistorModel.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/ThermistorModel.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/__tests__/models/ZenerDiodeModel.test.js",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/boards/__tests__/boardCapabilities.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/arduinoGndReference.integration.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/boardPinMap.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareArchitecture.test.js",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareBlink.integration.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareBreadboardBlink.integration.test.js",
+      "status": "passed",
+      "total": 2,
+      "passed": 2,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareBuiltinLed.integration.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareCircuitQualification.integration.test.js",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareCompiler.test.js",
+      "status": "passed",
+      "total": 61,
+      "passed": 61,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareExecution.integration.test.js",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareExecutor.test.js",
+      "status": "passed",
+      "total": 43,
+      "passed": 43,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareLive.integration.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareRuntimeController.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/firmware/__tests__/firmwareTemporalArchitecture.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/arduino/ui/__tests__/ArduinoCodeWorkspace.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/components/assembly/__tests__/AssemblyLeadsLayer.test.jsx",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/components/assembly/__tests__/CapacitorMetallicLeads.test.jsx",
+      "status": "passed",
+      "total": 1,
+      "passed": 1,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/AndGatePart.raster.test.jsx",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoGeometryContract.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPart.raster.test.jsx",
+      "status": "failed",
+      "total": 18,
+      "passed": 15,
+      "failed": [
+        {
+          "test": "MB-VIS-COMP-037 — pins : présentation projetée, électrique inchangé (TEST 7/8/9/10) TEST 8 — coordonnées électriques canoniques INCHANGÉES : D2 dx=0/dy=50, D3 dx=0/dy=75, GND dx=0/dy=110, 5V dx=120/dy=50",
+          "message": "AssertionError: expected [ 'D0', 'D1', 'D2', 'D3', 'D4', …(17) ] to deeply equal [ 'D0', 'D1', 'D2', 'D3', 'D4', …(11) ]\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\ArduinoPart.raster.test.jsx:160:64\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        },
+        {
+          "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation CircuitComponent rend 16 pins visibles dont D2/D3 sur le header physique ; asset raster",
+          "message": "AssertionError: expected 22 to be 16 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\ArduinoPart.raster.test.jsx:210:25\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        },
+        {
+          "test": "A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation identifies every hovered GPIO and supply contact by its real electrical pin",
+          "message": "AssertionError: expected [ <button …(9)></button>, …(21) ] to have a length of 16 but got 22\n    at Proxy.<anonymous> (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/expect/dist/index.js:1339:22)\n    at Proxy.<anonymous> (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/expect/dist/index.js:972:17)\n    at Proxy.methodWrapper (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/chai/index.js:1686:25)\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\ArduinoPart.raster.test.jsx:257:18\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/ArduinoPinVisibility.test.jsx",
+      "status": "failed",
+      "total": 14,
+      "passed": 13,
+      "failed": [
+        {
+          "test": "MB-L1-ARDUINO-001 — refined Arduino OFF/RUN presentation expose D0-D13 plus GND/5V comme PhysicalContacts wire-only",
+          "message": "AssertionError: expected [ …(22) ] to have a length of 16 but got 22\n    at Proxy.<anonymous> (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/expect/dist/index.js:1339:22)\n    at Proxy.<anonymous> (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/expect/dist/index.js:972:17)\n    at Proxy.methodWrapper (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/chai/index.js:1686:25)\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\ArduinoPinVisibility.test.jsx:111:22\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/BatteryParts.raster.test.jsx",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/BinaryCounter74HC161Part.raster.test.jsx",
+      "status": "failed",
+      "total": 30,
+      "passed": 29,
+      "failed": [
+        {
+          "test": "A9-COUNTER1 — CTR-35 / CTR-36 asset pack FROZEN / CSA LOCKED CTR-36: SHA256SUMS cover every payload except itself and match; Founder SHA frozen",
+          "message": "AssertionError: ASSET-INTEGRITY.json: expected '8687a5c275e978e2ba5769c7ffead21d71768…' to be '097ce6df64dfcd1adafa7f01863f26d247dbf…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\BinaryCounter74HC161Part.raster.test.jsx:138:85\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/ButtonPart.raster.test.jsx",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/BuzzerPart.raster.test.jsx",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/CapacitorPart.raster.test.jsx",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/DcMotorPart.raster.test.jsx",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/DFlipFlop74HC74Part.raster.test.jsx",
+      "status": "failed",
+      "total": 27,
+      "passed": 26,
+      "failed": [
+        {
+          "test": "A9-DFF1 — asset pack FROZEN / CSA LOCKED SHA256SUMS and manifest hashes match the files; Founder and runtime 1x SHA unchanged",
+          "message": "AssertionError: manifest.json: expected '14915075208079d3505899505935219d005d7…' to be '39e4165dfd0324f296cbab926835f8d943cb9…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\DFlipFlop74HC74Part.raster.test.jsx:114:53\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/DiodePart.raster.test.jsx",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/DiodePhysicalLeads.test.jsx",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/DipSwitchPart.raster.test.jsx",
+      "status": "passed",
+      "total": 25,
+      "passed": 25,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/DLatch74HC75Part.raster.test.jsx",
+      "status": "failed",
+      "total": 30,
+      "passed": 29,
+      "failed": [
+        {
+          "test": "A9-LATCH1 — asset pack FROZEN / CSA LOCKED (T17) SHA256SUMS match the files; Founder and runtime 1x SHA unchanged; manifest identity",
+          "message": "AssertionError: README.md: expected 'b22301e319f7c76769ea3c6ea94aa85e0bf0b…' to be 'af1c1bdab46b182a53bf6eae81adcd486a5c3…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\DLatch74HC75Part.raster.test.jsx:127:53\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/FourN35Part.raster.test.jsx",
+      "status": "passed",
+      "total": 23,
+      "passed": 23,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/HBridgePart.raster.test.jsx",
+      "status": "failed",
+      "total": 7,
+      "passed": 6,
+      "failed": [
+        {
+          "test": "A8 H_BRIDGE frozen raster pack keeps the ASSET-INTEGRITY.json inventory truthful (LF blobs) and consistent with the manifest",
+          "message": "AssertionError: SHA256SUMS.txt: expected 232 to be 230 // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\HBridgePart.raster.test.jsx:89:34\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/JkFlipFlop74HC73Part.raster.test.jsx",
+      "status": "failed",
+      "total": 13,
+      "passed": 12,
+      "failed": [
+        {
+          "test": "A9-JK1 — asset pack FROZEN / CSA LOCKED PHY-10: manifest and integrity are present and truthful (hashes, bytes, dimensions, budget)",
+          "message": "AssertionError: FOUNDER-ASSET.json: expected '5968f67ba1bf4a6555a02d778b4c7731e9bc7…' to be '2d46e37f6036386dbce32771ca31de0282e49…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\JkFlipFlop74HC73Part.raster.test.jsx:122:31\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/LatchingButtonPart.raster.test.jsx",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/LcdWh1602bPart.raster.test.jsx",
+      "status": "passed",
+      "total": 43,
+      "passed": 43,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/LdrPart.raster.test.jsx",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/LedPart.raster.test.jsx",
+      "status": "passed",
+      "total": 14,
+      "passed": 14,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/Lm339ne4Part.raster.test.jsx",
+      "status": "passed",
+      "total": 25,
+      "passed": 25,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/Lm358pPart.raster.test.jsx",
+      "status": "passed",
+      "total": 20,
+      "passed": 20,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/Lm393pPart.raster.test.jsx",
+      "status": "passed",
+      "total": 19,
+      "passed": 19,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/NandGateAsset.raster.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/NandGatePart.raster.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/Ne555pPart.raster.test.jsx",
+      "status": "passed",
+      "total": 32,
+      "passed": 32,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/Ne556nPart.raster.test.jsx",
+      "status": "passed",
+      "total": 46,
+      "passed": 46,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/NmosPart.raster.test.jsx",
+      "status": "passed",
+      "total": 22,
+      "passed": 22,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/NorGateAsset.raster.test.js",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/NorGatePart.raster.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/NotGateAsset.raster.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/NotGatePart.raster.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/NpnTransistorPart.raster.test.jsx",
+      "status": "passed",
+      "total": 14,
+      "passed": 14,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/OrGatePart.raster.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/partDimensionsCanonical.test.jsx",
+      "status": "passed",
+      "total": 67,
+      "passed": 67,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/partDimensionsGuard.test.js",
+      "status": "passed",
+      "total": 121,
+      "passed": 121,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/PartRenderer.visualState.test.jsx",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/PmosPart.raster.test.jsx",
+      "status": "passed",
+      "total": 23,
+      "passed": 23,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/PnpTransistorPart.raster.test.jsx",
+      "status": "passed",
+      "total": 21,
+      "passed": 21,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/PolarizedCapacitorDynamicMarking.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/PolarizedCapacitorPart.raster.test.jsx",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/PotentiometerDynamicPosition.test.jsx",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/PotentiometerPart.raster.test.jsx",
+      "status": "passed",
+      "total": 11,
+      "passed": 11,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/PowerCanvasReadability.test.jsx",
+      "status": "failed",
+      "total": 3,
+      "passed": 2,
+      "failed": [
+        {
+          "test": "MB-L1-POWER-001 — Canvas readability utilise uniquement le raster 3x stable sans overlays DOM",
+          "message": "AssertionError: expected 'stable-raster-3x-plus-vector-labels' to be 'stable-raster-3x' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\PowerCanvasReadability.test.jsx:25:53\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/PowerPart.raster.test.jsx",
+      "status": "failed",
+      "total": 7,
+      "passed": 6,
+      "failed": [
+        {
+          "test": "MB-VIS-COMP-036 / MB-L1-POWER-001 — POWER raster rend uniquement la référence WebP approuvée, sans SVG ni overlay DOM",
+          "message": "AssertionError: expected null not to be null\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\PowerPart.raster.test.jsx:47:21\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/RealisticRenderers.test.jsx",
+      "status": "passed",
+      "total": 71,
+      "passed": 71,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/RelayPart.raster.test.jsx",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/ResistorPart.raster.test.jsx",
+      "status": "passed",
+      "total": 15,
+      "passed": 15,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/RgbLedPart.raster.test.jsx",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/ServoPart.raster.test.jsx",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/SevenSegmentDisplayPart.raster.test.jsx",
+      "status": "failed",
+      "total": 52,
+      "passed": 51,
+      "failed": [
+        {
+          "test": "A10-DISP1 — pack d'assets FROZEN / CSA LOCKED SHA256SUMS couvre tout le pack sauf lui-même et correspond ; Founder et runtime 1x figés",
+          "message": "AssertionError: ASSET-INTEGRITY.json: expected '2392223bb402be9beb647990942cb40ac2c6d…' to be '70c03cc09bf75db36a86ec721ceb371d4f099…' // Object.is equality\n    at C:\\bureau\\_documents\\bureau\\_worktrees\\myblab-005-d\\frontend\\src\\components\\parts\\__tests__\\SevenSegmentDisplayPart.raster.test.jsx:117:85\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:146:14\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:533:11\n    at runWithTimeout (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:39:7)\n    at runTest (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1056:17)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///C:/bureau/_documents/bureau/_worktrees/myblab-005-d/frontend/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11"
+        }
+      ]
+    },
+    {
+      "file": "src/components/parts/__tests__/SlideSwitchLeadContinuity.test.jsx",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/SlideSwitchPart.raster.test.jsx",
+      "status": "passed",
+      "total": 16,
+      "passed": 16,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/ThermistorPart.raster.test.jsx",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/VoltageRegulatorPart.raster.test.jsx",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/Ws2812bV6Part.raster.test.jsx",
+      "status": "passed",
+      "total": 30,
+      "passed": 30,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/XorGateAsset.raster.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/components/parts/__tests__/XorGatePart.raster.test.jsx",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/core/command/__tests__/CommandBus.test.js",
+      "status": "passed",
+      "total": 5,
+      "passed": 5,
+      "failed": []
+    },
+    {
+      "file": "src/core/command/__tests__/CommandBusValidation.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/core/command/__tests__/CommandRegistry.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/AddBreadboardHandler.test.js",
+      "status": "passed",
+      "total": 6,
+      "passed": 6,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/AddComponentHandler.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/AddWireHandler.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/DeleteBreadboardHandler.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/MoveBreadboardHandler.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/MoveComponentHandler.test.js",
+      "status": "passed",
+      "total": 25,
+      "passed": 25,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/RemoveComponentHandler.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/UpdateArduinoFirmwareHandler.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/UpdateComponentHandler.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/UpdateComponentParametersHandler.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/UpdateComponentPropertiesHandler.test.js",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/__tests__/UpdateWireWaypointsHandler.test.js",
+      "status": "passed",
+      "total": 13,
+      "passed": 13,
+      "failed": []
+    },
+    {
+      "file": "src/core/history/__tests__/HistoryCommandInvariant.test.js",
+      "status": "passed",
+      "total": 3,
+      "passed": 3,
+      "failed": []
+    },
+    {
+      "file": "src/core/validation/__tests__/ValidationEngine.test.js",
+      "status": "passed",
+      "total": 10,
+      "passed": 10,
+      "failed": []
+    },
+    {
+      "file": "src/core/validation/__tests__/ValidationRegistry.test.js",
+      "status": "passed",
+      "total": 9,
+      "passed": 9,
+      "failed": []
+    },
+    {
+      "file": "src/core/validation/__tests__/ValidationReport.test.js",
+      "status": "passed",
+      "total": 8,
+      "passed": 8,
+      "failed": []
+    },
+    {
+      "file": "src/visualization/assetValidation/__tests__/componentAssetValidation.test.jsx",
+      "status": "passed",
+      "total": 32,
+      "passed": 32,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/breadboard/__tests__/breadboardSolidarity.test.js",
+      "status": "passed",
+      "total": 12,
+      "passed": 12,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/breadboard/__tests__/multiBreadboardCoreFoundation.test.js",
+      "status": "passed",
+      "total": 20,
+      "passed": 20,
+      "failed": []
+    },
+    {
+      "file": "src/core/handlers/breadboard/__tests__/multiBreadboardSolidarityOwnership.test.js",
+      "status": "passed",
+      "total": 7,
+      "passed": 7,
+      "failed": []
+    },
+    {
+      "file": "src/core/validation/__tests__/rules/BreadboardHoleCollisionRule.test.js",
+      "status": "passed",
+      "total": 14,
+      "passed": 14,
+      "failed": []
+    },
+    {
+      "file": "src/core/validation/__tests__/rules/electricalRules.test.js",
+      "status": "passed",
+      "total": 17,
+      "passed": 17,
+      "failed": []
+    },
+    {
+      "file": "src/core/validation/__tests__/rules/pedagogicalRules.test.js",
+      "status": "passed",
+      "total": 4,
+      "passed": 4,
+      "failed": []
+    },
+    {
+      "file": "src/core/validation/__tests__/rules/structuralRules.test.js",
+      "status": "passed",
+      "total": 38,
+      "passed": 38,
+      "failed": []
+    }
+  ]
+}

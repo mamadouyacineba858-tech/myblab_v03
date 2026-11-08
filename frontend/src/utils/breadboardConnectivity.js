@@ -1,3 +1,4 @@
+import { getOrientedComponentDef } from "./componentOrientation.js"
 /**
  * Dérivation de la connectivité électrique introduite par les breadboards.
  *
@@ -19,7 +20,6 @@
  *    appartenant à deux breadboards différents (SEUL cas de fusion
  *    inter-breadboards). Sans wire : aucune fusion.
  */
-import { getComponentDef } from '../config/componentDefinitions.js'
 import { holeAt, resolveComponentContactHoles } from './breadboardGeometry.js'
 import { BREADBOARD_PITCH } from './breadboardGeometry.js'
 import { parseBreadboardHoleEndpoint } from './breadboardWireEndpoint.js'
@@ -48,7 +48,7 @@ function resolveOccupiedHoles(breadboards, components) {
   const occupied = []
   for (const component of components || []) {
     if (!component || !component.position) continue
-    const def = getComponentDef(component.type)
+    const def = getOrientedComponentDef(component)
     if (!def || !Array.isArray(def.pins)) continue
 
     for (const breadboard of breadboards) {

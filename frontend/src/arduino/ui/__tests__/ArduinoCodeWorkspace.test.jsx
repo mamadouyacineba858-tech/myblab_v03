@@ -4,6 +4,8 @@ import { render, screen, fireEvent, act, cleanup } from "@testing-library/react"
 import { CircuitProvider } from "../../../context/CircuitContext.jsx"
 import { useCircuit } from "../../../context/useCircuit.js"
 import { Navbar } from "../../../components/Navbar.jsx"
+import { runSimulationWithRuntime } from "../../../simulator/simulationRuntimeIntegration.js"
+import { getLedState } from "../../../simulator/production.js"
 let api
 function Probe() { api = useCircuit(); return <Navbar /> }
 afterEach(cleanup)
@@ -22,41 +24,117 @@ describe("ARD-004 Workspace", () => {
     add()
     expect(screen.getByText(/Code/).disabled).toBe(false)
     fireEvent.click(screen.getByText(/Code/))
-    expect(screen.getByLabelText("Sketch").value).toBe(api.selectedComponent.firmware.source)
+    expect(screen.getByLabelText("Programme Arduino").value).toBe(api.selectedComponent.firmware.source)
   })
   it("draft does not mutate; Apply persists exactly one History entry; identical source is a no-op", () => {
     mount(); add(); fireEvent.click(screen.getByText(/Code/))
     const original = api.selectedComponent.firmware.source
     const count = api.getUndoCount()
-    fireEvent.change(screen.getByLabelText("Sketch"), { target: { value: source } })
+    fireEvent.change(screen.getByLabelText("Programme Arduino"), { target: { value: source } })
     expect(api.selectedComponent.firmware.source).toBe(original)
     expect(api.getUndoCount()).toBe(count)
-    fireEvent.click(screen.getByText("Appliquer"))
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
     expect(api.selectedComponent.firmware.source).toBe(source)
     expect(api.getUndoCount()).toBe(count + 1)
-    fireEvent.click(screen.getByText("Appliquer"))
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
     expect(api.getUndoCount()).toBe(count + 1)
   })
   it("uses compiler for success and diagnostics without applying draft", () => {
     mount(); add(); fireEvent.click(screen.getByText(/Code/))
-    fireEvent.change(screen.getByLabelText("Sketch"), { target: { value: source } })
+    fireEvent.change(screen.getByLabelText("Programme Arduino"), { target: { value: source } })
     fireEvent.click(screen.getByText("Compiler"))
     expect(screen.getByRole("status").textContent).toContain("Compilation")
-    fireEvent.change(screen.getByLabelText("Sketch"), { target: { value: "invalid" } })
+    fireEvent.change(screen.getByLabelText("Programme Arduino"), { target: { value: "invalid" } })
     fireEvent.click(screen.getByText("Compiler"))
     expect(screen.getByRole("status").textContent).toContain("MISSING_SETUP")
   })
+  it("loads Blink D2, compiles and applies the valid example", () => {
+    mount(); add(); fireEvent.click(screen.getByText(/Code/))
+    fireEvent.click(screen.getByRole("button", { name: "Choisir un exemple" }))
+    fireEvent.click(screen.getByText("Exemple : LED clignotante D2"))
+    expect(screen.getByLabelText("Programme Arduino").value).toContain("digitalWrite(2, HIGH)")
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
+    expect(screen.getByRole("status").textContent).toContain("Compilation réussie")
+    expect(api.selectedComponent.firmware.source).toContain("delay(500)")
+  })
+  it("rejects invalid code without modifying the saved Arduino firmware", () => {
+    mount(); add(); fireEvent.click(screen.getByText(/Code/))
+    const previous = api.selectedComponent.firmware.source
+    fireEvent.change(screen.getByLabelText("Programme Arduino"), { target: { value: "invalid" } })
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
+    expect(screen.getByRole("status").textContent).toContain("MISSING_SETUP")
+    expect(api.selectedComponent.firmware.source).toBe(previous)
+  })
   it("switches Arduino, closes on deselection and stays closed on reselection; Close works", () => {
     mount(); const first = add(); fireEvent.click(screen.getByText(/Code/))
-    fireEvent.change(screen.getByLabelText("Sketch"), { target: { value: "unsaved" } })
+    fireEvent.change(screen.getByLabelText("Programme Arduino"), { target: { value: "unsaved" } })
     add()
-    expect(screen.getByLabelText("Sketch").value).toBe(api.selectedComponent.firmware.source)
+    expect(screen.getByLabelText("Programme Arduino").value).toBe(api.selectedComponent.firmware.source)
     act(() => api.clearSelection())
-    expect(screen.queryByLabelText("Sketch")).toBeNull()
+    expect(screen.queryByLabelText("Programme Arduino")).toBeNull()
     act(() => api.selectOnly({ type: "component", id: first }))
-    expect(screen.queryByLabelText("Sketch")).toBeNull()
+    expect(screen.queryByLabelText("Programme Arduino")).toBeNull()
     fireEvent.click(screen.getByText(/Code/))
     fireEvent.click(screen.getByLabelText("Fermer Arduino Code"))
-    expect(screen.queryByLabelText("Sketch")).toBeNull()
+    expect(screen.queryByLabelText("Programme Arduino")).toBeNull()
+  })
+})
+
+describe("A17.7-G — browser Arduino button example", () => {
+  it("loads, compiles and persists the INPUT_PULLUP button sketch from the visible editor", () => {
+    mount()
+    add()
+    fireEvent.click(screen.getByText(/Code/))
+    fireEvent.click(screen.getByRole("button", { name: "Choisir un exemple" }))
+    fireEvent.click(screen.getByText("Exemple : Bouton D2 → LED D13 (INPUT_PULLUP)"))
+    const sketch = screen.getByLabelText("Programme Arduino").value
+    expect(sketch).toContain("pinMode(2, INPUT_PULLUP)")
+    expect(sketch).toContain("digitalRead(2)")
+    expect(sketch).toContain("int pressed = 0;")
+    expect(sketch).toContain("pressed = digitalRead(2);")
+    expect(sketch).toContain("digitalWrite(13, HIGH)")
+    const before = api.getUndoCount()
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
+    expect(screen.getByRole("status").textContent).toContain("Compilation réussie")
+    expect(api.selectedComponent.firmware.source).toBe(sketch)
+    expect(api.getUndoCount()).toBe(before + 1)
+  })
+})
+
+describe("A17.7-G — editor sketch to physical circuit integration", () => {
+  it("uses the sketch saved from the visible editor to drive a real button/LED circuit", () => {
+    mount()
+    add()
+    fireEvent.click(screen.getByText(/Code/))
+    fireEvent.click(screen.getByRole("button", { name: "Choisir un exemple" }))
+    fireEvent.click(screen.getByText("Exemple : Bouton D2 → LED D13 (INPUT_PULLUP)"))
+    fireEvent.click(screen.getByText("Compiler et appliquer"))
+    expect(screen.getByRole("status").textContent).toContain("Compilation réussie")
+    const source = api.selectedComponent.firmware.source
+    const components = [
+      { uid: "arduino1", type: "ARDUINO", firmware: { source } },
+      { uid: "button1", type: "BUTTON", state: "released" },
+      { uid: "resistor1", type: "RESISTOR" },
+      { uid: "led1", type: "LED" },
+      { uid: "power1", type: "POWER" },
+    ]
+    const wires = [
+      { fromUid: "power1", fromPin: "GND", toUid: "button1", toPin: "pin1" },
+      { fromUid: "button1", fromPin: "pin2", toUid: "arduino1", toPin: "D2" },
+      { fromUid: "arduino1", fromPin: "D13", toUid: "resistor1", toPin: "A" },
+      { fromUid: "resistor1", fromPin: "B", toUid: "led1", toPin: "anode" },
+      { fromUid: "led1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
+    ]
+    const orchestrators = new Map()
+    const firmwareSessions = new Map()
+    const step = (dt = 16) => runSimulationWithRuntime(components, wires, { orchestrators, firmwareSessions, dt })
+    step(0)
+    expect(getLedState("led1", step()).on).toBe(false)
+    components[1].state = "pressed"
+    expect(step().get("arduino1:D2")).toBe("LOW")
+    expect(getLedState("led1", step()).on).toBe(true)
+    components[1].state = "released"
+    step()
+    expect(getLedState("led1", step()).on).toBe(false)
   })
 })

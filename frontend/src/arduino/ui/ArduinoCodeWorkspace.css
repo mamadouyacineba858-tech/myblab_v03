@@ -6,3 +6,45 @@
 .arduino-code-workspace button:disabled { opacity: .5; cursor: default; }
 .arduino-code-workspace [role="status"] { overflow-wrap: anywhere; font-size: 13px; }
 @media (max-width: 650px) { .arduino-code-workspace { width: 65vw; right: 8px; } }
+
+.arduino-code-help { margin: 0; font-size: 12px; line-height: 1.5; color: #cbd5e1; }
+.arduino-code-actions { flex-wrap: wrap; justify-content: flex-start; }
+.arduino-code-actions button { border: 1px solid #64748b; border-radius: 6px; background: #26374e; color: #f8fafc; }
+.arduino-code-actions button:hover:not(:disabled), .arduino-code-actions button:focus-visible { background: #355474; }
+
+/* Wider, usable coding workspace without obscuring the entire circuit. */
+.arduino-code-workspace {
+  top: 112px;
+  right: 12px;
+  bottom: 38px;
+  width: clamp(360px, 38vw, 680px);
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+  overflow-y: auto;
+  gap: 9px;
+}
+.arduino-code-heading { flex: 0 0 auto; }
+.arduino-code-workspace textarea { flex: 1 0 210px; min-height: 210px; width: 100%; box-sizing: border-box; }
+.arduino-code-actions { flex: 0 0 auto; gap: 7px; }
+.arduino-code-actions button { font-size: 12px; }
+.arduino-code-workspace [role="status"] { flex: 0 0 auto; }
+@media (max-width: 740px) {
+  .arduino-code-workspace { top: 100px; left: 8px; right: 8px; width: auto; bottom: 12px; padding: 12px; }
+}
+
+.arduino-code-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.arduino-code-toolbar button { border: 1px solid #64748b; border-radius: 6px; background: #26374e; color: #f8fafc; }
+.arduino-code-examples { padding: 9px; border: 1px solid #475569; border-radius: 8px; background: #111c2b; }
+
+/* Third collapsible workspace zone: preserve editor draft while minimized. */
+.arduino-code-heading__buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+.arduino-code-heading__buttons button { border: 1px solid #64748b; border-radius: 6px; background: #26374e; color: #f8fafc; }
+.arduino-code-workspace--minimized {
+  top: auto;
+  bottom: 40px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: 72px;
+  overflow: hidden;
+  padding: 10px 12px;
+}
+.arduino-code-workspace--minimized .arduino-code-heading h2 { font-size: 15px; }

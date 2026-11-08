@@ -1,3 +1,5 @@
+import { getComponentDef } from "../config/componentDefinitions.js"
+import { getComponentRotation, rotateLocalPoint } from "./componentOrientation.js"
 /**
  * Utilitaires géométriques pour le canvas et les fils SVG.
  * Les positions de pins sont toujours recalculées à partir des composants.
@@ -9,12 +11,8 @@
  * [MB-VIS-COMP-005] Fonction géométrique CANONIQUE unique : traduction pure
  * `component.x/y` (position d'instance) + `pinDef.dx/dy` (offset local de
  * définition, componentDefinitions.js) → coordonnées absolues Canvas.
- * Aucune rotation n'est appliquée : aucun composant du pipeline réel ne
- * porte de `component.rotation` actif (seule occurrence trouvée dans tout
- * le code source : un champ arbitraire de test de passthrough générique,
- * ReactDocumentMapper.test.js T11, sans rapport avec la géométrie des
- * pins — voir rapport MB-VIS-COMP-005 §Rotation). Si une rotation devient
- * un jour active, cette fonction est le seul endroit où l'appliquer.
+ * Les quarts de tour d’instance sont appliqués autour du centre de la
+ * définition. Les identités de broche restent stables.
  *
  * Aucun branchement par type de composant ici (I6) — c'est précisément ce
  * qui la distingue de `pinPresentationGeometry.js::getPinPresentationPosition()`,
@@ -29,8 +27,10 @@
  */
 export function getPinPosition(component, pinDef) {
   if (!component || !pinDef) return null
-  const x = component.x + pinDef.dx
-  const y = component.y + pinDef.dy
+  const rotation = getComponentRotation(component)
+  const offset = rotation ? rotateLocalPoint(getComponentDef(component.type), pinDef, rotation) : pinDef
+  const x = component.x + offset.dx
+  const y = component.y + offset.dy
   if (!Number.isFinite(x) || !Number.isFinite(y)) return null
   return { x, y }
 }

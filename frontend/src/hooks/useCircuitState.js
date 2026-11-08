@@ -1,6 +1,12 @@
+import { RotateComponentCommand } from "../history/commands/RotateComponentCommand.js"
+import { canRotateComponent, getComponentRotation, getRotatedBounds } from "../utils/componentOrientation.js"
 import { UpdateComponentPropertiesHandler } from "../core/handlers/component/UpdateComponentPropertiesHandler.js"
+import { consumePinPick, snapshotInstruments, applyInstrumentsSnapshot, resetInstruments, getAmmeterBridgeWire, getInstrumentsVersion, subscribeInstruments } from "../instruments/instrumentsStore.js"
 import { resolveComponentProperties, validateComponentProperties, isPlainProperties } from "../config/componentProperties.js"
-import { useState, useCallback, useMemo, useRef, useEffect } from "react"
+import { useState, useCallback, useMemo, useRef, useEffect, useSyncExternalStore } from "react"
+// This hook maintains synchronous refs for mutation/event boundaries and
+// clears volatile simulation projections when the runtime stops.
+/* eslint-disable react-hooks/immutability, react-hooks/set-state-in-effect */
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { snapToGrid, GRID_SIZE } from "../utils/grid.js"
 // MB-BREADBOARD-003 (Blueprint §3) : snapping/validité de placement pendant le
@@ -93,6 +99,8 @@ import { AddWireHandler } from "../core/handlers/wire/AddWireHandler.js"
 // frontend/src/bridge/tests/cf1DocumentArchitecture.test.js pour le verrou
 // amendé en conséquence.
 import { UpdateWireWaypointsHandler } from "../core/handlers/wire/UpdateWireWaypointsHandler.js"
+import { UpdateWireColorHandler } from "../core/handlers/wire/UpdateWireColorHandler.js"
+import { resolveWireInsulationColor } from "../wires/wireAppearance.js"
 // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001, 2026-08-22 — traçable dans
 // docs/pmo/tickets/MB-CF3-003.md §R) : quatrième et dernier type
 // actuellement autorisé sur ce canal — déplacement d'un ou plusieurs
@@ -596,8 +604,10 @@ const getUndoCount = useCallback(() => {
   const wirePaths = useMemo(() => buildWirePaths(componentsForRender, wiresForGeometry, focusInfo), [componentsForRender, wiresForGeometry, focusInfo])
   const connectedPins = useMemo(() => buildConnectedPinsSet(safeWires), [safeWires])
 
+  const instrumentsVersion = useSyncExternalStore(subscribeInstruments, getInstrumentsVersion)
   useEffect(() => {
     if (!simulationActive) {
+      // Clear volatile presentation state as soon as simulation stops.
       setPinSignals(EMPTY_MAP)
       setRuntimeStates(EMPTY_MAP)
       return
@@ -608,7 +618,9 @@ const getUndoCount = useCallback(() => {
       try {
         const coreDoc = ReactDocumentMapper.toCore({ components: safeComponents, wires: safeWires, breadboards })
         const adapted = toEngineInput(coreDoc)
-        setPinSignals(runSimulationWithRuntime(adapted.components, adapted.wires, {
+        const bridge = getAmmeterBridgeWire()
+        const engineWires = bridge ? [...adapted.wires, bridge] : adapted.wires
+        setPinSignals(runSimulationWithRuntime(adapted.components, engineWires, {
           orchestrators, firmwareSessions, firmwareComponents: safeComponents, dt, environmentalStimuli, runtimeSession,
         }) ?? EMPTY_MAP)
         // A12-NEOPIXEL-FUNC-WS2812B-V6-001 : états timed ET événementiels (lecture seule).
@@ -638,7 +650,7 @@ const getUndoCount = useCallback(() => {
       cancelled = true
       if (frame !== undefined) cancelAnimationFrame(frame)
     }
-  }, [safeComponents, safeWires, breadboards, simulationActive, orchestrators, firmwareSessions, environmentalStimuli, runtimeSession])
+  }, [safeComponents, safeWires, breadboards, simulationActive, orchestrators, firmwareSessions, environmentalStimuli, runtimeSession, instrumentsVersion])
 
   useEffect(() => () => {
     stopFirmwareSimulation(orchestrators, firmwareSessions)
@@ -653,6 +665,8 @@ const getUndoCount = useCallback(() => {
 
   const componentsRef = useRef(safeComponents)
   useEffect(() => {
+    // These refs are intentionally kept current for event handlers and the
+    // document API; they must not become a second source of truth.
     componentsRef.current = safeComponents
   }, [safeComponents])
 
@@ -741,6 +755,7 @@ const getUndoCount = useCallback(() => {
   // =========================================================================
   useEffect(() => {
     if (focusedComponentId && !safeComponents.some((c) => c.uid === focusedComponentId)) {
+      // Selection is invalid after deletion/import and must be cleared.
       setFocusedComponentId(null)
       setLocalScale(LOCAL_SCALE_DEFAULT)
     }
@@ -849,6 +864,8 @@ const getUndoCount = useCallback(() => {
       // (remplacement non fonctionnel de l'état). Vérifié empiriquement via
       // DeleteCommand.integration.test.jsx (deux addComponent() consécutifs
       // dans le même act()). Même raisonnement appliqué à breadboard(s)Ref.
+      // Keep synchronous refs aligned with the document API between batched
+      // React renders; these are intentionally mutable event-handler refs.
       componentsRef.current = nextComponents
       wiresRef.current = nextWires
       breadboardRef.current = nextBreadboard
@@ -910,6 +927,8 @@ const getUndoCount = useCallback(() => {
       // granulaire de waypoint) n'est autorisée par ce ruling — voir
       // cf1DocumentArchitecture.test.js.
       registry.register("UPDATE_WIRE_WAYPOINTS", new UpdateWireWaypointsHandler({ historyService, documentApi }))
+      // WIRE-010: explicit, scoped extension for insulation-only edits.
+      registry.register("UPDATE_WIRE_COLOR", new UpdateWireColorHandler({ historyService, documentApi }))
       // MB-CF3-003 (ruling CSA-CF3-003-MOVE-001 du 2026-08-22) : quatrième
       // type autorisé sur ce canal — déplacement d'un ou plusieurs
       // composants, contrat canonique { moves: [...] } (voir
@@ -1044,6 +1063,43 @@ const getUndoCount = useCallback(() => {
       console.error("addComponent: échec du dispatch via CommandBus", error)
     }
   }, [documentApi])
+
+  const addComponentAtCanvasCenter = useCallback((type) => {
+    const def = getComponentDef(type)
+    if (!def) return
+
+    const canvas = canvasRef?.current
+    const rect = canvas?.getBoundingClientRect()
+    if (!rect || rect.width <= 0 || rect.height <= 0) {
+      addComponent(type)
+      return
+    }
+
+    const center = clientToCanvas(
+      {
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2,
+      },
+      rect,
+      viewportRef.current.zoom,
+      viewportRef.current.translateX,
+      viewportRef.current.translateY
+    )
+    const placementIndex = componentsRef.current.length
+    const offsets = [
+      { x: 0, y: 0 },
+      { x: 120, y: 0 },
+      { x: -120, y: 0 },
+      { x: 0, y: 120 },
+      { x: 0, y: -120 },
+    ]
+    const offset = offsets[placementIndex % offsets.length]
+    addComponent(
+      type,
+      center.x - def.width / 2 + offset.x,
+      center.y - def.height / 2 + offset.y
+    )
+  }, [addComponent, canvasRef])
 
   // =========================================================================
   // FIN MB-CF3-001 (GATE 3 — addComponent)
@@ -1221,10 +1277,37 @@ const getUndoCount = useCallback(() => {
       const coreDocument = documentApi.getDocument()
       const command = new Command("ADD_BREADBOARD", { position })
       commandBusRef.current.dispatch(command, coreDocument)
+      if (typeof window !== "undefined") {
+        const rect = canvasRef?.current?.getBoundingClientRect()
+        if (!rect) return
+        const bounds = computeSceneBounds(
+          componentsRef.current,
+          wiresRef.current,
+          breadboardsRef.current
+        )
+        const viewport = viewportRef.current
+        const sceneExceedsCanvas = bounds && (
+          bounds.minX * viewport.zoom + viewport.translateX < 0 ||
+          bounds.minY * viewport.zoom + viewport.translateY < 0 ||
+          bounds.maxX * viewport.zoom + viewport.translateX > rect.width ||
+          bounds.maxY * viewport.zoom + viewport.translateY > rect.height
+        )
+        const viewportIsUnadjusted =
+          viewport.zoom === 1 &&
+          viewport.translateX === 0 &&
+          viewport.translateY === 0
+        if (window.innerWidth > 640 && (!viewportIsUnadjusted || !sceneExceedsCanvas)) return
+
+        const next = fitViewportToBounds(bounds, {
+          width: rect.width,
+          height: rect.height,
+        })
+        if (next) setViewport(next)
+      }
     } catch (error) {
       console.error("addBreadboard: échec du dispatch via CommandBus", error)
     }
-  }, [documentApi])
+  }, [canvasRef, documentApi])
   // =========================================================================
   // FIN MB-BREADBOARD-002 (ADD_BREADBOARD)
   // =========================================================================
@@ -1237,6 +1320,19 @@ const getUndoCount = useCallback(() => {
   // wiresRef.current (référence synchrone, même précédent que addWire) évite
   // toute stale closure.
   // =========================================================================
+  const updateWireColor = useCallback((wireId, color) => {
+    if (!wireId || !commandBusRef.current) return
+    if (!wiresRef.current.some((wire) => wire.id === wireId)) return
+    const normalized = color === null ? null : resolveWireInsulationColor(color)
+    if (color !== null && !normalized) return
+    try {
+      const command = new Command("UPDATE_WIRE_COLOR", { wireId, color: normalized })
+      commandBusRef.current.dispatch(command, documentApi.getDocument())
+    } catch (error) {
+      console.error("updateWireColor: CommandBus dispatch failed", error)
+    }
+  }, [documentApi])
+
   const updateWireWaypoints = useCallback((wireId, waypoints) => {
     if (!wireId || !Array.isArray(waypoints)) return
     if (!commandBusRef.current) return
@@ -1393,6 +1489,8 @@ const getUndoCount = useCallback(() => {
     if (dragSessionRef.current !== null) return
     if (marqueeSessionRef.current !== null) return
     if (panSessionRef.current !== null) return
+    // TINKERCAD-005 : une sonde armée depuis le panneau d'instruments consomme le clic de broche.
+    if (consumePinPick(uid, pinId)) return
 
     // [FT-B-001-S2] `contactId` (ancre de contact physique) mémorisé dans
     // pendingPin puis transmis à addWire — même sémantique que le geste de
@@ -1535,6 +1633,14 @@ if (import.meta.env.DEV) {
   // =========================================================================
   // DOCUMENT SYSTEM  & SRP (MB-003.2)
   // =========================================================================
+
+  const rotateComponent = useCallback((uid) => {
+    const component = componentsRef.current.find(c => c.uid === uid)
+    if (!canRotateComponent(component) || dragSessionRef.current || wireGestureRef.current) return false
+    const next = (getComponentRotation(component) + 90) % 360
+    historyManagerRef.current.execute(new RotateComponentCommand(documentApi, uid, component.rotation, next))
+    return true
+  }, [documentApi])
 
   const removeWire = useCallback((wireId) => {
     setWires((prev) => prev.filter((w) => w.id !== wireId))
@@ -1705,7 +1811,7 @@ if (import.meta.env.DEV) {
         // MB-BREADBOARD-003 (Blueprint §3) : `type` nécessaire à
         // computeBreadboardPlacement() dans handlePointerMove (absent avant
         // ce ticket, seule extension nécessaire côté capture de session).
-        componentsStart.set(id, { startX: comp.x, startY: comp.y, type: comp.type })
+        componentsStart.set(id, { startX: comp.x, startY: comp.y, type: comp.type, rotation: comp.rotation })
       }
     })
 
@@ -1858,7 +1964,7 @@ if (import.meta.env.DEV) {
     const componentIds = new Set()
     const componentMap = new Map(components.map(c => [c.uid, c]))
     componentMap.forEach((comp, uid) => {
-      const compRect = {
+      const compRect = comp.rotation !== undefined && canRotateComponent(comp) ? getRotatedBounds(comp) : {
         x: comp.x,
         y: comp.y,
         width: comp.width || 80,
@@ -2257,7 +2363,8 @@ if (import.meta.env.DEV) {
           dragBreadboards,
           startPos.type,
           raw,
-          componentsRef.current.filter((c) => c.uid !== uid)
+          componentsRef.current.filter((c) => c.uid !== uid),
+          startPos.rotation
         )
 
         if (placement.breadboardActive && placement.breadboardId) {
@@ -2494,6 +2601,7 @@ if (import.meta.env.DEV) {
   const deleteSelectedWire = useCallback(() => deleteSelection(), [deleteSelection])
 
   const clearCircuit = useCallback(() => {
+    resetInstruments()
     wireGestureRef.current = null
     setWireGesture(null)
     setComponents([])
@@ -2538,12 +2646,16 @@ if (import.meta.env.DEV) {
   // importable (importCircuit ci-dessous), mais tout nouvel export est
   // canonique et ne réémet jamais le singleton legacy.
   const exportCircuit = useCallback(
-    () => ({ version: 1, components: safeComponents, wires: safeWires, breadboards }),
+    () => {
+      const instruments = snapshotInstruments()
+      return { version: 1, components: safeComponents, wires: safeWires, breadboards, ...(instruments ? { instruments } : {}) }
+    },
     [safeComponents, safeWires, breadboards]
   )
 
   const importCircuit = useCallback((data) => {
     if (!data || typeof data !== "object") return
+    applyInstrumentsSnapshot(data.instruments)
     wireGestureRef.current = null
     setWireGesture(null)
     setComponents(Array.isArray(data.components) ? data.components.map(normalizeComponent).filter((c) => c !== null) : [])
@@ -2732,6 +2844,8 @@ if (import.meta.env.DEV) {
   }, [components, documentApi])
   const setThemeMode = useCallback((mode) => { if (mode !== "dark" && mode !== "light") return; setTheme(mode) }, [])
 
+  const documentCounts = useMemo(() => ({ components: safeComponents.length, wires: safeWires.length, breadboards: breadboards.length }), [safeComponents.length, safeWires.length, breadboards.length])
+
   return useMemo(() => ({
   wireGesture,
   startWireGesture,
@@ -2740,6 +2854,8 @@ if (import.meta.env.DEV) {
   // de drag superposé à safeComponents) — jamais safeComponents seul,
   // sinon le rendu ne refléterait pas l'aperçu de drag en cours.
   components: componentsForRender,
+  // Counts are derived from the persisted document, not drag previews.
+  documentCounts,
   wires: safeWires,
   // MB-BREADBOARD-002 (Blueprint §8) : exposé pour Breadboard.jsx (Presentation,
   // lecture seule) — null tant qu'aucun ADD_BREADBOARD n'a été dispatché.
@@ -2796,6 +2912,8 @@ if (import.meta.env.DEV) {
   adjustLocalScale,
 
   addComponent,
+  addComponentAtCanvasCenter,
+  rotateComponent,
   updateComponentProperties,
   updateComponentParameters,
   updateArduinoFirmware,
@@ -2819,6 +2937,7 @@ if (import.meta.env.DEV) {
   // le nouveau tableau complet côté Presentation puis appellent cette seule
   // fonction) et déclenchement du drag d'un waypoint existant.
   updateWireWaypoints,
+  updateWireColor,
   startWaypointDrag,
 
   startDrag,
@@ -2890,6 +3009,7 @@ if (import.meta.env.DEV) {
   startWireGesture,
   canvasRef,
   componentsForRender,
+  documentCounts,
   safeWires,
   breadboardForRender,
   breadboards,
@@ -2920,6 +3040,8 @@ if (import.meta.env.DEV) {
   adjustLocalScale,
 
   addComponent,
+  addComponentAtCanvasCenter,
+  rotateComponent,
   updateComponentProperties,
   updateComponentParameters,
   updateArduinoFirmware,
@@ -2994,4 +3116,3 @@ if (import.meta.env.DEV) {
   getUndoCount,
 ])
 }
-

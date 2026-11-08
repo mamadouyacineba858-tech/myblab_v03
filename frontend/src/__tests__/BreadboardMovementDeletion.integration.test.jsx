@@ -71,11 +71,6 @@ function pointerMoveAt(x, y, { dx, dy = 0 }) {
   })
 }
 
-function drag(component, { dx, dy = 0 }) {
-  pointerDown(component)
-  pointerMoveAt(component.x, component.y, { dx, dy })
-}
-
 function pointerUp() {
   act(() => {
     window.dispatchEvent(new PointerEvent('pointerup'))

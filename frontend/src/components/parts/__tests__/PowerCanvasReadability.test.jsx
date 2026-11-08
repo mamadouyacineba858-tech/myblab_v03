@@ -15,19 +15,24 @@ describe('MB-L1-POWER-001 — Canvas readability', () => {
     expect(root.style.transformOrigin).toBe('center center')
   })
 
-  it('utilise uniquement le raster 3x stable sans overlays DOM', () => {
+  it('conserve le raster 3x stable et ajoute une sérigraphie vectorielle non interactive', () => {
     const { container } = render(<PowerPart />)
     const root = container.querySelector('.part-power')
     const picture = container.querySelector('.part-power__picture')
     const img = container.querySelector('.part-power__img')
     const source = container.querySelector('picture > source[type="image/webp"]')
 
-    expect(root.getAttribute('data-visual-source')).toBe('stable-raster-3x')
+    expect(root.getAttribute('data-visual-source')).toBe('stable-raster-3x-plus-vector-labels')
     expect(picture.getAttribute('data-hires-source')).toBe('3x-only')
     expect(img.getAttribute('src')).toBe('/assets/components/power/power.default.3x.png')
     expect(img.getAttribute('srcset')).not.toContain('power.default.1x.png')
     expect(source.getAttribute('srcset')).not.toContain('power.default.1x.webp')
     expect(img.style.pointerEvents).toBe('none')
+    const facade = container.querySelector('.part-power__facade-vector')
+    expect(facade).not.toBeNull()
+    expect(facade.getAttribute('src')).toBe('/assets/components/power/power.facade-labels.svg')
+    expect(facade.style.pointerEvents).toBe('none')
+    expect(facade.draggable).toBe(false)
     expect(container.querySelector('.part-power__facade-overlay')).toBeNull()
     expect(container.querySelector('.part-power__facade-label')).toBeNull()
   })

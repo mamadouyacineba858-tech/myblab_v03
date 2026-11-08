@@ -157,7 +157,7 @@ describe('MB-VIS-COMP-037 — pins : présentation projetée, électrique inchan
     expect({ dx: pinById.GND.dx, dy: pinById.GND.dy }).toEqual({ dx: 0, dy: 110 })
     expect({ dx: pinById['5V'].dx, dy: pinById['5V'].dy }).toEqual({ dx: 120, dy: 50 })
     // canonicalRegistry : mêmes ids/rôles
-    expect(getCanonicalEntry('ARDUINO').pins.map((p) => p.id)).toEqual([...Array.from({ length: 14 }, (_, pin) => `D${pin}`), 'GND', '5V'])
+    expect(getCanonicalEntry('ARDUINO').pins.map((p) => p.id)).toEqual([...Array.from({ length: 14 }, (_, pin) => `D${pin}`), 'GND', '5V', ...Array.from({ length: 6 }, (_, pin) => `A${pin}`)])
     // dimensions canoniques inchangées
     expect([arduinoDef.width, arduinoDef.height]).toEqual([180, 120])
   })
@@ -201,23 +201,26 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
     return <>{components.map((comp) => <CircuitComponent key={comp.uid} component={comp} />)}</>
   }
 
-  it('CircuitComponent rend 16 pins visibles dont D2/D3 sur le header physique ; asset raster', () => {
+  it('CircuitComponent rend 24 contacts physiques sur 22 broches électriques ; asset raster', () => {
     let api
     const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
     act(() => { api.addComponent('ARDUINO', 50, 60) })
 
     const pins = container.querySelectorAll('.myblab-pin')
-    expect(pins.length).toBe(16)
+    expect(pins.length).toBe(24)
     const positions = [...pins].map((el) => [
       Number(el.style.left.replace('px', '')),
       Number(el.style.top.replace('px', '')),
     ])
     // CSS projection subtracts the centre: allow only floating-point roundoff.
     const def = getComponentDef('ARDUINO')
-    for (let i = 0; i < def.pins.length; i++) {
-      expect(pins[i].dataset.wirePin).toBe(def.pins[i].id)
-      expect(positions[i][0]).toBeCloseTo(def.pins[i].contacts[0].dx, 10)
-      expect(positions[i][1]).toBeCloseTo(def.pins[i].contacts[0].dy, 10)
+    const expectedContacts = def.pins.flatMap(pin => pin.contacts.map(contact => ({ pinId: pin.id, ...contact })))
+    expect(expectedContacts).toHaveLength(24)
+    for (let i = 0; i < expectedContacts.length; i++) {
+      expect(pins[i].dataset.wirePin).toBe(expectedContacts[i].pinId)
+      expect(pins[i].dataset.wireContact).toBe(expectedContacts[i].id)
+      expect(positions[i][0]).toBeCloseTo(expectedContacts[i].dx, 10)
+      expect(positions[i][1]).toBeCloseTo(expectedContacts[i].dy, 10)
     }
 
     expect(container.querySelector('.circuit-component__body img')).not.toBeNull()
@@ -247,6 +250,54 @@ describe('A13-ARD-SURF1 — pipeline réel : D0-D13 plus alimentation', () => {
       expect(parseFloat(label.style.top)).toBeGreaterThan(Number(label.dataset.contactY))
       expect(label.textContent).toBe(label.dataset.arduinoPinLabel.slice(1))
     }
+  })
+
+  it('identifies every hovered GPIO and supply contact by its real electrical pin', () => {
+    let api
+    const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper })
+    act(() => { api.addComponent('ARDUINO', 50, 60) })
+    const pins = [...container.querySelectorAll('.myblab-pin')]
+    expect(pins).toHaveLength(24)
+    for (const pin of pins) {
+      const id = pin.dataset.wirePin
+      expect(pin.getAttribute('title')).toBe(id)
+      expect(pin.getAttribute('aria-label')).toBe(id)
+      expect(pin.dataset.wireContact).toBe(id === 'GND' ? pin.dataset.wireContact : id)
+      if (id === 'GND') expect(['GND', 'GND_POWER', 'GND_AREF']).toContain(pin.dataset.wireContact)
+      const position = [pin.style.left, pin.style.top]
+      fireEvent.mouseEnter(pin)
+      expect(pin.classList.contains('myblab-pin--hover')).toBe(true)
+      expect([pin.style.left, pin.style.top]).toEqual(position)
+      expect(pin.getAttribute('title')).toBe(id)
+      fireEvent.mouseLeave(pin)
+      expect(pin.classList.contains('myblab-pin--hover')).toBe(false)
+    }
+  })
+
+  it('keeps the Type-B cable attached during the real drag preview and after release', async () => {
+    let api
+    const canvasRef = React.createRef()
+    const dragWrapper = ({ children }) => <CircuitProvider canvasRef={canvasRef}><div ref={canvasRef}>{children}</div></CircuitProvider>
+    const { container } = render(<Harness onReady={(a) => { api = a }} />, { wrapper: dragWrapper })
+    act(() => { api.addComponent('ARDUINO', 100, 100) })
+    const component = api.components[0]
+    const board = container.querySelector('.circuit-component')
+    const cable = board.querySelector('.part-arduino__usb-cable')
+    const anchor = [cable.style.left, cable.style.top, cable.style.width, cable.style.height]
+    const before = [board.style.left, board.style.top]
+    act(() => { api.startDrag({ button: 0, clientX: component.x + 5, clientY: component.y + 5,
+      target: canvasRef.current, preventDefault() {}, stopPropagation() {} }, component.uid) })
+    await act(async () => {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: component.x + 85, clientY: component.y + 45 }))
+      await new Promise(resolve => requestAnimationFrame(resolve))
+    })
+    expect([board.style.left, board.style.top]).not.toEqual(before)
+    expect(board.contains(cable)).toBe(true)
+    expect([cable.style.left, cable.style.top, cable.style.width, cable.style.height]).toEqual(anchor)
+    act(() => { window.dispatchEvent(new PointerEvent('pointerup')) })
+    expect([cable.style.left, cable.style.top, cable.style.width, cable.style.height]).toEqual(anchor)
+    expect(api.exportCircuit().components[0].x).toBe(component.x + 80)
+    expect(api.exportCircuit().components[0].y).toBe(component.y + 40)
   })
 
   it("l'<img> ne capte pas les événements — le wrapper .circuit-component les reçoit", () => {

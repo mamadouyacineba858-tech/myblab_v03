@@ -1,3 +1,4 @@
+import { canRotateComponent, getComponentRotation } from "../utils/componentOrientation.js"
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
@@ -10,7 +11,7 @@ import "./ComponentInspector.css"
  * mutation actions from the stable circuit context. Control selection is
  * declarative; canonical component labels remain visible in the header. */
 export function ComponentInspector() {
-  const { selectedComponent, updateComponentParameters, updateComponentProperties } = useCircuit()
+  const { selectedComponent, rotateComponent, updateComponentParameters, updateComponentProperties } = useCircuit()
 
   if (!selectedComponent) {
     return (
@@ -35,6 +36,14 @@ export function ComponentInspector() {
         <h2>Propriétés</h2>
         <p className="component-inspector__component-name">{def?.label ?? selectedComponent.type}</p>
       </header>
+
+      <section className="component-inspector__section" aria-label="Orientation">
+        <h3>Orientation</h3>
+        <button type="button" data-testid="rotate-component" disabled={!canRotateComponent(selectedComponent)}
+          onClick={() => rotateComponent(selectedComponent.uid)}>Tourner de 90°</button>
+        <output data-testid="component-orientation"> {getComponentRotation(selectedComponent)}°</output>
+        {!canRotateComponent(selectedComponent) && <p className="component-inspector__empty">Orientation fixe pour cet équipement.</p>}
+      </section>
 
       <section className="component-inspector__section" aria-label="Identité">
         <h3>Identité</h3>

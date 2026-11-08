@@ -44,6 +44,10 @@
   transition: filter 0.12s ease-out;
 }
 
+.circuit-component__body picture {
+  pointer-events: none;
+}
+
 /* =========================================================================
    MB-VIS-CANVAS-044 (§7.2/§7.4/§7.5) — profondeur hover / dragging / focus.
 
