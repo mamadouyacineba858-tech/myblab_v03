@@ -117,12 +117,12 @@ describe('HistoryCommand Invariant — apply → undo → redo', () => {
       documentApi
     );
 
-    const applyResult = historyManager.execute(historyCommand);
+    historyManager.execute(historyCommand);
     const afterApply = documentApi.getDocument();
 
     // 2. UNDO
     historyManager.undo();
-    const afterUndo = documentApi.getDocument();
+    documentApi.getDocument();
 
     // 3. REDO
     historyManager.redo();
