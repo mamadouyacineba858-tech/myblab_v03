@@ -448,3 +448,37 @@ describe('WIRE-FINAL — canonical status counts follow the real canvas', () => 
     expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(1)
   })
 })
+
+describe('WIRE-FINAL — physical pointer drag between breadboards', () => {
+  it('creates a persisted wire through the real pointerdown/move/up path, with undo and redo', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+    })
+    const [a, b] = getApi().breadboards
+    const source = findHoleCircle(container, a, 5, 3)
+    const destination = findHoleCircle(container, b, 5, 3)
+    expect(source).not.toBeNull()
+    expect(destination).not.toBeNull()
+    const originalHitTest = document.elementFromPoint
+    document.elementFromPoint = () => destination
+    try {
+      fireEvent.pointerDown(source, { button: 0, pointerId: 7, clientX: 50, clientY: 50 })
+      expect(getApi().wires).toHaveLength(0)
+      fireEvent.pointerMove(window, { pointerId: 7, clientX: 510, clientY: 50 })
+      fireEvent.pointerUp(window, { pointerId: 7, clientX: 510, clientY: 50 })
+      expect(getApi().wires).toHaveLength(1)
+      expect(getApi().wires[0].fromUid).toBe(source.dataset.wireUid)
+      expect(getApi().wires[0].toUid).toBe(destination.dataset.wireUid)
+      expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(1)
+      act(() => getApi().undo())
+      expect(getApi().wires).toHaveLength(0)
+      act(() => getApi().redo())
+      expect(getApi().wires).toHaveLength(1)
+    } finally {
+      if (originalHitTest === undefined) delete document.elementFromPoint
+      else document.elementFromPoint = originalHitTest
+    }
+  })
+})
