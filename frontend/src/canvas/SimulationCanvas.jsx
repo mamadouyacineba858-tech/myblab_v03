@@ -284,7 +284,9 @@ export function SimulationCanvas() {
     endSidebarComponentDrag()
   }, [endSidebarComponentDrag])
 
-  const hasComponents = components.length > 0
+  // An empty-state hint is valid only when no board or component is on the canvas.
+  // A board-only circuit is already a real document, not an empty workspace.
+  const isCanvasEmpty = components.length === 0 && renderedBreadboards.length === 0
 
   return (
     <div
@@ -367,7 +369,7 @@ export function SimulationCanvas() {
         <MarqueeOverlay rect={marqueeRect} />
       </div>
       <ProbeOverlay canvasRef={canvasRef} components={components} viewport={viewport} />
-      {!hasComponents && (
+      {isCanvasEmpty && (
         <p className="simulation-canvas__hint">
           Glissez un composant depuis la barre latérale ou cliquez pour l&apos;ajouter au centre
         </p>
