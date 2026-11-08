@@ -32,7 +32,7 @@ export function StatusBar() {
       </span>
 
       <span className="myblab-statusbar__item">
-        {isWiringActive ? "✏️ Câblage en cours..." : "✅ Éditeur prêt"}
+        {isWiringActive ? "✏️ Câblage en cours..." : "✅ Prêt (éditeur)"}
       </span>
 
       <span className="myblab-statusbar__item">
