@@ -19,6 +19,7 @@ import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
 import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
 import { SimulationCanvas } from '../canvas/SimulationCanvas.jsx'
+import { StatusBar } from '../components/StatusBar.jsx'
 import { ReactDocumentMapper } from '../bridge/ReactDocumentMapper.js'
 import { deriveBreadboardVirtualWires } from '../utils/breadboardConnectivity.js'
 import { BREADBOARD_PITCH } from '../utils/breadboardGeometry.js'
@@ -42,7 +43,7 @@ function renderCanvas() {
       <div ref={(n) => { canvasRef.current = n }}>{children}</div>
     </CircuitProvider>
   )
-  const utils = render(<><Probe /><SimulationCanvas /></>, { wrapper: wrapperCanvas })
+  const utils = render(<><Probe /><SimulationCanvas /><StatusBar /></>, { wrapper: wrapperCanvas })
   return { ...utils, getApi: () => api }
 }
 
@@ -415,5 +416,35 @@ describe('WIRE-FINAL — displayed cable count agrees with persisted circuit', (
     act(() => getApi().undo())
     expect(getApi().wires).toHaveLength(0)
     expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+  })
+})
+
+describe('WIRE-FINAL — canonical status counts follow the real canvas', () => {
+  it('updates the visible component, board and wire counts on create, undo and redo', () => {
+    const { container, getApi } = renderCanvas()
+    const footer = () => container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(footer()).toContain('Composants : 0')
+    expect(footer()).toContain('Fils : 0')
+    expect(footer()).toContain('Plaques : 0')
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+      getApi().addComponent('LED', 900, 100)
+    })
+    expect(footer()).toContain('Composants : 1')
+    expect(footer()).toContain('Plaques : 2')
+    const [a, b] = getApi().breadboards
+    act(() => getApi().addWire(
+      `__breadboard_hole__:${encodeURIComponent(a.id)}:5:3`, '__BREADBOARD_HOLE__',
+      `__breadboard_hole__:${encodeURIComponent(b.id)}:5:3`, '__BREADBOARD_HOLE__'
+    ))
+    expect(footer()).toContain('Fils : 1')
+    expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(1)
+    act(() => getApi().undo())
+    expect(footer()).toContain('Fils : 0')
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    act(() => getApi().redo())
+    expect(footer()).toContain('Fils : 1')
+    expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(1)
   })
 })
