@@ -189,7 +189,7 @@ function WireVisual({
   )
 }
 
-export function WiresLayer({ wirePaths = [] }) {
+export function WiresLayer({ wirePaths = [], className = '' }) {
   const paths = Array.isArray(wirePaths) ? wirePaths : []
 
   // pinSignals et wires sont déjà exposés par useCircuit() (useCircuitState.js) —
@@ -317,7 +317,7 @@ export function WiresLayer({ wirePaths = [] }) {
   )
 
   return (
-    <svg className="wires-layer" role="group" aria-label="Câbles du circuit">
+    <svg className={`wires-layer ${className}`.trim()} role="group" aria-label="Câbles du circuit">
       {preview && <path className="wires-layer__preview" d={preview} />}
       {paths.map((p) => {
         if (!p?.id || !p?.d) return null
