@@ -482,3 +482,46 @@ describe('WIRE-FINAL — physical pointer drag between breadboards', () => {
     }
   })
 })
+
+describe('WIRE-FINAL — aborted pointer gestures never create phantom wires', () => {
+  it('discards a drop outside the circuit and permits the next valid connection', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+    })
+    const [a, b] = getApi().breadboards
+    const source = findHoleCircle(container, a, 5, 3)
+    const destination = findHoleCircle(container, b, 5, 3)
+    expect(source).not.toBeNull()
+    expect(destination).not.toBeNull()
+    const originalHitTest = document.elementFromPoint
+    try {
+      document.elementFromPoint = () => document.body
+      fireEvent.pointerDown(source, { button: 0, pointerId: 11, clientX: 50, clientY: 50 })
+      fireEvent.pointerMove(window, { pointerId: 11, clientX: 800, clientY: 600 })
+      fireEvent.pointerUp(window, { pointerId: 11, clientX: 800, clientY: 600 })
+      expect(getApi().wires).toHaveLength(0)
+      expect(container.querySelectorAll('.wires-layer--breadboard path[aria-label]')).toHaveLength(0)
+      document.elementFromPoint = () => destination
+      fireEvent.pointerDown(source, { button: 0, pointerId: 12, clientX: 50, clientY: 50 })
+      fireEvent.pointerMove(window, { pointerId: 12, clientX: 510, clientY: 50 })
+      fireEvent.pointerUp(window, { pointerId: 12, clientX: 510, clientY: 50 })
+      expect(getApi().wires).toHaveLength(1)
+    } finally {
+      if (originalHitTest === undefined) delete document.elementFromPoint
+      else document.elementFromPoint = originalHitTest
+    }
+  })
+
+  it('cancels a started wire on Escape without adding a cable', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => getApi().addBreadboard(0, 0))
+    const source = findHoleCircle(container, getApi().breadboards[0], 5, 3)
+    expect(source).not.toBeNull()
+    fireEvent.pointerDown(source, { button: 0, pointerId: 13, clientX: 50, clientY: 50 })
+    fireEvent.keyDown(window, { key: 'Escape' })
+    fireEvent.pointerUp(window, { pointerId: 13, clientX: 100, clientY: 100 })
+    expect(getApi().wires).toHaveLength(0)
+  })
+})
