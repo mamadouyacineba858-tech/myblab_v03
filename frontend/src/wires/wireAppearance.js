@@ -33,7 +33,7 @@ export function resolveWireInsulationColor(color) {
  * Explicit physical color wins over simulated signal colors, but selection
  * remains visually prominent. No mutation or simulation coupling.
  */
-export function resolveWireDisplayColor({ color, selected = false, fallback }) {
+export function resolveWireDisplayColor({ color, fallback }) {
   // Selection must never erase the user's physical insulation color.
   // The SVG selection affordance is rendered independently of the cable stroke.
   return resolveWireInsulationColor(color) ?? fallback
