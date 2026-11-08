@@ -1,3 +1,4 @@
+import React from 'react'
 import { useCircuit } from "../context/useCircuit.js";
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js";
 import "./StatusBar.css";
