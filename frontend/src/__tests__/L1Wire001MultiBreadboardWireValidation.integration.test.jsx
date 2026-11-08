@@ -554,3 +554,34 @@ describe('WIRE-FINAL — no decorative circuit may masquerade as persisted objec
     expect(container.querySelectorAll('svg.breadboard-wire-endpoints')).toHaveLength(1)
   })
 })
+
+describe('WIRE-FINAL — Nouveau clears the actual displayed document', () => {
+  it('removes the board, component and wire together with all three counters', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addBreadboard(480, 0)
+      getApi().addComponent('LED', 900, 100)
+    })
+    const [a, b] = getApi().breadboards
+    act(() => getApi().addWire(
+      `__breadboard_hole__:${encodeURIComponent(a.id)}:5:3`, '__BREADBOARD_HOLE__',
+      `__breadboard_hole__:${encodeURIComponent(b.id)}:5:3`, '__BREADBOARD_HOLE__'
+    ))
+    expect(getApi().components).toHaveLength(1)
+    expect(getApi().breadboards).toHaveLength(2)
+    expect(getApi().wires).toHaveLength(1)
+    act(() => getApi().clearCircuit())
+    expect(getApi().components).toHaveLength(0)
+    expect(getApi().breadboards).toHaveLength(0)
+    expect(getApi().wires).toHaveLength(0)
+    expect(container.querySelectorAll('svg.breadboard-wire-endpoints')).toHaveLength(0)
+    expect(container.querySelectorAll('.circuit-component')).toHaveLength(0)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    const status = container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(status).toContain('Composants : 0')
+    expect(status).toContain('Plaques : 0')
+    expect(status).toContain('Fils : 0')
+    expect(status).toContain('Circuit vide')
+  })
+})
