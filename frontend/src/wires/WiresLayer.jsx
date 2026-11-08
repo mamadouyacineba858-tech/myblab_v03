@@ -92,6 +92,12 @@ function WireVisual({
         strokeLinejoin="round"
         className="wires-layer__hitzone"
         style={{ pointerEvents: 'stroke' }}
+        onPointerDown={(event) => {
+          // A cable is an interactive object, not empty canvas. Without this
+          // guard the canvas starts a marquee on pointerdown before the cable
+          // click selects it, leaving two competing gestures.
+          event.stopPropagation()
+        }}
         onClick={onSelect}
         onDoubleClick={onHitzoneDoubleClick}
         onMouseEnter={() => setHover(true)}
