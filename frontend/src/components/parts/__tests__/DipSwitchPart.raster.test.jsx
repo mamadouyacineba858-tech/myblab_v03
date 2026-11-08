@@ -96,7 +96,7 @@ describe("A3-SW2-R1 — DIP_SWITCH rend le paquet d'assets raster validé", () =
     const { container } = render(<DipSwitchPart channelStates={ALL_OFF} />)
     const all = container.innerHTML
     const refs = new Set()
-    for (const m of all.matchAll(/\/assets\/components\/dip-switch\/([a-zA-Z0-9.\-]+\.(?:png|webp))/g)) refs.add(m[1])
+    for (const m of all.matchAll(/\/assets\/components\/dip-switch\/([a-zA-Z0-9.-]+\.(?:png|webp))/g)) refs.add(m[1])
     expect(refs.size).toBeGreaterThan(0)
     for (const file of refs) {
       expect(fs.existsSync(path.join(ASSET_DIR, file)), `${file} doit exister sur disque`).toBe(true)
