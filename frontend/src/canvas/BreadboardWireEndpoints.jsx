@@ -17,7 +17,7 @@ const HIT_RADIUS = 5
  * holes can become wire endpoints without stealing component-pin clicks.
  */
 export function BreadboardWireEndpoints({ breadboard }) {
-  const { pendingPin, onPinClick } = useCircuit()
+  const { pendingPin, onPinClick, startWireGesture } = useCircuit()
 
   const holes = useMemo(() => {
     if (!breadboard?.position) return []
@@ -63,10 +63,18 @@ export function BreadboardWireEndpoints({ breadboard }) {
             cx={hole.x - breadboard.position.x + PADDING}
             cy={hole.y - breadboard.position.y + PADDING}
             r={HIT_RADIUS}
+            data-wire-uid={endpoint.uid}
+            data-wire-pin={endpoint.pinId}
             fill={isPending ? "rgba(34,197,94,0.35)" : "transparent"}
             stroke={isPending ? "#22c55e" : "transparent"}
             strokeWidth={isPending ? 2 : 0}
             style={{ pointerEvents: "all", cursor: "crosshair" }}
+            onPointerDown={(event) => {
+              // Match component-pin gestures: a wire may start on a breadboard
+              // hole and finish on any component pin or another hole.
+              event.stopPropagation()
+              startWireGesture?.(event, endpoint.uid, endpoint.pinId)
+            }}
             onMouseDown={(event) => {
               event.preventDefault()
               event.stopPropagation()
