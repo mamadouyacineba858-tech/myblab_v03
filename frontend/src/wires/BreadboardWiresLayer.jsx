@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo } from "react"
+import React, { useMemo } from "react"
 import { useCircuit } from "../context/useCircuit.js"
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js"
 import { getComponentDef } from "../config/componentDefinitions.js"
 import { getPinPosition } from "../utils/geometry.js"
 import { resolveContact } from "../utils/contactModel.js"
 import { buildWirePath } from "./wirePath.js"
+import { WiresLayer } from "./WiresLayer.jsx"
 import { BREADBOARD_PITCH, holeAt } from "../utils/breadboardGeometry.js"
 import { parseBreadboardHoleEndpoint } from "../utils/breadboardWireEndpoint.js"
 import "./WiresLayer.css"
@@ -45,7 +46,7 @@ function resolveEndpoint(endpoint, components, breadboards) {
 
 /** MB-BREADBOARD-012 — renders and selects persisted wires with hole endpoints. */
 export function BreadboardWiresLayer() {
-  const { wires, isSelected, selectOnly, toggleSelection } = useCircuit()
+  const { wires } = useCircuit()
   // FT-C-BREAD-MULTI-001-E : collection preview-aware, jamais la projection
   // singleton. Chaque endpoint de trou est résolu contre SA carte (par id).
   const { components, breadboardsForRender } = useCircuitInteraction()
@@ -68,46 +69,11 @@ export function BreadboardWiresLayer() {
     return result
   }, [components, wires, breadboardsForRender])
 
-  const handleSelect = useCallback((wireId) => (event) => {
-    event.stopPropagation()
-    if (event.ctrlKey || event.metaKey) {
-      toggleSelection({ type: "wire", id: wireId })
-    } else {
-      selectOnly({ type: "wire", id: wireId })
-    }
-  }, [selectOnly, toggleSelection])
-
   if (paths.length === 0) return null
 
-  return (
-    <svg className="wires-layer wires-layer--breadboard" aria-hidden="true">
-      {paths.map((path) => {
-        const selected = isSelected({ type: "wire", id: path.id })
-        return (
-          <g key={path.id}>
-            <path
-              d={path.d}
-              fill="none"
-              stroke="transparent"
-              strokeWidth={28}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ pointerEvents: "stroke" }}
-              onClick={handleSelect(path.id)}
-            />
-            <path
-              d={path.d}
-              fill="none"
-              stroke={selected ? "#22c55e" : "#f97316"}
-              strokeWidth={3}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ pointerEvents: "none" }}
-              aria-label={path.id}
-            />
-          </g>
-        )
-      })}
-    </svg>
-  )
+  // Breadboard and component-to-component cables must share the exact same
+  // visual and interaction surface: insulation palette, rounded bends,
+  // selection, waypoint insertion, drag and removal. Geometry above remains
+  // anchored to the canonical breadboard hole and physical contact.
+  return <WiresLayer wirePaths={paths} className="wires-layer--breadboard" />
 }
