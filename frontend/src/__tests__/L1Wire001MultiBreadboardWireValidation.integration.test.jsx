@@ -525,3 +525,32 @@ describe('WIRE-FINAL — aborted pointer gestures never create phantom wires', (
     expect(getApi().wires).toHaveLength(0)
   })
 })
+
+describe('WIRE-FINAL — no decorative circuit may masquerade as persisted objects', () => {
+  it('renders an actually empty canvas when all canonical counters are zero', () => {
+    const { container, getApi } = renderCanvas()
+    expect(getApi().components).toHaveLength(0)
+    expect(getApi().breadboards).toHaveLength(0)
+    expect(getApi().wires).toHaveLength(0)
+    expect(container.querySelectorAll('svg.breadboard-wire-endpoints')).toHaveLength(0)
+    expect(container.querySelectorAll('.breadboard')).toHaveLength(0)
+    expect(container.querySelectorAll('.circuit-component')).toHaveLength(0)
+    expect(container.querySelectorAll('.wires-layer path[aria-label]')).toHaveLength(0)
+    const status = container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(status).toContain('Composants : 0')
+    expect(status).toContain('Fils : 0')
+    expect(status).toContain('Plaques : 0')
+    expect(status).toContain('Circuit vide')
+    expect(status).toContain('Prêt (éditeur)')
+    expect(status).toContain('Simulation arrêtée')
+  })
+
+  it('does not claim an empty document after creating an actual breadboard', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => getApi().addBreadboard(0, 0))
+    const status = container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(status).toContain('Plaques : 1')
+    expect(status).not.toContain('Circuit vide')
+    expect(container.querySelectorAll('svg.breadboard-wire-endpoints')).toHaveLength(1)
+  })
+})
