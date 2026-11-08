@@ -43,7 +43,7 @@ export class AddComponentHandler extends BaseCommandHandler {
     };
   }
 
-  _applyRedo(command, document, lastResult) {
+  _applyRedo(command, document) {
     const componentId = command.payload.componentId;
     const { componentType, position = { x: 0, y: 0 }, parameters = {}, firmware, properties } = command.payload;
 
