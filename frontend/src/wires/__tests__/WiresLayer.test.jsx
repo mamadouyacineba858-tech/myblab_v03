@@ -154,12 +154,13 @@ describe('WIRE-006 — physical insulation rendering', () => {
     expect(visiblePath.getAttribute('stroke')).toBe('#1f2937')
     expect(visiblePath.getAttribute('class')).toContain('wires-layer__wire--high')
   })
-  it('keeps the green selection highlight even with custom insulation', () => {
+  it('keeps the chosen insulation color and adds a selection halo', () => {
     const { visiblePath } = renderWithContext({
       wires: [{ ...WIRE, color: 'black' }],
       isSelected: () => true,
     })
-    expect(visiblePath.getAttribute('stroke')).toBe('#22c55e')
+    expect(visiblePath.getAttribute('stroke')).toBe('#1f2937')
+    expect(visiblePath.getAttribute('class')).toContain('wires-layer__wire--selected')
   })
 })
 
