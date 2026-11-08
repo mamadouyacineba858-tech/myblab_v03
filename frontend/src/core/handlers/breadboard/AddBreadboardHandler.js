@@ -68,7 +68,7 @@ export class AddBreadboardHandler extends BaseCommandHandler {
     };
   }
 
-  _applyRedo(command, document, lastResult) {
+  _applyRedo(command, document) {
     const breadboardId = command.payload.breadboardId;
 
     if (!breadboardId) {
