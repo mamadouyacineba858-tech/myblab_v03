@@ -177,9 +177,9 @@ export function DevelopmentAuditPanel({ onClose }) {
     return () => window.removeEventListener("myblab:visual-audit", onVisualAudit);
   }, []);
   const [runner, setRunner] = useState(null);
-  const [clock, setClock] = useState(Date.now());
+  const [clock, setClock] = useState(0);
   const [runnerError, setRunnerError] = useState("");
-  const [autoOpened, setAutoOpened] = useState(false);
+  const [, setAutoOpened] = useState(false);
   const lastOpenedRun = useRef(null);
   const reportTab = useRef(null);
   const auditStartedHere = useRef(false);
