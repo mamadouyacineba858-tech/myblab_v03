@@ -409,7 +409,7 @@ export function compileFirmware(source) {
   // A function name must be a single identifier; its body is replaced only
   // when the entire top-level declaration was recognized.
   let helperTopLevel = topLevel
-  for (const [name, helper] of helpers) {
+  for (const [, helper] of helpers) {
     const original = clean.slice(helper.headerIndex, helper.bodyStartOffset + helper.body.length + 1)
     helperTopLevel = helperTopLevel.replace(original, "")
   }
