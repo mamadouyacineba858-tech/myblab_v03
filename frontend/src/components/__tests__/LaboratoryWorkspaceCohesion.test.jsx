@@ -154,7 +154,7 @@ describe('MB-VIS-LAB-046 — Navbar : commandes existantes inchangées (O2, T19-
 
 describe('MB-VIS-LAB-046 — SettingsPanel : ouverture/fermeture + cohérence thème (O7/F13, T28-T30)', () => {
   it("T28 — Settings s'ouvre/se ferme correctement (comportement inchangé)", () => {
-    const { getByTitle, container, queryByText } = renderNavbar()
+    const { getByTitle, container } = renderNavbar()
     expect(container.querySelector('.settings-panel')).toBe(null)
 
     fireEvent.click(getByTitle('Ouvrir les paramètres'))
