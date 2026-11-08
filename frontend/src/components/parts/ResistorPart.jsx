@@ -76,7 +76,7 @@ const BAND_CSS_COLOR = {
 const BAND_HIGHLIGHT_OVERLAY =
   'linear-gradient(180deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.22) 100%)'
 
-export function ResistorPart({ uid, parameters } = {}) {
+export function ResistorPart({ parameters } = {}) {
   const def = getComponentDef("RESISTOR")
   const width = def?.width ?? 84
   const height = def?.height ?? 28
