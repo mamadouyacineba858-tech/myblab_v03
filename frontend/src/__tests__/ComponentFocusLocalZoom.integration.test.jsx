@@ -94,7 +94,7 @@ describe("MB-VIS-CANVAS-052 — Focus de composant + échelle visuelle locale", 
       getApi().addComponent("LED", 100, 100)
       getApi().addComponent("RESISTOR", 300, 100)
     })
-    const [led, resistor] = getApi().components
+    const [led] = getApi().components
 
     act(() => { getApi().selectOnly({ type: "component", id: led.uid }) })
     pressKey("Enter")
