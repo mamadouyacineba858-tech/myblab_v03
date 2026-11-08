@@ -93,7 +93,7 @@ function WireVisual({
         className="wires-layer__hitzone"
         style={{ pointerEvents: 'stroke' }}
         onClick={onSelect}
-        onDoubleClick={selected ? onHitzoneDoubleClick : undefined}
+        onDoubleClick={onHitzoneDoubleClick}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
       />
@@ -291,9 +291,8 @@ export function WiresLayer({ wirePaths = [] }) {
     [updateWireWaypoints, wiresById]
   )
 
-  // MB-VIS-005 (Phase E) : création — double-clic sur le tracé (hitzone),
-  // uniquement lorsque le wire est déjà sélectionné (WireVisual ne câble
-  // ce gestionnaire que dans ce cas). Index d'insertion dérivé du tracé
+  // WIRE-FINAL: un double-clic insère directement un point de passage,
+  // sans exiger une sélection préalable du fil. Index d'insertion dérivé du tracé
   // effectivement rendu (extractPointsFromPathData, réutilisé — pas de
   // résolution indépendante de position de pin ici), via
   // nearestSegmentInsertIndex (waypointInsertion.js). Composition locale
