@@ -63,9 +63,8 @@ describe("MB-VIS-COMP-005 — getPinPosition() : fonction géométrique canoniqu
     // `component`, ni `pin`. On le simule ici en confirmant qu'aucune
     // mutation de zoom externe (représentée par une variable locale,
     // jamais lue par la fonction) n'affecte le résultat.
-    let zoom = 1
     const after1 = getPinPosition(component, pin)
-    zoom = 2.5
+    const zoom = 2.5
     const after2 = getPinPosition(component, pin)
     expect(after1).toEqual(before)
     expect(after2).toEqual(before)
