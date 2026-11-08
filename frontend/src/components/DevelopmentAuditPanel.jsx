@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ComponentVisualMicroscope } from "./ComponentVisualMicroscope.jsx";
+import { useCircuit } from "../context/useCircuit.js";
+import { useCircuitInteraction } from "../context/useCircuitInteraction.js";
 
 /**
  * MB-UI-AUDIT-002 — audit navigateur non destructif.
@@ -39,7 +41,7 @@ function contrast(foreground, background) {
   if (a === null || b === null) return null;
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
-function auditBrowser() {
+function auditBrowser(canonical) {
   const checks = STRUCTURE.map(([id, label, selector]) => {
     const node = document.querySelector(selector);
     return result(id, label, visible(node) ? "PASS" : "FAIL",
@@ -92,13 +94,26 @@ function auditBrowser() {
   for (const [id, label] of OUT_OF_SCOPE) {
     checks.push(result(id, label, "BLOCKED", "Nécessite un harness de test externe ou une qualification dédiée", "functional"));
   }
+  const dom = {
+    components: document.querySelectorAll(".simulation-canvas .circuit-component").length,
+    breadboards: document.querySelectorAll(".simulation-canvas svg.breadboard").length,
+    wires: new Set([...document.querySelectorAll(".simulation-canvas .wires-layer path[aria-label]")].map(node => node.getAttribute("aria-label"))).size,
+  };
+  for (const [key, label] of [["components", "Composants"], ["breadboards", "Plaques"], ["wires", "Fils"]]) {
+    const expected = canonical?.[key];
+    checks.push(result("circuit-truth-" + key, label + " : DOM / Document",
+      typeof expected !== "number" ? "BLOCKED" : dom[key] === expected ? "PASS" : "FAIL",
+      "Affichés=" + dom[key] + " ; enregistrés=" + (expected ?? "indisponible"),
+      "circuit-integrity"));
+  }
   const failed = checks.filter(c => c.status === "FAIL").length;
   return {
     schema: "myblab.dev-audit.v2",
     timestamp: new Date().toISOString(),
     page: window.location.pathname,
     viewport: { width: window.innerWidth, height: window.innerHeight, devicePixelRatio: window.devicePixelRatio },
-    scope: "Contrôles DOM, navigation et accessibilité uniquement ; aucune simulation électrique",
+    scope: "Contrôles DOM, navigation, accessibilité et cohérence visuelle du Document ; aucune simulation électrique",
+    circuitIntegrity: { rendered: dom, canonical },
     checks,
     totals: { pass: checks.filter(c => c.status === "PASS").length, fail: failed, blocked: checks.filter(c => c.status === "BLOCKED").length },
     verdict: failed ? "PRECHECK_FAIL" : "PRECHECK_ONLY",
@@ -106,6 +121,13 @@ function auditBrowser() {
   };
 }
 export function DevelopmentAuditPanel({ onClose }) {
+  const { wires } = useCircuit();
+  const { components, breadboards } = useCircuitInteraction();
+  const canonical = {
+    components: Array.isArray(components) ? components.length : 0,
+    breadboards: Array.isArray(breadboards) ? breadboards.length : 0,
+    wires: Array.isArray(wires) ? wires.length : 0,
+  };
   const [report, setReport] = useState(null);
   const [visualEvidence, setVisualEvidence] = useState(null);
   useEffect(() => {
@@ -120,7 +142,7 @@ export function DevelopmentAuditPanel({ onClose }) {
   const lastOpenedRun = useRef(null);
   const reportTab = useRef(null);
   const auditStartedHere = useRef(false);
-  const run = useCallback(() => setReport(auditBrowser()), []);
+  const run = useCallback(() => setReport(auditBrowser(canonical)), [canonical.components, canonical.breadboards, canonical.wires]);
   const refresh = useCallback(async () => {
     try {
       const response = await fetch("/__myblab_dev_audit/status", { cache: "no-store" });
@@ -146,7 +168,7 @@ export function DevelopmentAuditPanel({ onClose }) {
       reportTab.current.document.body.textContent = "MYBlab : audit en cours. Le JSON final apparaîtra ici automatiquement après tous les contrôles.";
     }
     auditStartedHere.current = true;
-    setReport(auditBrowser());
+    setReport(auditBrowser(canonical));
     window.dispatchEvent(new Event("myblab:run-visual-audit"));
     try {
       const response = await fetch("/__myblab_dev_audit/run", { method: "POST" });
