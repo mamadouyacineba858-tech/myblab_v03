@@ -58,7 +58,8 @@ export class UpdateWireColorHandler extends BaseCommandHandler {
       ...document,
       wires: document.wires.map((wire) => {
         if (wire.id !== wireId) return wire
-        const { color: _previousColor, ...unchanged } = wire
+        const unchanged = { ...wire }
+        delete unchanged.color
         return color === null ? unchanged : { ...unchanged, color }
       }),
     }
