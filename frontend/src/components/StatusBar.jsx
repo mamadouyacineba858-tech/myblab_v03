@@ -8,9 +8,10 @@ export function StatusBar() {
   // state haute fréquence côté useCircuitState.js (componentsForRender/
   // wirePaths suivent le preview de drag) — inchangé fonctionnellement ici,
   // seule la source de lecture est désormais explicite.
-  const { components } = useCircuitInteraction();
+  const { components, breadboards } = useCircuitInteraction();
   // Les fils vers un trou de breadboard ne sont pas dans wirePaths : on compte les fils persistés.
   const wireCount = Array.isArray(wires) ? wires.length : 0;
+  const boardCount = Array.isArray(breadboards) ? breadboards.length : 0;
 
 
   return (
@@ -21,6 +22,10 @@ export function StatusBar() {
 
       <span className="myblab-statusbar__item">
         🔌 Fils : {wireCount}
+      </span>
+
+      <span className="myblab-statusbar__item">
+        Plaques : {boardCount}
       </span>
 
       <span className="myblab-statusbar__item">
