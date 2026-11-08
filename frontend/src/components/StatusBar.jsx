@@ -13,12 +13,14 @@ export function StatusBar() {
   // Les fils vers un trou de breadboard ne sont pas dans wirePaths : on compte les fils persistés.
   const wireCount = Array.isArray(wires) ? wires.length : 0;
   const boardCount = Array.isArray(breadboards) ? breadboards.length : 0;
+  const componentCount = Array.isArray(components) ? components.length : 0;
+  const circuitEmpty = componentCount === 0 && wireCount === 0 && boardCount === 0;
 
 
   return (
     <footer className="myblab-statusbar">
       <span className="myblab-statusbar__item">
-        🧩 Composants : {components.length}
+        🧩 Composants : {componentCount}
       </span>
 
       <span className="myblab-statusbar__item">
@@ -30,12 +32,18 @@ export function StatusBar() {
       </span>
 
       <span className="myblab-statusbar__item">
-        {isWiringActive ? "✏️ Câblage en cours..." : "✅ Prêt"}
+        {isWiringActive ? "✏️ Câblage en cours..." : "✅ Éditeur prêt"}
       </span>
 
       <span className="myblab-statusbar__item">
         {simulationActive ? "▶ Simulation active" : "⏹ Simulation arrêtée"}
       </span>
+
+      {circuitEmpty && (
+        <span className="myblab-statusbar__item" role="status">
+          Circuit vide — aucun élément enregistré
+        </span>
+      )}
     </footer>
   );
 }
