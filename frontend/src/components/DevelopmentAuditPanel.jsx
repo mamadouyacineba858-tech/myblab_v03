@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ComponentVisualMicroscope } from "./ComponentVisualMicroscope.jsx";
 import { useCircuit } from "../context/useCircuit.js";
 import { useCircuitInteraction } from "../context/useCircuitInteraction.js";
@@ -163,12 +163,12 @@ function auditBrowser(canonical, selectedComponent) {
 export function DevelopmentAuditPanel({ onClose }) {
   const { wires, selectedComponent, documentCounts } = useCircuit();
   const { components, breadboards } = useCircuitInteraction();
-  const canonical = {
+  const canonical = useMemo(() => ({
     components: documentCounts?.components ?? (Array.isArray(components) ? components.length : 0),
     componentUids: Array.isArray(components) ? components.map(c => c.uid) : [],
     breadboards: documentCounts?.breadboards ?? (Array.isArray(breadboards) ? breadboards.length : 0),
     wires: documentCounts?.wires ?? (Array.isArray(wires) ? wires.length : 0),
-  };
+  }), [documentCounts, components, breadboards, wires]);
   const [report, setReport] = useState(null);
   const [visualEvidence, setVisualEvidence] = useState(null);
   useEffect(() => {
@@ -183,7 +183,7 @@ export function DevelopmentAuditPanel({ onClose }) {
   const lastOpenedRun = useRef(null);
   const reportTab = useRef(null);
   const auditStartedHere = useRef(false);
-  const run = useCallback(() => setReport(auditBrowser(canonical, selectedComponent)), [canonical.components, canonical.componentUids, canonical.breadboards, canonical.wires, selectedComponent]);
+  const run = useCallback(() => setReport(auditBrowser(canonical, selectedComponent)), [canonical, selectedComponent]);
   const refresh = useCallback(async () => {
     try {
       const response = await fetch("/__myblab_dev_audit/status", { cache: "no-store" });
@@ -220,7 +220,7 @@ export function DevelopmentAuditPanel({ onClose }) {
       if (reportTab.current && !reportTab.current.closed) reportTab.current.document.body.textContent = "Audit non démarré : " + String(error.message || error);
       setRunnerError(String(error.message || error));
     }
-  }, [refresh, canonical.components, canonical.componentUids, canonical.breadboards, canonical.wires, selectedComponent]);
+  }, [refresh, canonical, selectedComponent]);
   const download = useCallback(() => {
     if (runner?.phase !== "DONE") return;
     if (!report && !runner) return;
