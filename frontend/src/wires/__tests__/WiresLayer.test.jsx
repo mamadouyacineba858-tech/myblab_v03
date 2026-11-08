@@ -353,7 +353,7 @@ describe('MB-VIS-005 (ruling CSA du 2026-08-21, Phase E) — poignées de waypoi
     expect(nextWaypoints).toEqual([{ x: 50, y: 0 }])
   })
 
-  it('double-clic sur le tracé d\'un wire NON sélectionné ne fait rien (création réservée à un wire déjà sélectionné)', () => {
+  it('double-clic sur un fil non sélectionné insère directement un waypoint', () => {
     const updateWireWaypoints = vi.fn()
     const { hitzone } = renderWithContext({
       wires: [{ ...WIRE, waypoints: [] }],
@@ -362,7 +362,7 @@ describe('MB-VIS-005 (ruling CSA du 2026-08-21, Phase E) — poignées de waypoi
       canvasRef: makeCanvasRef(),
     })
     fireEvent.doubleClick(hitzone, { clientX: 50, clientY: 0 })
-    expect(updateWireWaypoints).not.toHaveBeenCalled()
+    expect(updateWireWaypoints).toHaveBeenCalledWith('wire-1', [{ x: 50, y: 0 }])
   })
 
   it('sans canvasRef/updateWireWaypoints/startWaypointDrag fournis par le contexte (garde défensive), aucune interaction ne lève d\'erreur', () => {
