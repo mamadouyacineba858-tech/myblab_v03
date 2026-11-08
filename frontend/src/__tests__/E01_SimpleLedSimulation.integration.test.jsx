@@ -30,6 +30,7 @@ describe("E01 — Simple LED Simulation with Ammeter", () => {
       { fromUid: "l1", fromPin: "cathode", toUid: "power1", toPin: "GND" },
     ]
 
+    const prepared = prepareCircuit(components, wires)
     const { pinSignals } = resolveSignals(components, prepared)
 
     const ledState = getLedState("l1", pinSignals, {
