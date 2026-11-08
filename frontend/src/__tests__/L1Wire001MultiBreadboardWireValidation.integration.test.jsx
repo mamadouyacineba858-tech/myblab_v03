@@ -360,3 +360,34 @@ describe('WIRE-FINAL — browser-level breadboard hole drag affordance', () => {
     expect(getApi().wires).toHaveLength(before)
   })
 })
+
+describe('WIRE-FINAL — persistence of edited physical breadboard cables', () => {
+  it('preserves selected insulation and waypoints through undo, redo and export/import', () => {
+    const { result } = renderApi()
+    act(() => {
+      result.current.addBreadboard(0, 0)
+      result.current.addBreadboard(480, 0)
+    })
+    const [a, b] = result.current.breadboards
+    const from = { uid: `__breadboard_hole__:${encodeURIComponent(a.id)}:5:3`, pinId: '__BREADBOARD_HOLE__' }
+    const to = { uid: `__breadboard_hole__:${encodeURIComponent(b.id)}:5:3`, pinId: '__BREADBOARD_HOLE__' }
+    act(() => result.current.addWire(from.uid, from.pinId, to.uid, to.pinId))
+    expect(result.current.wires).toHaveLength(1)
+    const id = result.current.wires[0].id
+    act(() => result.current.updateWireColor(id, '#ef4444'))
+    expect(result.current.wires[0].color).toBe('#ef4444')
+    const bends = [{ x: 160, y: 90 }, { x: 320, y: 90 }]
+    act(() => result.current.updateWireWaypoints(id, bends))
+    expect(result.current.wires[0].waypoints).toEqual(bends)
+    act(() => result.current.undo())
+    expect(result.current.wires[0].color).toBe('#ef4444')
+    act(() => result.current.redo())
+    expect(result.current.wires[0].waypoints).toEqual(bends)
+    const saved = result.current.exportCircuit()
+    const fresh = renderApi()
+    act(() => fresh.result.current.importCircuit(saved))
+    expect(fresh.result.current.exportCircuit()).toEqual(saved)
+    expect(fresh.result.current.wires[0].color).toBe('#ef4444')
+    expect(fresh.result.current.wires[0].waypoints).toEqual(bends)
+  })
+})
