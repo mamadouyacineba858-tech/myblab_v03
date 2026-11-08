@@ -31,6 +31,7 @@ describe("E01 — Simple LED Simulation with Ammeter", () => {
     ]
 
     const prepared = prepareCircuit(components, wires)
+    const prepared = prepareCircuit(components, wires)
     const { pinSignals } = resolveSignals(components, prepared)
 
     const ledState = getLedState("l1", pinSignals, {
