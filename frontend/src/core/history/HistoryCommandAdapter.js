@@ -142,11 +142,11 @@ class AdaptedHistoryCommand extends HistoryCommand {
     return this.apply();
   }
 
-  canMerge(other) {
+  canMerge() {
     return false;
   }
 
-  merge(other) {
+  merge() {
     throw new Error('Merge not implemented for this command type');
   }
 
