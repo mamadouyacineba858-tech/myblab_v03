@@ -1,19 +1,13 @@
 import React from 'react'
 import { useCircuit } from "../context/useCircuit.js";
-import { useCircuitInteraction } from "../context/useCircuitInteraction.js";
 import "./StatusBar.css";
 
 export function StatusBar() {
-  const { isWiringActive, simulationActive, wires } = useCircuit();
-  // MB-VIS-CANVAS-051 : `components`/`wirePaths` (comptage seul) relèvent du
-  // state haute fréquence côté useCircuitState.js (componentsForRender/
-  // wirePaths suivent le preview de drag) — inchangé fonctionnellement ici,
-  // seule la source de lecture est désormais explicite.
-  const { components, breadboards } = useCircuitInteraction();
-  // Les fils vers un trou de breadboard ne sont pas dans wirePaths : on compte les fils persistés.
-  const wireCount = Array.isArray(wires) ? wires.length : 0;
-  const boardCount = Array.isArray(breadboards) ? breadboards.length : 0;
-  const componentCount = Array.isArray(components) ? components.length : 0;
+  const { isWiringActive, simulationActive, documentCounts } = useCircuit();
+  // Always count persisted document objects, never transient drag previews.
+  const componentCount = documentCounts?.components ?? 0;
+  const wireCount = documentCounts?.wires ?? 0;
+  const boardCount = documentCounts?.breadboards ?? 0;
   const circuitEmpty = componentCount === 0 && wireCount === 0 && boardCount === 0;
 
 
