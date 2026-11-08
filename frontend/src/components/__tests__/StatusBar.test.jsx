@@ -25,4 +25,32 @@ describe("StatusBar wire count", () => {
     expect(screen.getByText(/Fils : 0/)).toBeTruthy()
     expect(screen.getByText(/Circuit vide/)).toBeTruthy()
   })
+  it("never counts a drag-preview component or a wire geometry that is not persisted", () => {
+    circuit.value = {
+      isWiringActive: true,
+      simulationActive: false,
+      documentCounts: { components: 3, wires: 5, breadboards: 1 },
+      // These legacy fields must not override canonical persisted counts.
+      wires: [{ id: "temporary-preview" }],
+    }
+    render(<StatusBar />)
+    expect(screen.getByText(/Composants : 3/)).toBeTruthy()
+    expect(screen.getByText(/Fils : 5/)).toBeTruthy()
+    expect(screen.getByText(/Plaques : 1/)).toBeTruthy()
+    expect(screen.queryByText(/Circuit vide/)).toBeNull()
+  })
+
+  it("keeps canonical counters stable when simulation is active", () => {
+    circuit.value = {
+      isWiringActive: false,
+      simulationActive: true,
+      documentCounts: { components: 3, wires: 5, breadboards: 1 },
+    }
+    render(<StatusBar />)
+    expect(screen.getByText(/Composants : 3/)).toBeTruthy()
+    expect(screen.getByText(/Fils : 5/)).toBeTruthy()
+    expect(screen.getByText(/Plaques : 1/)).toBeTruthy()
+    expect(screen.getByText(/Simulation active/)).toBeTruthy()
+  })
+
 })
