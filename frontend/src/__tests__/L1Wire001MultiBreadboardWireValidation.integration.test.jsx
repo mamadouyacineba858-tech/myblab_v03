@@ -14,7 +14,7 @@
  */
 import React from 'react'
 import { describe, it, expect } from 'vitest'
-import { render, renderHook, act } from '@testing-library/react'
+import { render, renderHook, act, fireEvent } from '@testing-library/react'
 import { CircuitProvider } from '../context/CircuitContext.jsx'
 import { useCircuit } from '../context/useCircuit.js'
 import { useCircuitInteraction } from '../context/useCircuitInteraction.js'
@@ -339,5 +339,21 @@ describe('L1-WIRE-001 — Gate W9 : round-trip export/import/export du wire inte
     for (const c of fresh.result.current.components) {
       expect(Object.prototype.hasOwnProperty.call(c, 'breadboardId')).toBe(false)
     }
+  })
+})
+
+describe('WIRE-FINAL — browser-level breadboard hole drag affordance', () => {
+  it('exposes real wire endpoint identity and isolates pointerdown from canvas marquee', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => getApi().addBreadboard(0, 0))
+    const board = getApi().breadboards[0]
+    const hole = findHoleCircle(container, board, 5, 3)
+    expect(hole).not.toBeNull()
+    expect(hole.getAttribute('data-wire-uid')).toContain(board.id)
+    expect(hole.getAttribute('data-wire-pin')).toBe('__BREADBOARD_HOLE__')
+    const bubbled = []
+    container.addEventListener('pointerdown', () => bubbled.push(true))
+    fireEvent.pointerDown(hole, { button: 0, pointerId: 1, clientX: 20, clientY: 20 })
+    expect(bubbled).toHaveLength(0)
   })
 })
