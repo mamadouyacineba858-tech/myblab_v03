@@ -257,7 +257,7 @@ describe('MB-COMPONENT-LIBRARY-002 — second lot (rendu, contrat géométrique,
 
   it.each(LOT2.filter((entry) => entry.label !== null))(
     '$type : aria-label correct',
-    ({ type, Component, label }) => {
+    ({ Component, label }) => {
       const { container } = render(<Component />)
       expect(container.querySelector(`[aria-label="${label}"]`)).not.toBeNull()
     }
