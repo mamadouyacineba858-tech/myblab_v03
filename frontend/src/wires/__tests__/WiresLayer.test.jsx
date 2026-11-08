@@ -378,3 +378,16 @@ describe('MB-VIS-005 (ruling CSA du 2026-08-21, Phase E) — poignées de waypoi
     }).not.toThrow()
   })
 })
+
+describe('WIRE-FINAL — wire pointer gestures are isolated from the canvas', () => {
+  it('stops pointerdown propagation so a marquee cannot steal a wire selection', () => {
+    const parentPointerDown = vi.fn()
+    const selectOnly = vi.fn()
+    const { hitzone } = renderWithContext({ selectOnly })
+    hitzone.parentElement.parentElement.addEventListener('pointerdown', parentPointerDown)
+    fireEvent.pointerDown(hitzone)
+    expect(parentPointerDown).not.toHaveBeenCalled()
+    fireEvent.click(hitzone)
+    expect(selectOnly).toHaveBeenCalledWith({ type: 'wire', id: 'wire-1' })
+  })
+})
