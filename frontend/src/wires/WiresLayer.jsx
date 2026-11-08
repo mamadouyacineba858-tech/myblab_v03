@@ -189,7 +189,7 @@ function WireVisual({
   )
 }
 
-export function WiresLayer({ wirePaths = [], className = '' }) {
+export function WiresLayer({ wirePaths = [], className = '', showPreview = true }) {
   const paths = Array.isArray(wirePaths) ? wirePaths : []
 
   // pinSignals et wires sont déjà exposés par useCircuit() (useCircuitState.js) —
@@ -215,7 +215,7 @@ export function WiresLayer({ wirePaths = [], className = '' }) {
   // du même Context que CircuitComponent.jsx (qui n'en a, lui, jamais besoin).
   const { viewport, wireGesture, components, localScale } = useCircuitInteraction()
   let preview = null
-  if (wireGesture && canvasRef?.current) {
+  if (showPreview && wireGesture && canvasRef?.current) {
     const component = components?.find((c) => c.uid === wireGesture.uid)
     const pin = component && getComponentDef(component.type)?.pins?.find((p) => p.id === wireGesture.pinId)
     // [FT-B-001-S4] Aperçu ancré au CONTACT PHYSIQUE via résolution générique :
