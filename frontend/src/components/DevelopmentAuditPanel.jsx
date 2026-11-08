@@ -106,6 +106,26 @@ function auditBrowser(canonical) {
       "Affichés=" + dom[key] + " ; enregistrés=" + (expected ?? "indisponible"),
       "circuit-integrity"));
   }
+  // A background image can depict electronic parts without producing any
+  // canonical components or wires. Report such evidence separately; do not
+  // silently count pixels as document objects.
+  const canvas = document.querySelector(".simulation-canvas");
+  const visualAssets = canvas ? [...canvas.querySelectorAll("*")].filter(node => {
+    const tag = node.tagName?.toLowerCase();
+    if (tag === "img" || tag === "image" || tag === "canvas" || tag === "video") return true;
+    const bg = window.getComputedStyle(node).backgroundImage;
+    return bg && bg !== "none";
+  }).map(node => ({
+    tag: node.tagName.toLowerCase(),
+    className: typeof node.className === "string" ? node.className : "",
+    backgroundImage: window.getComputedStyle(node).backgroundImage,
+  })) : [];
+  checks.push(result("circuit-visual-assets", "Images et arrière-plans dans le canvas",
+    visualAssets.length ? "BLOCKED" : "PASS",
+    visualAssets.length
+      ? visualAssets.length + " élément(s) visuel(s) à examiner : une image peut représenter un circuit non enregistré"
+      : "Aucune image ou surface bitmap détectée dans le canvas",
+    "circuit-integrity"));
   const failed = checks.filter(c => c.status === "FAIL").length;
   return {
     schema: "myblab.dev-audit.v2",
@@ -113,7 +133,7 @@ function auditBrowser(canonical) {
     page: window.location.pathname,
     viewport: { width: window.innerWidth, height: window.innerHeight, devicePixelRatio: window.devicePixelRatio },
     scope: "Contrôles DOM, navigation, accessibilité et cohérence visuelle du Document ; aucune simulation électrique",
-    circuitIntegrity: { rendered: dom, canonical },
+    circuitIntegrity: { rendered: dom, canonical, visualAssets },
     checks,
     totals: { pass: checks.filter(c => c.status === "PASS").length, fail: failed, blocked: checks.filter(c => c.status === "BLOCKED").length },
     verdict: failed ? "PRECHECK_FAIL" : "PRECHECK_ONLY",
