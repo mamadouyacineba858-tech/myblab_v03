@@ -585,3 +585,27 @@ describe('WIRE-FINAL — Nouveau clears the actual displayed document', () => {
     expect(status).toContain('Circuit vide')
   })
 })
+
+describe('WIRE-FINAL — real assembled circuit counters', () => {
+  it('counts a visible board, LED, resistor, coin cell and persisted cable from one document', () => {
+    const { container, getApi } = renderCanvas()
+    act(() => {
+      getApi().addBreadboard(0, 0)
+      getApi().addComponent('LED', 700, 80)
+      getApi().addComponent('RESISTOR', 850, 80)
+      getApi().addComponent('COIN_CELL_CR2032', 1000, 80)
+    })
+    expect(getApi().components.map(c => c.type)).toEqual(['LED', 'RESISTOR', 'COIN_CELL_CR2032'])
+    const led = getApi().components[0]
+    const resistor = getApi().components[1]
+    act(() => getApi().addWire(led.uid, 'anode', resistor.uid, 'A'))
+    expect(getApi().wires).toHaveLength(1)
+    const status = container.querySelector('.myblab-statusbar')?.textContent || ''
+    expect(status).toContain('Composants : 3')
+    expect(status).toContain('Fils : 1')
+    expect(status).toContain('Plaques : 1')
+    expect(status).not.toContain('Circuit vide')
+    expect(container.querySelectorAll('.circuit-component')).toHaveLength(3)
+    expect(container.querySelectorAll('svg.breadboard')).toHaveLength(1)
+  })
+})
